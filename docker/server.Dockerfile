@@ -1,5 +1,7 @@
 FROM node:22 AS frontend
 
+ARG BUILD_MODE=dev
+
 WORKDIR /app
 
 COPY package.json /app/
@@ -11,7 +13,7 @@ RUN yarn install
 
 COPY client /app/client/
 
-RUN yarn dev
+RUN if [ "$BUILD_MODE" = "prod" ]; then yarn prod; else yarn dev; fi
 
 COPY templates /app/templates/
 RUN yarn md

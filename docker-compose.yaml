@@ -25,10 +25,15 @@ services:
     build:
       context: .
       dockerfile: docker/server.Dockerfile
+      args:
+        BUILD_MODE: prod
     restart: always
     ports:
       - 8080:8080
     environment:
       - MONGO_HOST=mongodb://${MONGO_ADMIN_USER:-admin}:${MONGO_ADMIN_PASS:-pass}@mongodb:27017
+      - URI=https://matatak.org
+      - ALLOWED_ORIGINS=https://matatak.org,https://www.matatak.org
+      - PROD=true
     depends_on:
       - "mongodb"
