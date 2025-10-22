@@ -215,7 +215,7 @@ cg-board square.current-premove {
   background-size: cover;
   z-index: 2;
   will-change: transform;
-  pointer-events: none;
+  pointer-events: auto;
 }
 .shogi .cg-wrap piece, .kyoto .cg-wrap piece, .dobutsu .cg-wrap piece, .tori .cg-wrap piece, .cannonshogi .cg-wrap piece, .janggi .cg-wrap piece {
   background-position: center;
