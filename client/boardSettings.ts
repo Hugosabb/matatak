@@ -325,7 +325,7 @@ class ZoomSettings extends NumberSettings {
 
     constructor(boardSettings: BoardSettings, boardFamily: string, boardName: BoardName = '') {
         const suffix = (boardName) ? '-' + boardName : '';
-        super(boardFamily + '-zoom' + suffix, 80);
+        super(boardFamily + '-zoom' + suffix, 100);
         this.boardSettings = boardSettings;
         this.boardFamily = boardFamily;
         this.boardName = boardName;
