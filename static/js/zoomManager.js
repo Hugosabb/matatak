@@ -75,21 +75,28 @@
                 let translateX = 0;
                 let translateY = 0;
 
-                // if the pieces are on the board (not next to)
-                if (parent && parent.tagName.toLowerCase() === 'cg-board'){
+                //if on mobile, translate clone away from user thumb
+                    if (posTouched.x){
+                        translateY-= 0.6 * (zoomedSize-1)* Math.sign(newTop + rect.height/2 - boardRect.height/2);
+                        translateX-= 0.6 * (zoomedSize-1)* Math.sign(newLeft + rect.width/2 - boardRect.width/2);
+                    }
+                    else{ //Desktop
 
-                    //Check if close to the board limit, define translatation values if so
-                    if (newTop < (zoomedSize - rect.height) / 2) {
-                        translateY = ((zoomedSize - rect.height) / 2) - newTop;
-                    } else if (newTop > boardRect.height - rect.height - (zoomedSize - rect.height) / 2) {
-                        translateY = (boardRect.height - rect.height - (zoomedSize - rect.height) / 2) - newTop;
-                    }
-                    if (newLeft < (zoomedSize - rect.width) / 2) {
-                        translateX = ((zoomedSize - rect.width) / 2) - newLeft;
-                    } else if (newLeft > boardRect.width - rect.width - (zoomedSize - rect.width) / 2) {
-                        translateX = (boardRect.width - rect.width - (zoomedSize - rect.width) / 2) - newLeft;
-                    }
-                }
+                        // if the pieces are on the board (not next to)
+                        if (parent && parent.tagName.toLowerCase() === 'cg-board'){
+
+                            //Check if too close to board limit, define translatation values if so
+                            if (newTop < (zoomedSize - rect.height) / 2) {
+                                translateY+= ((zoomedSize - rect.height) / 2) - newTop;
+                            } else if (newTop > boardRect.height - rect.height - (zoomedSize - rect.height) / 2) {
+                                translateY+= (boardRect.height - rect.height - (zoomedSize - rect.height) / 2) - newTop;
+                            }
+                            if (newLeft < (zoomedSize - rect.width) / 2) {
+                                translateX+= ((zoomedSize - rect.width) / 2) - newLeft;
+                            } else if (newLeft > boardRect.width - rect.width - (zoomedSize - rect.width) / 2) {
+                                translateX+= (boardRect.width - rect.width - (zoomedSize - rect.width) / 2) - newLeft;
+                            }
+                        }}
                     // apply scale + translate
                     clone.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 
