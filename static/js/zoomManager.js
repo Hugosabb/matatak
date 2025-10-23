@@ -1,9 +1,24 @@
-function attachZoomEvents(target) {
+    function isPointInsideElements(x, y, el) {
+        const rect = el.getBoundingClientRect();
+        if (
+            x >= rect.left &&
+            x <= rect.right &&
+            y >= rect.top &&
+            y <= rect.bottom
+        ) {
+            return true; // Point inside the element
+
+        return false;
+    }}
+
+    //Attach this function to each element detected by the observer
+    function attachZoomEvents(target) {
 
         let clone = null;
         let zoomTimer = null;
         let touchStarted = false;
-
+        let posTouched = [0, 0];
+        
         function startZoomTimer() {
 
             const scale = 2.6;
@@ -11,11 +26,19 @@ function attachZoomEvents(target) {
             zoomTimer = setTimeout(() => {
 
                 const rect = target.getBoundingClientRect();
-                console.log
                 clone = target.cloneNode(true);
-                clone.className = target.className + ' zoomed-image';
+                clone.className = target.className;
 
                 const parent = target.parentNode;
+
+                //if a piece is dragged or has parent (meaning the piece has been dropped)
+                if(((parent && parent.tagName.toLowerCase() === 'cg-board'&& parent.querySelector('.dragging')) ||parent===null)
+                   //with not : we are on mobile (postTouched.x exists), and we are still hover the original case=ghost (however zoom impossible on mobile)
+                  && !(isPointInsideElements(posTouched.x,posTouched.y,document.querySelector('.ghost'))))
+                {
+                    return; //no need to zoom anything, just go out the entire "startZoomTimer" function
+                }
+
                 const boardRect = parent.getBoundingClientRect();
                 const zoomedSize = scale * rect.width
 
@@ -23,7 +46,7 @@ function attachZoomEvents(target) {
                 let newLeft = rect.left - boardRect.left
 
 
-                // Forcer position: relative sur le parent si nécessaire
+                // Force the parent position if needed : static to relative
                 const computedParentStyle = getComputedStyle(parent);
                 if (computedParentStyle.position === 'static') {
                     parent.style.position = 'relative';
@@ -90,6 +113,8 @@ function attachZoomEvents(target) {
         // Mobile
         target.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            posTouched.x = e.touches[0].clientX;
+            posTouched.y = e.touches[0].clientY;
             touchStarted = true;
             startZoomTimer();
         });
@@ -107,18 +132,22 @@ function attachZoomEvents(target) {
         document.addEventListener('touchmove', (e) => {
             if (!touchStarted) return;
 
-            const touch = e.touches[0];
-            const el = document.elementFromPoint(touch.clientX, touch.clientY);
-            const isStillOverTarget = el?.closest('piece') === target;
-
-            if (!isStillOverTarget) {
+            posTouched.x = e.touches[0].clientX;
+            posTouched.y = e.touches[0].clientY;
+            let elementRef = target
+            //On mobile, if a pièce is dragged, take the ghost as reference to clear the zoom
+            if(target.parentNode && target.parentNode.tagName.toLowerCase() === 'cg-board'&& target.parentNode.querySelector('.dragging')){
+                elementRef = document.querySelector(".ghost");
+                }
+            // if the touch point is no more on the reference element, clear zoom
+            if (!isPointInsideElements(posTouched.x,posTouched.y,elementRef)){
                 clearZoom();
                 touchStarted = false;
             }
         });
     }
 
-    // Observer pour les ajouts dynamiques
+    // Observer to dynamically attach zoom events to new pieces
     const observer = new MutationObserver((mutations) => {
         mutations.forEach(mutation => {
             mutation.addedNodes.forEach(node => {
@@ -134,5 +163,5 @@ function attachZoomEvents(target) {
 
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Appliquer immédiatement aux éléments déjà présents
+    // apply to existing pieces
     document.querySelectorAll('piece').forEach(attachZoomEvents);
