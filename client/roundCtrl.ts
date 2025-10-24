@@ -35,7 +35,7 @@ let rang = false;
 const CASUAL = '0';
 const LVL_SKILL = [-4, 0, 3, 6, 10, 14, 16, 18, 20];
 const LVL_MOVETIMES = [50, 50, 100, 150, 200, 300, 400, 500, 1000];
-const LVL_DEPTHS = [1, 1, 1, 2, 3, 5, 8, 13, 22];
+const LVL_DEPTHS = [1, 2, 3, 4, 6, 9, 13, 16, 22];
 
 export class RoundController extends GameController {
     assetURL: string;
@@ -1343,6 +1343,7 @@ export class RoundController extends GameController {
 
         this.fsfPostMessage('setoption name UCI_Variant value ' + this.variant.name);
         //this.fsfPostMessage('setoption name UCI_Chess960 value ' + this.chess960);
+        // this.fsfPostMessage('setoption name UCI_LimitStrength value true');
         this.fsfPostMessage('setoption name Skill Level value ' + LVL_SKILL[this.level]);
         //this.fsfPostMessage('setoption name UCI_AnalyseMode value false');
 
@@ -1361,7 +1362,8 @@ export class RoundController extends GameController {
         const threads = parseInt(localStorage.threads || '1');
         const baseMovetime = LVL_MOVETIMES[this.level];
         const movetime = Math.round(baseMovetime / (threads * Math.pow(0.9, threads - 1)));
-        this.fsfPostMessage(`go movetime ${movetime} depth ${LVL_DEPTHS[this.level]}`);
+
+        this.fsfPostMessage(`go depth ${LVL_DEPTHS[this.level]} movetime 7000`);
 
         this.isSearching = false;
     }
