@@ -215,6 +215,7 @@ class Game:
                             self.draw_offers.add(counting_player.username)
 
         self.board = FairyBoard(self.variant, self.initial_fen, self.chess960)
+        self.initial_fen = self.board.initial_fen
 
         # Janggi setup needed when player is not BOT
         if self.variant == "janggi":
@@ -533,7 +534,7 @@ class Game:
 
             # Janggi game starts with a prelude phase to set up horses and elephants, so
             # initial FEN may be different compared to one we used when db game document was created
-            if self.variant == "janggi":
+            if True : # self.variant == "janggi":
                 new_data["if"] = self.board.initial_fen
 
             if self.rated == RATED:

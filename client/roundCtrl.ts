@@ -125,12 +125,8 @@ export class RoundController extends GameController {
         this.profileid = model["profileid"];
         this.level = model["level"];
         this.berserked = {wberserk: model["wberserk"] === "True", bberserk: model["bberserk"] === "True"};
-        if (model["initialFen"]) {
-            this.initialFen = model["initialFen"];
-        } else {
-            this.initialFen = this.fullfen
-            model["initialFen"] = this.initialFen;
-        }
+        
+        this.initialFen = model["initialFen"];
         console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA B ", this.initialFen);
 
         this.settings = true;
