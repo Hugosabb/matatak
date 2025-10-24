@@ -27,10 +27,15 @@ import { PyChessModel } from "./types";
 import { GameController } from './gameCtrl';
 import { handleOngoingGameEvents, Game, gameViewPlaying, compareGames } from './nowPlaying';
 import { createWebsocket } from "@/socket/webSocketUtils";
+import { variantsIni } from './variantsIni';
+import { loadEngine } from './engineLoader';
 import { setPocketRowCssVars } from './pocketRow';
 
 let rang = false;
 const CASUAL = '0';
+const LVL_SKILL = [-4, 0, 3, 6, 10, 14, 16, 18, 20];
+const LVL_MOVETIMES = [50, 50, 100, 150, 200, 300, 400, 500, 1000];
+const LVL_DEPTHS = [1, 1, 1, 2, 3, 5, 8, 13, 22];
 
 export class RoundController extends GameController {
     assetURL: string;
@@ -54,14 +59,23 @@ export class RoundController extends GameController {
     berserkable: boolean;
     settings: boolean;
     tv: boolean;
+    initialFen: string;
     handicap: boolean;
     focus: boolean;
     finishedGame: boolean;
     lastMaybeSentMsgMove: MsgMove; // Always store the last "move" message that was passed for sending via websocket.
                           // In case of bad connection, we are never sure if it was sent (thus the name)
+    isEngineReady: boolean;
+    fsfDebug: boolean;
+    uciOk: boolean;
+    isSearching: boolean;
+
                           // until a "board" message from server is received from server that confirms it.
                           // So if at any moment connection drops, after reconnect we always resend it.
                           // If server received and processed it the first time, it will just ignore it
+    private readyokCallback: (() => void) | null = null;
+    onFSFline: (line: string) => void;
+    
 
     constructor(el: HTMLElement, model: PyChessModel) {
         super(el, model, model.fen, document.getElementById('pocket0') as HTMLElement, document.getElementById('pocket1') as HTMLElement, '');
@@ -110,6 +124,13 @@ export class RoundController extends GameController {
         this.profileid = model["profileid"];
         this.level = model["level"];
         this.berserked = {wberserk: model["wberserk"] === "True", bberserk: model["bberserk"] === "True"};
+        if (model["initialFen"]) {
+            this.initialFen = model["initialFen"];
+        } else {
+            this.initialFen = this.fullfen
+            model["initialFen"] = this.initialFen;
+        }
+        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA B ", this.initialFen);
 
         this.settings = true;
         this.autoPromote = localStorage.autoPromote === undefined ? false : localStorage.autoPromote === "true";
@@ -119,7 +140,59 @@ export class RoundController extends GameController {
 
         this.preaction = false;
 
+        this.onFSFline = (line: string) => {
+            if (this.fsfDebug) console.log(`FSF> ${line}`);
+            if (line.startsWith('bestmove')) {
+                const bestMove = line.split(' ')[1];
+                if (bestMove && bestMove !== '(none)') {
+                    console.log(bestMove);
+                    this.doSendMove(bestMove);
+                }
+            // } else if (line.startsWith('info depth ')
+            //     && line.split(' ')[2] != '0' 
+            //     && line.split(' ')[8] == 'mate' 
+            //     && line.split(' ')[9] == '1') {
+            //         const mate1 = line.split(' ')[19];
+            //         console.log('MATTT EN 1 !!!!!!!!!!!!');
+            //         this.doSendMove(mate1); 
+            } else if (line.startsWith('Fairy-Stockfish')) {
+                window.prompt = function() {
+                    return variantsIni + '\nEOF';
+                }
+                this.fsfPostMessage('load <<EOF');
+                this.fsfPostMessage('uci');
+            } else if (line.includes('readyok') && this.readyokCallback) {
+                this.isEngineReady = true;
+                this.readyokCallback();
+            }
+            else if (line.startsWith('option name UCI_Variant')) {
+                if (!line.includes(this.variant.name)) {
+                    console.log(this.variant.name, line);
+                    console.log('WARNING This variant is NOT supported by Fairy-Stockfish!');
+                    return;
+                } else {
+                    console.log(this.variant.name, 'is supported by Fairy-Stockfish!');
+                }
+            }
+            else if (line.includes('uciok')) {
+                this.uciOk = true;
+                this.isEngineReady = true;
+                this.searchBestMove();
+            }
+        };
+
         this.tournamentGame = this.tournamentId !== '';
+        
+        this.isEngineReady = false;
+        this.fsfDebug = true;
+        this.uciOk = false;
+        this.isSearching = false;
+        loadEngine().then(() => {
+            console.log('Fairy-Stockfish engine loaded for round.');
+            //setInterval(() => this.searchBestMove(), 3000);
+            this.connectFsf();
+        }).catch(console.error);
+
         const parts = this.fullfen.split(" ");
         this.clockOn = (Number(parts[parts.length - 1]) >= 2) && !this.corr;
 
@@ -722,7 +795,7 @@ export class RoundController extends GameController {
         }
     }
 
-    onMsgBoard(msg: MsgBoard) {
+    async onMsgBoard(msg: MsgBoard) {
         if (msg.gameId !== this.gameId) return;
 
         // console.log("got board msg:", msg);
@@ -935,7 +1008,8 @@ export class RoundController extends GameController {
 
                     // prevent sending premove/predrop when (auto)reconnecting websocked asks server to (re)sends the same board to us
                     // console.log("trying to play premove....");
-                    if (this.premove) this.performPremove();
+                    // TODO Handle premove with Local Ai moves
+                    // if (this.premove) this.performPremove();
                 }
                 if (this.clockOn && msg.status < 0) {
                     this.clocks[myclock].start();
@@ -962,6 +1036,18 @@ export class RoundController extends GameController {
                     this.clocks[oppclock].start();
                     // console.log('OPP CLOCK  STARTED');
                 }
+
+                this.searchBestMove();
+                
+                // const isOpponentAI = true; // this.players.some(p => p.startsWith('Local-AI-'));
+                // if (isOpponentAI && this.status < 0) {
+                //     const legalMoves = this.ffishBoard.legalMoves().split(' ').filter(o => o);
+                //     if (legalMoves.length > 0) {
+                //         const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+                //         this.doSendMove(randomMove);
+                //     }
+                    
+                // }              
             }
         }
 
@@ -1225,6 +1311,68 @@ export class RoundController extends GameController {
                 this.vmiscInfoW = patch(this.vmiscInfoW, h('div#misc-infow', ''));
             else
                 this.vmiscInfoB = patch(this.vmiscInfoB, h('div#misc-infob', ''));
+        }
+    }
+
+    connectFsf() {
+        window.onFSFline = this.onFSFline;
+        if (window.fsf && !this.isEngineReady) {
+            // Ne rien faire ici. On attend que le moteur envoie sa ligne de version (dans onFSFline).
+        } else {
+            // Le script stockfish.js n'est peut-être pas encore chargé
+            setTimeout(() => this.connectFsf(), 250);
+        }
+    }
+
+    private isReady(): Promise<void> {
+        return new Promise(resolve => {
+            this.readyokCallback = () => {
+                this.readyokCallback = null; // Le callback est à usage unique
+                resolve();
+            };
+            this.fsfPostMessage('isready');
+        });
+    }
+
+    private async searchBestMove(): Promise<void> {
+        if (this.isSearching || this.level < 0 || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor) {
+            return;
+        }
+        this.isSearching = true;
+        await this.isReady();
+
+        this.fsfPostMessage('setoption name UCI_Variant value ' + this.variant.name);
+        //this.fsfPostMessage('setoption name UCI_Chess960 value ' + this.chess960);
+        this.fsfPostMessage('setoption name Skill Level value ' + LVL_SKILL[this.level]);
+        //this.fsfPostMessage('setoption name UCI_AnalyseMode value false');
+
+        this.fsfPostMessage('ucinewgame');
+        await this.isReady();
+
+        // Définir la position en utilisant le FEN initial et la liste des coups
+        // Remove premove ? .slice(0, this.premove ? -1 : undefined)
+        const moves = this.steps.slice(1).map(s => s.move).filter(m => m).join(' ');
+        this.fsfPostMessage(`position fen ${this.initialFen} moves ${moves}`);
+
+        // Lancer la recherche avec les temps d'horloge actuels
+        //const [wtime, btime] = this.clocktimes;
+        //this.fsfPostMessage(`go wtime ${wtime} btime ${btime} winc ${this.inc * 1000} binc ${this.inc * 1000}`);
+        
+        const threads = parseInt(localStorage.threads || '1');
+        const baseMovetime = LVL_MOVETIMES[this.level];
+        const movetime = Math.round(baseMovetime / (threads * Math.pow(0.9, threads - 1)));
+        this.fsfPostMessage(`go movetime ${movetime} depth ${LVL_DEPTHS[this.level]}`);
+
+        this.isSearching = false;
+    }
+
+    fsfPostMessage(msg: string) {
+        if (window.fsf === undefined) {
+            // At very first time we may have to wait for fsf module to initialize
+            setTimeout(this.fsfPostMessage.bind(this), 100, msg);
+        } else {
+            if (this.fsfDebug) console.debug('<---', msg);
+            window.fsf.postMessage(msg);
         }
     }
 
