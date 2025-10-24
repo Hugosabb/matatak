@@ -31,6 +31,7 @@ from utils import (
 from bug.utils_bug import play_move as play_move_bug
 from websocket_utils import process_ws, get_user, ws_send_json
 from logger import log
+from wsl import handle_create_ai_challenge
 
 MORE_TIME = 15 * 1000
 
@@ -369,6 +370,26 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
     if (game.chess960 or game.random_only) and game.new_960_fen_needed_for_rematch:
         fen = FairyBoard.start_fen(game.variant, game.chess960, disabled_fen=game.initial_fen)
         reused_fen = False
+
+    if opp_player.title == "GHOST":
+        color = "w" if game.wplayer.username == opp_name else "b"
+        if handicap:
+            color = "w" if color == "b" else "b"
+        rematch_data = {
+            "variant": game.variant,
+            "fen": fen,
+            "color": color,
+            "minutes": game.base,
+            "increment": game.inc,
+            "byoyomiPeriod": game.byoyomi_period,
+            "level": game.level,
+            "rm": False,  
+            "chess960": game.chess960,
+            "rated": False,
+            "profileid": "Fairy-Stockfish",
+        }
+        await handle_create_ai_challenge(app_state, ws, user, rematch_data)
+        return
 
     if opp_player.bot:
         if opp_player.username == "Random-Mover":
