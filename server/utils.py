@@ -791,7 +791,9 @@ def sanitize_fen(variant, initial_fen, chess960, base=False):
     invalid0 = len(init) < 2
 
     # Only piece types listed in variant start position can be used later
-    if variant == "dobutsu":
+    if variant == "matatak":
+        non_piece = "~+0123456789[]-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    elif variant == "dobutsu":
         non_piece = "~+0123456789[]hH-"
     elif variant == "orda":
         non_piece = "~+0123456789[]qH-"
