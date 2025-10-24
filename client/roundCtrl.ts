@@ -69,6 +69,7 @@ export class RoundController extends GameController {
     fsfDebug: boolean;
     uciOk: boolean;
     isSearching: boolean;
+    mate1: boolean;
 
                           // until a "board" message from server is received from server that confirms it.
                           // So if at any moment connection drops, after reconnect we always resend it.
@@ -144,17 +145,19 @@ export class RoundController extends GameController {
             if (this.fsfDebug) console.log(`FSF> ${line}`);
             if (line.startsWith('bestmove')) {
                 const bestMove = line.split(' ')[1];
-                if (bestMove && bestMove !== '(none)') {
+                if (bestMove && bestMove !== '(none)' && !this.mate1) {
                     console.log(bestMove);
                     this.doSendMove(bestMove);
                 }
-            // } else if (line.startsWith('info depth ')
-            //     && line.split(' ')[2] != '0' 
-            //     && line.split(' ')[8] == 'mate' 
-            //     && line.split(' ')[9] == '1') {
-            //         const mate1 = line.split(' ')[19];
-            //         console.log('MATTT EN 1 !!!!!!!!!!!!');
-            //         this.doSendMove(mate1); 
+            } else if (line.split(' ')[8] == 'mate' // avoid FSF not finishing the game for severals moves even if obvious win
+                && line.split(' ')[2] != '0' 
+                && line.startsWith('info depth ')
+                && line.split(' ')[9] == '1'
+                && !this.mate1) {
+                    const mate1 = line.split(' ')[19];
+                    this.mate1 = true;
+                    console.log('mate in 1 :', mate1);
+                    this.doSendMove(mate1); 
             } else if (line.startsWith('Fairy-Stockfish')) {
                 window.prompt = function() {
                     return variantsIni + '\nEOF';
@@ -187,6 +190,7 @@ export class RoundController extends GameController {
         this.fsfDebug = true;
         this.uciOk = false;
         this.isSearching = false;
+        this.mate1 = false;
         loadEngine().then(() => {
             console.log('Fairy-Stockfish engine loaded for round.');
             //setInterval(() => this.searchBestMove(), 3000);
