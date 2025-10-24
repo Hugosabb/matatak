@@ -122,18 +122,15 @@ async def handle_create_ai_challenge(app_state: PychessGlobalAppState, ws, user,
     no = await send_game_in_progress_if_any(app_state, user, ws)
     if no:
         return
-    
-    opponent_username = user.username + "Worst Nightmare"
-    opponent = User(app_state, username=opponent_username, anon=True)
-    app_state.users[opponent.username] = opponent
 
     variant = data["variant"]
-    profileid = data["profileid"]
-    # engine = app_state.users[profileid]
 
-    # if variant in ("alice", "fogofwar") or data["rm"] or (engine is None) or (not engine.online):
-    #     # TODO: message that engine is offline, but Random-Mover BOT will play instead
-    #     engine = app_state.users["Random-Mover"]
+    if variant in ("alice", "fogofwar") or data["rm"]:
+        engine = app_state.users["Random-Mover"]
+    else:
+        ghost = User(app_state, username=f"Level {data['level']}", title="GHOST", anon=True)
+        app_state.users[ghost.username] = ghost
+        engine = ghost
 
     seek_id = await new_id(None if app_state.db is None else app_state.db.seek)
     seek = Seek(
@@ -152,16 +149,16 @@ async def handle_create_ai_challenge(app_state: PychessGlobalAppState, ws, user,
     )
     log.debug("adding seek: %s" % seek)
 
-    response = await join_seek(app_state, opponent, seek)
+    response = await join_seek(app_state, engine, seek)
     await ws_send_json(ws, response)
 
-    # if response["type"] != "error":
-    #     gameId = response["gameId"]
-    #     engine.game_queues[gameId] = asyncio.Queue()
-    #     await engine.event_queue.put(challenge(seek))
-    #     if engine.username not in ("Random-Mover", "Fairy-Stockfish"):
-    #         game = app_state.games[gameId]
-    #         await engine.event_queue.put(game.game_start)
+    if response["type"] != "error" and data['rm']:
+        gameId = response["gameId"]
+        engine.game_queues[gameId] = asyncio.Queue()
+        await engine.event_queue.put(challenge(seek))
+        if engine.username not in ("Random-Mover", "Fairy-Stockfish"):
+            game = app_state.games[gameId]
+            await engine.event_queue.put(game.game_start)
 
 
 async def handle_create_seek(app_state, ws, user, data):

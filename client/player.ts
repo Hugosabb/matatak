@@ -11,7 +11,7 @@ export function player(id: string, title: string, name: string, rating: string, 
                     (title !== '') ? h('player-title', title + ' ') : '',
                     name + aiLevel(title, level),
                 ]),
-                h('rating', title !== 'BOT' ? rating : ''),
+                h('rating', !['BOT', 'GHOST'].includes(title) ? rating : ''),
             ]),
         ]),
     ]);

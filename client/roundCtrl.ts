@@ -1335,7 +1335,7 @@ export class RoundController extends GameController {
     }
 
     private async searchBestMove(): Promise<void> {
-        if (this.isSearching || this.level < 0 || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor) {
+        if (this.isSearching || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor || (this.wtitle != 'GHOST' && this.btitle != 'GHOST')) {
             return;
         }
         this.isSearching = true;
