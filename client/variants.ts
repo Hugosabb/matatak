@@ -320,7 +320,7 @@ interface VariantConfig {
 export const VARIANTS: Record<string, Variant> = {
     matatak: variant({
         name: "matatak", displayName: "MATATAK", tooltip: "MATATAK!!!",
-        startFen: "abcdefgk/hijlmnop/qrstwxy1/8/8/QRSTWXY1/HIJLMNOP/ABCDEFGK w - - 0 1",
+        startFen: "abcdefgk/hijlmnop/qrstwxyz/8/8/QRSTWXYZ/HIJLMNOP/ABCDEFGK w - - 0 1",
         icon: "🍍",
         boardFamily: "matatak8x8", pieceFamily: "matatak",
         pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
