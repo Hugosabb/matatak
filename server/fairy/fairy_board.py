@@ -138,6 +138,8 @@ class FairyBoard:
             new_fen = FairyBoard.shuffle_start(variant)
             while new_fen == disabled_fen:
                 new_fen = FairyBoard.shuffle_start(variant)
+        elif variant == 'matatak':
+            new_fen = FairyBoard.matatak_start(variant)
         elif variant == "alice":
             new_fen = sf_alice.start_fen("alice")
         else:
@@ -440,6 +442,25 @@ class FairyBoard:
                 + checks
                 + "0 1"
             )
+        return fen
+    
+    def matatak_start(variant):
+        """Create random initial position."""
+
+        pawns = "abefgjlmpq"
+        champions = "cdehinorstwxyz"
+
+        c1 = random.choice(champions)
+        c2 = random.choice(champions)
+        p1 = random.choice(pawns)
+        p2 = random.choice(pawns)
+        p3 = random.choice(pawns)
+
+        fen = "2" + c1 + "k" + c2 + "3/2" + p1 + p2 + p3 + "3"
+        fen += "/8/8/8/8/" 
+        fen += "3" + p3.upper() + p2.upper() + p1.upper() + "2/3" + c2.upper() + "K" + c1.upper() + "2"
+        fen += " w - - 0 1"
+        
         return fen
 
 
