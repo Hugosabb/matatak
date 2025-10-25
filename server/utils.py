@@ -516,8 +516,6 @@ async def insert_game_to_db(game, app_state: PychessGlobalAppState):
     ):
         document["uci"] = 1
 
-    document["if"] = game.board.initial_fen
-
     if game.variant == "janggi":
         document["ws"] = game.wsetup
         document["bs"] = game.bsetup
