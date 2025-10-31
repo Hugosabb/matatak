@@ -1433,22 +1433,5 @@ export function lobbyView(model: PyChessModel): VNode[] {
             ]),
         ]),
         h('div.tv', [h('a#tv-game', { attrs: {href: '/tv'} })]),
-        h('under-lobby', [
-            h('posts', blogs.map((post: Post) =>
-                h('a.post', { attrs: {href: `/blogs/${post['_id']}`} }, [
-                    h('img', { attrs: {src: model.assetURL + `${post['image']}`, alt: `${post['alt']}`} }),
-                    h('time', `${post['date']}`),
-                    h('span.author', [
-                        h('player-title', `${post['atitle']} `),
-                        `${post['author']}`,
-                    ]),
-                    h('span.text', [
-                        h('strong', `${post['title']}`),
-                        h('span', `${post['subtitle']}`),
-                    ]),
-                ])
-            )),
-        ]),
-        h('div.puzzle', [h('a#daily-puzzle', { attrs: {href: '/puzzle/daily'} }, dailyPuzzle)]),
     ];
 }
