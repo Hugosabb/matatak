@@ -86,6 +86,7 @@ export interface Seek {
     day: number;
     chess960: boolean;
     rated: boolean;
+    draft: boolean;
 
     bot: boolean;
     rating: number;

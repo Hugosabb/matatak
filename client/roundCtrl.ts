@@ -63,13 +63,14 @@ export class RoundController extends GameController {
     handicap: boolean;
     focus: boolean;
     finishedGame: boolean;
-    lastMaybeSentMsgMove: MsgMove; // Always store the last "move" message that was passed for sending via websocket.
+    lastMaybeSentMsgMove: MsgMove | undefined; // Always store the last "move" message that was passed for sending via websocket.
                           // In case of bad connection, we are never sure if it was sent (thus the name)
     isEngineReady: boolean;
     fsfDebug: boolean;
     uciOk: boolean;
     isSearching: boolean;
     mate1: boolean;
+    draftPhase: string;
 
                           // until a "board" message from server is received from server that confirms it.
                           // So if at any moment connection drops, after reconnect we always resend it.
@@ -127,7 +128,7 @@ export class RoundController extends GameController {
         this.berserked = {wberserk: model["wberserk"] === "True", bberserk: model["bberserk"] === "True"};
         
         this.initialFen = model["initialFen"];
-        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA B ", this.initialFen);
+        console.log("initialFen : ", this.initialFen);
 
         this.settings = true;
         this.autoPromote = localStorage.autoPromote === undefined ? false : localStorage.autoPromote === "true";
@@ -187,6 +188,7 @@ export class RoundController extends GameController {
         this.uciOk = false;
         this.isSearching = false;
         this.mate1 = false;
+        this.draftPhase = "";
         loadEngine().then(() => {
             console.log('Fairy-Stockfish engine loaded for round.');
             //setInterval(() => this.searchBestMove(), 3000);
@@ -459,6 +461,23 @@ export class RoundController extends GameController {
             setPocketRowCssVars(this);
         }
 
+        // const pocketTop = document.querySelector('.pocket-top') as HTMLElement;
+        // const pocketBottom = document.querySelector('.pocket-bot') as HTMLElement;
+
+        // if (pocketTop && pocketBottom) {
+        //     if ((this.variant.name === 'matatak') == (this.draftPhase === 'CUT')) {
+        //         // Si oui, on affiche les poches
+        //         pocketTop.style.display = 'block';
+        //         pocketBottom.style.display = 'block';
+        //         // Et on configure leur layout correctement
+        //         setPocketRowCssVars(this); 
+        //     } else {
+        //         // Sinon, on les cache
+        //         pocketTop.style.display = 'none';
+        //         pocketBottom.style.display = 'none';
+        //     }
+        // }
+
         // TODO: moretime button
         const new_running_clck = (this.clocks[0].running) ? this.clocks[1] : this.clocks[0];
         this.clocks[0].pause(false);
@@ -588,63 +607,202 @@ export class RoundController extends GameController {
 
     // Janggi second player (Red) setup
     private onMsgSetup = (msg: MsgSetup) => {
-        const buttonEl = document.getElementById('flipLeft') as HTMLElement;
-        if (buttonEl !== null) return;
+        if (this.variant.name === 'matatak') {
+            // TODO display Msgsetup in console :
+            console.log("onMsgSetup for Matatak:", msg);
 
-        this.setupFen = msg.fen;
-        this.chessground.set({fen: this.setupFen});
+            this.setupFen = msg.fen;
+            this.chessground.set({ fen: this.setupFen });
 
-        const side = (msg.color === 'white') ? _('Blue (Cho)') : _('Red (Han)');
-        const message = _('Waiting for %1 to choose starting positions of the horses and elephants...', side);
+            const side = (msg.color === 'white') ? _(this.wplayer) : _(this.bplayer);
+            const message = _('Waiting for %1 to choose...', side);
 
-        this.expiStart = 0;
-        this.renderExpiration();
-        this.turnColor = msg.color;
-        this.expiStart = Date.now();
-        setTimeout(this.showExpiration, 350);
+            this.expiStart = 0;
+            this.renderExpiration();
+            this.turnColor = msg.color;
+            this.expiStart = Date.now();
+            setTimeout(this.showExpiration, 350);
 
-        if (this.spectator || msg.color !== this.mycolor) {
-            chatMessage('', message, "roundchat");
-            return;
-        }
-
-        chatMessage('_server', message, "roundchat");
-
-        const message1 = _('You can use the arrow buttons (below the board -- scroll down to display) to switch them, then click on the check mark to finalize your decision.');
-        chatMessage('_server', message1, "roundchat");
-
-        const message2 = _('To start the game you have to click on the check mark!');
-        chatMessage('_server', message2, "roundchat");
-
-        const switchLetters = (side: number) => {
-            const white = this.mycolor === 'white';
-            const rank = (white) ? 9 : 0;
-            const horse = (white) ? 'N' : 'n';
-            const elephant = (white) ? 'B' : 'b';
-            const parts = this.setupFen.split(' ')[0].split('/');
-            let [left, right] = parts[rank].split('1')
-            if (side === -1) {
-                left = left.replace(horse, '*').replace(elephant, horse).replace('*', elephant);
-            } else {
-                right = right.replace(horse, '*').replace(elephant, horse).replace('*', elephant);
+            if (this.spectator || msg.color !== this.mycolor) {
+                chatMessage('', message, "roundchat");
+                return;
             }
-            parts[rank] = left + '1' + right;
-            this.setupFen = parts.join('/') + ' w - - 0 1' ;
+
+            chatMessage('_server', message, "roundchat");
+
+            let phase = msg.phase;
+            if (phase === "CHOOSE_CHAMPIONS" || phase === "CHOOSE_PAWNS") {
+                const chooseWhat = phase === "CHOOSE_CHAMPIONS" ? "champions" : "pawns";
+                const message1 = _('You can exchange the %1, then click on the check mark to finalize your decision.', chooseWhat);
+                chatMessage('_server', message1, "roundchat");
+            }
+
+            const switchTeams = () => {
+                const fenParts = this.setupFen.split(' ');
+                const ranks = fenParts[0].split('/');
+
+                const changeRankTeam = (rank: string) => {
+                    return rank.split('').reverse().map(char => {
+                        if (char >= 'a' && char <= 'z') return char.toUpperCase();
+                        if (char >= 'A' && char <= 'Z') return char.toLowerCase();
+                        return char;
+                        }).join('');
+                }
+                
+                if (this.mycolor === 'white') {
+                    [ranks[1], ranks[6]] = [changeRankTeam(ranks[6]), changeRankTeam(ranks[1])];
+                } else {
+                    [ranks[0], ranks[7]] = [changeRankTeam(ranks[7]), changeRankTeam(ranks[0])];
+                }
+
+                fenParts[0] = ranks.join('/');
+                this.setupFen = fenParts.join(' ');
+                this.chessground.set({fen: this.setupFen});
+            };
+
+            const sendSetup = () => {
+                // On ne supprime plus le conteneur, on désactive juste les boutons en attendant la réponse.
+                // patch(document.getElementById('janggi-setup-buttons') as HTMLElement, h('div#empty'));
+                this.doSend({ type: "setup", gameId: this.gameId, color: this.mycolor, fen: this.setupFen, phase: phase });
+                const setupContainer = document.getElementById('janggi-setup-buttons') as HTMLElement;
+                if (setupContainer) setupContainer.innerHTML = '';
+            }
+
+            const buttons: VNode[] = [];
+            if (phase === "CHOOSE_CHAMPIONS" || phase === "CHOOSE_PAWNS") {
+                buttons.push(h('button#flipLeft', { on: { click: () => switchTeams() } }, [h('i', { props: { title: _('Switch pieces') }, class: { "icon": true, "icon-exchange": true } }), ]));
+            }
+
+            // Bouton pour valider
+            buttons.push(h('button', { on: { click: () => sendSetup() } }, [h('i', { props: { title: _('Ready') }, class: { "icon": true, "icon-check": true } }), ]));
+
+            const setupContainer = document.getElementById('janggi-setup-buttons') as HTMLElement;
+            if (setupContainer) {
+                setupContainer.innerHTML = ''; // Vider le conteneur
+                patch(setupContainer, h('div#janggi-setup-buttons', buttons));
+            }
+
+        } else if (this.variant.name === 'janggi') {
+            const buttonEl = document.getElementById('flipLeft') as HTMLElement;
+            if (buttonEl !== null) return;
+
+            this.setupFen = msg.fen;
             this.chessground.set({fen: this.setupFen});
+
+            const side = (msg.color === 'white') ? _('Blue (Cho)') : _('Red (Han)');
+            const message = _('Waiting for %1 to choose starting positions of the horses and elephants...', side);
+
+            this.expiStart = 0;
+            this.renderExpiration();
+            this.turnColor = msg.color;
+            this.expiStart = Date.now();
+            setTimeout(this.showExpiration, 350);
+
+            if (this.spectator || msg.color !== this.mycolor) {
+                chatMessage('', message, "roundchat");
+                return;
+            }
+
+            chatMessage('_server', message, "roundchat");
+
+            const message1 = _('You can use the arrow buttons (below the board -- scroll down to display) to switch them, then click on the check mark to finalize your decision.');
+            chatMessage('_server', message1, "roundchat");
+
+            const message2 = _('To start the game you have to click on the check mark!');
+            chatMessage('_server', message2, "roundchat");
+
+            const switchLetters = (side: number) => {
+                const white = this.mycolor === 'white';
+                const rank = (white) ? 9 : 0;
+                const horse = (white) ? 'N' : 'n';
+                const elephant = (white) ? 'B' : 'b';
+                const parts = this.setupFen.split(' ')[0].split('/');
+                let [left, right] = parts[rank].split('1')
+                if (side === -1) {
+                    left = left.replace(horse, '*').replace(elephant, horse).replace('*', elephant);
+                } else {
+                    right = right.replace(horse, '*').replace(elephant, horse).replace('*', elephant);
+                }
+                parts[rank] = left + '1' + right;
+                this.setupFen = parts.join('/') + ' w - - 0 1' ;
+                this.chessground.set({fen: this.setupFen});
+            }
+
+            const sendSetup = () => {
+                patch(document.getElementById('janggi-setup-buttons') as HTMLElement, h('div#empty'));
+                this.doSend({ type: "setup", gameId: this.gameId, color: this.mycolor, fen: this.setupFen });
+            }
+
+            const leftSide = (this.mycolor === 'white') ? -1 : 1;
+            const rightSide = leftSide * -1;
+            patch(document.getElementById('janggi-setup-buttons') as HTMLElement, h('div#janggi-setup-buttons', [
+                h('button#flipLeft', { on: { click: () => switchLetters(leftSide) } }, [h('i', {props: {title: _('Switch pieces')}, class: {"icon": true, "icon-exchange": true} } ), ]),
+                h('button', { on: { click: () => sendSetup() } }, [h('i', {props: {title: _('Ready')}, class: {"icon": true, "icon-check": true} } ), ]),
+                h('button#flipRight', { on: { click: () => switchLetters(rightSide) } }, [h('i', {props: {title: _('Switch pieces')}, class: {"icon": true, "icon-exchange": true} } ), ]),
+            ]));
+        }
+    }
+
+    private resetForNewPhase(msg: { fen: cg.FEN, status: number}) {
+        console.log("Resetting RoundController for new game phase.");
+
+        // 1. Réinitialiser l'état du jeu de base
+        this.ply = 0;
+        this.status = msg.status;
+        this.finishedGame = false;
+        this.lastMaybeSentMsgMove = undefined;
+
+        // 2. Mettre à jour le FEN initial et actuel
+        // C'est l'étape la plus critique pour que le moteur et l'affichage soient synchronisés.
+        this.initialFen = msg.fen;
+        this.fullfen = msg.fen;
+
+        // 3. Réinitialiser l'historique des coups (steps)
+        this.steps = [{
+            'fen': this.fullfen,
+            'move': undefined,
+            'check': false,
+            'turnColor': this.turnColor,
+            }];
+
+        // 4. Mettre à jour l'échiquier visuel (chessground)
+        const parts = msg.fen.split(" ");
+        this.turnColor = parts[1] === "w" ? "white" : "black";
+        this.chessground.set({
+            fen: this.fullfen,
+            turnColor: this.turnColor,
+            lastMove: undefined,
+            check: false, // La nouvelle phase commence sans échec
+            movable: {
+                color: this.mycolor, // Redonner la main au joueur si c'est son tour
+                dests: undefined, // Les destinations seront recalculées
+            },
+        });
+
+        // 5. Mettre à jour l'état du moteur ffish.js
+        if (this.ffishBoard) {
+            this.ffishBoard.setFen(this.fullfen);
+            this.setDests(); // Recalculer les coups légaux pour la nouvelle position
         }
 
-        const sendSetup = () => {
-            patch(document.getElementById('janggi-setup-buttons') as HTMLElement, h('div#empty'));
-            this.doSend({ type: "setup", gameId: this.gameId, color: this.mycolor, fen: this.setupFen });
-        }
+        // 6. Réinitialiser l'affichage
+        // Vider la liste des coups
+        updateMovelist(this, true, true, false);
 
-        const leftSide = (this.mycolor === 'white') ? -1 : 1;
-        const rightSide = leftSide * -1;
-        patch(document.getElementById('janggi-setup-buttons') as HTMLElement, h('div#janggi-setup-buttons', [
-            h('button#flipLeft', { on: { click: () => switchLetters(leftSide) } }, [h('i', {props: {title: _('Switch pieces')}, class: {"icon": true, "icon-exchange": true} } ), ]),
-            h('button', { on: { click: () => sendSetup() } }, [h('i', {props: {title: _('Ready')}, class: {"icon": true, "icon-check": true} } ), ]),
-            h('button#flipRight', { on: { click: () => switchLetters(rightSide) } }, [h('i', {props: {title: _('Switch pieces')}, class: {"icon": true, "icon-exchange": true} } ), ]),
-        ]));
+        // Réinitialiser les affichages de matériel et autres infos
+        if (this.variant.material.showDiff) {
+            this.updateMaterial();
+        }
+        if (this.variant.ui.counting) {
+            this.updateCount(this.fullfen);
+        }
+        this.clearDialog(); // Cacher les dialogues d'offre (nulle, etc.)
+    }
+
+    private onMsgDraftWait = (msg: any) => {
+        chatMessage('_server', _(msg.message), "roundchat");
+        const setupContainer = document.getElementById('janggi-setup-buttons') as HTMLElement;
+        if (setupContainer) setupContainer.innerHTML = '';
     }
 
     private notifyMsg = (msg: string) => {
@@ -856,6 +1014,7 @@ export class RoundController extends GameController {
 
         this.result = msg.result;
         this.status = msg.status;
+        this.draftPhase = msg.phase;
 
         if (msg.steps.length > 1) {
             this.steps = [];
@@ -885,6 +1044,10 @@ export class RoundController extends GameController {
                 updateMovelist(this, full, activate, result);
             }
         }
+
+        // if (this.variant.rules.setup && this.ply === 0 && this.status === -1) { // status STARTED
+        //     this.initialFen = msg.fen;
+        // }
 
         this.clockOn = (Number(msg.ply) >= 2);
         if ((!this.spectator && this.clockOn) || this.tournamentGame) {
@@ -1337,6 +1500,22 @@ export class RoundController extends GameController {
     private async searchBestMove(): Promise<void> {
         if (this.isSearching || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor || (this.wtitle != 'GHOST' && this.btitle != 'GHOST')) {
             return;
+        } else if (this.draftPhase == "CUT"){
+            const legalMoves = this.ffishBoard.legalMoves().split(' ').filter(o => o);
+            if(this.turnColor === "white") {
+                if (legalMoves.includes("K@e1")) {
+                    this.doSendMove("K@e1");
+                    return;
+                } else if (legalMoves.includes("K@e3")) {
+                    this.doSendMove("K@e3");
+                    return;
+                }
+            }
+            if (legalMoves.length > 0) {
+                const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+                this.doSendMove(randomMove);
+                return;
+            }
         }
         this.isSearching = true;
         await this.isReady();
@@ -1353,6 +1532,7 @@ export class RoundController extends GameController {
         // Définir la position en utilisant le FEN initial et la liste des coups
         // Remove premove ? .slice(0, this.premove ? -1 : undefined)
         const moves = this.steps.slice(1).map(s => s.move).filter(m => m).join(' ');
+        console.log("MOVES :", moves);
         this.fsfPostMessage(`position fen ${this.initialFen} moves ${moves}`);
 
         // Lancer la recherche avec les temps d'horloge actuels
@@ -1435,6 +1615,15 @@ export class RoundController extends GameController {
                 break;
             case "berserk":
                 this.onMsgBerserk(msg);
+                break;
+            case "draft_wait":
+                this.onMsgDraftWait(msg);
+                break;
+            case "resetForNewPhase":
+                this.resetForNewPhase({
+                    fen: msg.drop_fen, 
+                    status: -2,
+                });
                 break;
         }
     }

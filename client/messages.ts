@@ -93,6 +93,7 @@ export interface MsgBoard {
     clocksB?: Clocks; // different than last stp clock - includes correction for the color whose turn it is with elapsed time on server since last move
 
     takeback?: boolean;
+    phase: string;
 }
 
 export interface Ceval {

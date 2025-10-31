@@ -51,7 +51,8 @@ for piece in PIECES:
 # More droppable pieces
 #   The variant that uses these pieces (melonvariant) was added after cannonshogi
 #   so these letters need to be here to be backward compatible
-PIECES = "W"
+# Add Matatak pieces
+PIECES = "OTVWXYZ"
 m2c_len = len(M2C) + 34
 for piece in PIECES:
     M2C["%s@" % piece] = m2c_len

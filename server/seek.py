@@ -36,6 +36,7 @@ class Seek:
         game_id=None,
         expire_at=None,
         reused_fen=False,
+        isDraft=False,
     ):
         self.id = seek_id
         self.creator = creator
@@ -67,6 +68,7 @@ class Seek:
 
         # True if this is 960 variant 1st, 3rd etc. rematch seek
         self.reused_fen = reused_fen
+        self.isDraft = isDraft
 
         # Seek is pending when it is not corr, and user has no live lobby websocket
         self.pending = False
@@ -188,6 +190,7 @@ async def create_seek(db, invites, seeks, user, data, empty=False, engine=None):
         player1=None if empty else user,
         player2=engine if target == "BOT_challenge" else None,
         game_id=game_id,
+        isDraft=data.get("isDraft", False),
     )
 
     log.debug("adding seek: %s" % seek)

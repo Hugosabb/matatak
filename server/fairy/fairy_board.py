@@ -75,7 +75,7 @@ def modded_variant(variant: str, chess960: bool, initial_fen: str) -> str:
 
 class FairyBoard:
     def __init__(
-        self, variant: str, initial_fen="", chess960=False, count_started=0, disabled_fen=""
+        self, variant: str, initial_fen="", chess960=False, count_started=0, disabled_fen="", isDraft=False
     ):
         self.variant = modded_variant(variant, chess960, initial_fen)
         self.sf = sf_alice if variant == "alice" else sf
@@ -107,7 +107,7 @@ class FairyBoard:
                 # print(self.jieqi_covered_pieces)
             else:
                 self.initial_fen = FairyBoard.start_fen(
-                    variant, chess960 or variant == "ataxx", disabled_fen
+                    variant, chess960 or variant == "ataxx", disabled_fen, isDraft          
                 )
         self.move_stack: list[str] = []
         self.ply = 0
@@ -133,13 +133,16 @@ class FairyBoard:
             self.notation = NOTATION_SAN
 
     @staticmethod
-    def start_fen(variant, chess960=False, disabled_fen=""):
+    def start_fen(variant, chess960=False, disabled_fen="", isDraft=False):
         if chess960 or variant == "ataxx":
             new_fen = FairyBoard.shuffle_start(variant)
             while new_fen == disabled_fen:
                 new_fen = FairyBoard.shuffle_start(variant)
         elif variant == 'matatak':
-            new_fen = FairyBoard.matatak_start(variant)
+            if isDraft:
+                new_fen = FairyBoard.matatak_draft_board()
+            else:
+                new_fen = FairyBoard.matatak_random_start()
         elif variant == "alice":
             new_fen = sf_alice.start_fen("alice")
         else:
@@ -444,25 +447,47 @@ class FairyBoard:
             )
         return fen
     
-    def matatak_start(variant):
+    @staticmethod
+    def matatak_random_start():
         """Create random initial position."""
 
         pawns = "abefgjlmpq"
-        champions = "cdehinorstwxyz"
+        champions = "cdhinorstwxyz"
 
-        c1 = random.choice(champions)
-        c2 = random.choice(champions)
-        p1 = random.choice(pawns)
-        p2 = random.choice(pawns)
-        p3 = random.choice(pawns)
+        c1, c2, c3 = random.sample(champions, 3)
+        p1, p2, p3 = random.sample(pawns, 3)
 
         fen = "2" + c1 + "k" + c2 + "3/2" + p1 + p2 + p3 + "3"
         fen += "/8/8/8/8/" 
-        fen += "3" + p3.upper() + p2.upper() + p1.upper() + "2/3" + c2.upper() + "K" + c1.upper() + "2"
+        fen += "3" + p3.upper() + p2.upper() + p1.upper() + "2/3" + c3.upper() + "K" + c1.upper() + "2"
         fen += " w - - 0 1"
-        
         return fen
 
+    @staticmethod
+    def matatak_draft_board() -> str:
+        """Generates a FEN for the matatak cutting phase with pieces in pocket."""
+        # Use a generic 8x8 empty board with pieces in the pocket.
+        pawns = "abefgjlmpq"
+        champions = "cdhinorstwxyz"
+
+        c1 = random.choice(champions).upper()
+        c2 = random.choice(champions).upper()
+        c3 = random.choice(champions).upper()
+        c4 = random.choice(champions).upper()
+        c5 = random.choice(champions).upper()
+        c6 = random.choice(champions).upper()
+        p1 = random.choice(pawns)
+        p2 = random.choice(pawns)
+        p3 = random.choice(pawns)
+        p4 = random.choice(pawns)
+        p5 = random.choice(pawns)
+        p6 = random.choice(pawns)
+        p7 = random.choice(pawns)
+        p8 = random.choice(pawns)
+
+        pieces_in_pocket = "KK"+c1+c2+c3+c4+c5+c6+p1+p2+p3+p4+p5+p6+p7+p8
+
+        return f"8/8/8/8/8/8/8/8[{pieces_in_pocket}] w - - 0 1"
 
 @cache
 def get_fog_fen(fen, persp_color):
