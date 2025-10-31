@@ -121,8 +121,6 @@ export class LobbyController implements ChatController {
 
         patch(document.getElementById('lobbychat') as HTMLElement, chatView(this, "lobbychat"));
 
-        patch(document.getElementById('variants-catalog') as HTMLElement, variantPanels(this));
-
         this.streams = document.getElementById('streams') as HTMLElement;
 
         this.spotlights = document.getElementById('spotlights') as HTMLElement;
@@ -1422,7 +1420,6 @@ export function lobbyView(model: PyChessModel): VNode[] {
             h('div#lobbychat')
         ]),
         h('div.seeks', containers),
-        h('div#variants-catalog'),
         h('aside.sidebar-second', [
             h('div.seekbuttons'),
             h('div.lobby-count', [
