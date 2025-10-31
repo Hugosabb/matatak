@@ -218,6 +218,19 @@ export abstract class GameController extends ChessgroundController implements Ch
                 }
             }
         }
+        if (this.variant.name === 'matatak' ) { // TODO Add CUT PHASE ARG
+            for (const [orig, destArray] of dests) {
+                if (orig.includes('@')) {
+                    if (orig.includes('K') || orig.includes('k')) {
+                        const filteredDests = destArray.filter(dest => dest === 'e1' || dest === 'e3');
+                        dests.set(orig, filteredDests);
+                    } else {
+                        const filteredDests = destArray.filter(dest => dest !== 'e1' && dest !== 'e3');
+                        dests.set(orig, filteredDests);
+                    }
+                }
+            }
+        }
         this.chessground.set({ movable: { dests: dests }});
         if (this.steps.length === 1) {
             this.chessground.set({ check: (this.ffishBoard.isCheck()) ? this.turnColor : false});

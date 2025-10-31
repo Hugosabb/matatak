@@ -34,6 +34,7 @@ from convert import grand2zero, uci2usi, mirror5, mirror9
 from fairy import get_fog_fen, get_san_moves, NOTATION_SAN, FairyBoard, BLACK, WHITE
 from glicko2.glicko2 import gl2
 from draw import reject_draw
+import random
 from settings import URI
 from spectators import spectators
 from logger import log
@@ -73,6 +74,7 @@ class Game:
         create=True,
         tournamentId=None,
         new_960_fen_needed_for_rematch=False,
+        isDraft=False,
     ):
         self.app_state = app_state
 
@@ -99,6 +101,7 @@ class Game:
         self.create = create
         self.new_960_fen_needed_for_rematch = new_960_fen_needed_for_rematch
         self.imported_by = ""
+        self.isDraft = isDraft
 
         self.server_variant = get_server_variant(variant, chess960)
         self.encode_method = self.server_variant.move_encoding
@@ -214,8 +217,12 @@ class Game:
                             )
                             self.draw_offers.add(counting_player.username)
 
-        self.board = FairyBoard(self.variant, self.initial_fen, self.chess960)
-        self.initial_fen = self.board.initial_fen
+        if self.variant == "matatak" and self.isDraft and not self.initial_fen:
+            self.draft_phase = "CUT"
+        else:
+            self.draft_phase = None
+
+        self.board = FairyBoard(self.variant, self.initial_fen, self.chess960, isDraft = self.isDraft)
 
         # Janggi setup needed when player is not BOT
         if self.variant == "janggi":
@@ -272,6 +279,8 @@ class Game:
                 "clocks": (self.clocks_w[0], self.clocks_b[0]),
             }
         ]
+
+        self.initial_fen = self.board.initial_fen
 
         self.last_move_time = None
         if self.corr:
@@ -420,6 +429,43 @@ class Game:
                 )
                 self.stopwatch.restart()
 
+                cut_board_fen = self.board.fen.split(' ')[0].split('[')[0]
+                if self.draft_phase == "CUT" and sum(c.isalpha() for c in cut_board_fen) == 12:
+
+                    final_fen = self.board.fen
+                    log.info(f"Phase de drop terminée pour la partie {self.id}. FEN final: {final_fen}")
+
+                    log.info(f"Resetting game {self.id} for Matatak setup phase.")            
+
+                    droppedPieces = [ c for c in cut_board_fen if c.isalpha()]
+                    firstPawnRank = "".join(droppedPieces[0:3])
+                    secondPawnRank = "".join(droppedPieces[3:6])
+                    secondChampionRank = "".join(droppedPieces[6:9])
+                    firstChampionsRank = "".join(droppedPieces[9:12])
+
+                    setup_fen = "2" + firstChampionsRank.lower() + "3/2" + firstPawnRank.lower() + "3"
+                    setup_fen += "/8/8/8/8/" 
+                    setup_fen += "3" + secondPawnRank.upper() + "2/3" + secondChampionRank.upper() + "2"
+                    setup_fen += " w - - 0 1"
+
+                    self.board = FairyBoard(self.variant, setup_fen, self.chess960)
+                    
+                    self.initial_fen = setup_fen 
+                    
+                    self.status = CREATED
+                    self.draft_phase = "CHOOSE_PAWNS"
+                    # self.wsetup = True
+                    # self.bsetup = True
+                    self.steps = [{
+                        "fen": self.board.initial_fen,
+                        "san": None,
+                        "turnColor": "white",
+                        "check": False,
+                        "clocks": (self.clocks_w[-1], self.clocks_b[-1]),
+                    }]
+                    self.lastmove = None
+                    self.check = False
+                    
             except Exception:
                 log.exception("ERROR: Exception in game %s play_move() %s", self.id, move)
                 result = "1-0" if self.board.color == BLACK else "0-1"
@@ -460,9 +506,9 @@ class Game:
             "f": self.board.fen,
             "l": datetime.now(timezone.utc),
             "s": self.status,
-            "if": self.board.fen,
-            "ws": self.wsetup,
-            "bs": self.bsetup,
+            "if": self.initial_fen,
+            "ws": "", #self.wsetup,
+            "bs": "", #self.bsetup,
         }
         if self.app_state.db is not None:
             await self.app_state.db.game.find_one_and_update({"_id": self.id}, {"$set": new_data})
@@ -534,8 +580,8 @@ class Game:
 
             # Janggi game starts with a prelude phase to set up horses and elephants, so
             # initial FEN may be different compared to one we used when db game document was created
-            if True : # self.variant == "janggi":
-                new_data["if"] = self.board.initial_fen
+            if self.variant == "janggi" or self.variant == "matatak":
+                new_data["if"] = self.initial_fen
 
             if self.rated == RATED:
                 new_data["cw"] = self.clocks_w[1:]
@@ -1186,6 +1232,7 @@ class Game:
             "ct": crosstable,
             "berserk": {"w": self.wberserk, "b": self.bberserk},
             "by": self.imported_by,
+            "phase": self.draft_phase,
         }
 
     def game_json(self, player):

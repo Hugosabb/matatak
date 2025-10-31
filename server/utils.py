@@ -165,7 +165,7 @@ async def load_game(app_state: PychessGlobalAppState, game_id):
 
     elif variant in GRANDS:
         mlist = [*map(zero2grand, mlist)]
-        if variant == "janggi":
+        if variant == "janggi" : #or variant == "matatak": 
             game.wsetup = doc.get("ws", False)
             game.bsetup = doc.get("bs", False)
 
@@ -445,6 +445,7 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
             corr=seek.day > 0,
             create=True,
             new_960_fen_needed_for_rematch=seek.reused_fen,
+            isDraft=seek.isDraft,
         )
     except Exception:
         log.exception(
@@ -516,7 +517,7 @@ async def insert_game_to_db(game, app_state: PychessGlobalAppState):
     ):
         document["uci"] = 1
 
-    if game.variant == "janggi":
+    if game.variant == "janggi" : #or game.variant == "matatak": TODO
         document["ws"] = game.wsetup
         document["bs"] = game.bsetup
         document["if"] = game.board.initial_fen

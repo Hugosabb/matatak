@@ -10,7 +10,7 @@ from bug.wsr_bug import handle_resign_bughouse, handle_rematch_bughouse, handle_
 import game
 from broadcast import round_broadcast
 from chat import chat_response
-from const import ANON_PREFIX, ANALYSIS, STARTED
+from const import ANON_PREFIX, ANALYSIS, STARTED, CREATED
 from draw import draw, reject_draw
 from fairy import WHITE, BLACK, FairyBoard
 from const import TYPE_CHECKING
@@ -168,6 +168,16 @@ async def handle_move(app_state: PychessGlobalAppState, user, data, game):
         else:
             try:
                 await play_move(app_state, user, game, data["move"], data["clocks"], data["ply"])
+                if game.variant == "matatak" and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE"):
+                    is_bot = await handle_bot_setup(app_state.users, game, game.wplayer, "white", "CHOOSE_PAWNS", game.board.initial_fen)
+                    if not is_bot:
+                        await game.wplayer.send_game_message(game.id, {
+                            "type": "setup",
+                            "color": "white",
+                            "fen": game.board.initial_fen,
+                            "phase": "CHOOSE_PAWNS",
+                            "message": "Choose your pawns" # Message pour le client
+                        })
             except Exception:
                 log.exception(
                     "ERROR: Exception in play_move() in %s by %s ",
@@ -200,7 +210,7 @@ async def handle_ready(ws, users, user, data, game):
     opp_player = await users.get(opp_name)
     if opp_player is not None and opp_player.bot:
         # Janggi game start have to wait for human player setup!
-        if game.variant != "janggi" or not (game.bsetup or game.wsetup):
+        if (game.variant != "janggi" ) or not (game.bsetup or game.wsetup):
             await opp_player.event_queue.put(game.game_start)
 
         response = {"type": "gameStart", "gameId": data["gameId"]}
@@ -213,26 +223,43 @@ async def handle_ready(ws, users, user, data, game):
 
 
 async def handle_board(ws, user, game):
-    if game.variant == "janggi":
+    if game.variant == "janggi" or game.variant == "matatak":
         # print("JANGGI", ws, game.bsetup, game.wsetup, game.status)
-        if (game.bsetup or game.wsetup) and game.status <= STARTED:
-            if game.bsetup:
-                await ws_send_json(
-                    ws,
-                    {
-                        "type": "setup",
-                        "color": "black",
-                        "fen": game.board.initial_fen,
-                    },
-                )
-            elif game.wsetup:
+        if game.variant == "matatak" and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE") and game.status <= CREATED:
+            if game.draft_phase == "CHOOSE_PAWNS" and user.username == game.wplayer.username:
                 await ws_send_json(
                     ws,
                     {
                         "type": "setup",
                         "color": "white",
-                        "fen": game.board.initial_fen,
+                        "fen": game.board.fen,
+                        "phase": "CHOOSE_PAWNS",
                     },
+                )
+            elif game.draft_phase == "CHOOSE_CHAMPIONS" and user.username == game.bplayer.username:
+                await ws_send_json(
+                    ws,
+                    {
+                        "type": "setup",
+                        "color": "black",
+                        "fen": game.board.fen,
+                        "phase": "CHOOSE_CHAMPIONS",
+                    },
+                )
+            else:
+                await ws_send_json(ws, {"type": "draft_wait", "message": "Waiting for opponent..."})
+            return
+
+        if game.variant == "janggi" and (game.bsetup or game.wsetup) and game.status <= STARTED:
+            if game.bsetup:
+                await ws_send_json(
+                    ws,
+                    {"type": "setup", "color": "black", "fen": game.board.initial_fen},
+                )
+            elif game.wsetup:
+                await ws_send_json(
+                    ws,
+                    {"type": "setup", "color": "white", "fen": game.board.initial_fen},
                 )
         else:
             board_response = game.get_board(full=True)
@@ -248,56 +275,115 @@ async def handle_board(ws, user, game):
         await ws_send_json(ws, response)
 
 
+async def handle_bot_setup(users, game, player, color, phase, fen):
+    """Si le joueur est un bot, il valide immédiatement son tour de draft."""
+    if player.bot or player.title == "GHOST":
+        await asyncio.sleep(0.1)  # Petit délai pour un effet plus naturel
+        await handle_setup(None, users, player, {
+            "phase": phase,
+            "color": color,
+            "fen": fen,
+            "gameId": game.id
+        }, game)
+        return True
+    return False
+
+
 async def handle_setup(ws, users, user, data, game):
     # Janggi game starts with a prelude phase to set up horses and elephants
     # First the second player (Red) chooses his setup! Then the first player (Blue)
+    if game.variant == "matatak":
+        phase = data.get("phase")
+        fen = data["fen"]
 
-    game.board.initial_fen = data["fen"]
-    game.initial_fen = game.board.initial_fen
-    game.board.fen = game.board.initial_fen
-    # print("--- Got FEN from %s %s" % (data["color"], data["fen"]))
+        if phase == "CHOOSE_PAWNS" and user.username == game.wplayer.username:
+            game.board.initial_fen = fen # On sauvegarde le FEN choisi par le joueur noir.
+            game.draft_phase = "CHOOSE_CHAMPIONS"
+            # game.wsetup = False
+            is_bot = await handle_bot_setup(users, game, game.bplayer, "black", "CHOOSE_CHAMPIONS", game.board.initial_fen)
+            if not is_bot:
+                await game.bplayer.send_game_message(game.id, {
+                    "type": "setup",
+                    "color": "black",
+                    "fen": game.board.initial_fen,
+                    "phase": "CHOOSE_CHAMPIONS",
+                    "message": "Choose your champions" # Message pour le client
+                })
+            return
 
-    opp_name = (
-        game.wplayer.username if user.username == game.bplayer.username else game.bplayer.username
-    )
-    opp_player = users[opp_name] if opp_name in users else None
+        elif phase == "CHOOSE_CHAMPIONS" and user.username == game.bplayer.username:
+            game.draft_phase = "COMPLETE"
+            game.status = STARTED
+            game.initial_fen = fen # Mettre à jour game.initial_fen avec le FEN final de la draft
+            game.board.initial_fen = fen
+            game.board.fen = fen
+            # game.bsetup = False
+            
+            await game.save_setup()
+            
+            # On envoie le plateau final à tout le monde
+            board_response = game.get_board(full=True)
+            await round_broadcast(game, board_response, full=True)
 
-    game.steps[0]["fen"] = data["fen"]
+            # Notifier les joueurs que la nouvelle phase commence
+            await round_broadcast(game, {
+                "type": "resetForNewPhase",
+                "drop_fen": game.board.initial_fen, # C'est le FEN que le client doit afficher
+                # "final_drop_fen": final_fen # On pourrait aussi envoyer le FEN du drop si nécessaire
+            }, full=True)
 
-    if data["color"] == "black":
-        game.bsetup = False
-        response = {
-            "type": "setup",
-            "color": "white",
-            "fen": data["fen"],
-        }
-        await ws_send_json(ws, response)
+            # # Si l'un des joueurs est un bot, on lui envoie le signal de démarrage
+            # if game.wplayer.bot:
+            #     await game.wplayer.event_queue.put(game.game_start)
+            # if game.bplayer.bot:
+            #     await game.bplayer.event_queue.put(game.game_start)
 
-        if opp_player is not None:
-            if opp_player.bot:
-                game.board.janggi_setup("w")
-                game.steps[0]["fen"] = game.board.initial_fen
-            else:
-                await opp_player.send_game_message(game.id, response)
-    else:
-        game.wsetup = False
-        game.status = STARTED
+    # Logique existante pour Janggi
+    elif game.variant == "janggi":
+        game.board.initial_fen = data["fen"]
+        game.initial_fen = game.board.initial_fen
+        game.board.fen = game.board.initial_fen
 
-        response = game.get_board(full=True)
-        # log.info("User %s asked board. Server sent: %s" % (user.username, board_response["fen"]))
-        await ws_send_json(ws, response)
+        opp_name = (
+            game.wplayer.username if user.username == game.bplayer.username else game.bplayer.username
+        )
+        opp_player = users[opp_name] if opp_name in users else None
 
-        if (opp_player is not None) and (not opp_player.bot):
-            await opp_player.send_game_message(data["gameId"], response)
+        game.steps[0]["fen"] = data["fen"]
 
-    await game.save_setup()
+        if data["color"] == "black":
+            game.bsetup = False
+            response = {
+                "type": "setup",
+                "color": "white",
+                "fen": data["fen"],
+            }
+            await ws_send_json(ws, response)
 
-    if opp_player.bot:
-        await opp_player.event_queue.put(game.game_start)
+            if opp_player is not None:
+                if opp_player.bot:
+                    game.board.janggi_setup("w")
+                    game.steps[0]["fen"] = game.board.initial_fen
+                else:
+                    await opp_player.send_game_message(game.id, response)
+        else:
+            game.wsetup = False
+            game.status = STARTED
 
-    # restart expiration time after setup phase
-    game.stopwatch.restart(game.stopwatch.time_for_first_move)
+            response = game.get_board(full=True)
+            await ws_send_json(ws, response)
 
+            if (opp_player is not None) and (not opp_player.bot):
+                await opp_player.send_game_message(data["gameId"], response)
+
+        await game.save_setup()
+
+        if opp_player is not None and opp_player.bot:
+            await opp_player.event_queue.put(game.game_start)
+
+        # restart expiration time after setup phase
+        game.stopwatch.restart(game.stopwatch.time_for_first_move)
+        
 
 async def handle_analysis(app_state: PychessGlobalAppState, ws, data, game):
     # fishnet_analysis() wants to inject analysis data into game.steps
@@ -364,7 +450,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
     )
     opp_player = app_state.users[opp_name]
     handicap = data["handicap"]
-    fen = "" if game.variant == "janggi" else game.initial_fen
+    fen = "" if (game.variant == "janggi" or game.variant == "matatak") else game.initial_fen
 
     reused_fen = True
     if (game.chess960 or game.random_only) and game.new_960_fen_needed_for_rematch:
@@ -387,6 +473,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             "chess960": game.chess960,
             "rated": False,
             "profileid": "Fairy-Stockfish",
+            "draft": game.isDraft
         }
         await handle_create_ai_challenge(app_state, ws, user, rematch_data)
         return

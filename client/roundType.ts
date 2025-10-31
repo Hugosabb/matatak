@@ -37,6 +37,7 @@ export interface MsgCount {
 export interface MsgSetup {
     fen: cg.FEN;
     color: cg.Color;
+    phase: string;
 }
 
 export interface MsgGameStart {
