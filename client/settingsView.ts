@@ -125,7 +125,7 @@ function zenModeSettingsView() {
 }
 
 function boardSettingsView(modelVariant: string) {
-    const variant = getDocumentData('variant') || "chess";
+    const variant = getDocumentData('variant') || "matatak";
     return h('div#settings-board', [
         backButton(_("Board Settings")),
         h('div', [

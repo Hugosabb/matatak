@@ -1311,5 +1311,5 @@ export function fogFen(currentFen: string): string {
 
 
 export function validVariant(variant: string): string {
-    return VARIANTS[variant] ? variant : "chess"; // Default to "chess" if invalid
+    return VARIANTS[variant] ? variant : "matatak"; // Default to "chess" if invalid
 }
