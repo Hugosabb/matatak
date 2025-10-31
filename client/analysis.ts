@@ -32,7 +32,7 @@ function leftSide(model: PyChessModel) {
             if (isInput) window.location.assign('/analysis/' + validVariant(variant));
         }
 
-        const vVariant = model.variant || "chess";
+        const vVariant = model.variant || "matatak";
 
         return h('div.container', [
             h('div', [

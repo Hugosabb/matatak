@@ -416,7 +416,7 @@ export class LobbyController implements ChatController {
     }
 
     renderSeekDialog() {
-        const vVariant = localStorage.seek_variant || "chess";
+        const vVariant = localStorage.seek_variant || "matatak";
         const twoBoards = VARIANTS[vVariant].twoBoards;
         // 5+3 default TC needs vMin 9 because of the partial numbers at the beginning of minutesValues
         const vMin = localStorage.seek_min ?? "9";
@@ -649,8 +649,8 @@ export class LobbyController implements ChatController {
 
     renderVariantsDropDown(variantName: string = '', disabled: string[]) {
         // variantName and chess960 are set when this was called from the variant catalog (layer3.ts)
-        let vVariant = variantName || localStorage.seek_variant || "chess";
-        if (disabled.includes(vVariant)) vVariant = "chess";
+        let vVariant = variantName || localStorage.seek_variant || "matatak";
+        if (disabled.includes(vVariant)) vVariant = "matatak";
         const vChess960 = localStorage.seek_chess960 === 'true' || false;
         const e = document.getElementById('variant');
         e!.replaceChildren();
