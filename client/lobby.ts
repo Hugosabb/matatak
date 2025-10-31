@@ -1267,13 +1267,6 @@ export class LobbyController implements ChatController {
         this.streams = patch(this.streams, h('div#streams', msg.items.map(stream => this.streamView(stream))));
     }
 
-    private onMsgSpotlights(msg: MsgSpotlights) {
-        this.spotlights = patch(this.spotlights, h('div#spotlights', [
-            h('div', msg.items.map(spotlight => this.spotlightView(spotlight))),
-            h('a.cont-link', { attrs: { href: '/calendar' } }, _('Tournament calendar') + ' »'),
-        ]));
-    }
-
     private onMsgTvGame(msg: TvGame) {
         this.tvGame = msg;
         this.renderEmptyTvGame();
@@ -1416,7 +1409,6 @@ export function lobbyView(model: PyChessModel): VNode[] {
     return [
         h('aside.sidebar-first', [
             h('div#streams'),
-            h('div#spotlights'),
             h('div#lobbychat')
         ]),
         h('div.seeks', containers),
