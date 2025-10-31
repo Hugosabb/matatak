@@ -746,7 +746,11 @@ export class LobbyController implements ChatController {
     private setVariant() {
         let e;
         e = document.getElementById('variant') as HTMLSelectElement;
-        const variant = VARIANTS[e.options[e.selectedIndex].value];
+        if (e.selectedIndex === -1 && e.options.length > 0) {
+            e.selectedIndex = 0;
+        }
+        const selectedOption = e.options[e.selectedIndex];
+        const variant = VARIANTS[selectedOption.value];
         const byoyomi = variant.rules.defaultTimeControl === "byoyomi";
         if (variant.twoBoards) {
             const select = document.getElementById('tc') as HTMLSelectElement;
