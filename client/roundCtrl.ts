@@ -227,7 +227,7 @@ export class RoundController extends GameController {
                     }
                 },
                 premovable: {
-                    enabled: true,
+                    enabled: false,
                     premoveFunc: premove(this.variant.name, this.chess960, this.variant.board.dimensions),
                     predropFunc: predrop(this.variant.name, this.variant.board.dimensions),
                     events: {
