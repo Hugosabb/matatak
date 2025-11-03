@@ -454,12 +454,12 @@ class FairyBoard:
         pawns = "abefgjlmpq"
         champions = "cdhinorstwxyz"
 
-        c1, c2, c3 = random.sample(champions, 3)
+        c1, c2 = random.sample(champions, 2)
         p1, p2, p3 = random.sample(pawns, 3)
 
         fen = "2" + c1 + "k" + c2 + "3/2" + p1 + p2 + p3 + "3"
         fen += "/8/8/8/8/" 
-        fen += "3" + p3.upper() + p2.upper() + p1.upper() + "2/3" + c3.upper() + "K" + c1.upper() + "2"
+        fen += "3" + p3.upper() + p2.upper() + p1.upper() + "2/3" + c2.upper() + "K" + c1.upper() + "2"
         fen += " w - - 0 1"
         return fen
 
