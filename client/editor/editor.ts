@@ -19,7 +19,7 @@ export function editorView(model: PyChessModel): VNode[] {
         if (isInput) window.location.assign('/editor/' + validVariant(variant));
     }
 
-    const vVariant = model.variant || "chess";
+    const vVariant = model.variant || "matatak";
     const variant = VARIANTS[vVariant];
 
     return [

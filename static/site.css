@@ -1565,17 +1565,26 @@ table.seeks {
 .seeks-table {
   box-shadow: var(--base-shadow);
   background-position: center;
-  background-image: url('images/seek-bg.svg');
-  background-color: var(--bg-seek);
-  background-blend-mode: overlay;
-  background-size: 100% 100%;
+  background-image: url('images/matatak_box.png');
+  background-size: cover;
   width: 100%;
   height: 100%;
 }
-.seeks-wrapper {
-  height: 320px;
-  overflow-y: scroll;
-  -ms-overflow-style: scrollbar;
+
+@media (max-width: 799px) {
+    .seeks-wrapper {
+    height: 320px;
+    overflow-y: scroll;
+    -ms-overflow-style: scrollbar;
+  }
+}
+
+@media (min-width: 800px) {
+    .seeks-wrapper {
+    height: 750px;
+    overflow-y: scroll;
+    -ms-overflow-style: scrollbar;
+  }
 }
 .seeks th {
   background: var(--bg-color2);
