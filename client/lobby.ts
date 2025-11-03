@@ -45,14 +45,6 @@ export function createModeStr(mode: CreateMode) {
     }
 }
 
-export function disableCorr(disable: boolean) {
-    document.querySelectorAll("#tc option").forEach((opt: HTMLInputElement) => {
-        if (opt.value == "corr") {
-            opt.disabled = disable;
-        }
-    });
-}
-
 export class LobbyController implements ChatController {
     sock: WebsocketHeartbeatJs;
     home: string;
@@ -330,14 +322,7 @@ export class LobbyController implements ChatController {
         localStorage.seek_byo = e.value;
 
         let day = 0;
-        if (this.tcMode === 'corr') {
-            e = document.getElementById('day') as HTMLInputElement;
-            day = this.daysValues[Number(e.value)];
-            localStorage.seek_day = e.value;
-            const corrTab = document.getElementById('tab-2') as HTMLInputElement;
-            changeTabs('lobby_tab', corrTab)
-            // TODO: use meaningful names!!!
-        }
+        
         e = document.querySelector('input[name="mode"]:checked') as HTMLInputElement;
         let rated: boolean;
         if (this.createMode === 'playAI' ||
@@ -402,14 +387,6 @@ export class LobbyController implements ChatController {
 
         // We need to ask the user for permission
         notify(null, undefined);
-    }
-
-    setTcMode(tcMode: TcMode) {
-        if (tcMode !== this.tcMode) {
-            this.tcMode = tcMode;
-            document.getElementById('real')!.style.display = this.tcMode === 'real' ? 'block' : 'none';
-            document.getElementById('corr')!.style.display = this.tcMode === 'corr' ? 'block' : 'none';
-        }
     }
 
     renderDialogHeader(header: string) {
@@ -488,49 +465,27 @@ export class LobbyController implements ChatController {
                             ]),
                             h('div.tc-block',[
                                 h('div', [
-                                    h('label', { attrs: { for: "tc" } }, _("Time control")),
-                                    h('select#tc', {
-                                        props: { name: 'tc' },
-                                        on: { change: (e: Event) => this.setTcMode((e.target as HTMLSelectElement).value as TcMode) },
-                                        }, [
-                                            h('option', { attrs: { value: 'real' }}, _('Real time')),
-                                            h('option', { attrs: { value: 'corr', disabled: this.anon || twoBoards }}, _('Correspondence')),
-                                        ]
-                                    ),
-                                ]),
-                                h('div#tc_settings', [
-                                    h('div#real', [
-                                        h('label', { attrs: { for: "min" } }, _("Minutes per side:")),
-                                        h('span#minutes'),
-                                        h('input#min.slider', {
-                                            props: { name: "min", type: "range", min: 0, max: this.minutesValues.length - 1, value: vMin },
-                                            on: { input: e => this.setMinutes(parseInt((e.target as HTMLInputElement).value)) },
-                                            hook: { insert: vnode => this.setMinutes(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                        }),
-                                        h('label#incrementlabel', { attrs: { for: "inc" } }, ''),
-                                        h('span#increment'),
-                                        h('input#inc.slider', {
-                                            props: { name: "inc", type: "range", min: 0, max: this.incrementValues.length - 1, value: vInc },
-                                            on: { input: e => this.setIncrement(this.incrementValues[parseInt((e.target as HTMLInputElement).value)]) },
-                                            hook: { insert: vnode => this.setIncrement(this.incrementValues[parseInt((vnode.elm as HTMLInputElement).value)]) },
-                                        }),
-                                        h('div#byoyomi-period', [
-                                            h('label#byoyomiLabel', { attrs: { for: "byo" } }, _('Periods')),
-                                            h('select#byo', {
-                                                props: { name: "byo" },
-                                            },
-                                                [ 1, 2, 3 ].map((n, idx) => h('option', { props: { value: n }, attrs: { selected: (idx === vByoIdx) } }, n))
-                                            ),
-                                        ]),
-                                    ]),
-                                    h('div#corr',[
-                                        h('label', { attrs: { for: "day" } }, _("Days per turn:")),
-                                        h('span#days'),
-                                        h('input#day.slider', {
-                                            props: { name: "day", type: "range", min: 0, max: this.daysValues.length - 1, value: vDay },
-                                            on: { input: e => this.setDays(parseInt((e.target as HTMLInputElement).value)) },
-                                            hook: { insert: vnode => this.setDays(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                        }),
+                                    h('label', { attrs: { for: "min" } }, _("Minutes per side:")),
+                                    h('span#minutes'),
+                                    h('input#min.slider', {
+                                        props: { name: "min", type: "range", min: 0, max: this.minutesValues.length - 1, value: vMin },
+                                        on: { input: e => this.setMinutes(parseInt((e.target as HTMLInputElement).value)) },
+                                        hook: { insert: vnode => this.setMinutes(parseInt((vnode.elm as HTMLInputElement).value)) },
+                                    }),
+                                    h('label#incrementlabel', { attrs: { for: "inc" } }, ''),
+                                    h('span#increment'),
+                                    h('input#inc.slider', {
+                                        props: { name: "inc", type: "range", min: 0, max: this.incrementValues.length - 1, value: vInc },
+                                        on: { input: e => this.setIncrement(this.incrementValues[parseInt((e.target as HTMLInputElement).value)]) },
+                                        hook: { insert: vnode => this.setIncrement(this.incrementValues[parseInt((vnode.elm as HTMLInputElement).value)]) },
+                                    }),
+                                    h('div#byoyomi-period', [
+                                        h('label#byoyomiLabel', { attrs: { for: "byo" } }, _('Periods')),
+                                        h('select#byo', {
+                                            props: { name: "byo" },
+                                        },
+                                            [ 1, 2, 3 ].map((n, idx) => h('option', { props: { value: n }, attrs: { selected: (idx === vByoIdx) } }, n))
+                                        ),
                                     ]),
                                 ]),
                             ]),
@@ -695,7 +650,6 @@ export class LobbyController implements ChatController {
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-button-group')!.style.display = 'block';
         document.getElementById('create-button')!.style.display = 'none';
-        disableCorr(this.anon || twoBoards);
     }
 
     playFriend(variantName: string = '') {
@@ -709,7 +663,6 @@ export class LobbyController implements ChatController {
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-button-group')!.style.display = 'block';
         document.getElementById('create-button')!.style.display = 'none';
-        disableCorr(false);
     }
 
     playAI(variantName: string = '') {
@@ -724,7 +677,6 @@ export class LobbyController implements ChatController {
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-button-group')!.style.display = 'block';
         document.getElementById('create-button')!.style.display = 'none';
-        disableCorr(true);
     }
 
     createHost(variantName: string = '') {
@@ -738,7 +690,6 @@ export class LobbyController implements ChatController {
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-button-group')!.style.display = 'none';
         document.getElementById('create-button')!.style.display = 'block';
-        disableCorr(true);
     }
 
     private setVariant() {
@@ -759,7 +710,6 @@ export class LobbyController implements ChatController {
         document.getElementById('draft-block')!.style.display = (variant.name === 'matatak') ? 'block' : 'none';
         document.getElementById('chess960-block')!.style.display = variant.chess960 ? 'block' : 'none';
         document.getElementById('byoyomi-period')!.style.display = byoyomi ? 'block' : 'none';
-        document.getElementById('corr')!.style.display = this.tcMode === 'corr' ? 'block' : 'none';
         e = document.getElementById('fen') as HTMLInputElement;
         e.value = "";
         e = document.getElementById('incrementlabel') as HTMLSelectElement;
@@ -1236,10 +1186,6 @@ export class LobbyController implements ChatController {
         const oldSeeks = document.querySelector('.seek-container table.seeks') as Element;
         oldSeeks.innerHTML = "";
         patch(oldSeeks, h('table.seeks', this.renderSeeks(msg.seeks.filter(seek => seek.day === 0))));
-
-        const oldCorrs = document.querySelector('.corr-container table.seeks') as Element;
-        oldCorrs.innerHTML = "";
-        patch(oldCorrs, h('table.seeks', this.renderSeeks(msg.seeks.filter(seek => seek.day !== 0))));
     }
 
     private onMsgNewGame(msg: MsgNewGame) {
@@ -1300,6 +1246,10 @@ export class LobbyController implements ChatController {
 
     private onMsgStreams(msg: MsgStreams) {
         this.streams = patch(this.streams, h('div#streams', msg.items.map(stream => this.streamView(stream))));
+    }
+
+    private onMsgSpotlights(msg: MsgSpotlights) {
+        this.spotlights = patch(this.spotlights, h('div#spotlights', msg.items.map(spotlight => this.spotlightView(spotlight))));
     }
 
     private onMsgTvGame(msg: TvGame) {
@@ -1386,13 +1336,7 @@ export function lobbyView(model: PyChessModel): VNode[] {
 
     let tabs = [];
     tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-1', id: 'tab-1', tabindex: '-1'}}, _('Lobby')));
-    tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-2', id: 'tab-2', tabindex: '-1'}}, _('Correspondence')))
-    if (corrGames.length > 0) {
-        tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-3', id: 'tab-3', tabindex: '-1'}}, [
-            ngettext('%1 game in play', '%1 games in play', gpCounter),
-            h('span.noread.data-count', {attrs: { 'data-count': count }})
-        ]))
-    }
+    
     if (!anonUser) {
         tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-4', id: 'tab-4', tabindex: '-1'}}, _('Auto pairing')))
     }
@@ -1406,27 +1350,6 @@ export function lobbyView(model: PyChessModel): VNode[] {
             ])
         ])
     );
-    containers.push(
-        h('div.corr-container', {attrs: {id: 'panel-2', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-2'}}, [
-            h('div.seeks-table', [
-                h('div.seeks-wrapper', h('table.seeks')),
-            ])
-        ])
-    );
-    if (corrGames.length > 0) {
-        const cgMap: {[gameId: string]: [Api, string]} = {};
-        handleOngoingGameEvents(username, cgMap);
-
-        containers.push(
-            h('div.games-container', {attrs: {id: 'panel-3', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-3'}}, [
-                h('div.seeks-table', [
-                    h('div.seeks-wrapper', [
-                        h('games-grid#games', corrGames.map((game: Game) => gameViewPlaying(cgMap, game, username)))
-                    ])
-                ])
-            ])
-        )
-    }
 
     if (!anonUser) {
         containers.push(
