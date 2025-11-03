@@ -1004,9 +1004,14 @@ export class LobbyController implements ChatController {
 
         const game = this.tvGame;
         const variant = VARIANTS[game.variant];
+
+        const isMatatakDraft = variant.name === 'matatak' && game.fen.includes(' CUT ');
+        const pocketRoles = (variant.name === 'matatak' && !isMatatakDraft) ? undefined : variant.pocket?.roles;
+        const showPockets = isMatatakDraft || (variant.name !== 'matatak' && !!variant.pocket);
+
         const elements = [
         h(`div#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, {
-            class: { "with-pockets": !!variant.pocket },
+            class: { "with-pockets": showPockets },
             style: { "--ranks": (variant.pocket) ? String(variant.board.dimensions.height) : "undefined" },
             on: { click: () => window.location.assign('/' + game.gameId) }
             }, [
@@ -1020,7 +1025,7 @@ export class LobbyController implements ChatController {
                                 coordinates: false,
                                 viewOnly: true,
                                 addDimensionsCssVarsTo: document.body,
-                                pocketRoles: variant.pocket?.roles,
+                                pocketRoles: pocketRoles,
                             });
                             this.tvGameChessground = cg;
                             this.tvGameId = game.gameId;

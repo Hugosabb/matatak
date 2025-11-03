@@ -19,6 +19,15 @@ export function roundView(model: PyChessModel): VNode[] {
     renderTimeago();
 
     return [
+        h('style', `
+            .pocket-top, .pocket-bot {
+                display: none;
+            }
+            #mainboard.pockets-visible ~ .pocket-top,
+            #mainboard.pockets-visible ~ .pocket-bot {
+                display: flex; 
+            }
+        `),
         h('aside.sidebar-first', [
             gameInfo(model),
             h('div#roundchat'),
