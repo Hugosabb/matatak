@@ -3,7 +3,7 @@ import { CreateMode, Seek } from "@/lobbyType";
 import { h } from "snabbdom";
 import { _ } from "@/i18n";
 import { timeControlStr } from "@/view";
-import { disableCorr, LobbyController } from "@/lobby";
+import { LobbyController } from "@/lobby";
 
 export function switchEnablingLobbyControls(mode: CreateMode, variant: Variant, anon: boolean){
         const rated = document.getElementById('rated')! as HTMLInputElement;
@@ -12,13 +12,11 @@ export function switchEnablingLobbyControls(mode: CreateMode, variant: Variant, 
             rated.disabled = true;
             rated.checked = false;
             casual.checked = true;
-            disableCorr(true);
         } else {
             const vRated = localStorage.seek_rated ?? "0";
             rated.disabled = false;
             rated.checked = vRated === "1";
             casual.checked = vRated === "0";
-            disableCorr(mode === 'playAI' || anon);
         }
 }
 
