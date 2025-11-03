@@ -109,7 +109,7 @@ export function pasteView(model: PyChessModel): VNode[] {
 
                     const game = ffish.readGamePGN(pgn);
 
-                    variant = "chess";
+                    variant = "matatak";
                     const v = game.headers("Variant");
                     //console.log("Variant:", v);
                     if (v) variant = v.toLowerCase();

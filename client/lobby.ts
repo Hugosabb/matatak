@@ -121,8 +121,6 @@ export class LobbyController implements ChatController {
 
         patch(document.getElementById('lobbychat') as HTMLElement, chatView(this, "lobbychat"));
 
-        patch(document.getElementById('variants-catalog') as HTMLElement, variantPanels(this));
-
         this.streams = document.getElementById('streams') as HTMLElement;
 
         this.spotlights = document.getElementById('spotlights') as HTMLElement;
@@ -428,7 +426,7 @@ export class LobbyController implements ChatController {
     }
 
     renderSeekDialog() {
-        const vVariant = localStorage.seek_variant || "chess";
+        const vVariant = localStorage.seek_variant || "matatak";
         const twoBoards = VARIANTS[vVariant].twoBoards;
         // 5+3 default TC needs vMin 9 because of the partial numbers at the beginning of minutesValues
         const vMin = localStorage.seek_min ?? "9";
@@ -676,8 +674,8 @@ export class LobbyController implements ChatController {
 
     renderVariantsDropDown(variantName: string = '', disabled: string[]) {
         // variantName and chess960 are set when this was called from the variant catalog (layer3.ts)
-        let vVariant = variantName || localStorage.seek_variant || "chess";
-        if (disabled.includes(vVariant)) vVariant = "chess";
+        let vVariant = variantName || localStorage.seek_variant || "matatak";
+        if (disabled.includes(vVariant)) vVariant = "matatak";
         const vChess960 = localStorage.seek_chess960 === 'true' || false;
         const e = document.getElementById('variant');
         e!.replaceChildren();
@@ -1299,13 +1297,6 @@ export class LobbyController implements ChatController {
         this.streams = patch(this.streams, h('div#streams', msg.items.map(stream => this.streamView(stream))));
     }
 
-    private onMsgSpotlights(msg: MsgSpotlights) {
-        this.spotlights = patch(this.spotlights, h('div#spotlights', [
-            h('div', msg.items.map(spotlight => this.spotlightView(spotlight))),
-            h('a.cont-link', { attrs: { href: '/calendar' } }, _('Tournament calendar') + ' »'),
-        ]));
-    }
-
     private onMsgTvGame(msg: TvGame) {
         this.tvGame = msg;
         this.renderEmptyTvGame();
@@ -1448,11 +1439,9 @@ export function lobbyView(model: PyChessModel): VNode[] {
     return [
         h('aside.sidebar-first', [
             h('div#streams'),
-            h('div#spotlights'),
             h('div#lobbychat')
         ]),
         h('div.seeks', containers),
-        h('div#variants-catalog'),
         h('aside.sidebar-second', [
             h('div.seekbuttons'),
             h('div.lobby-count', [
@@ -1463,33 +1452,14 @@ export function lobbyView(model: PyChessModel): VNode[] {
             h('div.seekdialog'),
         ]),
         h('under-left', [
-            h('a.reflist', { attrs: { href: 'https://discord.gg/aPs8RKr', rel: "noopener", target: "_blank" } }, 'Discord'),
-            h('a.reflist', { attrs: { href: 'https://github.com/gbtami/pychess-variants', rel: "noopener", target: "_blank" } }, 'Github'),
-            h('a.reflist', { attrs: { href: 'https://www.youtube.com/channel/UCj_r_FSVXQFLgZLwSeFBE8g', rel: "noopener", target: "_blank" } }, 'YouTube'),
-            h('div.internalLinks', [
-                h('a.reflist', { attrs: { href: '/patron' } }, _("Donate")),
-                h('a.reflist', { attrs: { href: '/faq' } }, _("FAQ")),
-                h('a.reflist', { attrs: { href: '/stats' } }, _("Stats")),
-                h('a.reflist', { attrs: { href: '/about' } }, _("About")),
-            ]),
+            h('a.reflist', { attrs: { href: 'https://discord.gg/ctGQa2WJjh', rel: "noopener", target: "_blank" } }, 'Discord'),
+            h('a.reflist', { attrs: { href: 'https://github.com/Matatak', rel: "noopener", target: "_blank" } }, 'Github'),
+            h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
+            h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
+            h('a.reflist', { attrs: { href: '/stats' } }, _("Stats")),
+            h('a.reflist', { attrs: { href: '/about' } }, _("About")),
+            
         ]),
         h('div.tv', [h('a#tv-game', { attrs: {href: '/tv'} })]),
-        h('under-lobby', [
-            h('posts', blogs.map((post: Post) =>
-                h('a.post', { attrs: {href: `/blogs/${post['_id']}`} }, [
-                    h('img', { attrs: {src: model.assetURL + `${post['image']}`, alt: `${post['alt']}`} }),
-                    h('time', `${post['date']}`),
-                    h('span.author', [
-                        h('player-title', `${post['atitle']} `),
-                        `${post['author']}`,
-                    ]),
-                    h('span.text', [
-                        h('strong', `${post['title']}`),
-                        h('span', `${post['subtitle']}`),
-                    ]),
-                ])
-            )),
-        ]),
-        h('div.puzzle', [h('a#daily-puzzle', { attrs: {href: '/puzzle/daily'} }, dailyPuzzle)]),
     ];
 }
