@@ -217,7 +217,7 @@ class Game:
                             )
                             self.draw_offers.add(counting_player.username)
 
-        if self.variant == "matatak" and self.isDraft and not self.initial_fen:
+        if self.variant.startswith("matatak") and self.isDraft and not self.initial_fen:
             self.draft_phase = "CUT"
         else:
             self.draft_phase = None
@@ -443,9 +443,14 @@ class Game:
                     secondChampionRank = "".join(droppedPieces[6:9])
                     firstChampionsRank = "".join(droppedPieces[9:12])
 
-                    setup_fen = "2" + firstChampionsRank.lower() + "3/2" + firstPawnRank.lower() + "3"
-                    setup_fen += "/8/8/8/8/" 
-                    setup_fen += "3" + secondPawnRank.upper() + "2/3" + secondChampionRank.upper() + "2"
+                    if self.variant == "matatakmini":
+                        setup_fen = "1" + firstChampionsRank.lower() + "2/1" + firstPawnRank.lower() + "2"
+                        setup_fen += "/6/6/6/6/" 
+                        setup_fen += "2" + secondPawnRank.upper() + "1/2" + secondChampionRank.upper() + "1"
+                    else :
+                        setup_fen = "2" + firstChampionsRank.lower() + "3/2" + firstPawnRank.lower() + "3"
+                        setup_fen += "/8/8/8/8/" 
+                        setup_fen += "3" + secondPawnRank.upper() + "2/3" + secondChampionRank.upper() + "2"
                     setup_fen += " w - - 0 1"
 
                     self.board = FairyBoard(self.variant, setup_fen, self.chess960)
@@ -580,7 +585,7 @@ class Game:
 
             # Janggi game starts with a prelude phase to set up horses and elephants, so
             # initial FEN may be different compared to one we used when db game document was created
-            if self.variant == "janggi" or self.variant == "matatak":
+            if self.variant == "janggi" or self.variant.startswith("matatak"):
                 new_data["if"] = self.initial_fen
 
             if self.rated == RATED:

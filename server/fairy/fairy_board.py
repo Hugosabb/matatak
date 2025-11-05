@@ -143,6 +143,11 @@ class FairyBoard:
                 new_fen = FairyBoard.matatak_draft_board()
             else:
                 new_fen = FairyBoard.matatak_random_start()
+        elif variant == 'matatakmini':
+            if isDraft:
+                new_fen = FairyBoard.matatak_draft_board(True)
+            else:
+                new_fen = FairyBoard.matatakmini_random_start()
         elif variant == "alice":
             new_fen = sf_alice.start_fen("alice")
         else:
@@ -464,7 +469,7 @@ class FairyBoard:
         return fen
 
     @staticmethod
-    def matatak_draft_board() -> str:
+    def matatak_draft_board(isMini=False) -> str:
         """Generates a FEN for the matatak cutting phase with pieces in pocket."""
         # Use a generic 8x8 empty board with pieces in the pocket.
         pawns = "abefgjlmpq"
@@ -487,7 +492,29 @@ class FairyBoard:
 
         pieces_in_pocket = "KK"+c1+c2+c3+c4+c5+c6+p1+p2+p3+p4+p5+p6+p7+p8
 
-        return f"8/8/8/8/8/8/8/8[{pieces_in_pocket}] w - - 0 1"
+        empty_board = "8/8/8/8/8/8/8/8" if not isMini else "6/6/6/6/6/6/6/6"
+        fen = empty_board + f"[{pieces_in_pocket}] w - - 0 1"
+
+        return fen
+    
+    @staticmethod
+    def matatakmini_random_start():
+        """Random from 4 starter teams"""
+        spring = "2MM2/2CK2"
+        summer = "2FF2/2XK2"
+        autumn = "2BB2/2IK2"
+        winter = "2LL2/2WK2"
+        # reverse for black with function reverse string in python and make it lowercase
+
+        # randomly choose one of the four teams for white
+        white_team = random.choice([spring, summer, autumn, winter])
+        black_team = random.choice([spring, summer, autumn, winter])[::-1].lower()
+
+        fen = black_team
+        fen += "/6/6/6/6/" 
+        fen += white_team
+        fen += " w - - 0 1"
+        return fen
 
 @cache
 def get_fog_fen(fen, persp_color):

@@ -11,6 +11,13 @@
 .cg-wrap.cg-512.mini {
   width: 256px;
 }
+/* 6x8 */
+.cg-wrap.cg-384-512 {
+    padding-bottom: 133.333%; 
+}
+.cg-wrap.cg-384-512.mini {
+    width: 192px; /* 384px / 2 */
+}
 /* 10x8 */
 .cg-wrap.cg-640 {
     padding-bottom: calc(512 * 100% / 640);
@@ -127,6 +134,10 @@ cg-board square {
   height: 12.5%;
   pointer-events: none;
 }
+.cg-384-512 cg-board square {
+  width: 16.666%;
+  height: 12.5%;
+}
 .cg-640 cg-board square{
   width: 10%;
   height: 12.5%;
@@ -219,6 +230,10 @@ cg-board square.current-premove {
 }
 .shogi .cg-wrap piece, .kyoto .cg-wrap piece, .dobutsu .cg-wrap piece, .tori .cg-wrap piece, .cannonshogi .cg-wrap piece, .janggi .cg-wrap piece {
   background-position: center;
+}
+.cg-wrap.cg-384-512 piece {
+  width: 16.666%;
+  height: 12.5%;
 }
 .cg-wrap.cg-640 piece {
   width: 10%;

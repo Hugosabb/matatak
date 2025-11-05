@@ -218,7 +218,7 @@ export abstract class GameController extends ChessgroundController implements Ch
                 }
             }
         }
-        if (this.variant.name === 'matatak' ) { // TODO Add CUT PHASE ARG
+        if (this.variant.name == 'matatak' ) { // TODO Add CUT PHASE ARG
             for (const [orig, destArray] of dests) {
                 if (orig.includes('@')) {
                     if (orig.includes('K') || orig.includes('k')) {
@@ -226,6 +226,19 @@ export abstract class GameController extends ChessgroundController implements Ch
                         dests.set(orig, filteredDests);
                     } else {
                         const filteredDests = destArray.filter(dest => dest !== 'e1' && dest !== 'e3');
+                        dests.set(orig, filteredDests);
+                    }
+                }
+            }
+        }
+        if (this.variant.name == 'matatakmini' ) { // TODO Add CUT PHASE ARG
+            for (const [orig, destArray] of dests) {
+                if (orig.includes('@')) {
+                    if (orig.includes('K') || orig.includes('k')) {
+                        const filteredDests = destArray.filter(dest => dest === 'd1' || dest === 'd3');
+                        dests.set(orig, filteredDests);
+                    } else {
+                        const filteredDests = destArray.filter(dest => dest !== 'd1' && dest !== 'd3');
                         dests.set(orig, filteredDests);
                     }
                 }

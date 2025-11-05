@@ -19,6 +19,7 @@ export interface PieceFamily {
 
 export const BOARD_FAMILIES: Record<string, BoardFamily> = {
     matatak8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["matatak8x8.png"] },
+    matatak6x8: { dimensions: { width: 6, height: 8 }, cg: "cg-384-512", boardCSS: ["matatak6x8.png"] },
     ataxx7x7: { dimensions: { width: 7, height: 7 }, cg: "cg-448", boardCSS: ["ataxx.svg", "ataxx.png"] },
     standard8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["8x8brown.svg", "8x8blue.svg", "8x8green.svg", "8x8maple.jpg", "8x8olive.jpg", "8x8santa.png", "8x8wood2.jpg", "8x8wood4.jpg", "8x8ic.svg", "8x8purple.svg", "8x8dobutsu.svg"] },
     standard9x9: { dimensions: { width: 9, height: 9 }, cg: "cg-540", boardCSS: ["9x9mansindam.svg", "9x9brown.svg", "9x9blue.svg", "9x9green.svg", "9x9maple.jpg", "9x9olive.jpg"] },
@@ -323,6 +324,18 @@ export const VARIANTS: Record<string, Variant> = {
         startFen: "abcdefgk/hijlmnop/qrstwxyz/8/8/QRSTWXYZ/HIJLMNOP/ABCDEFGK w - - 0 1",
         icon: "🍍",
         boardFamily: "matatak8x8", pieceFamily: "matatak",
+        pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
+        pocket: {
+            roles: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
+            captureToHand: false,
+        },
+    }),
+
+    matatakmini: variant({
+        name: "matatakmini", displayName: "MATATAK MINI", tooltip: "MATATAK for mobile!",
+        startFen: "abcdef/gkhijl/mnopqr/stwxyz/QRSTWX/YZHIJL/MNOPAB/CDEFGK w - - 0 1",
+        icon: "🥝",
+        boardFamily: "matatak6x8", pieceFamily: "matatak",
         pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
         pocket: {
             roles: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
@@ -1249,7 +1262,7 @@ export const twoBoarsVariants = variants.filter(v => VARIANTS[v].twoBoards);
 export const devVariants = ["makbug", "supply", "jieqi"].concat(contestVariants);
 
 export const variantGroups: { [ key: string ]: { variants: string[] } } = {
-    standard: { variants: [ "matatak" ] },
+    standard: { variants: [ "matatak", "matatakmini" ] },
     sea:      { variants: [ ] },
     shogi:    { variants: [ ] },
     xiangqi:  { variants: [ ] },
@@ -1315,5 +1328,5 @@ export function fogFen(currentFen: string): string {
 
 
 export function validVariant(variant: string): string {
-    return VARIANTS[variant] ? variant : "matatak"; // Default to "chess" if invalid
+    return VARIANTS[variant] ? variant : "matatak"; // Default to "matatak" if invalid
 }

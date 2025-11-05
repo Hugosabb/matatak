@@ -165,7 +165,7 @@ async def load_game(app_state: PychessGlobalAppState, game_id):
 
     elif variant in GRANDS:
         mlist = [*map(zero2grand, mlist)]
-        if variant == "janggi" : #or variant == "matatak": 
+        if variant == "janggi" : #or variant.startswith("matatak"): 
             game.wsetup = doc.get("ws", False)
             game.bsetup = doc.get("bs", False)
 
@@ -517,7 +517,7 @@ async def insert_game_to_db(game, app_state: PychessGlobalAppState):
     ):
         document["uci"] = 1
 
-    if game.variant == "janggi" : #or game.variant == "matatak": TODO
+    if game.variant == "janggi" : #or game.variant.startswith("matatak"): TODO
         document["ws"] = game.wsetup
         document["bs"] = game.bsetup
         document["if"] = game.board.initial_fen
@@ -790,7 +790,7 @@ def sanitize_fen(variant, initial_fen, chess960, base=False):
     invalid0 = len(init) < 2
 
     # Only piece types listed in variant start position can be used later
-    if variant == "matatak":
+    if variant.startswith("matatak"):
         non_piece = "~+0123456789[]-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     elif variant == "dobutsu":
         non_piece = "~+0123456789[]hH-"
