@@ -609,7 +609,7 @@ export class RoundController extends GameController {
 
     // Janggi second player (Red) setup
     private onMsgSetup = (msg: MsgSetup) => {
-        if (this.variant.name === 'matatak') {
+        if (this.variant.name.startsWith('matatak')) {
             // TODO display Msgsetup in console :
             console.log("onMsgSetup for Matatak:", msg);
 
@@ -1333,7 +1333,7 @@ export class RoundController extends GameController {
         const mainboard = document.getElementById('mainboard');
         if (!mainboard) return;
 
-        if (this.variant.name === 'matatak') {
+        if (this.variant.name.startsWith('matatak')) {
             const showPockets = this.draftPhase === 'CUT';
             mainboard.classList.toggle('pockets-visible', showPockets);
         } else if (this.hasPockets) {
@@ -1520,12 +1520,13 @@ export class RoundController extends GameController {
             return;
         } else if (this.draftPhase == "CUT"){
             const legalMoves = this.ffishBoard.legalMoves().split(' ').filter(o => o);
+            const kingDrops = this.variant.name === 'matatakmini' ? ['K@d1', 'K@d3'] : ['K@e1', 'K@e3'];
             if(this.turnColor === "white") {
-                if (legalMoves.includes("K@e1")) {
-                    this.doSendMove("K@e1");
+                if (legalMoves.includes(kingDrops[0])) {
+                    this.doSendMove(kingDrops[0]);
                     return;
-                } else if (legalMoves.includes("K@e3")) {
-                    this.doSendMove("K@e3");
+                } else if (legalMoves.includes(kingDrops[1])) {
+                    this.doSendMove(kingDrops[1]);
                     return;
                 }
             }

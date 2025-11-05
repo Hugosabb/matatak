@@ -707,7 +707,7 @@ export class LobbyController implements ChatController {
             this.tcMode = 'real';
         }
         // TODO use toggle class instead of setting style directly
-        document.getElementById('draft-block')!.style.display = (variant.name === 'matatak') ? 'block' : 'none';
+        document.getElementById('draft-block')!.style.display = (variant.name.startsWith('matatak')) ? 'block' : 'none';
         document.getElementById('chess960-block')!.style.display = variant.chess960 ? 'block' : 'none';
         document.getElementById('byoyomi-period')!.style.display = byoyomi ? 'block' : 'none';
         e = document.getElementById('fen') as HTMLInputElement;
@@ -955,9 +955,9 @@ export class LobbyController implements ChatController {
         const game = this.tvGame;
         const variant = VARIANTS[game.variant];
 
-        const isMatatakDraft = variant.name === 'matatak' && game.fen.includes(' CUT ');
-        const pocketRoles = (variant.name === 'matatak' && !isMatatakDraft) ? undefined : variant.pocket?.roles;
-        const showPockets = isMatatakDraft || (variant.name !== 'matatak' && !!variant.pocket);
+        const isMatatakDraft = variant.name.startsWith('matatak') && game.fen.includes(' CUT ');
+        const pocketRoles = (variant.name.startsWith('matatak') && !isMatatakDraft) ? undefined : variant.pocket?.roles;
+        const showPockets = isMatatakDraft || (!variant.name.startsWith('matatak') && !!variant.pocket);
 
         const elements = [
         h(`div#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, {

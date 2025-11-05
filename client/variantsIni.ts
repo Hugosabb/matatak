@@ -85,6 +85,15 @@ blackDropRegion = c8 d8 e8 c6 d6 e6
 # startFen = 3ckn2/3pbl2/8/8/8/8/3GFM2/3IKH2 w - - 0 1
 startFen = 3kx3/3ff3/8/8/8/8/3LL3/3WK3[FFff] w - - 0 1
 
+[matatakmini:matatak]
+maxFile = 6
+maxRank = 8
+whiteFlag = c4 d4 c5 d5
+blackFlag = c4 d4 c5 d5
+whiteDropRegion = c1 d1 e1 c3 d3 e3
+blackDropRegion = b8 c8 d8 b6 c6 d6
+startFen = 2kc2/2mm2/6/6/6/6/2FF2/2XK2 w - - 0 1
+
 # Hybrid variant of Grand-chess and crazyhouse, using Grand-chess as a template
 [grandhouse:grand]
 startFen = r8r/1nbqkcabn1/pppppppppp/10/10/10/10/PPPPPPPPPP/1NBQKCABN1/R8R[] w - - 0 1

@@ -168,7 +168,7 @@ async def handle_move(app_state: PychessGlobalAppState, user, data, game):
         else:
             try:
                 await play_move(app_state, user, game, data["move"], data["clocks"], data["ply"])
-                if game.variant == "matatak" and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE"):
+                if game.variant.startswith("matatak") and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE"):
                     is_bot = await handle_bot_setup(app_state.users, game, game.wplayer, "white", "CHOOSE_PAWNS", game.board.initial_fen)
                     if not is_bot:
                         await game.wplayer.send_game_message(game.id, {
@@ -223,9 +223,9 @@ async def handle_ready(ws, users, user, data, game):
 
 
 async def handle_board(ws, user, game):
-    if game.variant == "janggi" or game.variant == "matatak":
+    if game.variant == "janggi" or game.variant.startswith("matatak"):
         # print("JANGGI", ws, game.bsetup, game.wsetup, game.status)
-        if game.variant == "matatak" and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE") and game.status <= CREATED:
+        if game.variant.startswith("matatak") and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE") and game.status <= CREATED:
             if game.draft_phase == "CHOOSE_PAWNS" and user.username == game.wplayer.username:
                 await ws_send_json(
                     ws,
@@ -292,7 +292,7 @@ async def handle_bot_setup(users, game, player, color, phase, fen):
 async def handle_setup(ws, users, user, data, game):
     # Janggi game starts with a prelude phase to set up horses and elephants
     # First the second player (Red) chooses his setup! Then the first player (Blue)
-    if game.variant == "matatak":
+    if game.variant.startswith("matatak"):
         phase = data.get("phase")
         fen = data["fen"]
 
@@ -450,7 +450,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
     )
     opp_player = app_state.users[opp_name]
     handicap = data["handicap"]
-    fen = "" if (game.variant == "janggi" or game.variant == "matatak") else game.initial_fen
+    fen = "" if (game.variant == "janggi" or game.variant.startswith("matatak")) else game.initial_fen
 
     reused_fen = True
     if (game.chess960 or game.random_only) and game.new_960_fen_needed_for_rematch:
