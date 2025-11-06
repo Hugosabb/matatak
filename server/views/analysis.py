@@ -18,7 +18,7 @@ async def analysis(request):
     variant = request.match_info.get("variant")
     ply = request.rel_url.query.get("ply")
     if (variant is not None) and (variant not in VARIANTS):
-        variant = "chess"
+        variant = "matatak"
 
     if gameId is None:
         fen = request.rel_url.query.get("fen")

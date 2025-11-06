@@ -104,7 +104,7 @@ async def next_puzzle(request, user):
         variant = user.puzzle_variant
         filters.append({"variant": variant})
     else:
-        variant = "chess"
+        variant = "matatak"
 
     puzzle = None
 

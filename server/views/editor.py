@@ -11,7 +11,7 @@ async def editor(request):
 
     variant = request.match_info.get("variant")
     if (variant is not None) and (variant not in VARIANTS):
-        variant = "chess"
+        variant = "matatak"
 
     fen = request.rel_url.query.get("fen")
     if fen is None:

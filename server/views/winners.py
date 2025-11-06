@@ -14,7 +14,7 @@ async def winners(request):
 
     variant = request.match_info.get("variant")
     if (variant is not None) and (variant not in VARIANTS):
-        variant = "chess"
+        variant = "matatak"
 
     wi = await get_winners(app_state, shield=False, variant=variant)
     context["view_css"] = "players.css"

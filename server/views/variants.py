@@ -14,11 +14,16 @@ async def variants(request):
 
     variant = request.match_info.get("variant")
     if (variant is not None) and ((variant not in VARIANTS) and variant != "terminology"):
-        variant = "chess"
+        variant = "matatak"
 
-    context["variants"] = VARIANTS
-    context["icons"] = VARIANT_ICONS
-    context["groups"] = VARIANT_GROUPS
+    # Only show 'matatak' in the variants documentation page
+    matatak_variants = {
+        "matatak": VARIANTS["matatak"]
+    }
+
+    context["variants"] = matatak_variants
+    context["icons"] = {"matatak": VARIANT_ICONS["matatak"]}
+    context["groups"] = [{"name": "Matatak Variants", "variants": ["matatak"]}]
 
     locale = get_locale_ext(context)
 

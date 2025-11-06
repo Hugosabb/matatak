@@ -217,7 +217,7 @@ class Tournament(ABC):
         self,
         app_state: PychessGlobalAppState,
         tournamentId,
-        variant="chess",
+        variant="matatak",
         chess960=False,
         rated=True,
         before_start=5,
