@@ -185,38 +185,113 @@ cg-board square {
   height: 11.11%;
 }
 
+/* --- Animation Keyframes (Conservés) --- */
+
+@keyframes pulse-blood-inset {
+  0% { box-shadow: inset 0 0 10px 4px rgba(205, 50, 50, 0.6); }
+  50% { box-shadow: inset 0 0 14px 7px rgba(205, 50, 50, 0.8); }
+  100% { box-shadow: inset 0 0 10px 4px rgba(205, 50, 50, 0.6); }
+}
+
+@keyframes shimmer-bronze-inset {
+  0% { box-shadow: inset 0 0 12px 4px rgba(200, 160, 50, 0.2); }
+  50% { box-shadow: inset 0 0 16px 8px rgba(220, 180, 70, 0.35); }
+  100% { box-shadow: inset 0 0 12px 4px rgba(200, 160, 50, 0.2); }
+}
+
+
+/* --- Styles des Cases --- */
+
+cg-board square {
+  background: none;
+  transition: background 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+cg-board square.selected {
+  background-color: rgba(255, 215, 0, 0.05);
+  box-shadow: inset 0 0 15px 5px rgba(255, 200, 100, 0.4);
+}
+
 cg-board square.move-dest {
-  background: radial-gradient(rgba(20, 85, 30, 0.5) 22%, #208530 0, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0) 0);
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 200, 80, 0.8) 0%,
+    rgba(180, 120, 30, 0.3) 20%,
+    transparent 35%
+  );
   pointer-events: auto;
 }
-cg-board square.premove-dest {
-  background: radial-gradient(rgba(20, 30, 85, 0.5) 22%, #203085 0, rgba(0, 0, 0, 0.3) 0, rgba(0, 0, 0, 0) 0);
-}
+
+/* * CORRIGÉ AVEC Z-INDEX *
+ * On remet le z-index pour que la case soit
+ * au-dessus de la pièce et capture le :hover.
+ */
 cg-board square.oc.move-dest {
-  background: radial-gradient(transparent 0%, transparent 80%, rgba(20, 85, 0, 0.3) 80%);
+  animation: none;
+  background: radial-gradient(
+    transparent 80%, 
+    rgba(205, 50, 50, 1) 80%
+  );
+  z-index: 10;
+  pointer-events: auto;
 }
-cg-board square.oc.premove-dest {
-  background: radial-gradient(transparent 0%, transparent 80%, rgba(20, 30, 85, 0.2) 80%);
-}
-cg-board square.move-dest:hover {
-  background: rgba(20, 85, 30, 0.3);
-}
-cg-board square.premove-dest:hover {
-  background: rgba(20, 30, 85, 0.2);
-}
+
+/* Le 'last-move' anime le box-shadow,
+   il peut donc se combiner avec le 'background' de .oc.move-dest */
 cg-board square.last-move {
-  will-change: transform;
-  background-color: rgba(155, 199, 0, 0.41);
+  will-change: box-shadow;
+  animation: shimmer-bronze-inset 2s infinite alternate;
 }
-cg-board square.selected {
-  background-color: rgba(20, 85, 30, 0.5);
-}
+
 cg-board square.check {
-  background: radial-gradient(ellipse at center, rgba(255, 0, 0, 1) 0%, rgba(231, 0, 0, 1) 25%, rgba(169, 0, 0, 0) 89%, rgba(158, 0, 0, 0) 100%);
+  background: none !important; 
+  will-change: box-shadow;
+  animation: pulse-blood-inset 1.2s infinite alternate;
 }
+
+/* --- Styles Premove --- */
+cg-board square.premove-dest {
+  background: radial-gradient(circle, rgba(255, 200, 80, 0.3) 0%, transparent 30%);
+}
+
+cg-board square.oc.premove-dest {
+  background: radial-gradient(transparent 80%, rgba(205, 50, 50, 0.3) 80%);
+  z-index: 10; /* Ajout du z-index ici aussi */
+}
+
 cg-board square.current-premove {
-  background-color: rgba(20, 30, 85, 0.5);
+  background-color: rgba(200, 150, 50, 0.2);
 }
+
+
+/* --- HOVER (Fonctionne maintenant) --- */
+
+cg-board square.move-dest:hover {
+  
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 220, 100, 1) 0%,
+    rgba(255, 200, 80, 0.7) 25%,
+    transparent 45%
+  );
+  box-shadow: 0 0 15px 5px rgba(255, 200, 100, 0.4);
+}
+
+/* Le :hover de capture n'a plus de conflit */
+cg-board square.oc.move-dest:hover {
+  
+  /* On s'assure que le fond (coins rouges) reste */
+  background: radial-gradient(
+    transparent 80%, 
+    rgba(205, 50, 50, 1) 80%
+  );
+  /* On ajoute le halo externe */
+  box-shadow: 0 0 15px 5px rgba(205, 50, 50, 0.5);
+}
+
+
+
+
 .cg-wrap piece {
   position: absolute;
   top: 0;
