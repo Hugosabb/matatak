@@ -229,8 +229,11 @@ cg-board square.move-dest {
 cg-board square.oc.move-dest {
   animation: none;
   background: radial-gradient(
-    transparent 80%, 
-    rgba(205, 50, 50, 1) 80%
+    circle at center,
+    transparent 70%,         
+    rgba(205, 50, 50, 0.4) 75%,  
+    rgba(205, 50, 50, 0.8) 95%,
+    transparent 95%
   );
   z-index: 10;
   pointer-events: auto;
@@ -282,8 +285,8 @@ cg-board square.oc.move-dest:hover {
   
   /* On s'assure que le fond (coins rouges) reste */
   background: radial-gradient(
-    transparent 80%, 
-    rgba(205, 50, 50, 1) 80%
+    transparent 60%, 
+    rgba(205, 50, 50, 0.5) 80%
   );
   /* On ajoute le halo externe */
   box-shadow: 0 0 15px 5px rgba(205, 50, 50, 0.5);
