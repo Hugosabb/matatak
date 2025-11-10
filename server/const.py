@@ -11,7 +11,6 @@ POCKET_PATTERN = re.compile("\\[(.*)\\]")
 TYPE_CHECKING = False
 
 DASH = "–"
-ANON_PREFIX = "Anon" + DASH
 TEST_PREFIX = "Test" + DASH
 
 NONE_USER = "None" + DASH + "User"
@@ -29,6 +28,50 @@ RESERVED_USERS = (
 def reserved(username):
     return username.upper() in map(str.upper, RESERVED_USERS)
 
+ANIMALS = [
+    "Lion",
+    "Tiger",
+    "Bear",
+    "Wolf",
+    "Eagle",
+    "Shark",
+    "Falcon",
+    "Jaguar",
+    "Cougar",
+    "Lynx",
+    "Hawk",
+    "Cobra",
+    "Viper",
+    "Raven",
+    "Fox",
+    "Bull",
+]
+FUNNY_ADJECTIVES = [
+    "Witty",
+    "Silly",
+    "Goofy",
+    "Zany",
+    "Jolly",
+    "Cheeky",
+    "Bubbly",
+    "Peppy",
+    "Perky",
+    "Snappy",
+    "Spunky",
+    "Feisty",
+    "Lively",
+    "Brisk",
+    "Zesty",
+    "Peppy",
+    "Spry",
+    "Frisky",
+    "Nifty",
+    "Jazzy",
+]
+
+def random_anonyme_username():
+    import random
+    return random.choice(FUNNY_ADJECTIVES)+ random.choice(ANIMALS)+ str(random.randint(100000, 999999))
 
 SCHEDULE_MAX_DAYS = 7
 TOURNAMENT_SPOTLIGHTS_MAX = 3

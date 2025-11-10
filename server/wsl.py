@@ -23,7 +23,7 @@ from auto_pair import (
     find_matching_user_for_seek,
 )
 from chat import chat_response
-from const import ANON_PREFIX, STARTED
+from const import STARTED
 from newid import new_id
 from const import TYPE_CHECKING
 
