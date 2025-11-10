@@ -1381,7 +1381,7 @@ export function lobbyView(model: PyChessModel): VNode[] {
         ]),
         h('under-left', [
             h('a.reflist', { attrs: { href: 'https://discord.gg/ctGQa2WJjh', rel: "noopener", target: "_blank" } }, 'Discord'),
-            h('a.reflist', { attrs: { href: 'https://github.com/Matatak', rel: "noopener", target: "_blank" } }, 'Github'),
+            h('a.reflist', { attrs: { href: 'https://github.com/Hugosabb/matatak', rel: "noopener", target: "_blank" } }, 'Github'),
             h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
             h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
             h('a.reflist', { attrs: { href: '/stats' } }, _("Stats")),
