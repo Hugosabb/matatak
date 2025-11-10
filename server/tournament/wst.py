@@ -200,7 +200,7 @@ async def handle_user_connected(app_state: PychessGlobalAppState, ws, user, data
 
 
 async def handle_lobbychat(app_state: PychessGlobalAppState, user, data):
-    if user.username.startswith(ANON_PREFIX):
+    if user.anon:
         return
 
     tournamentId = data["tournamentId"]
