@@ -6,7 +6,7 @@ from aiohttp import web
 
 from admin import silence
 from chat import chat_response
-from const import ANON_PREFIX, SHIELD
+from const import SHIELD
 from const import TYPE_CHECKING
 
 if TYPE_CHECKING:

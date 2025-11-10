@@ -9,7 +9,7 @@ from aiohttp import web
 from aiohttp.web_ws import WebSocketResponse
 
 from broadcast import round_broadcast
-from const import ANON_PREFIX, STARTED, TEST_PREFIX, reserved
+from const import random_anonyme_username, STARTED, TEST_PREFIX, reserved
 from glicko2.glicko2 import gl2, DEFAULT_PERF, Rating
 from newid import id8
 from notify import notify
@@ -68,8 +68,8 @@ class User:
         if username is None:
             self.anon = False if self.app_state.anon_as_test_users else True
             self.username = (
-                TEST_PREFIX if self.app_state.anon_as_test_users else ANON_PREFIX
-            ) + id8()
+                TEST_PREFIX if self.app_state.anon_as_test_users else random_anonyme_username()
+            )
         else:
             self.username = username
 

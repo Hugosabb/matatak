@@ -10,7 +10,7 @@ from bug.wsr_bug import handle_resign_bughouse, handle_rematch_bughouse, handle_
 import game
 from broadcast import round_broadcast
 from chat import chat_response
-from const import ANON_PREFIX, ANALYSIS, STARTED, CREATED
+from const import ANALYSIS, STARTED, CREATED
 from draw import draw, reject_draw
 from fairy import WHITE, BLACK, FairyBoard
 from const import TYPE_CHECKING
