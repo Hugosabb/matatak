@@ -30,7 +30,7 @@ async def players(request):
         context["highscore"] = {
             variant: dict(app_state.highscore[variant].items()[:10])
             for variant in app_state.highscore
-            if variant in VARIANTS
+            if variant in VARIANTS and variant.startswith("matatak")
         }
 
     return context
