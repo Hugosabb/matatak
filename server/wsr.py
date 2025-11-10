@@ -779,7 +779,7 @@ async def handle_bugroundchat(users, user, data, game):
 
 
 async def handle_roundchat(app_state: PychessGlobalAppState, ws, user, data, game):
-    if user.username.startswith(ANON_PREFIX):
+    if user.anon:
         return
 
     gameId = data["gameId"]

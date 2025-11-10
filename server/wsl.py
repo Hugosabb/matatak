@@ -368,7 +368,7 @@ async def send_lobby_user_connected(app_state, ws, user):
 
 
 async def handle_lobbychat(app_state: PychessGlobalAppState, ws, user, data):
-    if user.username.startswith(ANON_PREFIX):
+    if user.anon:
         return
 
     message = data["message"]

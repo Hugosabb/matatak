@@ -21,6 +21,9 @@ async def generate_crosstable(app_state, username=None):
         wp, bp = doc["us"]
         result = doc["r"]
 
+        w_user = await app_state.users.get(wp)
+        b_user = await app_state.users.get(bp)
+
         if wp < bp:
             s1p = wp
             s2p = bp
@@ -30,10 +33,8 @@ async def generate_crosstable(app_state, username=None):
         ct_id = s1p + "/" + s2p
         # print(ct_id, game_id)
         # R2C = {"1-0": "a", "0-1": "b", "1/2-1/2": "c", "*": "d"}
-        if (
-            result == "d"
-            or wp.startswith("Anon")
-            or bp.startswith("Anon")
+        if (result == "d"
+            or w_user.anon or b_user.anon
             or wp == "Random-Mover"
             or wp == "Fairy-Stockfish"
             or bp == "Random-Mover"

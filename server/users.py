@@ -47,11 +47,6 @@ class Users(UserDict):
             user = self.data[NONE_USER]
             return user
 
-        if username.startswith(ANON_PREFIX):
-            user = User(self.app_state, username=username, anon=True)
-            self.app_state.users[username] = user
-            return user
-
         doc = await self.app_state.db.user.find_one({"_id": username})
         if doc is None:
             log.error("--- users.get() %s NOT IN db ---", username)
