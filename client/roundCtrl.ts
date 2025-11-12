@@ -247,7 +247,7 @@ export class RoundController extends GameController {
             setPocketRowCssVars(this);
         }
 
-        this.updatePocketsVisibility();
+        this.updatePocketsVisibility(this.draftPhase);
 
         // initialize users
         const player0 = document.getElementById('rplayer0') as HTMLElement;
@@ -1224,7 +1224,7 @@ export class RoundController extends GameController {
             this.updateMaterial();
         }
 
-        this.updatePocketsVisibility();
+        this.updatePocketsVisibility(this.draftPhase);
     }
 
     goPly(ply: number, plyVari = 0) {
@@ -1327,20 +1327,6 @@ export class RoundController extends GameController {
             [this.vmaterial0, this.vmaterial1] = updateMaterial(this.variant, this.fullfen, this.vmaterial0, this.vmaterial1, this.flipped(), this.mycolor);
         else
             [this.vmaterial0, this.vmaterial1] = emptyMaterial(this.variant, this.vmaterial0, this.vmaterial1);
-    }
-
-    private updatePocketsVisibility(): void {
-        const mainboard = document.getElementById('mainboard');
-        if (!mainboard) return;
-
-        if (this.variant.name.startsWith('matatak')) {
-            const showPockets = this.draftPhase === 'CUT';
-            mainboard.classList.toggle('pockets-visible', showPockets);
-        } else if (this.hasPockets) {
-            mainboard.classList.add('pockets-visible');
-        } else {
-            mainboard.classList.remove('pockets-visible');
-        }
     }
 
     private setPremove = (orig: cg.Orig, dest: cg.Key, metadata?: cg.SetPremoveMetadata) => {

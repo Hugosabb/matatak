@@ -78,6 +78,7 @@ export class EditorController extends ChessgroundController {
         if (this.hasPockets) {
             setPocketRowCssVars(this);
         }
+        this.updatePocketsVisibility('');
 
         const e = document.getElementById('fen') as HTMLElement;
         this.vfen = patch(e,
@@ -182,6 +183,7 @@ export class EditorController extends ChessgroundController {
         if (this.hasPockets) {
             setPocketRowCssVars(this);
         }
+        this.updatePocketsVisibility('');
     }
 
     private onChangeTurn = (e: Event) => {

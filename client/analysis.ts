@@ -121,6 +121,15 @@ export function analysisView(model: PyChessModel): VNode[] {
     }
 
     return [
+        h('style', `
+            .pocket-top, .pocket-bot {
+                display: none;
+            }
+            #mainboard.pockets-visible ~ .pocket-top,
+            #mainboard.pockets-visible ~ .pocket-bot {
+                display: flex; 
+            }
+        `),
         h('div.analysis-app', [
             h('aside.sidebar-first', leftSide(model)),
             h(`selection#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, [
