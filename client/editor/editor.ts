@@ -23,6 +23,15 @@ export function editorView(model: PyChessModel): VNode[] {
     const variant = VARIANTS[vVariant];
 
     return [
+        h('style', `
+            .pocket-top, .pocket-bot {
+                display: none;
+            }
+            #mainboard.pockets-visible ~ .pocket-top,
+            #mainboard.pockets-visible ~ .pocket-bot {
+                display: flex; 
+            }
+        `),
         h('div.editor-app', [
             h('aside.sidebar-first', [
                 h('div.container', [

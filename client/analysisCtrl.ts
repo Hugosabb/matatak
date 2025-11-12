@@ -161,6 +161,7 @@ export class AnalysisController extends GameController {
         if (this.hasPockets) {
             setPocketRowCssVars(this);
         }
+        this.updatePocketsVisibility('');
 
         if (!this.isAnalysisBoard && !this.embed && !this.ongoing) {
             this.ctableContainer = document.getElementById('panel-3') as HTMLElement;
@@ -299,6 +300,7 @@ export class AnalysisController extends GameController {
         if (this.hasPockets) {
             setPocketRowCssVars(this);
         }
+        this.updatePocketsVisibility('');
     }
 
     private drawAnalysisChart = (withRequest: boolean) => {

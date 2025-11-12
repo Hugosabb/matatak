@@ -128,6 +128,8 @@ export class PuzzleController extends AnalysisController {
 
         this.renderInfos();
 
+        this.updatePocketsVisibility('');
+
         // When we have no puzzle for a given variant just show start FEN with _id: '0'
         if (this._id === '0') {
             this.puzzleComplete(false);

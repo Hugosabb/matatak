@@ -149,6 +149,20 @@ export abstract class ChessgroundController implements BoardController {
             default: return this.ffish.Notation.SAN;
         }
     }
+
+    updatePocketsVisibility(draftPhase: string): void {
+        const mainboard = document.getElementById('mainboard');
+        if (!mainboard) return;
+
+        if (this.variant.name.startsWith('matatak')) {
+            const showPockets = draftPhase === 'CUT';
+            mainboard.classList.toggle('pockets-visible', showPockets);
+        } else if (this.hasPockets) {
+            mainboard.classList.add('pockets-visible');
+        } else {
+            mainboard.classList.remove('pockets-visible');
+        }
+    }
 }
 
 function eventPosition(e: MouchEvent): [number, number] | undefined {

@@ -39,6 +39,15 @@ function leftSide(model: PyChessModel) {
 export function puzzleView(model: PyChessModel): VNode[] {
     const variant = VARIANTS[model.variant];
     return [
+        h('style', `
+            .pocket-top, .pocket-bot {
+                display: none;
+            }
+            #mainboard.pockets-visible ~ .pocket-top,
+            #mainboard.pockets-visible ~ .pocket-bot {
+                display: flex; 
+            }
+        `),
         h('div.analysis-app', [
             h('aside.sidebar-first', leftSide(model)),
             h(`selection#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, [
