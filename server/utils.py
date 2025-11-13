@@ -446,6 +446,7 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
             create=True,
             new_960_fen_needed_for_rematch=seek.reused_fen,
             isDraft=seek.isDraft,
+            boost=seek.boost if wplayer == seek.creator else seek.boost * -1,
         )
     except Exception:
         log.exception(

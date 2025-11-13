@@ -75,6 +75,7 @@ class Game:
         tournamentId=None,
         new_960_fen_needed_for_rematch=False,
         isDraft=False,
+        boost=0
     ):
         self.app_state = app_state
 
@@ -102,6 +103,7 @@ class Game:
         self.new_960_fen_needed_for_rematch = new_960_fen_needed_for_rematch
         self.imported_by = ""
         self.isDraft = isDraft
+        self.boost = boost
 
         self.server_variant = get_server_variant(variant, chess960)
         self.encode_method = self.server_variant.move_encoding
@@ -222,7 +224,7 @@ class Game:
         else:
             self.draft_phase = None
 
-        self.board = FairyBoard(self.variant, self.initial_fen, self.chess960, isDraft = self.isDraft)
+        self.board = FairyBoard(self.variant, self.initial_fen, self.chess960, isDraft = self.isDraft, boost = self.boost)
 
         # Janggi setup needed when player is not BOT
         if self.variant == "janggi":

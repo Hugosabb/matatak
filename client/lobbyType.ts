@@ -87,6 +87,7 @@ export interface Seek {
     chess960: boolean;
     rated: boolean;
     draft: boolean;
+    boost: number;
 
     bot: boolean;
     rating: number;
