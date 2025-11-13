@@ -60,6 +60,7 @@ export class LobbyController implements ChatController {
     createMode: CreateMode;
     tcMode: TcMode;
     validGameData: boolean;
+    selectedColor: 'w' | 'b' | 'r';
     readyState: number;
     seeks: Seek[];
     streams: VNode | HTMLElement;
@@ -93,6 +94,7 @@ export class LobbyController implements ChatController {
         this.profileid = model["profileid"]
         this.createMode = 'createGame';
         this.tcMode = 'real';
+        this.selectedColor = 'r';
         this.validGameData = false;
         this.seeks = [];
 
@@ -131,8 +133,8 @@ export class LobbyController implements ChatController {
             document.getElementById('ailevel')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
             document.getElementById('rmplay-block')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
             (document.getElementById('id01') as HTMLDialogElement).showModal();
-            document.getElementById('color-button-group')!.style.display = 'block';
-            document.getElementById('create-button')!.style.display = 'none';
+            document.getElementById('color-selection-group')!.style.display = 'block';
+            document.getElementById('create-button')!.style.display = 'block';
 
             // CREATE GAME from the main menu
             if (this.profileid === 'any#') {
@@ -165,6 +167,13 @@ export class LobbyController implements ChatController {
 
         boardSettings.assetURL = this.assetURL;
         boardSettings.updateBoardAndPieceStyles();
+    }
+
+    toggleAdvancedParams() {
+        const e = document.getElementById('advanced-params') as HTMLInputElement;
+        const advancedSettings = document.getElementById('advanced-settings-container') as HTMLElement;
+        advancedSettings.style.display = e.checked ? 'block' : 'none';
+        localStorage.seek_advanced_params = String(e.checked);
     }
 
     doSend(message: JSONObject) {
@@ -416,6 +425,7 @@ export class LobbyController implements ChatController {
         const vLevel = Number(localStorage.seek_level ?? "1");
         const vChess960 = localStorage.seek_chess960 ?? "false";
         const vRMplay = localStorage.seek_rmplay ?? "false";
+        const vAdvancedParams = localStorage.seek_advanced_params ?? "false";
         const vDraft = localStorage.seek_draft ?? "false";
         return h('dialog#id01.modal', [
                 h('form.modal-content', [
@@ -432,97 +442,121 @@ export class LobbyController implements ChatController {
                                 h('label', { attrs: { for: "variant" } }, _("Variant")),
                                 selectVariant("variant", vVariant, () => this.setVariant(), () => this.setVariant()),
                             ]),
-                            h('input#fen', {
-                                props: { name: 'fen', placeholder: _('Paste the FEN text here') + (this.anon ? _(' (must be signed in)') : ''),  autocomplete: "off" },
-                                on: { input: () => this.setFen() },
-                            }),
-                            h('div#alternate-start-block'),
-                            h('div#chess960-block', [
-                                h('label', { attrs: { for: "chess960" } }, "Chess960"),
-                                h('input#chess960', {
+                            h('div#advanced-params-block', [
+                                h('label', { attrs: { for: "advanced-params" } }, _("Advanced Settings")),
+                                h('input#advanced-params', {
                                     props: {
-                                        name: "chess960",
+                                        name: "advanced-params",
                                         type: "checkbox",
                                     },
                                     attrs: {
-                                        checked: vChess960 === "true"
+                                        checked: vAdvancedParams === "true"
                                     },
+                                    on: { click: () => this.toggleAdvancedParams() },
+                                    hook: { insert: () => this.toggleAdvancedParams() },
                                 }),
                             ]),
-                            h('div#draft-block', [
-                                h('label', { attrs: { for: "draft" } }, "Draft Mode"),
-                                h('input#draft', {
-                                    props: {
-                                        name: "draft",
-                                        type: "checkbox",
-                                        title: _("Draft Mode"),
-                                    },
-                                    attrs: {
-                                        checked: vDraft === "true"
-                                    },
-                                    // on: { click: () => this.setRM() },
-                                }),
-                            ]),
-                            h('div.tc-block',[
-                                h('div', [
-                                    h('label', { attrs: { for: "min" } }, _("Minutes per side:")),
-                                    h('span#minutes'),
-                                    h('input#min.slider', {
-                                        props: { name: "min", type: "range", min: 0, max: this.minutesValues.length - 1, value: vMin },
-                                        on: { input: e => this.setMinutes(parseInt((e.target as HTMLInputElement).value)) },
-                                        hook: { insert: vnode => this.setMinutes(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                    }),
-                                    h('label#incrementlabel', { attrs: { for: "inc" } }, ''),
-                                    h('span#increment'),
-                                    h('input#inc.slider', {
-                                        props: { name: "inc", type: "range", min: 0, max: this.incrementValues.length - 1, value: vInc },
-                                        on: { input: e => this.setIncrement(this.incrementValues[parseInt((e.target as HTMLInputElement).value)]) },
-                                        hook: { insert: vnode => this.setIncrement(this.incrementValues[parseInt((vnode.elm as HTMLInputElement).value)]) },
-                                    }),
-                                    h('div#byoyomi-period', [
-                                        h('label#byoyomiLabel', { attrs: { for: "byo" } }, _('Periods')),
-                                        h('select#byo', {
-                                            props: { name: "byo" },
+                            h('div#advanced-settings-container', [
+                                h('input#fen', { props: { name: 'fen', placeholder: _('Paste the FEN text here') + (this.anon ? _(' (must be signed in)') : ''), autocomplete: "off" }, on: { input: () => this.setFen() }, }),
+                                h('div#alternate-start-block'),
+                                h('div#chess960-block', [
+                                    h('label', { attrs: { for: "chess960" } }, "Chess960"),
+                                    h('input#chess960', {
+                                        props: {
+                                            name: "chess960",
+                                            type: "checkbox",
                                         },
-                                            [ 1, 2, 3 ].map((n, idx) => h('option', { props: { value: n }, attrs: { selected: (idx === vByoIdx) } }, n))
-                                        ),
+                                        attrs: {
+                                            checked: vChess960 === "true"
+                                        },
+                                    }),
+                                ]),
+                                h('div#draft-block', [
+                                    h('label', { attrs: { for: "draft" } }, "Draft Mode"),
+                                    h('input#draft', {
+                                        props: {
+                                            name: "draft",
+                                            type: "checkbox",
+                                            title: _("Draft Mode"),
+                                        },
+                                        attrs: {
+                                            checked: vDraft === "true"
+                                        },
+                                        // on: { click: () => this.setRM() },
+                                    }),
+                                ]),
+                                h('div.tc-block',[
+                                    h('div', [
+                                        h('label', { attrs: { for: "min" } }, _("Minutes per side:")),
+                                        h('span#minutes'),
+                                        h('input#min.slider', {
+                                            props: { name: "min", type: "range", min: 0, max: this.minutesValues.length - 1, value: vMin },
+                                            on: { input: e => this.setMinutes(parseInt((e.target as HTMLInputElement).value)) },
+                                            hook: { insert: vnode => this.setMinutes(parseInt((vnode.elm as HTMLInputElement).value)) },
+                                        }),
+                                        h('label#incrementlabel', { attrs: { for: "inc" } }, ''),
+                                        h('span#increment'),
+                                        h('input#inc.slider', {
+                                            props: { name: "inc", type: "range", min: 0, max: this.incrementValues.length - 1, value: vInc },
+                                            on: { input: e => this.setIncrement(this.incrementValues[parseInt((e.target as HTMLInputElement).value)]) },
+                                            hook: { insert: vnode => this.setIncrement(this.incrementValues[parseInt((vnode.elm as HTMLInputElement).value)]) },
+                                        }),
+                                        h('div#byoyomi-period', [
+                                            h('label#byoyomiLabel', { attrs: { for: "byo" } }, _('Periods')),
+                                            h('select#byo', {
+                                                props: { name: "byo" },
+                                            },
+                                                [ 1, 2, 3 ].map((n, idx) => h('option', { props: { value: n }, attrs: { selected: (idx === vByoIdx) } }, n))
+                                            ),
+                                        ]),
                                     ]),
                                 ]),
-                            ]),
-                            h('form#game-mode', [
-                                h('div.radio-group', [
-                                    h('input#casual', {
-                                        props: { type: "radio", name: "mode", value: "0" },
-                                        attrs: { checked: vRated === "0" },
-                                        on: { input: e => this.setCasual((e.target as HTMLInputElement).value) },
-                                        hook: { insert: vnode => this.setCasual((vnode.elm as HTMLInputElement).value) },
-                                    }),
-                                    h('label', { attrs: { for: "casual"} }, _("Casual")),
-                                    h('input#rated', {
-                                        props: { type: "radio", name: "mode", value: "1" },
-                                        attrs: { checked: vRated === "1", disabled: this.anon || twoBoards }, /*dont support rated bughouse atm*/
-                                        on: { input: e => this.setRated((e.target as HTMLInputElement).value) },
-                                        hook: { insert: vnode => this.setRated((vnode.elm as HTMLInputElement).value) },
-                                    }),
-                                    h('label', { attrs: { for: "rated"} }, _("Rated")),
+                                h('form#game-mode', [
+                                    h('div.radio-group', [
+                                        h('input#casual', {
+                                            props: { type: "radio", name: "mode", value: "0" },
+                                            attrs: { checked: vRated === "0" },
+                                            on: { input: e => this.setCasual((e.target as HTMLInputElement).value) },
+                                            hook: { insert: vnode => this.setCasual((vnode.elm as HTMLInputElement).value) },
+                                        }),
+                                        h('label', { attrs: { for: "casual"} }, _("Casual")),
+                                        h('input#rated', {
+                                            props: { type: "radio", name: "mode", value: "1" },
+                                            attrs: { checked: vRated === "1", disabled: this.anon || twoBoards }, /*dont support rated bughouse atm*/
+                                            on: { input: e => this.setRated((e.target as HTMLInputElement).value) },
+                                            hook: { insert: vnode => this.setRated((vnode.elm as HTMLInputElement).value) },
+                                        }),
+                                        h('label', { attrs: { for: "rated"} }, _("Rated")),
+                                    ]),
                                 ]),
-                            ]),
-                            h('div#rating-range-setting', [
-                                _('Rating range'),
-                                h('div.rating-range', [
-                                    h('input#rating-min.slider', {
-                                        props: { name: "rating-min", type: "range", min: -1000, max: 0, step: 50, value: vRatingMin },
-                                        on: { input: e => this.setRatingMin(parseInt((e.target as HTMLInputElement).value)) },
-                                        hook: { insert: vnode => this.setRatingMin(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                    }),
-                                    h('div.rating-min', '-1000'),
-                                    h('span', '/'),
-                                    h('div.rating-max', '+1000'),
-                                    h('input#rating-max.slider', {
-                                        props: { name: "rating-max", type: "range", min: 0, max: 1000, step: 50, value: vRatingMax },
-                                        on: { input: e => this.setRatingMax(parseInt((e.target as HTMLInputElement).value)) },
-                                        hook: { insert: vnode => this.setRatingMax(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                    }),
+                                h('div#rating-range-setting', [
+                                    _('Rating range'),
+                                    h('div.rating-range', [
+                                        h('input#rating-min.slider', {
+                                            props: { name: "rating-min", type: "range", min: -1000, max: 0, step: 50, value: vRatingMin },
+                                            on: { input: e => this.setRatingMin(parseInt((e.target as HTMLInputElement).value)) },
+                                            hook: { insert: vnode => this.setRatingMin(parseInt((vnode.elm as HTMLInputElement).value)) },
+                                        }),
+                                        h('div.rating-min', '-1000'),
+                                        h('span', '/'),
+                                        h('div.rating-max', '+1000'),
+                                        h('input#rating-max.slider', {
+                                            props: { name: "rating-max", type: "range", min: 0, max: 1000, step: 50, value: vRatingMax },
+                                            on: { input: e => this.setRatingMax(parseInt((e.target as HTMLInputElement).value)) },
+                                            hook: { insert: vnode => this.setRatingMax(parseInt((vnode.elm as HTMLInputElement).value)) },
+                                        }),
+                                    ]),
+                                ]),
+                                h('div#color-selection-group.settings-block', [
+                                    h('h4', _("Color")),
+                                    h('div.radio-group', [
+                                        h('input#color-white', { props: { type: "radio", name: "color", value: "w" }, on: { change: () => this.selectedColor = 'w' } }),
+                                        h('label.icon.icon-white', { attrs: { for: "color-white" }, props: { title: _("White") } }),
+                                        h('input#color-random', { props: { type: "radio", name: "color", value: "r", checked: true }, on: { change: () => this.selectedColor = 'r' } }),
+                                        h('label.icon.icon-adjust', { attrs: { for: "color-random" }, props: { title: _("Random") } }),
+                                        h('input#color-black', { props: { type: "radio", name: "color", value: "b" }, on: { change: () => this.selectedColor = 'b' } }),
+                                        h('label.icon.icon-black', { attrs: { for: "color-black" }, props: { title: _("Black") } }),
+                                    ])
                                 ]),
                             ]),
                             // if play with the machine
@@ -550,13 +584,8 @@ export class LobbyController implements ChatController {
                                     ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
                                 ),
                             ]),
-                            h('div#color-button-group', [
-                                h('button.icon.icon-black', { props: { type: "button", title: _("Black") }, on: { click: () => this.createSeek('b') } }),
-                                h('button.icon.icon-adjust', { props: { type: "button", title: _("Random") }, on: { click: () => this.createSeek('r') } }),
-                                h('button.icon.icon-white', { props: { type: "button", title: _("White") }, on: { click: () => this.createSeek('w') } }),
-                            ]),
                             h('div#create-button', [
-                                h('button', { props: { type: "button" }, on: { click: () => this.createSeek('w') } }, _("Create")),
+                            h('button', { props: { type: "button" }, on: { click: () => this.createSeek(this.selectedColor) } }, _("Play")),
                             ]),
                         ]),
                     ]),
@@ -648,8 +677,8 @@ export class LobbyController implements ChatController {
         document.getElementById('ailevel')!.style.display = 'none';
         document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
-        document.getElementById('color-button-group')!.style.display = 'block';
-        document.getElementById('create-button')!.style.display = 'none';
+        document.getElementById('color-selection-group')!.style.display = 'block';
+        document.getElementById('create-button')!.style.display = 'block';
     }
 
     playFriend(variantName: string = '') {
@@ -661,8 +690,8 @@ export class LobbyController implements ChatController {
         document.getElementById('ailevel')!.style.display = 'none';
         document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
-        document.getElementById('color-button-group')!.style.display = 'block';
-        document.getElementById('create-button')!.style.display = 'none';
+        document.getElementById('color-selection-group')!.style.display = 'block';
+        document.getElementById('create-button')!.style.display = 'block';
     }
 
     playAI(variantName: string = '') {
@@ -675,8 +704,8 @@ export class LobbyController implements ChatController {
         document.getElementById('ailevel')!.style.display = e.checked ? 'none' : 'inline-block';
         document.getElementById('rmplay-block')!.style.display = 'block';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
-        document.getElementById('color-button-group')!.style.display = 'block';
-        document.getElementById('create-button')!.style.display = 'none';
+        document.getElementById('color-selection-group')!.style.display = 'block';
+        document.getElementById('create-button')!.style.display = 'block';
     }
 
     createHost(variantName: string = '') {
@@ -688,7 +717,7 @@ export class LobbyController implements ChatController {
         document.getElementById('ailevel')!.style.display = 'none';
         document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
-        document.getElementById('color-button-group')!.style.display = 'none';
+        document.getElementById('color-selection-group')!.style.display = 'none';
         document.getElementById('create-button')!.style.display = 'block';
     }
 
@@ -799,7 +828,7 @@ export class LobbyController implements ChatController {
     }
     private setStartButtons() {
         this.validGameData = this.validateTimeControl() && this.validateFen();
-        const e = document.getElementById('color-button-group') as HTMLElement;
+        const e = document.getElementById('create-button') as HTMLElement;
         e.classList.toggle("disabled", !this.validGameData);
     }
     private validateTimeControl() {

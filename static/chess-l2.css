@@ -21,6 +21,15 @@
     /* border: 1px solid red; */
 }
 
+.modal-content .container {
+    padding-left: 30px; /* Adds a wide margin on the left */
+    padding-right: 30px; /* Adds a wide margin on the right */
+}
+
+.settings-block {
+    margin-top: 20px; /* Adjust this value as needed for desired spacing */
+}
+
 .generic-variant-info {
     grid-column: 1/2;
 }
