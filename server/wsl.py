@@ -147,6 +147,7 @@ async def handle_create_ai_challenge(app_state: PychessGlobalAppState, ws, user,
         rated=False,
         chess960=data["chess960"],
         isDraft=data["draft"],
+        boost=data["boost"]
     )
     log.debug("adding seek: %s" % seek)
 

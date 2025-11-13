@@ -75,7 +75,7 @@ def modded_variant(variant: str, chess960: bool, initial_fen: str) -> str:
 
 class FairyBoard:
     def __init__(
-        self, variant: str, initial_fen="", chess960=False, count_started=0, disabled_fen="", isDraft=False
+        self, variant: str, initial_fen="", chess960=False, count_started=0, disabled_fen="", isDraft=False, boost=0
     ):
         self.variant = modded_variant(variant, chess960, initial_fen)
         self.sf = sf_alice if variant == "alice" else sf
@@ -107,7 +107,7 @@ class FairyBoard:
                 # print(self.jieqi_covered_pieces)
             else:
                 self.initial_fen = FairyBoard.start_fen(
-                    variant, chess960 or variant == "ataxx", disabled_fen, isDraft          
+                    variant, chess960 or variant == "ataxx", disabled_fen, isDraft, boost
                 )
         self.move_stack: list[str] = []
         self.ply = 0
@@ -133,21 +133,16 @@ class FairyBoard:
             self.notation = NOTATION_SAN
 
     @staticmethod
-    def start_fen(variant, chess960=False, disabled_fen="", isDraft=False):
+    def start_fen(variant, chess960=False, disabled_fen="", isDraft=False, boost=0):
         if chess960 or variant == "ataxx":
             new_fen = FairyBoard.shuffle_start(variant)
             while new_fen == disabled_fen:
                 new_fen = FairyBoard.shuffle_start(variant)
-        elif variant == 'matatak':
+        elif variant.startswith("matatak"):
             if isDraft:
-                new_fen = FairyBoard.matatak_draft_board()
+                new_fen = FairyBoard.matatak_draft_board(variant=="matatakmini")
             else:
-                new_fen = FairyBoard.matatak_random_start()
-        elif variant == 'matatakmini':
-            if isDraft:
-                new_fen = FairyBoard.matatak_draft_board(True)
-            else:
-                new_fen = FairyBoard.matatakmini_random_start()
+                new_fen = FairyBoard.matatak_random_start(variant=="matatakmini", boost)
         elif variant == "alice":
             new_fen = sf_alice.start_fen("alice")
         else:
@@ -453,18 +448,92 @@ class FairyBoard:
         return fen
     
     @staticmethod
-    def matatak_random_start():
+    def matatak_random_start(isMini = False, boost=0):
         """Create random initial position."""
-
+        bchampions, bpawns, wpawns, wchampions = FairyBoard.matatak_seasons_teams() if isMini else FairyBoard.matatak_random_teams()
+        bchampions, bpawns, wpawns, wchampions = FairyBoard.add_boost(isMini, boost, bchampions, bpawns, wpawns, wchampions)
+        return FairyBoard.matatak_placement_start(bchampions, bpawns, wpawns, wchampions, isMini)
+    
+    @staticmethod
+    def matatak_random_teams():
         pawns = "abefgjlmpq"
         champions = "cdhinorstwxyz"
+        pawns_boost = ["b", "b", "b", "b"]
+        champions_boost = ["n", "o", "i", "d"]
 
         c1, c2 = random.sample(champions, 2)
         p1, p2, p3 = random.sample(pawns, 3)
 
-        fen = "2" + c1 + "k" + c2 + "3/2" + p1 + p2 + p3 + "3"
-        fen += "/8/8/8/8/" 
-        fen += "3" + p3.upper() + p2.upper() + p1.upper() + "2/3" + c2.upper() + "K" + c1.upper() + "2"
+        bchampions = c1 + "k" + c2
+        bpawns = p1 + p2 + p3
+        wpawns = p3.upper() + p2.upper() + p1.upper()
+        wchampions = c2.upper() + "K" + c1.upper()
+    
+        return bchampions, bpawns, wpawns, wchampions
+    
+    @staticmethod
+    def matatak_seasons_teams():
+        spring = ("m", "c")
+        summer = ("f", "x")
+        autumn = ("b", "i")
+        winter = ("l", "w")
+
+        wteam = random.choice([spring, summer, autumn, winter])
+        bteam = random.choice([spring, summer, autumn, winter])
+
+        bchampions = "k" + bteam[1]
+        bpawns = bteam[0] * 2
+        wpawns = wteam[0].upper() * 2
+        wchampions = wteam[1].upper() + "K"
+
+        return bchampions, bpawns, wpawns, wchampions
+    
+    @staticmethod
+    def add_boost(isMini, boost, bchampions, bpawns, wpawns, wchampions):
+        pawns_boost = ["b", "b", "b", "b"]
+        champions_boost = ["n", "o", "i", "d"]
+        
+        bchampionsboost = champions_boost[abs(boost)-1] if boost<0 else ""
+        bpawnsboost = pawns_boost[abs(boost)-1] if boost<0 else ""
+        wpawnsboost = pawns_boost[abs(boost)-1].upper() if boost>0 else ""
+        wchampionsboost = champions_boost[abs(boost)-1].upper() if boost>0 else ""
+
+        if isMini:
+            bpawns = bpawnsboost + bpawns
+            bchampions = bchampionsboost + bchampions
+            wpawns += wpawnsboost
+            wchampions += wchampionsboost
+        else:
+            bpawns += bpawnsboost
+            bchampions += bchampionsboost
+            wpawns = wpawnsboost + wpawns
+            wchampions = wchampionsboost + wchampions
+
+        return bchampions, bpawns, wpawns, wchampions
+
+    @staticmethod
+    def matatak_placement_start(bchampions: str, bpawns: str, wpawns: str, wchampions: str, isMini: bool) -> str:
+        width = 6 if isMini else 8
+        bspace1 = (width-len(bchampions))//2
+        bspace2 = width - bspace1 - len(bchampions)
+        wspace1 = (width-len(wchampions))//2
+        wspace2 = width - wspace1 - len(wchampions)
+
+        fen = str(bspace1)
+        fen += bchampions
+        fen += str(bspace2)
+        fen += "/"
+        fen += str(bspace1)
+        fen += bpawns
+        fen += str(bspace2)
+        fen += "/6/6/6/6/" if isMini else "/8/8/8/8/"
+        fen += str(wspace2)
+        fen += wpawns
+        fen += str(wspace1)
+        fen += "/"
+        fen += str(wspace2)
+        fen += wchampions
+        fen += str(wspace1)
         fen += " w - - 0 1"
         return fen
 
@@ -495,25 +564,6 @@ class FairyBoard:
         empty_board = "8/8/8/8/8/8/8/8" if not isMini else "6/6/6/6/6/6/6/6"
         fen = empty_board + f"[{pieces_in_pocket}] w - - 0 1"
 
-        return fen
-    
-    @staticmethod
-    def matatakmini_random_start():
-        """Random from 4 starter teams"""
-        spring = "2MM2/2CK2"
-        summer = "2FF2/2XK2"
-        autumn = "2BB2/2IK2"
-        winter = "2LL2/2WK2"
-        # reverse for black with function reverse string in python and make it lowercase
-
-        # randomly choose one of the four teams for white
-        white_team = random.choice([spring, summer, autumn, winter])
-        black_team = random.choice([spring, summer, autumn, winter])[::-1].lower()
-
-        fen = black_team
-        fen += "/6/6/6/6/" 
-        fen += white_team
-        fen += " w - - 0 1"
         return fen
 
 @cache

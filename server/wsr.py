@@ -473,7 +473,8 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             "chess960": game.chess960,
             "rated": False,
             "profileid": "Fairy-Stockfish",
-            "draft": game.isDraft
+            "draft": game.isDraft,
+            "boost": game.boost * -1
         }
         await handle_create_ai_challenge(app_state, ws, user, rematch_data)
         return

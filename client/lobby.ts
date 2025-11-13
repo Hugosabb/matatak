@@ -61,6 +61,7 @@ export class LobbyController implements ChatController {
     tcMode: TcMode;
     validGameData: boolean;
     selectedColor: 'w' | 'b' | 'r';
+    selectedBoost: number;
     readyState: number;
     seeks: Seek[];
     streams: VNode | HTMLElement;
@@ -95,6 +96,7 @@ export class LobbyController implements ChatController {
         this.createMode = 'createGame';
         this.tcMode = 'real';
         this.selectedColor = 'r';
+        this.selectedBoost = 0;
         this.validGameData = false;
         this.seeks = [];
 
@@ -176,7 +178,7 @@ export class LobbyController implements ChatController {
         localStorage.seek_advanced_params = String(e.checked);
     }
 
-    doSend(message: JSONObject) {
+    doSend(message: JSONObject) { 
         // console.log("---> lobby doSend():", message);
         this.sock.send(JSON.stringify(message));
     }
@@ -201,7 +203,7 @@ export class LobbyController implements ChatController {
         });
     }
 
-    createInviteFriendMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, day: number, chess960: boolean, rated: boolean, draft: boolean) {
+    createInviteFriendMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, day: number, chess960: boolean, rated: boolean, draft: boolean, boost: number) {
         this.doSend({
             type: "create_invite",
             user: this.username,
@@ -215,11 +217,12 @@ export class LobbyController implements ChatController {
             rated: rated,
             chess960: chess960,
             color: color,
-            draft: draft
+            draft: draft,
+            boost: boost
         });
     }
 
-    createBOTChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, chess960: boolean, rated: boolean, draft: boolean) {
+    createBOTChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, chess960: boolean, rated: boolean, draft: boolean, boost: number) {
         this.doSend({
             type: "create_bot_challenge",
             user: this.username,
@@ -233,11 +236,12 @@ export class LobbyController implements ChatController {
             chess960: chess960,
             color: color,
             profileid: this.profileid,
-            draft: draft
+            draft: draft,
+            boost: boost
         });
     }
 
-    createAIChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, level: number, rm: boolean, chess960: boolean, rated: boolean, draft: boolean) {
+    createAIChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, level: number, rm: boolean, chess960: boolean, rated: boolean, draft: boolean, boost: number) {
         this.doSend({
             type: "create_ai_challenge",
             rm: rm,
@@ -252,11 +256,12 @@ export class LobbyController implements ChatController {
             chess960: chess960,
             color: color,
             profileid: (this.profileid === "") ? "Fairy-Stockfish" : this.profileid,
-            draft: draft
+            draft: draft,
+            boost: boost
         });
     }
 
-    createHostMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, chess960: boolean, rated: boolean, draft: boolean) {
+    createHostMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, chess960: boolean, rated: boolean, draft: boolean, boost: number) {
         this.doSend({
             type: "create_host",
             user: this.username,
@@ -269,11 +274,12 @@ export class LobbyController implements ChatController {
             rated: rated,
             chess960: chess960,
             color: color,
-            draft: draft
+            draft: draft,
+            boost: boost
         });
     }
 
-    isNewSeek(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, day: number, chess960: boolean, rated: boolean, draft: boolean) {
+    isNewSeek(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, day: number, chess960: boolean, rated: boolean, draft: boolean, boost: number) {
         // console.log("isNewSeek()?", variant, color, fen, minutes, increment, byoyomiPeriod, chess960, rated);
         // console.log(this.seeks);
         return !this.seeks.some(seek =>
@@ -287,7 +293,8 @@ export class LobbyController implements ChatController {
             seek.day === day &&
             seek.chess960 === chess960 &&
             seek.rated === rated &&
-            seek.draft == draft 
+            seek.draft == draft &&
+            seek.boost == boost
         );
     }
 
@@ -362,6 +369,10 @@ export class LobbyController implements ChatController {
         const isDraft = e.checked;
         localStorage.seek_draft = e.checked;
 
+        e = document.querySelector('input[name="boost"]:checked') as HTMLInputElement;
+        const boost = Number(e.value);
+        localStorage.seek_boost = e.value;
+
         // console.log("CREATE SEEK variant, color, fen, minutes, increment, hide, chess960", variant, color, fen, minutes, increment, chess960, rated, rrMin, rrMax);
 
         switch (this.createMode) {
@@ -375,19 +386,19 @@ export class LobbyController implements ChatController {
                     localStorage.seek_rmplay = e.checked;
                 }
                 const rm = e.checked;
-                this.createAIChallengeMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, level, rm, chess960, rated, isDraft);
+                this.createAIChallengeMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, level, rm, chess960, rated, isDraft, boost);
                 break;
             case 'playBOT':
-                this.createBOTChallengeMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, chess960, rated, isDraft);
+                this.createBOTChallengeMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, chess960, rated, isDraft, boost);
                 break;
             case 'playFriend':
-                this.createInviteFriendMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, day, chess960, rated, isDraft);
+                this.createInviteFriendMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, day, chess960, rated, isDraft, boost);
                 break;
             case 'createHost':
-                this.createHostMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, chess960, rated, isDraft);
+                this.createHostMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, chess960, rated, isDraft, boost);
                 break;
             default:
-                if (this.isNewSeek(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, day, chess960, rated, isDraft))
+                if (this.isNewSeek(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, day, chess960, rated, isDraft, boost))
                     this.createSeekMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, day, chess960, rated, rrMin, rrMax, isDraft);
         }
         // prevent to create challenges continuously
@@ -427,6 +438,7 @@ export class LobbyController implements ChatController {
         const vRMplay = localStorage.seek_rmplay ?? "false";
         const vAdvancedParams = localStorage.seek_advanced_params ?? "false";
         const vDraft = localStorage.seek_draft ?? "false";
+        const vBoost = Number(localStorage.seek_boost ?? "0");
         return h('dialog#id01.modal', [
                 h('form.modal-content', [
                     h('span#closecontainer', [
@@ -557,6 +569,15 @@ export class LobbyController implements ChatController {
                                         h('input#color-black', { props: { type: "radio", name: "color", value: "b" }, on: { change: () => this.selectedColor = 'b' } }),
                                         h('label.icon.icon-black', { attrs: { for: "color-black" }, props: { title: _("Black") } }),
                                     ])
+                                ]),
+                                h('div#boost-selection-group.settings-block', [
+                                    h('h4', _("Boost")),
+                                    h('div.radio-group',
+                                        [-4, -3, -2, -1, 0, 1, 2, 3, 4].map(boost => [
+                                            h(`input#boost${boost}`, { props: { type: "radio", name: "boost", value: boost }, attrs: { checked: vBoost === boost }, on: { change: () => this.selectedBoost = boost } }),
+                                            h(`label.level-boost.boost${boost}`, { attrs: { for: `boost${boost}` } }, boost > 0 ? `+${boost}`: boost),
+                                        ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
+                                    )
                                 ]),
                             ]),
                             // if play with the machine
