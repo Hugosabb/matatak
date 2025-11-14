@@ -474,7 +474,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             "rated": False,
             "profileid": "Fairy-Stockfish",
             "draft": game.isDraft,
-            "boost": game.boost * -1
+            "boost": game.boost*10
         }
         await handle_create_ai_challenge(app_state, ws, user, rematch_data)
         return
@@ -508,6 +508,8 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             player1=user,
             chess960=game.chess960,
             reused_fen=reused_fen,
+            isDraft=game.isDraft,
+            boost=game.boost*10,
         )
         app_state.seeks[seek.id] = seek
 
@@ -539,6 +541,8 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
                 player1=user,
                 chess960=game.chess960,
                 reused_fen=reused_fen,
+                isDraft=game.isDraft,
+                boost=game.boost*10,
             )
             app_state.seeks[seek.id] = seek
 
