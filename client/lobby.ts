@@ -699,6 +699,7 @@ export class LobbyController implements ChatController {
         document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-selection-group')!.style.display = 'block';
+        document.getElementById('boost-selection-group')!.style.display = 'none';
         document.getElementById('create-button')!.style.display = 'block';
     }
 
@@ -712,6 +713,7 @@ export class LobbyController implements ChatController {
         document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-selection-group')!.style.display = 'block';
+        document.getElementById('boost-selection-group')!.style.display = 'block';
         document.getElementById('create-button')!.style.display = 'block';
     }
 
@@ -725,6 +727,7 @@ export class LobbyController implements ChatController {
         document.getElementById('ailevel')!.style.display = e.checked ? 'none' : 'inline-block';
         document.getElementById('rmplay-block')!.style.display = 'block';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
+        document.getElementById('boost-selection-group')!.style.display = 'block';
         document.getElementById('color-selection-group')!.style.display = 'block';
         document.getElementById('create-button')!.style.display = 'block';
     }
