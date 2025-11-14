@@ -425,6 +425,11 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
     else:
         game_id = await new_id(None if app_state.db is None else app_state.db.game)
 
+    if abs(seek.boost) >= 10:
+        boost = seek.boost//10*-1
+    else :
+        boost = seek.boost if wplayer == seek.creator else seek.boost * -1
+
     # print("new_game", game_id, seek.variant, seek.fen, wplayer, bplayer, seek.base, seek.inc, seek.level, seek.rated, seek.chess960)
     try:
         rated = RATED if (seek.rated and (not wplayer.anon) and (not bplayer.anon)) else CASUAL
@@ -446,7 +451,7 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
             create=True,
             new_960_fen_needed_for_rematch=seek.reused_fen,
             isDraft=seek.isDraft,
-            boost=seek.boost if wplayer == seek.creator else seek.boost * -1,
+            boost=boost,
         )
     except Exception:
         log.exception(
