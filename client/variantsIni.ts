@@ -9,7 +9,7 @@ pawn = -
 
 customPiece1 = a:fmWfcF
 # Meerkat
-customPiece2 = b::fK 
+customPiece2 = b:fK 
 # Cat
 customPiece3 = c:K2 
 # Leopard
@@ -45,10 +45,6 @@ customPiece18 = s:N
 # Horse
 customPiece19 = t:N0 
 # Kangaroo
-customPiece20 = u: 
-# Kakapo TODO move on itself
-customPiece21 = v:fmW2fcF 
-# Pinguin
 customPiece22 = w:KB
 # Elephant (old mW0cF2)
 customPiece23 = x:RK 
