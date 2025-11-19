@@ -1,5 +1,6 @@
 import { WebsocketHeartbeatJs } from './socket/socket';
 
+import { premove } from './premoveCgOverride';
 import { h, VNode } from 'snabbdom';
 import * as Mousetrap  from 'mousetrap';
 import * as cg from 'chessgroundx/types';
@@ -414,6 +415,55 @@ export abstract class GameController extends ChessgroundController implements Ch
                 this.duck.finish(key);
                 return;
             }
+            const piece = this.chessground.state.boardState.pieces.get(key);
+            if (piece) {
+                // Calculate theoretic moves on an empty board
+                const emptyBoardState: cg.BoardState = {
+                    pieces: new Map([[key, piece]]),
+                    turnColor: piece.color,
+                    pockets: this.variant.pocket ? { white: new Map(), black: new Map() } : undefined,
+                };
+                const theoreticMoves = premove(this.variant.name, this.chess960, this.variant.board.dimensions)(emptyBoardState, key, false);
+                
+                const shapes = theoreticMoves.map(dest => {
+                    
+                    const uniqueDiamondId = `diamond_${dest}`;
+                    const uniqueShadowId = `shadow_${dest}`;
+
+                    const moveSvg = `
+                    <defs>
+                        <linearGradient id="${uniqueDiamondId}" x1="100%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="rgb(71, 57, 46)" />
+                            <stop offset="100%" stop-color="rgb(164, 139, 114)" />
+                        </linearGradient>
+                        <radialGradient id="${uniqueShadowId}" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                            <stop offset="0%" stop-color="black" stop-opacity="1" />
+                            <stop offset="100%" stop-color="black" stop-opacity=".0" />
+                        </radialGradient>
+                    </defs>
+
+                    <circle cx="50" cy="50" r="18" fill="url(#${uniqueShadowId})" opacity="1"/>
+
+                    <rect x="44" y="44" width="12" height="12" 
+                            transform="rotate(45 50 50)" 
+                            fill="url(#${uniqueDiamondId})" 
+                            opacity="1" />
+                    `;
+
+                    return {
+                        orig: dest,
+                        customSvg: moveSvg as any 
+                    } as cg.DrawShape;
+                });
+
+                this.chessground.set({
+                    drawable: {
+                        shapes: shapes,
+                    }
+                });
+            } else {
+                this.chessground.set({ drawable: { shapes: [] } });
+            }
 
             if (this.chessground.state.movable.dests === undefined) return;
 
@@ -475,6 +525,7 @@ export abstract class GameController extends ChessgroundController implements Ch
       * Custom variant-specific logic to be triggered on move and alter state of board/pocket depending on variant rules.
       */
     protected onUserMove(orig: cg.Key, dest: cg.Key, meta: cg.MoveMetadata) {
+        // this.chessground.set({ drawable: { autoShapes: [] } });
         if (this.duck.inputState === "move") {
             this.duck.finish(dest);
             return;
@@ -519,6 +570,7 @@ export abstract class GameController extends ChessgroundController implements Ch
      * Variant specific logic for when dropping a piece from pocket is performed
      */
     protected onUserDrop(piece: cg.Piece, dest: cg.Key, meta: cg.MoveMetadata) {
+        //this.chessground.set({ drawable: { autoShapes: [] } });
         this.preaction = meta.premove;
         const role = piece.role;
         this.processInput(piece, util.dropOrigOf(role), dest, meta);

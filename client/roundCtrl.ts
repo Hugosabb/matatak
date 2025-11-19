@@ -1,6 +1,6 @@
 import { h, VNode } from 'snabbdom';
 
-import { premove } from 'chessgroundx/premove';
+import { premove } from './premoveCgOverride';
 import { predrop } from 'chessgroundx/predrop';
 import * as cg from 'chessgroundx/types';
 import { Api } from "chessgroundx/api";
