@@ -219,6 +219,7 @@ cg-board square.move-dest {
     rgba(164, 139, 114, 0.7) 30%,
     transparent 35%
   );
+  z-index: 10;
   pointer-events: auto;
 }
 
@@ -255,6 +256,7 @@ cg-board square.check {
 /* --- Styles Premove --- */
 cg-board square.premove-dest {
   background: radial-gradient(circle, rgba(255, 200, 80, 0.3) 0%, transparent 30%);
+  z-index: 10;
 }
 
 cg-board square.oc.premove-dest {
@@ -269,7 +271,7 @@ cg-board square.current-premove {
 
 /* --- HOVER (Fonctionne maintenant) --- */
 
-cg-board square.move-dest:hover {
+cg-board square.move-dest:hover, cg-board square.move-dest.drag-over {
   
   background: radial-gradient(
     circle at center,
@@ -281,7 +283,7 @@ cg-board square.move-dest:hover {
 }
 
 /* Le :hover de capture n'a plus de conflit */
-cg-board square.oc.move-dest:hover {
+cg-board square.oc.move-dest:hover, cg-board square.oc.move-dest.drag-over {
   
   /* On s'assure que le fond (coins rouges) reste */
   background: radial-gradient(
