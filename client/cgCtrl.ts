@@ -58,7 +58,18 @@ export abstract class ChessgroundController implements BoardController {
             pocketRoles: this.variant.pocket?.roles,
             events: { insert: this.onInsert() }
         }, pocket0, pocket1);
-
+        
+        this.chessground.set({
+            drawable: {
+                brushes: {
+                    green: { color: '#ebd26a', opacity: 0.9, lineWidth: 10 }, 
+                    red: { color: '#c883ad', opacity: 0.9, lineWidth: 10 },   
+                    blue: { color: '#729caf', opacity: 0.9, lineWidth: 10 },  
+                    yellow: { color: '#d49150', opacity: 0.9, lineWidth: 10 }
+                }
+            }
+        });
+        
         if (this.boardName === 'b') {
             boardSettings.ctrl2 = this;
         } else {
