@@ -25,6 +25,7 @@ from auto_pair import (
 from chat import chat_response
 from const import STARTED
 from newid import new_id
+from const import NONE_USER, MAX_NAMED_SPECTATORS, MAX_HIGHSCORE_ITEM_LIMIT
 from const import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -44,6 +45,8 @@ async def lobby_socket_handler(request):
     app_state = get_app_state(request.app)
     session = await aiohttp_session.get_session(request)
     user = await get_user(session, request)
+    if user is None:
+        return web.HTTPFound("/")
 
     ws = await process_ws(session, request, user, init_ws, process_message)
     if ws is None:
@@ -53,6 +56,10 @@ async def lobby_socket_handler(request):
 
 
 async def init_ws(app_state: PychessGlobalAppState, ws, user):
+    if user.username == NONE_USER:
+        await ws_send_json(ws, {"type": "reload"})
+        return
+
     user.last_seen = datetime.now(timezone.utc)
     await send_game_in_progress_if_any(app_state, user, ws)
     await send_lobby_user_connected(app_state, ws, user)

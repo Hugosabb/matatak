@@ -19,6 +19,8 @@ piece_css_path = Path(Path(__file__).parent.parent.parent, "static/piece-css")
 piece_sets = [x.name for x in piece_css_path.iterdir() if x.is_dir() and x.name != "mono"]
 
 
+from users import NotInDbUsers
+
 async def get_user_context(request):
     app_state = get_app_state(request.app)
 
@@ -41,21 +43,26 @@ async def get_user_context(request):
             if not doc.get("enabled", True):
                 log.info("Closed account %s tried to connect.", session_user)
                 session.invalidate()
-                return web.HTTPFound("/")
+                raise web.HTTPFound("/")
 
         if session_user in app_state.users:
             user = app_state.users[session_user]
         else:
-            user = await app_state.users.get(session_user)
+            try:
+                user = await app_state.users.get(session_user)
+            except NotInDbUsers:
+                log.info("User %s not found in DB (server restart?), invalidating session.", session_user)
+                session.invalidate()
+                raise web.HTTPFound("/")
 
             if not user.enabled:
                 session.invalidate()
-                return web.HTTPFound("/")
+                raise web.HTTPFound("/")
     else:
         if app_state.disable_new_anons:
             session.invalidate()
             await asyncio.sleep(3)
-            return web.HTTPFound("/login")
+            raise web.HTTPFound("/login")
 
         user = User(app_state, anon=not app_state.anon_as_test_users)
         log.info("+++ New guest user %s connected.", user.username)
