@@ -50,7 +50,7 @@ async def handle_404(request, handler):
         if ex.status == 404:
             response = await page404.page404(request)
             return response
-            raise
+        raise
     except NotInDbUsers:
         return web.HTTPFound("/")
     except asyncio.CancelledError:

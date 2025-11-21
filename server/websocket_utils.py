@@ -17,8 +17,14 @@ from logger import log
 
 
 async def get_user(session: aiohttp_session.Session, request: web.Request) -> User:
+    from users import NotInDbUsers
+    from const import NONE_USER
     session_user = session.get("user_name")
-    user = await get_app_state(request.app).users.get(session_user)
+    try:
+        user = await get_app_state(request.app).users.get(session_user)
+    except NotInDbUsers:
+        log.info("WS User %s not found in DB.", session_user)
+        return get_app_state(request.app).users[NONE_USER]
     return user
 
 
@@ -35,6 +41,7 @@ async def process_ws(
     app_state = get_app_state(request.app)
 
     if (user is not None) and (not user.enabled):
+        log.info("User %s is disabled, invalidating session.", user.username)
         session.invalidate()
         return None
 

@@ -50,8 +50,8 @@ class Users(UserDict):
         doc = await self.app_state.db.user.find_one({"_id": username})
         if doc is None:
             log.error("--- users.get() %s NOT IN db ---", username)
-            # raise NotInDbUsers
-            return self.data[NONE_USER]
+            raise NotInDbUsers
+            # return self.data[NONE_USER]
         else:
             perfs = doc.get("perfs", {variant: DEFAULT_PERF for variant in RATED_VARIANTS})
             pperfs = doc.get("pperfs", {variant: DEFAULT_PERF for variant in RATED_VARIANTS})

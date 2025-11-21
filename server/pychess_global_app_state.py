@@ -252,14 +252,22 @@ class PychessGlobalAppState:
                     self.auto_pairings[variant_tc] = set()
 
                 for username, rrange in doc["users"]:
-                    user = await self.users.get(username)
-                    self.auto_pairings[variant_tc].add(user)
-                    if user not in self.auto_pairing_users:
-                        self.auto_pairing_users[user] = rrange
+                    try:
+                        user = await self.users.get(username)
+                        self.auto_pairings[variant_tc].add(user)
+                        if user not in self.auto_pairing_users:
+                            self.auto_pairing_users[user] = rrange
+                    except NotInDbUsers:
+                        log.warning("Auto-pairing user %s not found in DB, skipping", username)
 
             # Load seeks from database
             async for doc in self.db.seek.find():
-                user = await self.users.get(doc["user"])
+                try:
+                    user = await self.users.get(doc["user"])
+                except NotInDbUsers:
+                    log.warning("Seek user %s not found in DB, skipping", doc["user"])
+                    continue
+
                 if user is not None:
                     seek = Seek(
                         doc["_id"],
