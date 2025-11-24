@@ -20,8 +20,8 @@ export abstract class ChessgroundController implements BoardController {
     ffishBoard: Board;
     notationAsObject: Notation;
 
-    readonly variant : Variant;
-    readonly chess960 : boolean;
+    readonly variant: Variant;
+    readonly chess960: boolean;
     readonly hasPockets: boolean;
     readonly anon: boolean;
     mycolor: cg.Color;
@@ -58,18 +58,22 @@ export abstract class ChessgroundController implements BoardController {
             pocketRoles: this.variant.pocket?.roles,
             events: { insert: this.onInsert() }
         }, pocket0, pocket1);
-        
+
         this.chessground.set({
             drawable: {
                 brushes: {
-                    green: { color: '#ebd26a', opacity: 0.9, lineWidth: 10 }, 
-                    red: { color: '#c883ad', opacity: 0.9, lineWidth: 10 },   
-                    blue: { color: '#729caf', opacity: 0.9, lineWidth: 10 },  
+                    paleGreen: { color: '#ebd26a', opacity: 0.5, lineWidth: 10 },
+                    paleRed: { color: '#c883ad', opacity: 0.5, lineWidth: 10 },
+                    paleBlue: { color: '#729caf', opacity: 0.5, lineWidth: 10 },
+                    paleGrey: { color: '#d49150', opacity: 0.5, lineWidth: 10 },
+                    green: { color: '#ebd26a', opacity: 0.9, lineWidth: 10 },
+                    red: { color: '#c883ad', opacity: 0.9, lineWidth: 10 },
+                    blue: { color: '#729caf', opacity: 0.9, lineWidth: 10 },
                     yellow: { color: '#d49150', opacity: 0.9, lineWidth: 10 }
                 }
             }
         });
-        
+
         if (this.boardName === 'b') {
             boardSettings.ctrl2 = this;
         } else {
@@ -177,7 +181,7 @@ export abstract class ChessgroundController implements BoardController {
 }
 
 function eventPosition(e: MouchEvent): [number, number] | undefined {
-  if (e.clientX || e.clientX === 0) return [e.clientX, e.clientY!];
-  if (e.targetTouches?.[0]) return [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
-  return;
+    if (e.clientX || e.clientX === 0) return [e.clientX, e.clientY!];
+    if (e.targetTouches?.[0]) return [e.targetTouches[0].clientX, e.targetTouches[0].clientY];
+    return;
 }
