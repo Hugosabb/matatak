@@ -177,7 +177,12 @@ async def get_winners(app_state: PychessGlobalAppState, shield, variant: str = N
         async for doc in cursor:
             if "winner" in doc:
                 winners.append((doc["winner"], doc["startsAt"].strftime("%Y.%m.%d"), doc["_id"]))
-                await app_state.users.get(doc["winner"])
+                try:
+                    await app_state.users.get(doc["winner"])
+                except Exception:
+                    from users import NotInDbUsers
+                    from logger import log
+                    log.warning("Tournament winner %s not found in DB", doc["winner"])
 
         wi[variant] = winners
 
@@ -410,7 +415,14 @@ async def load_tournament(app_state: PychessGlobalAppState, tournament_id, tourn
             user = User(app_state, username=uid, title="TEST")
             app_state.users[user.username] = user
         else:
-            user = await app_state.users.get(uid)
+            try:
+                user = await app_state.users.get(uid)
+            except Exception:
+                from users import NotInDbUsers
+                # Handle the case where a tournament player no longer exists in the database
+                from logger import log
+                log.warning("Tournament player %s not found in DB, skipping", uid)
+                continue
 
         withdrawn = doc.get("wd", False)
 
@@ -460,22 +472,33 @@ async def load_tournament(app_state: PychessGlobalAppState, tournament_id, tourn
         bberserk = doc.get("bb", False)
 
         if tournament.status in (T_CREATED, T_STARTED) and result == "*":
-            game = await load_game(app_state, _id)
-            tournament.ongoing_games.add(game)
-            tournament.update_game_ranks(game)
+            try:
+                game = await load_game(app_state, _id)
+                tournament.ongoing_games.add(game)
+                tournament.update_game_ranks(game)
+            except Exception:
+                from users import NotInDbUsers
+                from logger import log
+                log.warning("Failed to load tournament game %s - skipping", _id)
+                continue
         else:
-            game = GameData(
-                _id,
-                app_state.users[wp],
-                wrating,
-                app_state.users[bp],
-                brating,
-                result,
-                date,
-                wberserk,
-                bberserk,
-            )
-            tournament.nb_games_finished += 1
+            try:
+                game = GameData(
+                    _id,
+                    app_state.users[wp],
+                    wrating,
+                    app_state.users[bp],
+                    brating,
+                    result,
+                    date,
+                    wberserk,
+                    bberserk,
+                )
+                tournament.nb_games_finished += 1
+            except KeyError:
+                from logger import log
+                log.warning("Failed to create GameData for tournament game %s - player not found, skipping", _id)
+                continue
 
         if res == "a":
             w_win += 1

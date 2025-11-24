@@ -179,7 +179,10 @@ class PychessGlobalAppState:
                 if doc["status"] == T_STARTED or (
                     doc["status"] == T_CREATED and doc["startsAt"].date() <= to_date
                 ):
-                    await load_tournament(self, doc["_id"])
+                    try:
+                        await load_tournament(self, doc["_id"])
+                    except NotInDbUsers:
+                        log.warning("Failed to load tournament %s - user not found, skipping", doc["_id"])
             self.tournaments_loaded.set()
 
             already_scheduled = await get_scheduled_tournaments(self)
@@ -323,7 +326,8 @@ class PychessGlobalAppState:
                                 game.gameClocks.restart("a")
                                 game.gameClocks.restart("b")
                     except NotInDbUsers:
-                        log.error("Failed toload game %s", game_id)
+                        log.error("Failed to load game %s - user not in database", game_id)
+                        continue
 
                     if game.bot_game:
                         if len(game.board.move_stack) > 0 and len(game.steps) == 1:
@@ -367,6 +371,12 @@ class PychessGlobalAppState:
                     [{"$set": {"oauth_id": {"$toLower": "$_id"}, "oauth_provider": "lichess"}}],
                 )
 
+
+        except NotInDbUsers:
+            log.error("init_from_db() NotInDbUsers exception - this should have been caught earlier")
+            # This should not happen as all NotInDbUsers exceptions should be caught
+            # in their specific contexts above. If we get here, log it but don't crash.
+            pass
         except Exception:
             log.error("init_from_db() Exception")
             raise
