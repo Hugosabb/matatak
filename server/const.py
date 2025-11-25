@@ -5,6 +5,8 @@ import re
 
 from settings import static_url
 
+import random
+
 POCKET_PATTERN = re.compile("\\[(.*)\\]")
 
 # https://medium.com/quick-code/python-type-hinting-eliminating-importerror-due-to-circular-imports-265dfb0580f8
@@ -29,49 +31,36 @@ def reserved(username):
     return username.upper() in map(str.upper, RESERVED_USERS)
 
 ANIMALS = [
-    "Lion",
-    "Tiger",
-    "Bear",
-    "Wolf",
-    "Eagle",
-    "Shark",
-    "Falcon",
-    "Jaguar",
-    "Cougar",
-    "Lynx",
-    "Hawk",
-    "Cobra",
-    "Viper",
-    "Raven",
-    "Fox",
-    "Bull",
+    "Lion", "Tiger", "Zebra", "Cobra", "Puma", "Rhino", "Hippo", "Croc", "Gorilla",
+    "Bear", "Wolf", "Fox", "Lynx", "Bat", "Rat", "Snake", "Yak",
+    "Koala", "Panda", "Lama", "Cat",
+    "Girafe", "Kangaroo", "Gazelle", "Buffalo", "Elephant", "Leopard", "Tortoise",
+    "Outan", "Chimp", "Lemur",
+    "Eagle", "Falcon", "Jaguar", "Cougar", "Hawk", "Viper",
 ]
-FUNNY_ADJECTIVES = [
-    "Witty",
-    "Silly",
-    "Goofy",
-    "Zany",
-    "Jolly",
-    "Cheeky",
-    "Bubbly",
-    "Peppy",
-    "Perky",
-    "Snappy",
-    "Spunky",
-    "Feisty",
-    "Lively",
-    "Brisk",
-    "Zesty",
-    "Peppy",
-    "Spry",
-    "Frisky",
-    "Nifty",
-    "Jazzy",
+
+ADJECTIVES = [
+    "Red", "Blue", "Gold", "Grey", "Pink", "Cyan", "Rose", 
+    "Dark", "Black", "White", "Green", 
+    "Mad", "Bad", "Sad", "Zen", "Wild", "Cute", "Lazy", 
+    "Good", "Wise", "Evil", 
+    "Toxic", "Magic", "Lucky", "Crazy",
+    "Smart", "Cheeky", "Sneaky",
+    "Big", "Fat", "Hot", "Old", "New", "Fast", "Slow", "Tiny", "Huge",
+    "Cool", "Epic", "Rare", "Pure", 
+    "Solo", "Hyper", "Super", "Mega", "Giga",
+    "Silly", "Goofy", "Jazzy",
 ]
 
 def random_anonyme_username():
-    import random
-    return random.choice(FUNNY_ADJECTIVES)+ random.choice(ANIMALS)+ str(random.randint(100000, 999999))
+    adj = random.choice(ADJECTIVES)
+    animal = random.choice(ANIMALS)
+    
+    base_name = adj + animal
+
+    unique_id = f"{random.randint(0, 999999):06}"
+    
+    return base_name + "#" + unique_id
 
 SCHEDULE_MAX_DAYS = 7
 TOURNAMENT_SPOTLIGHTS_MAX = 3

@@ -4,7 +4,7 @@ import { _ } from './i18n';
 import { colorIcon } from './chess';
 import { aiLevel, gameType, renderRdiff } from './result';
 import { timeago, } from './datetime';
-import { alternateStartName, timeControlStr } from "./view";
+import { alternateStartName, timeControlStr, displayName } from "./view";
 import { PyChessModel } from "./types";
 import { VARIANTS } from "./variants";
 
@@ -82,7 +82,7 @@ function playerInfo(model: PyChessModel, color: string) {
 
     return h('a.user-link', { attrs: { href: '/@/' + username } }, [
         (title !== '') ? h('player-title', title + ' ') : '',
-        username + aiLevel(title, level) + (!['BOT', 'GHOST'].includes(title) ? (" (" + rating + ") ") : ''),
+        displayName(username) + aiLevel(title, level) + (!['BOT', 'GHOST'].includes(title) ? (" (" + rating + ") ") : ''),
         model["status"] < 1 || model["rated"] !== '1' ? h('rdiff#' + color + 'rdiff') : renderRdiff(rdiff),
         (berserk === "True") ? h('icon.icon-berserk') : h('berserk#' + color + 'berserk'),
     ]);

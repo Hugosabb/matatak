@@ -1,6 +1,7 @@
 import { h } from 'snabbdom';
 
 import { aiLevel } from './result';
+import { displayName } from './view';
 
 export function player(id: string, title: string, name: string, rating: string, level: number) {
     return h('round-' + id, [
@@ -9,7 +10,7 @@ export function player(id: string, title: string, name: string, rating: string, 
             h('player', [
                 h('a.user-link', { attrs: {href: '/@/' + name} }, [
                     (title !== '') ? h('player-title', title + ' ') : '',
-                    name + aiLevel(title, level),
+                    displayName(name) + aiLevel(title, level),
                 ]),
                 h('rating', !['BOT', 'GHOST'].includes(title) ? rating : ''),
             ]),
