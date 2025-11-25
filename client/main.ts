@@ -55,57 +55,57 @@ function initModel(el: HTMLElement) {
     let board = el.getAttribute("data-board") ?? "";
     if (board) board = JSON.parse(board);
     return {
-        ffish : {} as FairyStockfish,
-        home : sanitizeURL(el.getAttribute("data-home")) ?? "",
-        anon : el.getAttribute("data-anon") ?? "",
-        profileid : el.getAttribute("data-profile") ?? "",
-        title : el.getAttribute("data-title") ?? "",
-        variant : el.getAttribute("data-variant") ?? "",
-        chess960 : el.getAttribute("data-chess960") ?? "",
-        rated : el.getAttribute("data-rated") ?? "",
+        ffish: {} as FairyStockfish,
+        home: sanitizeURL(el.getAttribute("data-home")) ?? "",
+        anon: el.getAttribute("data-anon") ?? "",
+        profileid: el.getAttribute("data-profile") ?? "",
+        title: el.getAttribute("data-title") ?? "",
+        variant: el.getAttribute("data-variant") ?? "",
+        chess960: el.getAttribute("data-chess960") ?? "",
+        rated: el.getAttribute("data-rated") ?? "",
         corr: el.getAttribute("data-corr") ?? "",
-        level : parseInt(""+el.getAttribute("data-level")),
-        username : el.getAttribute("data-username") ?? "",
-        gameId : el.getAttribute("data-gameid") ?? "",
-        tournamentId : el.getAttribute("data-tournamentid") ?? "",
-        tournamentname : el.getAttribute("data-tournamentname") ?? "",
-        inviter : el.getAttribute("data-inviter") ?? "",
-        ply : parseInt(""+el.getAttribute("data-ply")),
-        initialFen : el.getAttribute("data-initialfen") ?? "",
+        level: parseInt("" + el.getAttribute("data-level")),
+        username: el.getAttribute("data-username") ?? "",
+        gameId: el.getAttribute("data-gameid") ?? "",
+        tournamentId: el.getAttribute("data-tournamentid") ?? "",
+        tournamentname: el.getAttribute("data-tournamentname") ?? "",
+        inviter: el.getAttribute("data-inviter") ?? "",
+        ply: parseInt("" + el.getAttribute("data-ply")),
+        initialFen: el.getAttribute("data-initialfen") ?? "",
         ct: ct,
         board: board,
 
-        wplayer : el.getAttribute("data-wplayer") ?? "",
-        wtitle : el.getAttribute("data-wtitle") ?? "",
-        wrating : el.getAttribute("data-wrating") ?? "",
-        wrdiff : parseInt(""+el.getAttribute("data-wrdiff")),
-        wberserk : el.getAttribute("data-wberserk") ?? "",
+        wplayer: el.getAttribute("data-wplayer") ?? "",
+        wtitle: el.getAttribute("data-wtitle") ?? "",
+        wrating: el.getAttribute("data-wrating") ?? "",
+        wrdiff: parseInt("" + el.getAttribute("data-wrdiff")),
+        wberserk: el.getAttribute("data-wberserk") ?? "",
 
-        bplayer : el.getAttribute("data-bplayer") ?? "",
-        btitle : el.getAttribute("data-btitle") ?? "",
-        brating : el.getAttribute("data-brating") ?? "",
-        brdiff : parseInt(""+el.getAttribute("data-brdiff")),
-        bberserk : el.getAttribute("data-bberserk") ?? "",
+        bplayer: el.getAttribute("data-bplayer") ?? "",
+        btitle: el.getAttribute("data-btitle") ?? "",
+        brating: el.getAttribute("data-brating") ?? "",
+        brdiff: parseInt("" + el.getAttribute("data-brdiff")),
+        bberserk: el.getAttribute("data-bberserk") ?? "",
 
-        wplayerB : el.getAttribute("data-wplayer-b") ?? "",
-        wtitleB : el.getAttribute("data-wtitle-b") ?? "",
-        wratingB : el.getAttribute("data-wrating-b") ?? "",
+        wplayerB: el.getAttribute("data-wplayer-b") ?? "",
+        wtitleB: el.getAttribute("data-wtitle-b") ?? "",
+        wratingB: el.getAttribute("data-wrating-b") ?? "",
 
-        bplayerB : el.getAttribute("data-bplayer-b") ?? "",
-        btitleB : el.getAttribute("data-btitle-b") ?? "",
-        bratingB : el.getAttribute("data-brating-b") ?? "",
+        bplayerB: el.getAttribute("data-bplayer-b") ?? "",
+        btitleB: el.getAttribute("data-btitle-b") ?? "",
+        bratingB: el.getAttribute("data-brating-b") ?? "",
 
-        fen : el.getAttribute("data-fen") ?? "",
-        posnum : parseInt(""+el.getAttribute("data-posnum")),
-        base : parseFloat(""+el.getAttribute("data-base")),
-        inc : parseInt(""+el.getAttribute("data-inc")),
-        byo : parseInt(""+el.getAttribute("data-byo")),
-        result : el.getAttribute("data-result") ?? "",
-        status : parseInt(""+el.getAttribute("data-status")),
-        date : el.getAttribute("data-date") ?? "",
-        tv : el.getAttribute("data-view") === 'tv',
-        embed : el.getAttribute("data-view") === 'embed',
-        seekEmpty : el.getAttribute("data-seekempty") === "True",
+        fen: el.getAttribute("data-fen") ?? "",
+        posnum: parseInt("" + el.getAttribute("data-posnum")),
+        base: parseFloat("" + el.getAttribute("data-base")),
+        inc: parseInt("" + el.getAttribute("data-inc")),
+        byo: parseInt("" + el.getAttribute("data-byo")),
+        result: el.getAttribute("data-result") ?? "",
+        status: parseInt("" + el.getAttribute("data-status")),
+        date: el.getAttribute("data-date") ?? "",
+        tv: el.getAttribute("data-view") === 'tv',
+        embed: el.getAttribute("data-view") === 'embed',
+        seekEmpty: el.getAttribute("data-seekempty") === "True",
         tournamentDirector: el.getAttribute("data-tournamentdirector") === "True",
         assetURL: el.getAttribute("data-asset-url") ?? "",
         puzzle: el.getAttribute("data-puzzle") ?? "",
@@ -123,46 +123,46 @@ export function view(el: HTMLElement, model: PyChessModel): VNode {
     const variant = (model.variant.endsWith('960') ? model.variant.slice(0, -3) : model.variant);
     const twoBoards = (variant) ? VARIANTS[variant].twoBoards : false;
     switch (el.getAttribute("data-view")) {
-    case 'about':
-        return h('div#main-wrap', aboutView(model));
-    case 'level8win':
-    case 'profile':
-        return h('div#profile', profileView(model));
-    case 'tv':
-    case 'round':
-        if (twoBoards) {
-            return h('div#main-wrap.bug', [h('main.round.bug', bugRoundView(model))]);
-        } else {
-            return h('div#main-wrap', [h('main.round', roundView(model))]);
-        }
-    case 'embed':
-        return h('div', embedView(model));
-    case 'analysis':
-        if (twoBoards) {
-            return h('div#main-wrap.bug', bugAnalysisView(model));
-        } else {
-            return h('div#main-wrap', analysisView(model));;
-        }
-    case 'puzzle':
-        return h('div#main-wrap', puzzleView(model));
-    case 'invite':
-        return h('div#main-wrap', inviteView(model));
-    case 'editor':
-        return h('div#main-wrap', editorView(model));
-    case 'tournament':
-        return h('div#main-wrap', [h('main.tour', tournamentView(model))]);
-    case 'calendar':
-        return h('div#calendar', calendarView());
-    case 'games':
-        return h('div', renderGames(model));
-    case 'paste':
-        return h('div#main-wrap', pasteView(model));
-    case 'stats':
-        return h('div#stats', statsView());
-    case 'thanks':
-        return h('div#main-wrap', h('h2', _('Thank you for your support!')));
-    default:
-        return h('div#main-wrap', [h('main.lobby', lobbyView(model))]);
+        case 'about':
+            return h('div#main-wrap', aboutView(model));
+        case 'level8win':
+        case 'profile':
+            return h('div#profile', profileView(model));
+        case 'tv':
+        case 'round':
+            if (twoBoards) {
+                return h('div#main-wrap.bug', [h('main.round.bug', bugRoundView(model))]);
+            } else {
+                return h('div#main-wrap', [h('main.round', roundView(model))]);
+            }
+        case 'embed':
+            return h('div', embedView(model));
+        case 'analysis':
+            if (twoBoards) {
+                return h('div#main-wrap.bug', bugAnalysisView(model));
+            } else {
+                return h('div#main-wrap', analysisView(model));;
+            }
+        case 'puzzle':
+            return h('div#main-wrap', puzzleView(model));
+        case 'invite':
+            return h('div#main-wrap', inviteView(model));
+        case 'editor':
+            return h('div#main-wrap', editorView(model));
+        case 'tournament':
+            return h('div#main-wrap', [h('main.tour', tournamentView(model))]);
+        case 'calendar':
+            return h('div#calendar', calendarView());
+        case 'games':
+            return h('div', renderGames(model));
+        case 'paste':
+            return h('div#main-wrap', pasteView(model));
+        case 'stats':
+            return h('div#stats', statsView());
+        case 'thanks':
+            return h('div#main-wrap', h('h2', _('Thank you for your support!')));
+        default:
+            return h('div#main-wrap', [h('main.lobby', lobbyView(model))]);
     }
 }
 
@@ -198,7 +198,7 @@ function start() {
                     patch(placeholder, view(el, model));
                 });
             }
-        } else  {
+        } else {
             patch(placeholder, view(el, model));
         }
     }
@@ -208,53 +208,11 @@ function start() {
     (document.querySelector('.hamburger') as HTMLElement).addEventListener('click', () => {
         document.querySelectorAll('.topnav a').forEach(nav => nav.classList.toggle('navbar-show'));
         (document.querySelector('.hamburger') as HTMLElement).classList.toggle('is-active');
-        }
+    }
     );
 
 
     renderTimeago();
-
-    // searchbar
-    const searchIcon = document.querySelector('.search-icon') as HTMLElement;
-    const searchBar = document.querySelector('.search-bar') as HTMLElement;
-    const searchInput = document.querySelector('#search-input') as HTMLInputElement;
-
-    searchIcon.onclick = function(){
-        searchBar.classList.toggle('active');
-        if (searchBar.classList.contains('active'))
-            // Add some delay so that the input won't eat the icon during the transition animation
-            setTimeout(() => searchInput.focus(), 200);
-    }
-
-    function showResults(val: String) {
-        const acResult = document.getElementById("ac-result") as HTMLElement;
-        if (val.length < 4) {
-            acResult.innerHTML = '';
-            return;
-        }
-        fetch('/api/names?p=' + val)
-            .then(res => res.json())
-            .then(data => {
-                // console.log(data);
-                const list = data.map((el: String) => {
-                    const title = (el[1]) ? `<player-title>${el[1]} </player-title>` : '';
-                    return `<li><a class="user-link" href="${model["home"]}/@/${el[0]}">${title}${el[0]}</a></li>`;
-                });
-                // console.log(list);
-                acResult.innerHTML = '<ul class="box">' + list.join('') + '</ul>';
-            })
-            .catch((err) => {
-            console.warn('Something went wrong.', err);
-            }
-        );
-    }
-
-    searchInput.addEventListener("keyup", function(e) {
-        showResults(searchInput.value);
-        if (e.keyCode === 13) {
-            window.location.href = `${model["home"]}/@/${encodeURIComponent(searchInput.value)}`;
-        }
-    });
 
     // Clicking outside settings panel closes it
     const settingsPanel = patch(document.getElementById('settings-panel') as HTMLElement, settingsView(model["variant"])).elm as HTMLElement;
@@ -263,7 +221,7 @@ function start() {
         notifyPanel = patch(notifyPanel, notifyView()).elm as HTMLElement;
     }
 
-    document.addEventListener("click", function(event) {
+    document.addEventListener("click", function (event) {
         if (!settingsPanel.contains(event.target as Node))
             hideSettings();
         if (model["anon"] !== 'True') {
@@ -330,7 +288,7 @@ function initLoginDropdown() {
 }
 
 const el = document.getElementById('pychess-variants');
-export const model: PyChessModel = el? initModel(el) : initModel(new HTMLElement());
+export const model: PyChessModel = el ? initModel(el) : initModel(new HTMLElement());
 
 if (el instanceof Element) {
 
@@ -343,19 +301,19 @@ if (el instanceof Element) {
 
     const lang = el.getAttribute("data-lang") ?? 'en';
     fetch(model.assetURL + '/lang/' + lang + '/LC_MESSAGES/client.json')
-      .then(res => res.json())
-      .then(translation => {
-        i18n.loadJSON(translation, 'messages');
-        i18n.setLocale(lang ?? "en");
-        // console.log('Loaded translations for lang', lang);
-        start();
-        initLoginDropdown();
-      })
-      .catch((error) => {
-        console.error('Could not load translations for lang', lang);
-        console.error(error);
-        i18n.setLocale('');
-        start();
-        initLoginDropdown();
-      });
+        .then(res => res.json())
+        .then(translation => {
+            i18n.loadJSON(translation, 'messages');
+            i18n.setLocale(lang ?? "en");
+            // console.log('Loaded translations for lang', lang);
+            start();
+            initLoginDropdown();
+        })
+        .catch((error) => {
+            console.error('Could not load translations for lang', lang);
+            console.error(error);
+            i18n.setLocale('');
+            start();
+            initLoginDropdown();
+        });
 }
