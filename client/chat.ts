@@ -3,7 +3,8 @@ import { h } from "snabbdom";
 import { _ } from './i18n';
 import { patch } from './document';
 import { RoundControllerBughouse } from "./bug/roundCtrl.bug";
-import { onchatclick, renderBugChatPresets} from "@/bug/chat.bug";
+import { onchatclick, renderBugChatPresets } from "@/bug/chat.bug";
+import { displayName } from './view';
 
 export interface ChatController {
     anon: boolean;
@@ -179,7 +180,7 @@ export function chatMessage (
                     h("a", {
                         attrs: { href: "/@/" + user },
                         style: { color: usernameColorMap[user] || "#aaa" }
-                    }, user)
+                    }, displayName(user))
                 ]),
                 h("t", { attrs: {"title": ctrl?.steps[ply!].san!}, on: { click: () => { onchatclick(ply, ctrl) }}}, message)
             ])

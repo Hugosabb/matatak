@@ -51,7 +51,8 @@
                 </div>
                 <div id="ac-result"></div>
             </form>
-            <div id="username"><a class="user-link" href="/@/{{ username }}">{{ username }}</a></div>
+        <div id="username"><a class="user-link" href="/@/{{ username }}">{% if anon %}{{ username.split('#')[0] }}{%
+                else %}{{ username }}{% endif %}</a></div>
             {% if anon %}
             <div class="login-dropdown">
                 <button class="login-btn nav-link" aria-haspopup="true" aria-expanded="false">

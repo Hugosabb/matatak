@@ -246,3 +246,7 @@ export function changeTabs(setting: string, tab: Element) {
     const tabId = tab.getAttribute('id');
     localStorage[setting] = tabId;
 }
+
+export function displayName(username: string) {
+    return username.split('#')[0];
+}

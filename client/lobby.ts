@@ -11,7 +11,7 @@ import { patch } from './document';
 import { boardSettings } from './boardSettings';
 import { chatMessage, chatView, ChatController } from './chat';
 import { contestVariants, enabledVariants, twoBoarsVariants, VARIANTS, selectVariant, Variant } from './variants';
-import { timeControlStr, changeTabs, setAriaTabClick } from './view';
+import { timeControlStr, changeTabs, setAriaTabClick, displayName } from './view';
 import { notify } from './notification';
 import { PyChessModel } from "./types";
 import { MsgBoard, MsgChat, MsgFullChat } from "./messages";
@@ -974,7 +974,7 @@ export class LobbyController implements ChatController {
         const url = (stream.site === 'twitch') ? 'https://www.twitch.tv/' : 'https://www.youtube.com/channel/';
         const tail = (stream.site === 'youtube') ? '/live' : '';
         return h('a.stream', { attrs: { "href": url + stream.streamer + tail, "rel": "noopener nofollow", "target": "_blank" } }, [
-            h('strong.text', {class: {"icon": true, "icon-mic": true} }, stream.username),
+            h('strong.text', { class: { "icon": true, "icon-mic": true } }, displayName(stream.username)),
             stream.title,
         ]);
     }
@@ -1037,8 +1037,8 @@ export class LobbyController implements ChatController {
                 }),
         ]),
         h('span.vstext', [
-            h('div.player', [h('tv-user', [h('player-title', game.bt), ' ' + game.b + ' ', h('rating', game.br)])]),
-            h('div.player', [h('tv-user', [h('player-title', game.wt), ' ' + game.w + ' ', h('rating', game.wr)])]),
+                h('div.player', [h('tv-user', [h('player-title', game.bt), ' ' + displayName(game.b) + ' ', h('rating', game.br)])]),
+                h('div.player', [h('tv-user', [h('player-title', game.wt), ' ' + displayName(game.w) + ' ', h('rating', game.wr)])]),
         ]),
         ];
 
