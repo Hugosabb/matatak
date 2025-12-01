@@ -6,6 +6,7 @@ import aiohttp_session
 from aiohttp import web
 
 from user import User
+from users import NotInDbUsers
 
 from admin import (
     ban,
@@ -117,9 +118,14 @@ async def process_message(app_state: PychessGlobalAppState, user, ws, data):
 
 async def send_get_seeks(app_state, ws, user):
     # We will need all the seek users blocked info
-    seeks = app_state.seeks.values()
+    seeks = list(app_state.seeks.values())
     for seek in seeks:
-        await app_state.users.get(seek.creator.username)
+        try:
+            await app_state.users.get(seek.creator.username)
+        except NotInDbUsers:
+            log.warning("send_get_seeks() removing seek %s because creator %s not in db", seek.id, seek.creator.username)
+            if seek.id in app_state.seeks:
+                del app_state.seeks[seek.id]
 
     response = {"type": "get_seeks", "seeks": get_seeks(user, seeks)}
     await ws_send_json(ws, response)
