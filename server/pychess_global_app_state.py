@@ -69,7 +69,7 @@ from twitch import Twitch
 from user import User
 from users import Users, NotInDbUsers
 from utils import load_game
-from blogs import BLOGS
+from utils import load_game
 from videos import VIDEOS
 from youtube import Youtube
 from lang import LOCALE
@@ -345,11 +345,7 @@ class PychessGlobalAppState:
                     await self.db.video.drop()
                 await self.db.video.insert_many(VIDEOS)
 
-            if "blog" not in db_collections:
-                if DEV:
-                    await self.db.blog.drop()
-                await self.db.blog.insert_many(BLOGS)
-                await self.db.blog.create_index("date")
+
 
             if "fishnet" in db_collections:
                 cursor = self.db.fishnet.find()

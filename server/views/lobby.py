@@ -9,7 +9,7 @@ from views import get_user_context
 from puzzle import get_daily_puzzle
 from pychess_global_app_state_utils import get_app_state
 from settings import TOURNAMENT_DIRECTORS
-from utils import corr_games, get_blogs
+from utils import corr_games
 from variants import VARIANTS
 
 
@@ -69,6 +69,5 @@ async def lobby(request):
     c_games = corr_games(user.correspondence_games)
     context["corr_games"] = json.dumps(c_games, default=datetime.isoformat)
 
-    blogs = await get_blogs(request, limit=3)
-    context["blogs"] = json.dumps(blogs)
+
     return context
