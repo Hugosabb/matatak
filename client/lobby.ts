@@ -35,13 +35,13 @@ const autoPairingTCs: [number, number, number][] = [
 
 export function createModeStr(mode: CreateMode) {
     switch (mode) {
-    case 'playAI': return _("Play with AI");
-    case 'playBOT': return _("Play with a BOT");
-    case 'playFriend': return _("Play with a friend");
-    case 'createHost': return _("Host a game for others");
-    case 'createGame': return _("Create a game");
-    default:
-        return '';
+        case 'playAI': return _("Play with AI");
+        case 'playBOT': return _("Play with a BOT");
+        case 'playFriend': return _("Play with a friend");
+        case 'createHost': return _("Host a game for others");
+        case 'createGame': return _("Create a game");
+        default:
+            return '';
     }
 }
 
@@ -104,7 +104,7 @@ export class LobbyController implements ChatController {
             console.log('onOpen()');
         }
 
-        this.sock = createWebsocket('wsl', onOpen, () => {}, () => {},(e: MessageEvent) => this.onMessage(e));
+        this.sock = createWebsocket('wsl', onOpen, () => { }, () => { }, (e: MessageEvent) => this.onMessage(e));
 
         patch(document.querySelector('.seekbuttons') as HTMLElement, h('div.seekbuttons', this.renderSeekButtons()));
         patch(document.querySelector('.seekdialog') as HTMLElement, this.renderSeekDialog());
@@ -178,7 +178,7 @@ export class LobbyController implements ChatController {
         localStorage.seek_advanced_params = String(e.checked);
     }
 
-    doSend(message: JSONObject) { 
+    doSend(message: JSONObject) {
         // console.log("---> lobby doSend():", message);
         this.sock.send(JSON.stringify(message));
     }
@@ -338,7 +338,7 @@ export class LobbyController implements ChatController {
         localStorage.seek_byo = e.value;
 
         let day = 0;
-        
+
         e = document.querySelector('input[name="mode"]:checked') as HTMLInputElement;
         let rated: boolean;
         if (this.createMode === 'playAI' ||
@@ -347,7 +347,7 @@ export class LobbyController implements ChatController {
             fen !== "" ||
             (minutes < 1 && increment === 0) ||
             (minutes === 0 && increment === 1)
-            )
+        )
             rated = false;
         else
             rated = e.value === "1";
@@ -430,7 +430,7 @@ export class LobbyController implements ChatController {
         const vInc = localStorage.seek_inc ?? "3";
         const vByoIdx = (localStorage.seek_byo ?? 1) - 1;
         const vDay = localStorage.seek_day ?? "1";
-        const vRated = twoBoards ? "0": localStorage.seek_rated ?? "0";
+        const vRated = twoBoards ? "0" : localStorage.seek_rated ?? "0";
         const vRatingMin = localStorage.seek_rating_min ?? -1000;
         const vRatingMax = localStorage.seek_rating_max ?? 1000;
         const vLevel = Number(localStorage.seek_level ?? "1");
@@ -440,178 +440,178 @@ export class LobbyController implements ChatController {
         const vDraft = localStorage.seek_draft ?? "false";
         const vBoost = Number(localStorage.seek_boost ?? "0");
         return h('dialog#id01.modal', [
-                h('form.modal-content', [
-                    h('span#closecontainer', [
-                        h('span.close', {
-                            on: { click: this.closeSeekDialog },
-                            attrs: { 'data-icon': 'j' }, props: { title: _("Cancel") }
-                        }),
-                    ]),
-                    h('div.container', [
+            h('form.modal-content', [
+                h('span#closecontainer', [
+                    h('span.close', {
+                        on: { click: this.closeSeekDialog },
+                        attrs: { 'data-icon': 'j' }, props: { title: _("Cancel") }
+                    }),
+                ]),
+                h('div.container', [
+                    h('div', [
+                        h('div#header-block'),
                         h('div', [
-                            h('div#header-block'),
-                            h('div', [
-                                h('label', { attrs: { for: "variant" } }, _("Variant")),
-                                selectVariant("variant", vVariant, () => this.setVariant(), () => this.setVariant()),
-                            ]),
-                            h('div#advanced-params-block', [
-                                h('label', { attrs: { for: "advanced-params" } }, _("Advanced Settings")),
-                                h('input#advanced-params', {
+                            h('label', { attrs: { for: "variant" } }, _("Variant")),
+                            selectVariant("variant", vVariant, () => this.setVariant(), () => this.setVariant()),
+                        ]),
+                        h('div#advanced-params-block', [
+                            h('label', { attrs: { for: "advanced-params" } }, _("Advanced Settings")),
+                            h('input#advanced-params', {
+                                props: {
+                                    name: "advanced-params",
+                                    type: "checkbox",
+                                },
+                                attrs: {
+                                    checked: vAdvancedParams === "true"
+                                },
+                                on: { click: () => this.toggleAdvancedParams() },
+                                hook: { insert: () => this.toggleAdvancedParams() },
+                            }),
+                        ]),
+                        h('div#advanced-settings-container', [
+                            h('input#fen', { props: { name: 'fen', placeholder: _('Paste the FEN text here') + (this.anon ? _(' (must be signed in)') : ''), autocomplete: "off" }, on: { input: () => this.setFen() }, }),
+                            h('div#alternate-start-block'),
+                            h('div#chess960-block', [
+                                h('label', { attrs: { for: "chess960" } }, "Chess960"),
+                                h('input#chess960', {
                                     props: {
-                                        name: "advanced-params",
+                                        name: "chess960",
                                         type: "checkbox",
                                     },
                                     attrs: {
-                                        checked: vAdvancedParams === "true"
+                                        checked: vChess960 === "true"
                                     },
-                                    on: { click: () => this.toggleAdvancedParams() },
-                                    hook: { insert: () => this.toggleAdvancedParams() },
                                 }),
                             ]),
-                            h('div#advanced-settings-container', [
-                                h('input#fen', { props: { name: 'fen', placeholder: _('Paste the FEN text here') + (this.anon ? _(' (must be signed in)') : ''), autocomplete: "off" }, on: { input: () => this.setFen() }, }),
-                                h('div#alternate-start-block'),
-                                h('div#chess960-block', [
-                                    h('label', { attrs: { for: "chess960" } }, "Chess960"),
-                                    h('input#chess960', {
-                                        props: {
-                                            name: "chess960",
-                                            type: "checkbox",
-                                        },
-                                        attrs: {
-                                            checked: vChess960 === "true"
-                                        },
-                                    }),
-                                ]),
-                                h('div#draft-block', [
-                                    h('label', { attrs: { for: "draft" } }, "Draft Mode"),
-                                    h('input#draft', {
-                                        props: {
-                                            name: "draft",
-                                            type: "checkbox",
-                                            title: _("Draft Mode"),
-                                        },
-                                        attrs: {
-                                            checked: vDraft === "true"
-                                        },
-                                        // on: { click: () => this.setRM() },
-                                    }),
-                                ]),
-                                h('div.tc-block',[
-                                    h('div', [
-                                        h('label', { attrs: { for: "min" } }, _("Minutes per side:")),
-                                        h('span#minutes'),
-                                        h('input#min.slider', {
-                                            props: { name: "min", type: "range", min: 0, max: this.minutesValues.length - 1, value: vMin },
-                                            on: { input: e => this.setMinutes(parseInt((e.target as HTMLInputElement).value)) },
-                                            hook: { insert: vnode => this.setMinutes(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                        }),
-                                        h('label#incrementlabel', { attrs: { for: "inc" } }, ''),
-                                        h('span#increment'),
-                                        h('input#inc.slider', {
-                                            props: { name: "inc", type: "range", min: 0, max: this.incrementValues.length - 1, value: vInc },
-                                            on: { input: e => this.setIncrement(this.incrementValues[parseInt((e.target as HTMLInputElement).value)]) },
-                                            hook: { insert: vnode => this.setIncrement(this.incrementValues[parseInt((vnode.elm as HTMLInputElement).value)]) },
-                                        }),
-                                        h('div#byoyomi-period', [
-                                            h('label#byoyomiLabel', { attrs: { for: "byo" } }, _('Periods')),
-                                            h('select#byo', {
-                                                props: { name: "byo" },
-                                            },
-                                                [ 1, 2, 3 ].map((n, idx) => h('option', { props: { value: n }, attrs: { selected: (idx === vByoIdx) } }, n))
-                                            ),
-                                        ]),
-                                    ]),
-                                ]),
-                                h('form#game-mode', [
-                                    h('div.radio-group', [
-                                        h('input#casual', {
-                                            props: { type: "radio", name: "mode", value: "0" },
-                                            attrs: { checked: vRated === "0" },
-                                            on: { input: e => this.setCasual((e.target as HTMLInputElement).value) },
-                                            hook: { insert: vnode => this.setCasual((vnode.elm as HTMLInputElement).value) },
-                                        }),
-                                        h('label', { attrs: { for: "casual"} }, _("Casual")),
-                                        h('input#rated', {
-                                            props: { type: "radio", name: "mode", value: "1" },
-                                            attrs: { checked: vRated === "1", disabled: this.anon || twoBoards }, /*dont support rated bughouse atm*/
-                                            on: { input: e => this.setRated((e.target as HTMLInputElement).value) },
-                                            hook: { insert: vnode => this.setRated((vnode.elm as HTMLInputElement).value) },
-                                        }),
-                                        h('label', { attrs: { for: "rated"} }, _("Rated")),
-                                    ]),
-                                ]),
-                                h('div#rating-range-setting', [
-                                    _('Rating range'),
-                                    h('div.rating-range', [
-                                        h('input#rating-min.slider', {
-                                            props: { name: "rating-min", type: "range", min: -1000, max: 0, step: 50, value: vRatingMin },
-                                            on: { input: e => this.setRatingMin(parseInt((e.target as HTMLInputElement).value)) },
-                                            hook: { insert: vnode => this.setRatingMin(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                        }),
-                                        h('div.rating-min', '-1000'),
-                                        h('span', '/'),
-                                        h('div.rating-max', '+1000'),
-                                        h('input#rating-max.slider', {
-                                            props: { name: "rating-max", type: "range", min: 0, max: 1000, step: 50, value: vRatingMax },
-                                            on: { input: e => this.setRatingMax(parseInt((e.target as HTMLInputElement).value)) },
-                                            hook: { insert: vnode => this.setRatingMax(parseInt((vnode.elm as HTMLInputElement).value)) },
-                                        }),
-                                    ]),
-                                ]),
-                                h('div#color-selection-group.settings-block', [
-                                    h('h4', _("Color")),
-                                    h('div.radio-group', [
-                                        h('input#color-white', { props: { type: "radio", name: "color", value: "w" }, on: { change: () => this.selectedColor = 'w' } }),
-                                        h('label.icon.icon-white', { attrs: { for: "color-white" }, props: { title: _("White") } }),
-                                        h('input#color-random', { props: { type: "radio", name: "color", value: "r", checked: true }, on: { change: () => this.selectedColor = 'r' } }),
-                                        h('label.icon.icon-adjust', { attrs: { for: "color-random" }, props: { title: _("Random") } }),
-                                        h('input#color-black', { props: { type: "radio", name: "color", value: "b" }, on: { change: () => this.selectedColor = 'b' } }),
-                                        h('label.icon.icon-black', { attrs: { for: "color-black" }, props: { title: _("Black") } }),
-                                    ])
-                                ]),
-                                h('div#boost-selection-group.settings-block', [
-                                    h('h4', _("Boost")),
-                                    h('div.radio-group',
-                                        [-4, -3, -2, -1, 0, 1, 2, 3, 4].map(boost => [
-                                            h(`input#boost${boost}`, { props: { type: "radio", name: "boost", value: boost }, attrs: { checked: vBoost === boost }, on: { change: () => this.selectedBoost = boost } }),
-                                            h(`label.level-boost.boost${boost}`, { attrs: { for: `boost${boost}` } }, boost > 0 ? `+${boost}`: boost),
-                                        ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
-                                    )
-                                ]),
-                            ]),
-                            // if play with the machine
-                            h('div#rmplay-block', [
-                                h('label', { attrs: { for: "rmplay" } }, "Random-Mover"),
-                                h('input#rmplay', {
+                            h('div#draft-block', [
+                                h('label', { attrs: { for: "draft" } }, "Draft Mode"),
+                                h('input#draft', {
                                     props: {
-                                        name: "rmplay",
+                                        name: "draft",
                                         type: "checkbox",
-                                        title: _("Practice with Random-Mover"),
+                                        title: _("Draft Mode"),
                                     },
                                     attrs: {
-                                        checked: vRMplay === "true"
+                                        checked: vDraft === "true"
                                     },
-                                    on: { click: () => this.setRM() },
+                                    // on: { click: () => this.setRM() },
                                 }),
                             ]),
-                            // A.I.Level (1-8 buttons)
-                            h('form#ailevel', [
-                                h('h4', _("A.I. Level")),
+                            h('div.tc-block', [
+                                h('div', [
+                                    h('label', { attrs: { for: "min" } }, _("Minutes per side:")),
+                                    h('span#minutes'),
+                                    h('input#min.slider', {
+                                        props: { name: "min", type: "range", min: 0, max: this.minutesValues.length - 1, value: vMin },
+                                        on: { input: e => this.setMinutes(parseInt((e.target as HTMLInputElement).value)) },
+                                        hook: { insert: vnode => this.setMinutes(parseInt((vnode.elm as HTMLInputElement).value)) },
+                                    }),
+                                    h('label#incrementlabel', { attrs: { for: "inc" } }, ''),
+                                    h('span#increment'),
+                                    h('input#inc.slider', {
+                                        props: { name: "inc", type: "range", min: 0, max: this.incrementValues.length - 1, value: vInc },
+                                        on: { input: e => this.setIncrement(this.incrementValues[parseInt((e.target as HTMLInputElement).value)]) },
+                                        hook: { insert: vnode => this.setIncrement(this.incrementValues[parseInt((vnode.elm as HTMLInputElement).value)]) },
+                                    }),
+                                    h('div#byoyomi-period', [
+                                        h('label#byoyomiLabel', { attrs: { for: "byo" } }, _('Periods')),
+                                        h('select#byo', {
+                                            props: { name: "byo" },
+                                        },
+                                            [1, 2, 3].map((n, idx) => h('option', { props: { value: n }, attrs: { selected: (idx === vByoIdx) } }, n))
+                                        ),
+                                    ]),
+                                ]),
+                            ]),
+                            h('form#game-mode', [
+                                h('div.radio-group', [
+                                    h('input#casual', {
+                                        props: { type: "radio", name: "mode", value: "0" },
+                                        attrs: { checked: vRated === "0" },
+                                        on: { input: e => this.setCasual((e.target as HTMLInputElement).value) },
+                                        hook: { insert: vnode => this.setCasual((vnode.elm as HTMLInputElement).value) },
+                                    }),
+                                    h('label', { attrs: { for: "casual" } }, _("Casual")),
+                                    h('input#rated', {
+                                        props: { type: "radio", name: "mode", value: "1" },
+                                        attrs: { checked: vRated === "1", disabled: this.anon || twoBoards }, /*dont support rated bughouse atm*/
+                                        on: { input: e => this.setRated((e.target as HTMLInputElement).value) },
+                                        hook: { insert: vnode => this.setRated((vnode.elm as HTMLInputElement).value) },
+                                    }),
+                                    h('label', { attrs: { for: "rated" } }, _("Rated")),
+                                ]),
+                            ]),
+                            h('div#rating-range-setting', [
+                                _('Rating range'),
+                                h('div.rating-range', [
+                                    h('input#rating-min.slider', {
+                                        props: { name: "rating-min", type: "range", min: -1000, max: 0, step: 50, value: vRatingMin },
+                                        on: { input: e => this.setRatingMin(parseInt((e.target as HTMLInputElement).value)) },
+                                        hook: { insert: vnode => this.setRatingMin(parseInt((vnode.elm as HTMLInputElement).value)) },
+                                    }),
+                                    h('div.rating-min', '-1000'),
+                                    h('span', '/'),
+                                    h('div.rating-max', '+1000'),
+                                    h('input#rating-max.slider', {
+                                        props: { name: "rating-max", type: "range", min: 0, max: 1000, step: 50, value: vRatingMax },
+                                        on: { input: e => this.setRatingMax(parseInt((e.target as HTMLInputElement).value)) },
+                                        hook: { insert: vnode => this.setRatingMax(parseInt((vnode.elm as HTMLInputElement).value)) },
+                                    }),
+                                ]),
+                            ]),
+                            h('div#color-selection-group.settings-block', [
+                                h('h4', _("Color")),
+                                h('div.radio-group', [
+                                    h('input#color-white', { props: { type: "radio", name: "color", value: "w" }, on: { change: () => this.selectedColor = 'w' } }),
+                                    h('label.icon.icon-white', { attrs: { for: "color-white" }, props: { title: _("White") } }),
+                                    h('input#color-random', { props: { type: "radio", name: "color", value: "r", checked: true }, on: { change: () => this.selectedColor = 'r' } }),
+                                    h('label.icon.icon-adjust', { attrs: { for: "color-random" }, props: { title: _("Random") } }),
+                                    h('input#color-black', { props: { type: "radio", name: "color", value: "b" }, on: { change: () => this.selectedColor = 'b' } }),
+                                    h('label.icon.icon-black', { attrs: { for: "color-black" }, props: { title: _("Black") } }),
+                                ])
+                            ]),
+                            h('div#boost-selection-group.settings-block', [
+                                h('h4', _("Boost")),
                                 h('div.radio-group',
-                                    [ 0, 1, 2, 3, 4, 5, 6, 7, 8 ].map(level => [
-                                        h('input#ai' + level, { props: { type: "radio", name: "level", value: level }, attrs: { checked: vLevel === level } }),
-                                        h('label.level-ai.ai' + level, { attrs: { for: "ai" + level } }, level),
+                                    [-4, -3, -2, -1, 0, 1, 2, 3, 4].map(boost => [
+                                        h(`input#boost${boost}`, { props: { type: "radio", name: "boost", value: boost }, attrs: { checked: vBoost === boost }, on: { change: () => this.selectedBoost = boost } }),
+                                        h(`label.level-boost.boost${boost}`, { attrs: { for: `boost${boost}` } }, boost > 0 ? `+${boost}` : boost),
                                     ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
-                                ),
+                                )
                             ]),
-                            h('div#create-button', [
+                        ]),
+                        // if play with the machine
+                        h('div#rmplay-block', [
+                            h('label', { attrs: { for: "rmplay" } }, "Random-Mover"),
+                            h('input#rmplay', {
+                                props: {
+                                    name: "rmplay",
+                                    type: "checkbox",
+                                    title: _("Practice with Random-Mover"),
+                                },
+                                attrs: {
+                                    checked: vRMplay === "true"
+                                },
+                                on: { click: () => this.setRM() },
+                            }),
+                        ]),
+                        // A.I.Level (1-8 buttons)
+                        h('form#ailevel', [
+                            h('h4', _("A.I. Level")),
+                            h('div.radio-group',
+                                [0, 1, 2, 3, 4, 5, 6, 7, 8].map(level => [
+                                    h('input#ai' + level, { props: { type: "radio", name: "level", value: level }, attrs: { checked: vLevel === level } }),
+                                    h('label.level-ai.ai' + level, { attrs: { for: "ai" + level } }, level),
+                                ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
+                            ),
+                        ]),
+                        h('div#create-button', [
                             h('button', { props: { type: "button" }, on: { click: () => this.createSeek(this.selectedColor) } }, _("Play")),
-                            ]),
                         ]),
                     ]),
                 ]),
-            ])
+            ]),
+        ])
     }
 
     autoPairingSelectAll() {
@@ -664,7 +664,7 @@ export class LobbyController implements ChatController {
         this.doSend({ type: "create_auto_pairing", variants: variants, tcs: tcs, rrmin: rrMin, rrmax: rrMax });
     }
 
-    preSelectVariant(variantName: string, chess960: boolean=false) {
+    preSelectVariant(variantName: string, chess960: boolean = false) {
         if (variantName !== '') {
             const select = document.getElementById("variant") as HTMLSelectElement;
             const options = Array.from(select.options).map(o => o.value);
@@ -684,14 +684,14 @@ export class LobbyController implements ChatController {
         const vChess960 = localStorage.seek_chess960 === 'true' || false;
         const e = document.getElementById('variant');
         e!.replaceChildren();
-        patch(e!, selectVariant("variant", disabled.includes(vVariant)? null: vVariant, () => this.setVariant(), () => this.setVariant(), disabled));
+        patch(e!, selectVariant("variant", disabled.includes(vVariant) ? null : vVariant, () => this.setVariant(), () => this.setVariant(), disabled));
         this.preSelectVariant(vVariant, vChess960);
     }
 
     createGame(variantName: string = '') {
         const twoBoards = (variantName) ? VARIANTS[variantName].twoBoards : false;
         this.createMode = 'createGame';
-        this.renderVariantsDropDown(variantName, this.anon ? twoBoarsVariants: []);
+        this.renderVariantsDropDown(variantName, this.anon ? twoBoarsVariants : []);
         this.renderDialogHeader(createModeStr(this.createMode));
         document.getElementById('game-mode')!.style.display = this.anon ? 'none' : 'inline-flex';
         document.getElementById('rating-range-setting')!.style.display = 'block';
@@ -766,7 +766,7 @@ export class LobbyController implements ChatController {
         e = document.getElementById('fen') as HTMLInputElement;
         e.value = "";
         e = document.getElementById('incrementlabel') as HTMLSelectElement;
-        patch(e, h('label#incrementlabel', { attrs: { for: "inc"} }, (byoyomi ? _('Byoyomi in seconds:') : _('Increment in seconds:'))));
+        patch(e, h('label#incrementlabel', { attrs: { for: "inc" } }, (byoyomi ? _('Byoyomi in seconds:') : _('Increment in seconds:'))));
         e = document.getElementById('alternate-start-block') as HTMLElement;
         e.innerHTML = "";
         if (variant.alternateStart) {
@@ -813,7 +813,7 @@ export class LobbyController implements ChatController {
         this.setStartButtons();
     }
     private setIncrement(increment: number) {
-        document.getElementById("increment")!.innerHTML = ""+increment;
+        document.getElementById("increment")!.innerHTML = "" + increment;
         this.setStartButtons();
     }
     private setDays(val: number) {
@@ -878,16 +878,16 @@ export class LobbyController implements ChatController {
     renderSeeks(seeks: Seek[]) {
         seeks.sort((a, b) => (a.bot && !b.bot) ? 1 : -1);
         const rows = seeks.map(seek => this.seekView(seek));
-        return [ seekHeader(), h('tbody', rows) ];
+        return [seekHeader(), h('tbody', rows)];
     }
 
-    private seekViewRegular(seek:Seek) {
+    private seekViewRegular(seek: Seek) {
         const variant = VARIANTS[seek.variant];
         const chess960 = seek.chess960;
 
         return h('tr', { on: { click: () => this.onClickSeek(seek) } }, [
-            h('td', [ this.colorIcon(seek.color) ]),
-            h('td', [ this.challengeIcon(seek), this.seekTitle(seek), this.user(seek) ]),
+            h('td', [this.colorIcon(seek.color)]),
+            h('td', [this.challengeIcon(seek), this.seekTitle(seek), this.user(seek)]),
             h('td', seek.rating),
             h('td', timeControlStr(seek.base, seek.inc, seek.byoyomi, seek.day)),
             h('td.icon', { attrs: { "data-icon": variant.icon(chess960) } }, [h('variant-name', " " + variant.displayName(chess960))]),
@@ -900,7 +900,7 @@ export class LobbyController implements ChatController {
 
     private seekView(seek: Seek) {
         const variant = VARIANTS[seek.variant];
-        return this.hide(seek) ? "" : variant.twoBoards ? seekViewBughouse(this, seek): this.seekViewRegular(seek);
+        return this.hide(seek) ? "" : variant.twoBoards ? seekViewBughouse(this, seek) : this.seekViewRegular(seek);
     }
 
     private onClickSeek(seek: Seek) {
@@ -919,15 +919,15 @@ export class LobbyController implements ChatController {
         return h('i-side.icon', {
             class: {
                 "icon-adjust": color === "r",
-                "icon-white":  color === "w",
-                "icon-black":  color === "b",
+                "icon-white": color === "w",
+                "icon-black": color === "b",
             }
         });
     }
 
     public challengeIcon(seek: Seek) {
         const swords = (seek["user"] === this.username) ? 'vs-swords.icon' : 'vs-swords.opp.icon';
-        return (seek['target'] === '') ? null : h(swords, { attrs: {"data-icon": '"'} });
+        return (seek['target'] === '') ? null : h(swords, { attrs: { "data-icon": '"' } });
     }
     public seekTitle(seek: Seek) {
         return (seek['target'] === '') ? h('player-title', " " + seek["title"] + " ") : null;
@@ -948,17 +948,21 @@ export class LobbyController implements ChatController {
         if (seek.fen) {
             tooltipImage = h('minigame.' + variant.boardFamily + '.' + variant.pieceFamily, [
                 h('div.cg-wrap.' + variant.board.cg + '.minitooltip',
-                    { hook: { insert: (vnode) => Chessground(vnode.elm as HTMLElement, {
-                        coordinates: false,
-                        fen: seek.fen,
-                        dimensions: variant.board.dimensions,
-                    })}}
+                    {
+                        hook: {
+                            insert: (vnode) => Chessground(vnode.elm as HTMLElement, {
+                                coordinates: false,
+                                fen: seek.fen,
+                                dimensions: variant.board.dimensions,
+                            })
+                        }
+                    }
                 ),
             ]);
         } else {
             tooltipImage = '';
         }
-        return h('span.tooltiptext', [ tooltipImage ]);
+        return h('span.tooltiptext', [tooltipImage]);
     }
 
     public mode(seek: Seek) {
@@ -992,7 +996,7 @@ export class LobbyController implements ChatController {
                 h('span.name', name),
                 h('span.more', [
                     h('nb', ngettext('%1 player', '%1 players', spotlight.nbPlayers) + ' • '),
-                    h('info-date', { attrs: { "timestamp": spotlight.startsAt } } )
+                    h('info-date', { attrs: { "timestamp": spotlight.startsAt } })
                 ])
             ])
         ]);
@@ -1013,15 +1017,15 @@ export class LobbyController implements ChatController {
         const showPockets = isMatatakDraft || (!variant.name.startsWith('matatak') && !!variant.pocket);
 
         const elements = [
-        h(`div#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, {
-            class: { "with-pockets": showPockets },
-            style: { "--ranks": (variant.pocket) ? String(variant.board.dimensions.height) : "undefined" },
-            on: { click: () => window.location.assign('/' + game.gameId) }
+            h(`div#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, {
+                class: { "with-pockets": showPockets },
+                style: { "--ranks": (variant.pocket) ? String(variant.board.dimensions.height) : "undefined" },
+                on: { click: () => window.location.assign('/' + game.gameId) }
             }, [
                 h(`div.cg-wrap.${variant.board.cg}.mini`, {
                     hook: {
                         insert: vnode => {
-                            const cg = Chessground(vnode.elm as HTMLElement,  {
+                            const cg = Chessground(vnode.elm as HTMLElement, {
                                 fen: game.fen,
                                 lastMove: uci2LastMove(game.lastMove),
                                 dimensions: variant.board.dimensions,
@@ -1035,11 +1039,11 @@ export class LobbyController implements ChatController {
                         }
                     }
                 }),
-        ]),
-        h('span.vstext', [
+            ]),
+            h('span.vstext', [
                 h('div.player', [h('tv-user', [h('player-title', game.bt), ' ' + displayName(game.b) + ' ', h('rating', game.br)])]),
                 h('div.player', [h('tv-user', [h('player-title', game.wt), ' ' + displayName(game.w) + ' ', h('rating', game.wr)])]),
-        ]),
+            ]),
         ];
 
         patch(document.getElementById('tv-game') as HTMLElement, h('a#tv-game', elements));
@@ -1070,7 +1074,7 @@ export class LobbyController implements ChatController {
                     h('div.auto-pairing-actions', [
                         h('button.selectall', { on: { click: () => this.autoPairingSelectAll() } }, [h('div.icon.icon-check', _('SELECT ALL'))]),
                         h('button.reset', { on: { click: () => this.autoPairingReset() } }, [h('div.icon.icon-trash-o', _('CLEAR ALL'))]),
-                        h('button.submit', { on: { click: () => this.autoPairingSubmit() } }, [h('div.icon.icon-check',  _('SUBMIT'))]),
+                        h('button.submit', { on: { click: () => this.autoPairingSubmit() } }, [h('div.icon.icon-check', _('SUBMIT'))]),
                     ])
                 );
             }
@@ -1199,7 +1203,7 @@ export class LobbyController implements ChatController {
                 this.onMsgError(msg);
                 break;
             case "logout":
-                this.doSend({type: "logout"});
+                this.doSend({ type: "logout" });
                 break;
         }
     }
@@ -1207,7 +1211,7 @@ export class LobbyController implements ChatController {
     private onMsgBOTChallengeCreated(msg: MsgInviteCreated) {
         const gameURL = '/' + msg.gameId;
         const evtSource = new EventSource("/api/invites/" + msg.gameId);
-        evtSource.onmessage = function(event) {
+        evtSource.onmessage = function (event) {
             const message = JSON.parse(event.data);
             // console.log("event from SSE", msg.gameId, message)
             if (message.gameId === msg.gameId) {
@@ -1346,7 +1350,7 @@ function runSeeks(vnode: VNode, model: PyChessModel) {
 
 export function lobbyView(model: PyChessModel): VNode[] {
     const puzzle = JSON.parse(model.puzzle);
-    const blogs = JSON.parse(model.blogs);
+
     const username = model.username;
     const anonUser = model["anon"] === 'True';
     const corrGames = JSON.parse(model.corrGames).sort(compareGames(username));
@@ -1368,36 +1372,36 @@ export function lobbyView(model: PyChessModel): VNode[] {
         h(`div#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, {
             class: { "with-pockets": !!variant.pocket },
             style: { "--ranks": (variant.pocket) ? String(variant.board.dimensions.height) : "undefined" },
-            }, [
-                h(`div.cg-wrap.${variant.board.cg}.mini`, {
-                    hook: {
-                        insert: vnode => {
-                            Chessground(vnode.elm as HTMLElement,  {
-                                orientation: variant.name === 'racingkings' ? 'white' : turnColor,
-                                fen: puzzle.fen,
-                                dimensions: variant.board.dimensions,
-                                coordinates: false,
-                                viewOnly: true,
-                                addDimensionsCssVarsTo: document.body,
-                                pocketRoles: variant.pocket?.roles,
-                            });
-                        }
+        }, [
+            h(`div.cg-wrap.${variant.board.cg}.mini`, {
+                hook: {
+                    insert: vnode => {
+                        Chessground(vnode.elm as HTMLElement, {
+                            orientation: variant.name === 'racingkings' ? 'white' : turnColor,
+                            fen: puzzle.fen,
+                            dimensions: variant.board.dimensions,
+                            coordinates: false,
+                            viewOnly: true,
+                            addDimensionsCssVarsTo: document.body,
+                            pocketRoles: variant.pocket?.roles,
+                        });
                     }
-                }),
+                }
+            }),
         ]),
     ];
 
     let tabs = [];
-    tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-1', id: 'tab-1', tabindex: '-1'}}, _('Lobby')));
-    
+    tabs.push(h('span', { attrs: { role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-1', id: 'tab-1', tabindex: '-1' } }, _('Lobby')));
+
     if (!anonUser) {
-        tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-4', id: 'tab-4', tabindex: '-1'}}, _('Auto pairing')))
+        tabs.push(h('span', { attrs: { role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-4', id: 'tab-4', tabindex: '-1' } }, _('Auto pairing')))
     }
 
     let containers = [];
-    containers.push(h('div', {attrs: {role: 'tablist', 'aria-label': 'Seek Tabs'}}, tabs));
+    containers.push(h('div', { attrs: { role: 'tablist', 'aria-label': 'Seek Tabs' } }, tabs));
     containers.push(
-        h('div.seek-container', {attrs: {id: 'panel-1', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-1'}}, [
+        h('div.seek-container', { attrs: { id: 'panel-1', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-1' } }, [
             h('div.seeks-table', [
                 h('div.seeks-wrapper', h('table.seeks', { hook: { insert: vnode => runSeeks(vnode, model) } })),
             ])
@@ -1406,7 +1410,7 @@ export function lobbyView(model: PyChessModel): VNode[] {
 
     if (!anonUser) {
         containers.push(
-            h('div.auto-container', {attrs: {id: 'panel-4', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-4'}}, [
+            h('div.auto-container', { attrs: { id: 'panel-4', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-4' } }, [
                 h('div.seeks-table', [h('div.seeks-wrapper', [h('div.auto-pairing', [
                     h('div.auto-pairing-actions'),
                     h('div.auto-rating-range'),
@@ -1426,8 +1430,8 @@ export function lobbyView(model: PyChessModel): VNode[] {
         h('aside.sidebar-second', [
             h('div.seekbuttons'),
             h('div.lobby-count', [
-                h('a', { attrs: { href: '/players' } }, [ h('counter#u_cnt') ]),
-                h('a', { attrs: { href: '/games' } }, [ h('counter#g_cnt') ]),
+                h('a', { attrs: { href: '/players' } }, [h('counter#u_cnt')]),
+                h('a', { attrs: { href: '/games' } }, [h('counter#g_cnt')]),
                 h('counter#ap_cnt'),
             ]),
             h('div.seekdialog'),
@@ -1439,8 +1443,8 @@ export function lobbyView(model: PyChessModel): VNode[] {
             h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
             h('a.reflist', { attrs: { href: '/stats' } }, _("Stats")),
             h('a.reflist', { attrs: { href: '/about' } }, _("About")),
-            
+
         ]),
-        h('div.tv', [h('a#tv-game', { attrs: {href: '/tv'} })]),
+        h('div.tv', [h('a#tv-game', { attrs: { href: '/tv' } })]),
     ];
 }

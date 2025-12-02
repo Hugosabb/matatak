@@ -82,7 +82,6 @@ async def cross_origin_policy_middleware(request, handler):
     response = await handler(request)
     if (
         request.path.startswith("/variants")
-        or request.path.startswith("/blogs")
         or request.path.startswith("/video")
     ):
         # Learn and News pages may have links to other sites

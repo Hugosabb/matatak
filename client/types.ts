@@ -61,7 +61,7 @@ export type PyChessModel = {
     btitleB: string;
     bratingB: string; // string, because can contain "?" suffix for provisional rating
 
-    blogs: string;
+
     corrGames: string;
     oauthUsernameSelection: {
         oauth_id: string;
