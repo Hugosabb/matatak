@@ -1,0 +1,23 @@
+.git
+.gitignore
+__pycache__
+node_modules
+.venv
+.idea
+.vscode
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+yarn-error.log
+
+# Generated static files
+static/pychess-variants.js
+static/pychess-variants.js.map
+static/ffish.js
+static/ffish.wasm
+static/ffish.worker.js
+static/ffish-alice.wasm
+static/stockfish.js
+static/stockfish.wasm
+static/stockfish.worker.js
