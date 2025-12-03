@@ -13,11 +13,13 @@ RUN mkdir -p static
 RUN yarn install
 
 # Then copy source code
-COPY static /app/static/
 COPY client /app/client/
-COPY templates /app/templates/
 
 RUN if [ "$BUILD_MODE" = "prod" ]; then yarn prod; else yarn dev; fi
+
+COPY static /app/static/
+COPY templates /app/templates/
+
 RUN yarn md
 
 
