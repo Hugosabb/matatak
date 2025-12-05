@@ -436,7 +436,7 @@ class PychessGlobalAppState:
         env.globals["static"] = static_url
         env.globals["js"] = "/static/pychess-variants.js%s" % SOURCE_VERSION
         env.globals["dev"] = DEV
-        env.globals["app_name"] = "PyChess"
+        env.globals["app_name"] = "Matatak"
         env.globals["languages"] = LANGUAGES
         env.globals["asseturl"] = STATIC_ROOT
         env.globals["home"] = URI

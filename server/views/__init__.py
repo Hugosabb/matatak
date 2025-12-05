@@ -82,7 +82,7 @@ async def get_user_context(request):
         "lang": lang,
         "variant_display_name": variant_display_name,
         "theme": user.theme,
-        "title": "%s • PyChess" % view.capitalize(),
+        "title": "%s • Matatak" % view.capitalize(),
         "view": view,
         "view_css": ("round" if view == "tv" else view) + ".css",
         "anon": user.anon,
