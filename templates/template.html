@@ -13,43 +13,43 @@
             <section>
                 <a class="nav-link" href="/?any">{% trans %}Play{% endtrans %}</a>
                 <div class="drp">
-                    <a class="nav-link" href="/?any">{% trans %}Create a game{% endtrans %}</a>
-                    <a class="nav-link" href="/puzzle/matatak">{% trans %}Puzzles{% endtrans %}</a>
+                    <a class="nav-link" href="/?ai">🗿 {% trans %}Play with AI{% endtrans %}</a>
+                    <a class="nav-link" href="/?friend">😼 {% trans %}Play with a friend{% endtrans %}</a>
+                    <a class="nav-link" href="/?any">🔥 {% trans %}Create a game{% endtrans %}</a>
+                    <a class="nav-link" href="/puzzle/matatak">🗝️ {% trans %}Puzzles{% endtrans %}</a>
                 </div>
             </section>
             <section>
                 <a class="nav-link" href="/variants">{% trans %}Learn{% endtrans %}</a>
                 <div class="drp">
-                    <a class="nav-link" href="/variants">{% trans %}Variants{% endtrans %}</a>
-                    <a class="nav-link" href="/about">{% trans %}About{% endtrans %}</a>
+                    <a class="nav-link" href="/variants">📜 {% trans %}Learn{% endtrans %}</a>
                 </div>
             </section>
             <section>
                 <a class="nav-link" href="/tv">{% trans %}Watch{% endtrans %}</a>
                 <div class="drp">
-                    <a class="nav-link" href="/tv">{% trans %}Tv{% endtrans %}</a>
-                    <a class="nav-link" href="/games">{% trans %}Current games{% endtrans %}</a>
-                    <a class="nav-link" href="/players">{% trans %}Players{% endtrans %}</a>
+                    <a class="nav-link" href="/tv">🔮 Matatak {% trans %}Tv{% endtrans %}</a>
+                    <a class="nav-link" href="/games">⚡ {% trans %}Live{% endtrans %}</a>
+                    <a class="nav-link" href="/players">🐯 {% trans %}Players{% endtrans %}</a>
 
                 </div>
             </section>
             <section>
                 <a class="nav-link" href="/editor/matatak">{% trans %}Tools{% endtrans %}</a>
                 <div class="drp">
-                    <a class="nav-link" href="/editor/matatak">{% trans %}Editor{% endtrans %}</a>
-                    <a class="nav-link" href="/analysis/matatak">{% trans %}Analysis{% endtrans %}</a>
-                    <a class="nav-link" href="/paste">{% trans %}Import game{% endtrans %}</a>
+                    <a class="nav-link" href="/editor/matatak">🌱 {% trans %}Editor{% endtrans %}</a>
+                    <a class="nav-link" href="/analysis/matatak">🕯️ {% trans %}Analysis{% endtrans %}</a>
                 </div>
             </section>
         </div>
     </div>
     <div class="site-buttons">
-        <div id="username"><a class="user-link" href="/@/{{ username }}">{% if anon %}{{ username.split('#')[0] }}{%
+        <div id="username"><a class="user-link" href="/@/{{ username }}">👑 {% if anon %}{{ username.split('#')[0] }}{%
                 else %}{{ username }}{% endif %}</a></div>
         {% if anon %}
         <div class="login-dropdown">
             <button class="login-btn nav-link" aria-haspopup="true" aria-expanded="false">
-                <span class="login-icon">👤</span>
+                <span class="login-icon">🐾</span>
                 <span class="login-text">{% trans %}Login{% endtrans %}</span>
                 <span class="dropdown-arrow">▼</span>
             </button>
