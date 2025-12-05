@@ -142,6 +142,12 @@ export class LobbyController implements ChatController {
             if (this.profileid === 'any#') {
                 this.profileid = '';
                 this.createGame();
+            } else if (this.profileid === 'ai#') {
+                this.profileid = '';
+                this.playAI();
+            } else if (this.profileid === 'friend#') {
+                this.profileid = '';
+                this.playFriend();
             }
         }
 
@@ -1441,10 +1447,9 @@ export function lobbyView(model: PyChessModel): VNode[] {
             h('a.reflist', { attrs: { href: 'https://github.com/Hugosabb/matatak', rel: "noopener", target: "_blank" } }, 'Github'),
             h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
             h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
-            h('a.reflist', { attrs: { href: '/stats' } }, _("Stats")),
-            h('a.reflist', { attrs: { href: '/about' } }, _("About")),
 
         ]),
         h('div.tv', [h('a#tv-game', { attrs: { href: '/tv' } })]),
     ];
 }
+

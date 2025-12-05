@@ -2,30 +2,30 @@
 @import "chess-l2.css";
 @import "fairy-l2.css";
 @import "layer-3.css";
+
 .lobby {
-    grid-area: main;
-    display: grid;
-    grid-gap: 2vmin;
+  grid-area: main;
+  display: grid;
+  grid-gap: 2vmin;
+  grid-template-areas: 'table' 'app' 'vpanel' 'side' 'blog' 'utable' 'uleft' 'tv' 'puzzle';
 }
+
 @media (max-width: 799px) {
-    .lobby {
-        grid-template-areas: 'table' 'app' 'vpanel' 'side' 'blog' 'utable' 'uleft' 'tv' 'puzzle';
-    }
-    .sidebar-second {
+  .lobby {
+    grid-template-areas: 'table' 'app' 'vpanel' 'side' 'blog' 'utable' 'uleft' 'tv' 'puzzle';
+  }
+
+  .sidebar-second {
     margin: 1em 0 1em 0;
-    }
+  }
 }
-@media (min-width: 800px) {
-    .lobby {
-        grid-template-columns: repeat(4, 1fr);
-        grid-template-rows: fit-content(0) 380px fit-content(0);
-        grid-auto-rows: 1fr;
-        grid-template-areas: 'table app app side' 'table app app side' 'tv app app side' 'uleft uleft uleft uleft';
-    }
-}
+
+/* Desktop grid layout removed to enforce mobile layout globally */
+
 .lobby aside {
   margin-top: 2em;
 }
+
 .lobby-count {
   flex: 1;
   display: flex;
@@ -34,178 +34,353 @@
   position: absolute;
   bottom: 0;
 }
+
 .lobby-count a {
   transition: color 150ms;
 }
+
 @media only screen and (max-width: 799px) {
   .lobby-count {
     width: 100%;
     flex-flow: row;
     position: relative;
   }
-  .lobby-count > a {
-  margin: 5px;
-  width: 50%;
-  text-align: center;
+
+  .lobby-count>a {
+    margin: 5px;
+    width: 50%;
+    text-align: center;
+  }
 }
-}
+
 .tv {
-    grid-area: tv;
-    display: block;
+  grid-area: tv;
+  display: block;
+  max-height: 100vh;
 }
+
 .tv #mainboard {
-    padding-bottom: calc((var(--cg-height) / (var(--ranks)) * 2));
+  padding-bottom: calc((var(--cg-height) / (var(--ranks)) * 2));
 }
+
 .puzzle {
-    grid-area: puzzle;
-    display: block;
+  grid-area: puzzle;
+  display: block;
 }
+
 .puzzle .text {
-    display: block;
-    text-align: right;
-    margin-right: 1ch;
+  display: block;
+  text-align: right;
+  margin-right: 1ch;
 }
+
 .stream {
-    display: block;
-    line-height: 0.9;
-    margin-bottom: 0.5em;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  display: block;
+  line-height: 0.9;
+  margin-bottom: 0.5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
 .stream .icon {
-    color: var(--gold);
-    margin-right: 0.2rem;
+  color: var(--gold);
+  margin-right: 0.2rem;
 }
+
 .stream .icon::before {
-    font-size: 1.5em;
+  font-size: 1.5em;
 }
 
 /* VARIANT INFO PANEL  */
 
 .generic-fairy p img {
-    height: 15px;
-    width: auto;
-    filter: saturate(0.1);
+  height: 15px;
+  width: auto;
+  filter: saturate(0.1);
 }
 
 .mini .pocket.top {
-    border-radius: 3px 3px 0px 0px;
-    position: absolute;
-    height: calc(100% / var(--ranks));
-    top: unset;
+  border-radius: 3px 3px 0px 0px;
+  position: absolute;
+  height: calc(100% / var(--ranks));
+  top: unset;
 }
+
 .mini cg-board {
   top: calc(100% / var(--ranks));
 }
-.cg-wrap.cg-512.mini, .cg-wrap.cg-384-512.mini, .cg-wrap.cg-640.mini, .cg-wrap.cg-576.mini, .cg-wrap.cg-448-516.mini, .cg-wrap.cg-260-360.mini, .cg-wrap.cg-260.mini, .cg-wrap.cg-156.mini, .cg-wrap.cg-448.mini, .cg-wrap.cg-576-640.mini, .cg-wrap.cg-640-640.mini, .cg-wrap.cg-janggi.mini, .cg-wrap.cg-540.mini {
+
+.cg-wrap.cg-512.mini,
+.cg-wrap.cg-384-512.mini,
+.cg-wrap.cg-640.mini,
+.cg-wrap.cg-576.mini,
+.cg-wrap.cg-448-516.mini,
+.cg-wrap.cg-260-360.mini,
+.cg-wrap.cg-260.mini,
+.cg-wrap.cg-156.mini,
+.cg-wrap.cg-448.mini,
+.cg-wrap.cg-576-640.mini,
+.cg-wrap.cg-640-640.mini,
+.cg-wrap.cg-janggi.mini,
+.cg-wrap.cg-540.mini {
   width: unset;
 }
 
 .mini .pocket.bottom {
-    border-radius: 0px 0px 3px 3px;
-    position: absolute;
-    top: calc((100% / var(--ranks)) * (var(--ranks) + 1));
-    margin: 0;
+  border-radius: 0px 0px 3px 3px;
+  position: absolute;
+  top: calc((100% / var(--ranks)) * (var(--ranks) + 1));
+  margin: 0;
 }
+
 rating {
-    font-size: 0.9em;
-    float: none;
+  font-size: 0.9em;
+  float: none;
 }
 
 #header-block {
-    margin-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
 }
+
 .container input#fen {
   margin: 0.6em 0 0.6em;
 }
 
 .modal-content input#fen {
-    width: 80%;
+  width: 80%;
 }
+
 form#game-mode {
-    padding: 1em;
+  padding: 1em;
 }
+
 form#game-mode div.radio-group {
-    margin: 1em;
+  margin: 1em;
 }
+
 div.rating-range .slider {
   width: 30%;
   padding: .6em 0;
   margin: 0;
 }
-div.tc-block, div#rating-range-setting, div.timecontrols {
+
+div.tc-block,
+div#rating-range-setting,
+div.timecontrols {
   padding: 1em;
   background: var(--bg-color2);
   border-top: 1px solid var(--border-color);
   border-bottom: 1px solid var(--border-color);
 }
+
 div.timecontrols {
   padding: 1em 0 1em 0;
 }
+
 div.auto-rating-range {
   display: flex;
   padding: 8px;
 }
+
 .rating-range {
   justify-content: center;
   display: flex;
   flex-flow: row nowrap;
   align-items: center;
 }
-.auto-rating-min, .rating-min, .auto-rating-max, .rating-max {
-    font-weight: normal;
-    padding: 0 1ch 0 1ch;
-    width: 7ch;
+
+.auto-rating-min,
+.rating-min,
+.auto-rating-max,
+.rating-max {
+  font-weight: normal;
+  padding: 0 1ch 0 1ch;
+  width: 7ch;
 }
+
 div.auto-pairing {
   display: grid;
   grid-gap: 3px;
 }
+
 div.auto-pairing div.variants {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
 }
+
 input {
   margin-inline-end: .3em;
 }
+
 div.auto-pairing-actions {
   margin: 1em;
   text-align: center;
 }
-button.submit, button.cancel, button.reset, button.selectall {
+
+button.submit,
+button.cancel,
+button.reset,
+button.selectall {
   border-radius: 6px;
   padding: .8em 1em;
 }
+
 button.submit {
   color: White;
   background: var(--good);
   font-weight: 600;
 }
+
 button.cancel {
   color: White;
   background: var(--bad);
   font-weight: 600;
 }
+
 .standingby {
-   animation: blink 1.5s infinite;
-   animation-fill-mode: both;
+  animation: blink 1.5s infinite;
+  animation-fill-mode: both;
 }
+
 @keyframes blink {
-   0% { opacity: 0 }
-   50% { opacity: 1 }
-   100% { opacity: 0 }
+  0% {
+    opacity: 0
+  }
+
+  50% {
+    opacity: 1
+  }
+
+  100% {
+    opacity: 0
+  }
 }
+
 button.reset {
   color: var(--bad);
   border: none;
   background: none;
 }
+
 button.selectall {
   color: var(--good);
   border: none;
   background: none;
 }
+
 button [class*=' icon-']::before {
   margin-inline-end: 0.4em;
+}
+
+
+/* --- VERTICAL BUTTON LAYOUT --- */
+
+.seekbuttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding-top: 40vh;
+  /* Start lower down */
+}
+
+.lobby-button {
+  display: block;
+  margin-bottom: 80vh;
+  /* Large spacing to force scroll */
+  padding: 1.5em 3em;
+  font-size: 1.5em;
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 10;
+  /* Ensure clickable */
+  position: relative;
+}
+
+.lobby-button:last-child {
+  margin-bottom: 40vh;
+}
+
+@media (min-width: 800px) {
+  .seekbuttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .lobby-button {
+    grid-column: 2;
+    /* Place buttons in the center column */
+    justify-self: center;
+    /* Center horizontally in the column */
+  }
+}
+/* New Layout Styles */
+.top-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+  width: 100%;
+  align-items: center;
+}
+
+.top-buttons .lobby-button {
+  width: 100%;
+  max-width: 400px; /* Limit width on large screens */
+}
+
+.lobby-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.create-btn-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.create-btn-container .lobby-button {
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Landscape Mode */
+@media (min-width: 800px) {
+  .top-buttons {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .top-buttons .lobby-button {
+    width: auto;
+    min-width: 200px;
+  }
+
+  .lobby-row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .create-btn-container {
+    width: 250px; /* Fixed width for the button column */
+    flex-shrink: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .create-btn-container .lobby-button {
+    width: 100%;
+  }
+
+  .seeks {
+    flex-grow: 1;
+  }
 }

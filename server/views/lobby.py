@@ -50,6 +50,12 @@ async def lobby(request):
     if request.rel_url.query.get("any") is not None:
         profileId = "any#"
         context["profile"] = profileId
+    elif request.rel_url.query.get("ai") is not None:
+        profileId = "ai#"
+        context["profile"] = profileId
+    elif request.rel_url.query.get("friend") is not None:
+        profileId = "friend#"
+        context["profile"] = profileId
 
     if "/challenge" in request.path or "/play" in request.path:
         context["profile"] = profileId
