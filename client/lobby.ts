@@ -35,9 +35,9 @@ const autoPairingTCs: [number, number, number][] = [
 
 export function createModeStr(mode: CreateMode) {
     switch (mode) {
-        case 'playAI': return _("Play with AI");
+        case 'playAI': return _("Play solo");
         case 'playBOT': return _("Play with a BOT");
-        case 'playFriend': return _("Play with a friend");
+        case 'playFriend': return _("Play with friend");
         case 'createHost': return _("Host a game for others");
         case 'createGame': return _("Create a game");
         default:
@@ -104,16 +104,22 @@ export class LobbyController implements ChatController {
             console.log('onOpen()');
         }
 
+
+
         this.sock = createWebsocket('wsl', onOpen, () => { }, () => { }, (e: MessageEvent) => this.onMessage(e));
 
-        patch(document.querySelector('.seekbuttons') as HTMLElement, h('div.seekbuttons', this.renderSeekButtons()));
-        patch(document.querySelector('.seekdialog') as HTMLElement, this.renderSeekDialog());
+        setTimeout(() => {
+            patch(document.querySelector('.seekbuttons') as HTMLElement, h('div.seekbuttons', this.renderSeekButtons()));
+            patch(document.querySelector('.seekdialog') as HTMLElement, this.renderSeekDialog());
 
-        const id01modal = document.getElementById('id01') as HTMLElement;
-        document.addEventListener("click", (event) => {
-            if ((event.target as HTMLElement) == id01modal) this.closeSeekDialog();
-        });
-        id01modal.addEventListener("cancel", this.closeSeekDialog);
+            const id01modal = document.getElementById('id01') as HTMLElement;
+            if (id01modal) {
+                document.addEventListener("click", (event) => {
+                    if ((event.target as HTMLElement) == id01modal) this.closeSeekDialog();
+                });
+                id01modal.addEventListener("cancel", this.closeSeekDialog);
+            }
+        }, 0);
 
         patch(document.getElementById('lobbychat') as HTMLElement, chatView(this, "lobbychat"));
 
@@ -421,9 +427,10 @@ export class LobbyController implements ChatController {
 
     renderSeekButtons() {
         return [
-            h('button.lobby-button', { on: { click: () => this.createGame() } }, createModeStr('createGame')),
-            h('button.lobby-button', { on: { click: () => this.playFriend() } }, createModeStr('playFriend')),
+            h('img.lobby-title', { attrs: { src: '/static/images/matatak-title.webp', alt: 'Matatak' } }),
             h('button.lobby-button', { on: { click: () => this.playAI() } }, createModeStr('playAI')),
+            h('button.lobby-button', { on: { click: () => this.playFriend() } }, createModeStr('playFriend')),
+            h('button.lobby-button', { on: { click: () => this.createGame() } }, createModeStr('createGame')),
             h('button.lobby-button', { on: { click: () => this.createHost() }, style: { display: this.tournamentDirector ? "block" : "none" } }, createModeStr('createHost')),
         ];
     }
