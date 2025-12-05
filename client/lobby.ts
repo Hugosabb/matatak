@@ -1096,7 +1096,7 @@ export class LobbyController implements ChatController {
             const variant = VARIANTS[v];
             let variantName = variant.name;
             let checked = localStorage[`va_${variantName}`] ?? "false";
-            if (!variant.twoBoards && !(contestVariants.includes(variantName))) {
+            if (variantName.startsWith('matatak') && !variant.twoBoards && !(contestVariants.includes(variantName))) {
                 variantList.push(h('label', [h('input', { props: { name: `va_${variantName}`, type: "checkbox" }, attrs: { checked: checked === "true" } }), variantName]));
                 if (variant.chess960) {
                     variantName = variantName + '960';
@@ -1452,4 +1452,3 @@ export function lobbyView(model: PyChessModel): VNode[] {
         h('div.tv', [h('a#tv-game', { attrs: { href: '/tv' } })]),
     ];
 }
-
