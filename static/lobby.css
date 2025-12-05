@@ -23,7 +23,7 @@
 /* Desktop grid layout removed to enforce mobile layout globally */
 
 .lobby aside {
-  margin-top: 2em;
+  margin-top: 0;
 }
 
 .lobby-count {
@@ -282,8 +282,7 @@ button [class*=' icon-']::before {
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding-top: 40vh;
-  /* Start lower down */
+  padding-top: 0vh;
 }
 
 .lobby-button {
@@ -305,19 +304,32 @@ button [class*=' icon-']::before {
   margin-bottom: 40vh;
 }
 
+.lobby-title {
+  max-width: 100%;
+  max-height: 100vh;
+  height: auto;
+  margin-bottom: 500px;
+  display: block;
+}
+
 @media (min-width: 800px) {
   .seekbuttons {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
+    padding-top: 0vh;
   }
 
   .lobby-button {
     grid-column: 2;
-    /* Place buttons in the center column */
     justify-self: center;
-    /* Center horizontally in the column */
+  }
+
+  .lobby-title {
+    grid-column: 2;
+    justify-self: center;
   }
 }
+
 /* New Layout Styles */
 .top-buttons {
   display: flex;
@@ -330,7 +342,8 @@ button [class*=' icon-']::before {
 
 .top-buttons .lobby-button {
   width: 100%;
-  max-width: 400px; /* Limit width on large screens */
+  max-width: 400px;
+  /* Limit width on large screens */
 }
 
 .lobby-row {
@@ -370,7 +383,8 @@ button [class*=' icon-']::before {
   }
 
   .create-btn-container {
-    width: 250px; /* Fixed width for the button column */
+    width: 250px;
+    /* Fixed width for the button column */
     flex-shrink: 0;
     flex-direction: column;
     justify-content: flex-start;
