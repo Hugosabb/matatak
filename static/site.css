@@ -167,7 +167,7 @@ body {
   box-sizing: border-box;
 
   /* 1. SOURCE: Your new leaves image */
-  border-image-source: url('/static/images/leaves.png');
+  border-image-source: url('/static/images/leaves.webp');
 
   /* 2. SLICE: Your exact numbers (No 'px' needed here) */
   /* This tells CSS exactly where to cut the corners in the image file */
