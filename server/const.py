@@ -32,31 +32,36 @@ def reserved(username):
 
 ANIMALS = [
     "Lion", "Tiger", "Zebra", "Cobra", "Puma", "Rhino", "Hippo", "Croc", "Gorilla",
-    "Bear", "Wolf", "Fox", "Lynx", "Bat", "Rat", "Snake", "Yak",
+    "Bear", "Lynx", "Bat", "Rat", "Snake", "Yak",
     "Koala", "Panda", "Lama", "Cat",
     "Girafe", "Kangaroo", "Gazelle", "Buffalo", "Elephant", "Leopard", "Tortoise",
     "Outan", "Chimp", "Lemur",
     "Eagle", "Falcon", "Jaguar", "Cougar", "Hawk", "Viper",
+    "Goat", "Duck", "Frog", "Platypus",
+    "Bird", "Mouse", "Rabbit", "Deer", 
+    "Monkey", "Pig", "Sheep", "Horse", "Donkey",
+    "Camel", "Penguin", "Parrot",
+    "Dinosaur",
 ]
 
 ADJECTIVES = [
-    "Red", "Blue", "Gold", "Grey", "Pink", "Cyan", "Rose", 
-    "Dark", "Black", "White", "Green", 
-    "Mad", "Bad", "Sad", "Zen", "Wild", "Cute", "Lazy", 
-    "Good", "Wise", "Evil", 
-    "Toxic", "Magic", "Lucky", "Crazy",
+    "Red", "Blue", "Gold", "Grey", "Pink", "Black", "White", "Green", 
+    "Dark", "Mad", "Bad", "Sad", "Evil", 
+    "Zen", "Wild", "Cute", "Good", "Wise", 
+    "Toxic", "Magic", "Lucky", "Crazy", "Lazy",
     "Smart", "Cheeky", "Sneaky",
-    "Big", "Fat", "Hot", "Old", "New", "Fast", "Slow", "Tiny", "Huge",
-    "Cool", "Epic", "Rare", "Pure", 
-    "Solo", "Hyper", "Super", "Mega", "Giga",
+    "Big", "Fat", "Hot", "Old", "Fast", "Slow", "Tiny", "Huge", "Mini",
+    "Cool", "Epic", "Pure", "Prime",    
+    "Solo", "Hyper", "Super", "Mega", "Giga", "Small",
     "Silly", "Goofy", "Jazzy",
+    "Dumb"
 ]
 
 def random_anonyme_username():
     adj = random.choice(ADJECTIVES)
     animal = random.choice(ANIMALS)
     
-    base_name = adj + animal
+    base_name = adj + "-" + animal
 
     unique_id = f"{random.randint(0, 999999):06}"
     
