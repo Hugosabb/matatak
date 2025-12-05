@@ -92,9 +92,11 @@ async def profile(request):
                 key=lambda x: x[1]["nb"],
                 reverse=True,
             )
+            if k in ["matatak", "matatakmini"]
         }
         for v in NOT_RATED_VARIANTS:
-            context["ratings"][v] = ("1500?", 0)
+            if v in ["matatak", "matatakmini"]:
+                context["ratings"][v] = ("1500?", 0)
 
     context["profile_title"] = (
         app_state.users[profileId].title if profileId in app_state.users else ""
