@@ -221,7 +221,7 @@ body {
   --button-text-hover: #bf811d;
   --scrollbar-thumb: #4d4d4d;
   --scrollbar-thumb-hover: #6b6b6b;
-  --input-border: #444;
+  --input-border: #bba97e;
   --leaderboard: #bf811d;
   --leaderboard-even: #302e2c;
   --btn-controls: rgb(48, 46, 44);
@@ -2322,7 +2322,7 @@ button.icon::-moz-focus-inner {
 }
 
 .clock.running>.clock-sep.low {
-  color: Gray;
+  color: var(--font-color);
 }
 
 .clock-time.byo.byoyomi {
@@ -2570,19 +2570,19 @@ move.active {
 movetime {
   font-size: 0.6em;
   padding-right: 8px;
-  color: Gray;
+  color: var(--font-color);
   float: right;
 }
 
 eval {
   font-size: 0.8em;
   padding-right: 8px;
-  color: Gray;
+  color: var(--font-color);
   float: right;
 }
 
 move.counter {
-  color: Gray;
+  color: var(--font-color);
   flex: 0 0 13%;
   background-color: var(--bg-color2);
   text-align: center;
