@@ -20,12 +20,13 @@ export interface PieceFamily {
 export const BOARD_FAMILIES: Record<string, BoardFamily> = {
     matatak8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["matatak8x8.png"] },
     matatak6x8: { dimensions: { width: 6, height: 8 }, cg: "cg-384-512", boardCSS: ["matatak6x8.png"] },
+    matatak4x6: { dimensions: { width: 4, height: 6 }, cg: "cg-256-384", boardCSS: ["matatak4x6.png"] },
     ataxx7x7: { dimensions: { width: 7, height: 7 }, cg: "cg-448", boardCSS: ["ataxx.svg", "ataxx.png"] },
     standard8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["8x8brown.svg", "8x8blue.svg", "8x8green.svg", "8x8maple.jpg", "8x8olive.jpg", "8x8santa.png", "8x8wood2.jpg", "8x8wood4.jpg", "8x8ic.svg", "8x8purple.svg", "8x8dobutsu.svg"] },
     standard9x9: { dimensions: { width: 9, height: 9 }, cg: "cg-540", boardCSS: ["9x9mansindam.svg", "9x9brown.svg", "9x9blue.svg", "9x9green.svg", "9x9maple.jpg", "9x9olive.jpg"] },
     standard10x8: { dimensions: { width: 10, height: 8 }, cg: "cg-640", boardCSS: ["10x8brown.svg", "10x8blue.svg", "10x8green.svg", "10x8maple.jpg", "10x8olive.jpg"] },
     standard10x10: { dimensions: { width: 10, height: 10 }, cg: "cg-640-640", boardCSS: ["10x10brown.svg", "10x10blue.svg", "10x10green.svg", "10x10maple.jpg", "10x10olive.jpg"] },
-    grand10x10: { dimensions: { width: 10, height: 10}, cg: "cg-640-640", boardCSS: ["Grandboard.svg", "10x10brown.svg", "10x10blue.svg", "10x10green.svg", "10x10maple.jpg", "10x10mapleGrand.png"] },
+    grand10x10: { dimensions: { width: 10, height: 10 }, cg: "cg-640-640", boardCSS: ["Grandboard.svg", "10x10brown.svg", "10x10blue.svg", "10x10green.svg", "10x10maple.jpg", "10x10mapleGrand.png"] },
     makruk8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["makruk2.svg", "makruk.svg", "makrukWhite.svg", "makruk.jpg", "makrukWood.png"] },
     sittuyin8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["sittuyin2.svg", "sittuyin.svg", "sittuyin.jpg", "sittuyingreen.svg", "sittuyinGrainBrown.svg", "sittuyinWood.png"] },
     shogi9x9: { dimensions: { width: 9, height: 9 }, cg: "cg-576", boardCSS: ["shogi.svg", "Shogiban1.png", "Shogiban2.png", "shogic.svg", "ShogiMaple.png", 'ShogiGrayTexture.png', "ShogiSpace1.svg", "dobutsu.png", "ShogiOak.png"] },
@@ -37,8 +38,8 @@ export const BOARD_FAMILIES: Record<string, BoardFamily> = {
     xiangqi7x7: { dimensions: { width: 7, height: 7 }, cg: "cg-448", boardCSS: ["minixiangqi.svg", "minixiangqiw.png", "minixqlg.svg"] },
     janggi9x10: { dimensions: { width: 9, height: 10 }, cg: "cg-janggi", boardCSS: ["JanggiBrown.svg", "JanggiPaper.png", "JanggiWood.png", "JanggiDark.svg", "JanggiWoodDark.svg", "JanggiStone.svg"] },
     shogun8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["ShogunPlain.svg", "ShogunMaple.png", "ShogunMaple2.png", "ShogunBlue.svg", "8x8brown.svg", "8x8maple.jpg"] },
-    chak9x9:{ dimensions: { width: 9, height: 9 }, cg: "cg-540", boardCSS: ["StandardChakBoard.svg", "ColoredChakBoard.svg", "ChakArt.jpg"] },
-    chennis7x7:{ dimensions: { width: 7, height: 7 }, cg: "cg-448", boardCSS: ["WimbledonBoard.svg", "FrenchOpenBoard.svg", "USOpenBoard.svg"] },
+    chak9x9: { dimensions: { width: 9, height: 9 }, cg: "cg-540", boardCSS: ["StandardChakBoard.svg", "ColoredChakBoard.svg", "ChakArt.jpg"] },
+    chennis7x7: { dimensions: { width: 7, height: 7 }, cg: "cg-448", boardCSS: ["WimbledonBoard.svg", "FrenchOpenBoard.svg", "USOpenBoard.svg"] },
     xiangfu9x9: { dimensions: { width: 9, height: 9 }, cg: "cg-540", boardCSS: ["xiangfu.svg", "xiangfu-chess-board.svg"] },
 };
 
@@ -333,9 +334,9 @@ export const VARIANTS: Record<string, Variant> = {
 
     matatakmini: variant({
         name: "matatakmini", displayName: "MATATAK MINI", tooltip: "MATATAK for mobile!",
-        startFen: "abcdef/gkhijl/mnopqr/stwxyz/QRSTWX/YZHIJL/MNOPAB/CDEFGK w - - 0 1",
+        startFen: "4/4/4/4/4/4[abcdefghijklmnopqrstwxyzABCDEFGHIJKLMNOPQRSTWXYZ] w - - 0 1",
         icon: "🥝",
-        boardFamily: "matatak6x8", pieceFamily: "matatak",
+        boardFamily: "matatak4x6", pieceFamily: "matatak",
         pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
         pocket: {
             roles: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
@@ -962,7 +963,7 @@ export const VARIANTS: Record<string, Variant> = {
     seirawan: variant({
         name: "seirawan", displayName: "s-chess", tooltip: "Hybrid pieces, the hawk (B+N) and elephant (R+N), can enter the board after moving a back rank piece.",
         startFen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[HEhe] w KQBCDFGkqbcdfg - 0 1",
-        icon: "L",  chess960: true, icon960: "}",
+        icon: "L", chess960: true, icon960: "}",
         boardFamily: "standard8x8", pieceFamily: "seirawan",
         pieceRow: ["k", "q", "e", "h", "r", "b", "n", "p"],
         pocket: { roles: ["h", "e"], captureToHand: false },
@@ -1020,7 +1021,7 @@ export const VARIANTS: Record<string, Variant> = {
         pieceRow: ["k", "f", "r", "b", "n", "p"],
         pocket: { roles: ["p", "n", "b", "r", "f"], captureToHand: true },
         promotion: { type: "shogi", roles: ["p", "f", "r", "b", "n"] },
-        rules: {defaultTimeControl: "byoyomi", enPassant: true },
+        rules: { defaultTimeControl: "byoyomi", enPassant: true },
     }),
 
     hoppelpoppel: variant({
@@ -1143,7 +1144,8 @@ export const VARIANTS: Record<string, Variant> = {
         colors: { first: "White", second: "Green" },
         pieceRow: ["k", "j", "q", "r", "v", "s", "o", "p"],
         kingRoles: ["k", "+k"],
-        promotion: { type: "shogi", roles: ["p", "k"],
+        promotion: {
+            type: "shogi", roles: ["p", "k"],
             strict: {
                 isPromoted: (piece: cg.Piece, pos: cg.Pos) => {
                     switch (piece.role) {
@@ -1235,7 +1237,7 @@ export const VARIANTS: Record<string, Variant> = {
 };
 
 export const variants = Object.keys(VARIANTS);
-const disabledVariants = [ "gothic", "gothhouse", "embassy", "embassyhouse", "gorogoro", "shinobi", "makrukhouse", "xiangqihouse" ];
+const disabledVariants = ["gothic", "gothhouse", "embassy", "embassyhouse", "gorogoro", "shinobi", "makrukhouse", "xiangqihouse"];
 export const enabledVariants = variants.filter(v => !disabledVariants.includes(v));
 
 export const contestVariants = [
@@ -1261,18 +1263,18 @@ export const twoBoarsVariants = variants.filter(v => VARIANTS[v].twoBoards);
 
 export const devVariants = ["makbug", "supply", "jieqi"].concat(contestVariants);
 
-export const variantGroups: { [ key: string ]: { variants: string[] } } = {
-    standard: { variants: [ "matatak", "matatakmini" ] },
-    sea:      { variants: [ ] },
-    shogi:    { variants: [ ] },
-    xiangqi:  { variants: [ ] },
-    fairy:    { variants: [ ] },
-    army:     { variants: [ ] },
-    other:    { variants: [ ] }
+export const variantGroups: { [key: string]: { variants: string[] } } = {
+    standard: { variants: ["matatak", "matatakmini"] },
+    sea: { variants: [] },
+    shogi: { variants: [] },
+    xiangqi: { variants: [] },
+    fairy: { variants: [] },
+    army: { variants: [] },
+    other: { variants: [] }
 };
 
 function variantGroupLabel(group: string): string {
-    const groups: {[index: string]: string} = {
+    const groups: { [index: string]: string } = {
         standard: _("Variants"),
         sea: _("Makruk Variants"),
         shogi: _("Shogi Variants"),

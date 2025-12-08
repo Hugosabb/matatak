@@ -446,9 +446,9 @@ class Game:
                     firstChampionsRank = "".join(droppedPieces[9:12])
 
                     if self.variant == "matatakmini":
-                        setup_fen = "1" + firstChampionsRank.lower() + "2/1" + firstPawnRank.lower() + "2"
-                        setup_fen += "/6/6/6/6/" 
-                        setup_fen += "2" + secondPawnRank.upper() + "1/2" + secondChampionRank.upper() + "1"
+                        setup_fen = firstChampionsRank.lower() + "1/" + firstPawnRank.lower() + "1"
+                        setup_fen += "/4/4/" 
+                        setup_fen += "1" + secondPawnRank.upper() + "/1" + secondChampionRank.upper()
                     else :
                         setup_fen = "2" + firstChampionsRank.lower() + "3/2" + firstPawnRank.lower() + "3"
                         setup_fen += "/8/8/8/8/" 

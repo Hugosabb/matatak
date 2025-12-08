@@ -64,7 +64,7 @@ export class RoundController extends GameController {
     focus: boolean;
     finishedGame: boolean;
     lastMaybeSentMsgMove: MsgMove | undefined; // Always store the last "move" message that was passed for sending via websocket.
-                          // In case of bad connection, we are never sure if it was sent (thus the name)
+    // In case of bad connection, we are never sure if it was sent (thus the name)
     isEngineReady: boolean;
     fsfDebug: boolean;
     uciOk: boolean;
@@ -72,22 +72,22 @@ export class RoundController extends GameController {
     mate1: boolean;
     draftPhase: string;
 
-                          // until a "board" message from server is received from server that confirms it.
-                          // So if at any moment connection drops, after reconnect we always resend it.
-                          // If server received and processed it the first time, it will just ignore it
+    // until a "board" message from server is received from server that confirms it.
+    // So if at any moment connection drops, after reconnect we always resend it.
+    // If server received and processed it the first time, it will just ignore it
     private readyokCallback: (() => void) | null = null;
     onFSFline: (line: string) => void;
-    
+
 
     constructor(el: HTMLElement, model: PyChessModel) {
         super(el, model, model.fen, document.getElementById('pocket0') as HTMLElement, document.getElementById('pocket1') as HTMLElement, '');
         this.focus = !document.hidden;
-        document.addEventListener("visibilitychange", () => {this.focus = !document.hidden});
-        window.addEventListener('blur', () => {this.focus = false});
-        window.addEventListener('focus', () => {this.focus = true});
+        document.addEventListener("visibilitychange", () => { this.focus = !document.hidden });
+        window.addEventListener('blur', () => { this.focus = false });
+        window.addEventListener('focus', () => { this.focus = true });
 
         const onOpen = () => {
-            if ( this.lastMaybeSentMsgMove  && this.lastMaybeSentMsgMove.ply === this.ply + 1 ) {
+            if (this.lastMaybeSentMsgMove && this.lastMaybeSentMsgMove.ply === this.ply + 1) {
                 // if this.ply === this.lastMaybeSentMsgMove.ply it would mean the move message was received by server and it has replied with "board" message, confirming and updating the state, including this.ply
                 // since they are not equal, but also one ply behind, means we should try to re-send it
                 try {
@@ -113,10 +113,10 @@ export class RoundController extends GameController {
             console.log('Reconnecting in round...');
 
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', {class: {"icon": true, "icon-online": false, "icon-offline": true}}));
+            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
         };
 
-        this.sock = createWebsocket('wsr/' + this.gameId, onOpen, onReconnect, () => {}, (e: MessageEvent) => this.onMessage(e));
+        this.sock = createWebsocket('wsr/' + this.gameId, onOpen, onReconnect, () => { }, (e: MessageEvent) => this.onMessage(e));
 
         this.assetURL = model["assetURL"];
         this.byoyomiPeriod = Number(model["byo"]);
@@ -125,8 +125,8 @@ export class RoundController extends GameController {
         this.tv = model["tv"];
         this.profileid = model["profileid"];
         this.level = model["level"];
-        this.berserked = {wberserk: model["wberserk"] === "True", bberserk: model["bberserk"] === "True"};
-        
+        this.berserked = { wberserk: model["wberserk"] === "True", bberserk: model["bberserk"] === "True" };
+
         this.initialFen = model["initialFen"];
         console.log("initialFen : ", this.initialFen);
 
@@ -147,16 +147,16 @@ export class RoundController extends GameController {
                     this.doSendMove(bestMove);
                 }
             } else if (line.split(' ')[8] == 'mate' // avoid FSF not finishing the game for severals moves even if obvious win
-                && line.split(' ')[2] != '0' 
+                && line.split(' ')[2] != '0'
                 && line.startsWith('info depth ')
                 && line.split(' ')[9] == '1'
                 && !this.mate1) {
-                    const mate1 = line.split(' ')[19];
-                    this.mate1 = true;
-                    console.log('mate in 1 :', mate1);
-                    this.doSendMove(mate1); 
+                const mate1 = line.split(' ')[19];
+                this.mate1 = true;
+                console.log('mate in 1 :', mate1);
+                this.doSendMove(mate1);
             } else if (line.startsWith('Fairy-Stockfish')) {
-                window.prompt = function() {
+                window.prompt = function () {
                     return variantsIni + '\nEOF';
                 }
                 this.fsfPostMessage('load <<EOF');
@@ -182,7 +182,7 @@ export class RoundController extends GameController {
         };
 
         this.tournamentGame = this.tournamentId !== '';
-        
+
         this.isEngineReady = false;
         this.fsfDebug = true;
         this.uciOk = false;
@@ -308,7 +308,7 @@ export class RoundController extends GameController {
                 const container = document.getElementById('more-time') as HTMLElement;
                 patch(container, h('div#more-time', [
                     h('button.icon.icon-plus-square', {
-                        props: {type: "button", title: _("Give 15 seconds")},
+                        props: { type: "button", title: _("Give 15 seconds") },
                         on: { click: () => onMoreTime() }
                     })
                 ]));
@@ -326,7 +326,7 @@ export class RoundController extends GameController {
                 const container = document.getElementById('berserk1') as HTMLElement;
                 patch(container, h('div#berserk1', [
                     h('button.icon.icon-berserk', {
-                        props: {type: "button", title: _("Berserk")},
+                        props: { type: "button", title: _("Berserk") },
                         on: { click: () => onBerserk() }
                     })
                 ]));
@@ -393,8 +393,8 @@ export class RoundController extends GameController {
             } else if (!this.variant.rules.noDrawOffer) {
                 buttons.push(h('button#draw', { on: { click: () => this.draw() }, props: { title: _('Draw') } }, h('i', '½')));
             }
-            buttons.push(h('button#resign', { on: { click: () => this.resign() }, props: {title: _("Resign")} }, [h('i', {class: {"icon": true, "icon-flag-o": true} } ), ]));
-            
+            buttons.push(h('button#resign', { on: { click: () => this.resign() }, props: { title: _("Resign") } }, [h('i', { class: { "icon": true, "icon-flag-o": true } }),]));
+
             this.gameControls = patch(container, h('div.btn-controls.game', buttons));
 
             const manualCount = this.variant.ui.counting === 'makruk' && !(this.wtitle === 'BOT' || this.btitle === 'BOT');
@@ -422,10 +422,10 @@ export class RoundController extends GameController {
 
         if (this.corr && model.corrGames.length > 0) {
             const corrGames = JSON.parse(model.corrGames).sort(compareGames(this.username));
-            const cgMap: {[gameId: string]: [Api, string]} = {};
+            const cgMap: { [gameId: string]: [Api, string] } = {};
             handleOngoingGameEvents(this.username, cgMap);
 
-            patch(document.querySelector('.games-container') as HTMLElement, 
+            patch(document.querySelector('.games-container') as HTMLElement,
                 h('games-grid#games', corrGames.flatMap((game: Game) => {
                     if (game.gameId === this.gameId) {
                         return [];
@@ -443,7 +443,7 @@ export class RoundController extends GameController {
     }
 
     buttonAbort() {
-        return h('button#abort', { on: { click: () => this.abort() }, props: {title: _('Abort')} }, [h('i', {class: {"icon": true, "icon-abort": true} } ), ]);
+        return h('button#abort', { on: { click: () => this.abort() }, props: { title: _('Abort') } }, [h('i', { class: { "icon": true, "icon-abort": true } }),]);
     }
 
     toggleOrientation() {
@@ -554,7 +554,7 @@ export class RoundController extends GameController {
     }
 
     private renderDrawOffer = () => {
-        (document.querySelector('.btn-controls.game') as HTMLElement).style.display= "none";
+        (document.querySelector('.btn-controls.game') as HTMLElement).style.display = "none";
         this.vdialog = patch(this.vdialog, h('div#offer-dialog', [
             h('div.dcontrols', [
                 h('div', { class: { reject: true }, on: { click: () => this.rejectDrawOffer() } }, h('i.icon.icon-abort.reject')),
@@ -570,7 +570,7 @@ export class RoundController extends GameController {
     }
 
     private renderConfirmCorrMove = (callback: any, move: string) => {
-        (document.querySelector('.btn-controls.game') as HTMLElement).style.display= "none";
+        (document.querySelector('.btn-controls.game') as HTMLElement).style.display = "none";
         this.vdialog = patch(this.vdialog, h('div#offer-dialog', [
             h('div.dcontrols', [
                 h('div', { class: { reject: true }, on: { click: () => this.rejectCorrMove() } }, h('i.icon.icon-abort.reject')),
@@ -582,7 +582,7 @@ export class RoundController extends GameController {
 
     private setDialog = (message: string) => {
         const gameControlsEl = document.querySelector('.btn-controls.game') as HTMLElement;
-        if (gameControlsEl) gameControlsEl.style.display= "none";
+        if (gameControlsEl) gameControlsEl.style.display = "none";
 
         this.vdialog = patch(this.vdialog, h('div#offer-dialog', [
             h('div.dcontrols', [
@@ -597,12 +597,12 @@ export class RoundController extends GameController {
     private clearDialog = () => {
         this.vdialog = patch(this.vdialog, h('div#offer-dialog', []));
         const el = document.querySelector('.btn-controls.game') as HTMLElement;
-        if (el) el.style.display= "flex";
+        if (el) el.style.display = "flex";
     }
 
     private resign = () => {
-        const doResign = ( localStorage.getItem("confirmresign") === "false" ) || confirm(_('Are you sure you want to resign?')) 
-        if (doResign) {    
+        const doResign = (localStorage.getItem("confirmresign") === "false") || confirm(_('Are you sure you want to resign?'))
+        if (doResign) {
             this.doSend({ type: "resign", gameId: this.gameId });
         }
     }
@@ -648,18 +648,19 @@ export class RoundController extends GameController {
                         if (char >= 'a' && char <= 'z') return char.toUpperCase();
                         if (char >= 'A' && char <= 'Z') return char.toLowerCase();
                         return char;
-                        }).join('');
+                    }).join('');
                 }
-                
+                const ranks1Max = this.variant.name === 'matatakmini' ? 4 : 6;
+                const ranks2Max = this.variant.name === 'matatakmini' ? 5 : 7;
                 if (this.mycolor === 'white') {
-                    [ranks[1], ranks[6]] = [changeRankTeam(ranks[6]), changeRankTeam(ranks[1])];
+                    [ranks[1], ranks[ranks1Max]] = [changeRankTeam(ranks[ranks1Max]), changeRankTeam(ranks[1])];
                 } else {
-                    [ranks[0], ranks[7]] = [changeRankTeam(ranks[7]), changeRankTeam(ranks[0])];
+                    [ranks[0], ranks[ranks2Max]] = [changeRankTeam(ranks[ranks2Max]), changeRankTeam(ranks[0])];
                 }
 
                 fenParts[0] = ranks.join('/');
                 this.setupFen = fenParts.join(' ');
-                this.chessground.set({fen: this.setupFen});
+                this.chessground.set({ fen: this.setupFen });
             };
 
             const sendSetup = () => {
@@ -672,11 +673,11 @@ export class RoundController extends GameController {
 
             const buttons: VNode[] = [];
             if (phase === "CHOOSE_CHAMPIONS" || phase === "CHOOSE_PAWNS") {
-                buttons.push(h('button#flipLeft', { on: { click: () => switchTeams() } }, [h('i', { props: { title: _('Switch pieces') }, class: { "icon": true, "icon-exchange": true } }), ]));
+                buttons.push(h('button#flipLeft', { on: { click: () => switchTeams() } }, [h('i', { props: { title: _('Switch pieces') }, class: { "icon": true, "icon-exchange": true } }),]));
             }
 
             // Bouton pour valider
-            buttons.push(h('button', { on: { click: () => sendSetup() } }, [h('i', { props: { title: _('Ready') }, class: { "icon": true, "icon-check": true } }), ]));
+            buttons.push(h('button', { on: { click: () => sendSetup() } }, [h('i', { props: { title: _('Ready') }, class: { "icon": true, "icon-check": true } }),]));
 
             const setupContainer = document.getElementById('janggi-setup-buttons') as HTMLElement;
             if (setupContainer) {
@@ -689,7 +690,7 @@ export class RoundController extends GameController {
             if (buttonEl !== null) return;
 
             this.setupFen = msg.fen;
-            this.chessground.set({fen: this.setupFen});
+            this.chessground.set({ fen: this.setupFen });
 
             const side = (msg.color === 'white') ? _('Blue (Cho)') : _('Red (Han)');
             const message = _('Waiting for %1 to choose starting positions of the horses and elephants...', side);
@@ -726,8 +727,8 @@ export class RoundController extends GameController {
                     right = right.replace(horse, '*').replace(elephant, horse).replace('*', elephant);
                 }
                 parts[rank] = left + '1' + right;
-                this.setupFen = parts.join('/') + ' w - - 0 1' ;
-                this.chessground.set({fen: this.setupFen});
+                this.setupFen = parts.join('/') + ' w - - 0 1';
+                this.chessground.set({ fen: this.setupFen });
             }
 
             const sendSetup = () => {
@@ -738,14 +739,14 @@ export class RoundController extends GameController {
             const leftSide = (this.mycolor === 'white') ? -1 : 1;
             const rightSide = leftSide * -1;
             patch(document.getElementById('janggi-setup-buttons') as HTMLElement, h('div#janggi-setup-buttons', [
-                h('button#flipLeft', { on: { click: () => switchLetters(leftSide) } }, [h('i', {props: {title: _('Switch pieces')}, class: {"icon": true, "icon-exchange": true} } ), ]),
-                h('button', { on: { click: () => sendSetup() } }, [h('i', {props: {title: _('Ready')}, class: {"icon": true, "icon-check": true} } ), ]),
-                h('button#flipRight', { on: { click: () => switchLetters(rightSide) } }, [h('i', {props: {title: _('Switch pieces')}, class: {"icon": true, "icon-exchange": true} } ), ]),
+                h('button#flipLeft', { on: { click: () => switchLetters(leftSide) } }, [h('i', { props: { title: _('Switch pieces') }, class: { "icon": true, "icon-exchange": true } }),]),
+                h('button', { on: { click: () => sendSetup() } }, [h('i', { props: { title: _('Ready') }, class: { "icon": true, "icon-check": true } }),]),
+                h('button#flipRight', { on: { click: () => switchLetters(rightSide) } }, [h('i', { props: { title: _('Switch pieces') }, class: { "icon": true, "icon-exchange": true } }),]),
             ]));
         }
     }
 
-    private resetForNewPhase(msg: { fen: cg.FEN, status: number}) {
+    private resetForNewPhase(msg: { fen: cg.FEN, status: number }) {
         console.log("Resetting RoundController for new game phase.");
 
         // 1. Réinitialiser l'état du jeu de base
@@ -765,7 +766,7 @@ export class RoundController extends GameController {
             'move': undefined,
             'check': false,
             'turnColor': this.turnColor,
-            }];
+        }];
 
         // 4. Mettre à jour l'échiquier visuel (chessground)
         const parts = msg.fen.split(" ");
@@ -812,7 +813,7 @@ export class RoundController extends GameController {
 
         const opp_name = this.username === this.wplayer ? this.bplayer : this.wplayer;
         const logoUrl = `${this.home}/static/favicon/android-icon-192x192.png`;
-        notify('matatak.org', {body: `${opp_name}\n${msg}`, icon: logoUrl});
+        notify('matatak.org', { body: `${opp_name}\n${msg}`, icon: logoUrl });
     }
 
     private onMsgBerserk = (msg: MsgBerserk) => {
@@ -851,7 +852,7 @@ export class RoundController extends GameController {
     }
 
     private renderRematchOffer = () => {
-        (document.querySelector('.btn-controls.after') as HTMLElement).style.display= "none";
+        (document.querySelector('.btn-controls.after') as HTMLElement).style.display = "none";
         this.vdialog = patch(this.vdialog, h('div#offer-dialog', [
             h('div.dcontrols', [
                 h('div', { class: { reject: true }, on: { click: () => this.rejectRematchOffer() } }, h('i.icon.icon-abort.reject')),
@@ -862,7 +863,7 @@ export class RoundController extends GameController {
     }
 
     private newOpponent = (home: string) => {
-        this.doSend({"type": "leave", "gameId": this.gameId});
+        this.doSend({ "type": "leave", "gameId": this.gameId });
         window.location.assign(home);
     }
 
@@ -895,12 +896,12 @@ export class RoundController extends GameController {
                 const isOver = false;
                 if (isOver) {
                     buttons.push(h('button.newopp', { on: { click: () => this.joinTournament() } },
-                        [h('div', {class: {"icon": true, 'icon-play3': true} }, _("VIEW TOURNAMENT"))]));
+                        [h('div', { class: { "icon": true, 'icon-play3': true } }, _("VIEW TOURNAMENT"))]));
                 } else {
                     buttons.push(h('button.newopp', { on: { click: () => this.joinTournament() } },
-                        [h('div', {class: {"icon": true, 'icon-play3': true} }, _("BACK TO TOURNAMENT"))]));
+                        [h('div', { class: { "icon": true, 'icon-play3': true } }, _("BACK TO TOURNAMENT"))]));
                     buttons.push(h('button.newopp', { on: { click: () => this.pauseTournament() } },
-                        [h('div', {class: {"icon": true, 'icon-pause2': true} }, _("PAUSE"))]));
+                        [h('div', { class: { "icon": true, 'icon-pause2': true } }, _("PAUSE"))]));
                 }
             } else if (!this.corr) {
                 buttons.push(h('button.rematch', { on: { click: () => this.rematch() } }, _("REMATCH")));
@@ -936,7 +937,7 @@ export class RoundController extends GameController {
             if (container instanceof Element) patch(container, h('extension'));
 
             if (this.tv) {
-                setInterval(() => {this.doSend({ type: "updateTV", gameId: this.gameId, profileId: this.profileid });}, 2000);
+                setInterval(() => { this.doSend({ type: "updateTV", gameId: this.gameId, profileId: this.profileid }); }, 2000);
             }
 
             this.clearDialog();
@@ -965,9 +966,9 @@ export class RoundController extends GameController {
             latestPly = (this.ply === -1 || msg.ply === this.ply + 1);
         } else {
             latestPly = (this.ply === -1 || msg.ply >= this.ply + 1); // when receiving a board msg with full list of moves (aka steps) after reconnecting
-                                                                        // its ply might be ahead with 2 ply - our move that failed to get confirmed
-                                                                        // because of disconnect and then also opp's reply to it, that we didn't
-                                                                        // receive while offline. Not sure if it could be ahead with more than 2 ply
+            // its ply might be ahead with 2 ply - our move that failed to get confirmed
+            // because of disconnect and then also opp's reply to it, that we didn't
+            // receive while offline. Not sure if it could be ahead with more than 2 ply
         }
 
         if (msg.takeback) latestPly = true;
@@ -1023,9 +1024,9 @@ export class RoundController extends GameController {
             const container = document.getElementById('movelist') as HTMLElement;
             patch(container, h('div#movelist'));
 
-            msg.steps.forEach((step) => { 
+            msg.steps.forEach((step) => {
                 this.steps.push(step);
-                });
+            });
             const full = true;
             const activate = true;
             const result = false;
@@ -1038,7 +1039,7 @@ export class RoundController extends GameController {
                     'check': msg.check,
                     'turnColor': this.turnColor,
                     'san': msg.steps[0].san,
-                    };
+                };
                 this.steps.push(step);
                 const full = false;
                 const activate = !this.spectator || latestPly;
@@ -1057,7 +1058,7 @@ export class RoundController extends GameController {
             if (container) {
                 // No takeback for Duck chess, because it already has undo for first leg of moves
                 if ((this.wtitle === 'BOT' || this.btitle === 'BOT') && !this.variant.rules.duck) {
-                    patch(container, h('button#takeback', { on: { click: () => this.takeback() }, props: {title: _('Propose takeback')} }, [h('i', {class: {"icon": true, "icon-reply": true} } ), ]));
+                    patch(container, h('button#takeback', { on: { click: () => this.takeback() }, props: { title: _('Propose takeback') } }, [h('i', { class: { "icon": true, "icon-reply": true } }),]));
                 } else {
                     patch(container, h('div'));
                 }
@@ -1203,7 +1204,7 @@ export class RoundController extends GameController {
                 }
 
                 this.searchBestMove();
-                
+
                 // const isOpponentAI = true; // this.players.some(p => p.startsWith('Local-AI-'));
                 // if (isOpponentAI && this.status < 0) {
                 //     const legalMoves = this.ffishBoard.legalMoves().split(' ').filter(o => o);
@@ -1211,7 +1212,7 @@ export class RoundController extends GameController {
                 //         const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
                 //         this.doSendMove(randomMove);
                 //     }
-                    
+
                 // }              
             }
         }
@@ -1231,7 +1232,7 @@ export class RoundController extends GameController {
         // console.log("roundCtrl.goPly()");
         super.goPly(ply, plyVari);
 
-        if (this.spectator || this.status >=0 || ply !== this.steps.length - 1) {
+        if (this.spectator || this.status >= 0 || ply !== this.steps.length - 1) {
             this.chessground.set({ movable: { color: undefined } });
         } else if (ply === this.steps.length - 1) {
             this.chessground.set({ movable: { color: this.mycolor } });
@@ -1267,11 +1268,11 @@ export class RoundController extends GameController {
                     increment = 0;
                 }
 
-                const bclocktime = (this.mycolor === "black" && this.preaction) ? this.clocktimes[BLACK] + increment: this.clocks[bclock].duration;
-                const wclocktime = (this.mycolor === "white" && this.preaction) ? this.clocktimes[WHITE] + increment: this.clocks[wclock].duration;
+                const bclocktime = (this.mycolor === "black" && this.preaction) ? this.clocktimes[BLACK] + increment : this.clocks[bclock].duration;
+                const wclocktime = (this.mycolor === "white" && this.preaction) ? this.clocktimes[WHITE] + increment : this.clocks[wclock].duration;
 
                 clock_times = [wclocktime, bclocktime];
-            } else  {
+            } else {
                 clock_times = [0, 0];
                 increment = 0;
             }
@@ -1310,15 +1311,15 @@ export class RoundController extends GameController {
         [this.vmiscInfoW, this.vmiscInfoB] = updateCount(fen, this.vmiscInfoW, this.vmiscInfoB);
         const countButton = document.getElementById('count') as HTMLElement;
         if (countButton) {
-            const [ , , countingSide, countingType ] = getCounting(fen);
+            const [, , countingSide, countingType] = getCounting(fen);
             const myturn = this.mycolor === this.turnColor;
             if (countingType === 'board')
                 if (countingSide === this.mycolor[0])
-                    patch(countButton, h('button#count', { on: { click: () => this.stopCount() }, props: {title: _('Stop counting')}, class: { disabled: !myturn } }, _('Stop')));
+                    patch(countButton, h('button#count', { on: { click: () => this.stopCount() }, props: { title: _('Stop counting') }, class: { disabled: !myturn } }, _('Stop')));
                 else
-                    patch(countButton, h('button#count', { on: { click: () => this.startCount() }, props: {title: _('Start counting')}, class: { disabled: !(myturn && countingSide === '') } }, _('Count')));
+                    patch(countButton, h('button#count', { on: { click: () => this.startCount() }, props: { title: _('Start counting') }, class: { disabled: !(myturn && countingSide === '') } }, _('Count')));
             else
-                patch(countButton, h('button#count', { props: {title: _('Start counting')}, class: { disabled: true } }, _('Count')));
+                patch(countButton, h('button#count', { props: { title: _('Start counting') }, class: { disabled: true } }, _('Count')));
         }
     }
 
@@ -1350,10 +1351,10 @@ export class RoundController extends GameController {
         // We return sooner in case the client belongs to a spectator or the 
         // game is non tournament game.
         if (this.spectator || !this.tournamentGame) return;
-        let position = (this.turnColor === this.mycolor) ? "bottom": "top";
+        let position = (this.turnColor === this.mycolor) ? "bottom" : "top";
         if (this.flipped()) position = (position === "top") ? "bottom" : "top";
         let expi = (position === 'top') ? 0 : 1;
-        const timeLeft = Math.max(0, this.expiStart - Date.now() + this.firstmovetime );
+        const timeLeft = Math.max(0, this.expiStart - Date.now() + this.firstmovetime);
         // console.log("renderExpiration()", position, timeLeft);
         if (timeLeft === 0 || this.status >= 0) {
             this.expirations[0] = patch(this.expirations[0], h('div#expiration-top'));
@@ -1367,8 +1368,9 @@ export class RoundController extends GameController {
             const secs: number = Math.floor(timeLeft / 1000);
             if (!isNaN(secs)) {
                 this.expirations[expi] = patch(this.expirations[expi], h('div#expiration-' + position + '.expiration',
-                    {class:
-                        {emerg, 'bar-glider': this.turnColor === this.mycolor}
+                    {
+                        class:
+                            { emerg, 'bar-glider': this.turnColor === this.mycolor }
                     },
                     [ngettext('%1 second to play the first move', '%1 seconds to play the first move', secs)]
                 ));
@@ -1395,14 +1397,14 @@ export class RoundController extends GameController {
             this.doSend({ type: "is_user_present", username: opp_name, gameId: this.gameId });
 
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', {class: {"icon": true, "icon-online": true, "icon-offline": false}}));
+            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
 
             // prevent sending gameStart message when user just reconnecting
             if (msg.ply === 0) {
                 this.doSend({ type: "ready", gameId: this.gameId });
-            //    if (this.variant.setup) {
-            //        this.doSend({ type: "board", gameId: this.gameId });
-            //    }
+                //    if (this.variant.setup) {
+                //        this.doSend({ type: "board", gameId: this.gameId });
+                //    }
             }
         }
         // We always need this to get possible moves made while our websocket connection was established
@@ -1414,10 +1416,10 @@ export class RoundController extends GameController {
         // console.log(msg);
         if (msg.username === this.players[0]) {
             const container = document.getElementById('player0') as HTMLElement;
-            patch(container, h('i-side.online#player0', {class: {"icon": true, "icon-online": true, "icon-offline": false}}));
+            patch(container, h('i-side.online#player0', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
         } else {
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', {class: {"icon": true, "icon-online": true, "icon-offline": false}}));
+            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
         }
     }
 
@@ -1425,10 +1427,10 @@ export class RoundController extends GameController {
         // console.log(msg);
         if (msg.username === this.players[0]) {
             const container = document.getElementById('player0') as HTMLElement;
-            patch(container, h('i-side.online#player0', {class: {"icon": true, "icon-online": false, "icon-offline": true}}));
+            patch(container, h('i-side.online#player0', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
         } else {
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', {class: {"icon": true, "icon-online": false, "icon-offline": true}}));
+            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
         }
     }
 
@@ -1504,10 +1506,10 @@ export class RoundController extends GameController {
     private async searchBestMove(): Promise<void> {
         if (this.isSearching || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor || (this.wtitle != 'GHOST' && this.btitle != 'GHOST')) {
             return;
-        } else if (this.draftPhase == "CUT"){
+        } else if (this.draftPhase == "CUT") {
             const legalMoves = this.ffishBoard.legalMoves().split(' ').filter(o => o);
-            const kingDrops = this.variant.name === 'matatakmini' ? ['K@d1', 'K@d3'] : ['K@e1', 'K@e3'];
-            if(this.turnColor === "white") {
+            const kingDrops = this.variant.name === 'matatakmini' ? ['K@c1', 'K@c2'] : ['K@e1', 'K@e3'];
+            if (this.turnColor === "white") {
                 if (legalMoves.includes(kingDrops[0])) {
                     this.doSendMove(kingDrops[0]);
                     return;
@@ -1543,7 +1545,7 @@ export class RoundController extends GameController {
         // Lancer la recherche avec les temps d'horloge actuels
         //const [wtime, btime] = this.clocktimes;
         //this.fsfPostMessage(`go wtime ${wtime} btime ${btime} winc ${this.inc * 1000} binc ${this.inc * 1000}`);
-        
+
         const threads = parseInt(localStorage.threads || '1');
         const baseMovetime = LVL_MOVETIMES[this.level];
         const movetime = Math.round(baseMovetime / (threads * Math.pow(0.9, threads - 1)));
@@ -1626,7 +1628,7 @@ export class RoundController extends GameController {
                 break;
             case "resetForNewPhase":
                 this.resetForNewPhase({
-                    fen: msg.drop_fen, 
+                    fen: msg.drop_fen,
                     status: -2,
                 });
                 break;
