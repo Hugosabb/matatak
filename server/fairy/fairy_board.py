@@ -513,7 +513,7 @@ class FairyBoard:
 
     @staticmethod
     def matatak_placement_start(bchampions: str, bpawns: str, wpawns: str, wchampions: str, isMini: bool) -> str:
-        width = 6 if isMini else 8
+        width = 4 if isMini else 8
         bspace1 = (width-len(bchampions))//2
         bspace2 = width - bspace1 - len(bchampions)
         wspace1 = (width-len(wchampions))//2
@@ -526,7 +526,7 @@ class FairyBoard:
         fen += str(bspace1)
         fen += bpawns
         fen += str(bspace2)
-        fen += "/6/6/6/6/" if isMini else "/8/8/8/8/"
+        fen += "/4/4/" if isMini else "/8/8/8/8/"
         fen += str(wspace2)
         fen += wpawns
         fen += str(wspace1)
@@ -561,7 +561,7 @@ class FairyBoard:
 
         pieces_in_pocket = "KK"+c1+c2+c3+c4+c5+c6+p1+p2+p3+p4+p5+p6+p7+p8
 
-        empty_board = "8/8/8/8/8/8/8/8" if not isMini else "6/6/6/6/6/6/6/6"
+        empty_board = "8/8/8/8/8/8/8/8" if not isMini else "4/4/4/4/4/4"
         fen = empty_board + f"[{pieces_in_pocket}] w - - 0 1"
 
         return fen

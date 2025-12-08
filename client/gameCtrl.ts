@@ -2,13 +2,13 @@ import { WebsocketHeartbeatJs } from './socket/socket';
 
 import { premove } from './premoveCgOverride';
 import { h, VNode } from 'snabbdom';
-import * as Mousetrap  from 'mousetrap';
+import * as Mousetrap from 'mousetrap';
 import * as cg from 'chessgroundx/types';
 import * as util from 'chessgroundx/util';
 
 import { _ } from './i18n';
 import { patch } from './document';
-import { Step, MsgChat, MsgFullChat, MsgSpectators, MsgShutdown,MsgGameNotFound } from './messages';
+import { Step, MsgChat, MsgFullChat, MsgSpectators, MsgShutdown, MsgGameNotFound } from './messages';
 import { adjacent, uci2LastMove, moveDests, cg2uci, unpromotedRole, UCIMove } from './chess';
 import { InputType } from '@/input/input';
 import { GatingInput } from './input/gating';
@@ -36,7 +36,7 @@ export abstract class GameController extends ChessgroundController implements Ch
     bplayer: string;
     aiLevel: number;
     rated: string;
-    corr : boolean;
+    corr: boolean;
 
     base: number;
     inc: number;
@@ -96,7 +96,7 @@ export abstract class GameController extends ChessgroundController implements Ch
     undo?: any;
 
     constructor(el: HTMLElement, model: PyChessModel, fullfen: string, pocket0: HTMLElement, pocket1: HTMLElement, boardName: BoardName = '') {
-        super (el, model, fullfen, pocket0, pocket1, boardName);
+        super(el, model, fullfen, pocket0, pocket1, boardName);
 
         this.gameId = model["gameId"] as string;
         this.tournamentId = model["tournamentId"]
@@ -166,7 +166,7 @@ export abstract class GameController extends ChessgroundController implements Ch
             'move': undefined,
             'check': false,
             'turnColor': this.turnColor,
-            });
+        });
 
         this.setDests();
 
@@ -189,8 +189,8 @@ export abstract class GameController extends ChessgroundController implements Ch
 
     flipped() {
         return (this.variant.name === 'racingkings')
-        ? this.chessground.state.orientation !== 'white'
-        : this.chessground.state.orientation !== this.mycolor;
+            ? this.chessground.state.orientation !== 'white'
+            : this.chessground.state.orientation !== this.mycolor;
     }
 
     setDests() {
@@ -219,7 +219,7 @@ export abstract class GameController extends ChessgroundController implements Ch
                 }
             }
         }
-        if (this.variant.name == 'matatak' ) { // TODO Add CUT PHASE ARG
+        if (this.variant.name == 'matatak') { // TODO Add CUT PHASE ARG
             for (const [orig, destArray] of dests) {
                 if (orig.includes('@')) {
                     if (orig.includes('K') || orig.includes('k')) {
@@ -232,22 +232,22 @@ export abstract class GameController extends ChessgroundController implements Ch
                 }
             }
         }
-        if (this.variant.name == 'matatakmini' ) { // TODO Add CUT PHASE ARG
+        if (this.variant.name == 'matatakmini') { // TODO Add CUT PHASE ARG
             for (const [orig, destArray] of dests) {
                 if (orig.includes('@')) {
                     if (orig.includes('K') || orig.includes('k')) {
-                        const filteredDests = destArray.filter(dest => dest === 'd1' || dest === 'd3');
+                        const filteredDests = destArray.filter(dest => dest === 'c1' || dest === 'c2');
                         dests.set(orig, filteredDests);
                     } else {
-                        const filteredDests = destArray.filter(dest => dest !== 'd1' && dest !== 'd3');
+                        const filteredDests = destArray.filter(dest => dest !== 'c1' && dest !== 'c2');
                         dests.set(orig, filteredDests);
                     }
                 }
             }
         }
-        this.chessground.set({ movable: { dests: dests }});
+        this.chessground.set({ movable: { dests: dests } });
         if (this.steps.length === 1) {
-            this.chessground.set({ check: (this.ffishBoard.isCheck()) ? this.turnColor : false});
+            this.chessground.set({ check: (this.ffishBoard.isCheck()) ? this.turnColor : false });
         }
     }
 
@@ -294,10 +294,12 @@ export abstract class GameController extends ChessgroundController implements Ch
             if (p.role === 'k-piece') kings[p.color] = k;
         }
         this.chessground.set({
-            drawable: { autoShapes: [
-                { orig: kings['white'] as cg.Key, brush: 'paleGreen', customSvg: wSvg },
-                { orig: kings['black'] as cg.Key, brush: 'paleGreen', customSvg: bSvg },
-            ] }
+            drawable: {
+                autoShapes: [
+                    { orig: kings['white'] as cg.Key, brush: 'paleGreen', customSvg: wSvg },
+                    { orig: kings['black'] as cg.Key, brush: 'paleGreen', customSvg: bSvg },
+                ]
+            }
         });
     }
 
@@ -424,9 +426,9 @@ export abstract class GameController extends ChessgroundController implements Ch
                     pockets: this.variant.pocket ? { white: new Map(), black: new Map() } : undefined,
                 };
                 const theoreticMoves = premove(this.variant.name, this.chess960, this.variant.board.dimensions)(emptyBoardState, key, false);
-                
+
                 const shapes = theoreticMoves.map(dest => {
-                    
+
                     const uniqueDiamondId = `diamond_${dest}`;
                     const uniqueShadowId = `shadow_${dest}`;
 
@@ -452,7 +454,7 @@ export abstract class GameController extends ChessgroundController implements Ch
 
                     return {
                         orig: dest,
-                        customSvg: moveSvg as any 
+                        customSvg: moveSvg as any
                     } as cg.DrawShape;
                 });
 
@@ -538,7 +540,7 @@ export abstract class GameController extends ChessgroundController implements Ch
         const pieces = this.chessground.state.boardState.pieces;
         let moved = pieces.get(dest);
         // Fix king to rook 960 castling case
-        if (moved === undefined) moved = {role: 'k-piece', color: this.mycolor} as cg.Piece;
+        if (moved === undefined) moved = { role: 'k-piece', color: this.mycolor } as cg.Piece;
 
         // chessground doesn't know about en passant, so we have to remove the captured pawn manually
         this.performEnPassant(meta, moved, orig, dest, pieces, this.chessground, this.variant, this.mycolor);
@@ -635,7 +637,7 @@ export abstract class GameController extends ChessgroundController implements Ch
                 this.onMsgShutdown(msg);
                 break;
             case "logout":
-                this.doSend({type: "logout"});
+                this.doSend({ type: "logout" });
                 break;
         }
     }
