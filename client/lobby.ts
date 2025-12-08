@@ -119,6 +119,41 @@ export class LobbyController implements ChatController {
                 });
                 id01modal.addEventListener("cancel", this.closeSeekDialog);
             }
+
+            this.dialogHeaderEl = document.getElementById('header-block') as HTMLElement;
+
+            // challenge (or CREATE GAME from the main menu)
+            if (this.profileid !== "") {
+                if (this.title === 'BOT') {
+                    this.createMode = (this.profileid === 'Fairy-Stockfish') ? 'playAI' : 'playBOT';
+                    this.preSelectVariant(model.variant);
+                }
+                else if (this.profileid === 'Invite-friend') this.createMode = 'playFriend';
+                document.getElementById('game-mode')!.style.display = (this.anon || this.title === 'BOT') ? 'none' : 'inline-flex';
+                this.renderDialogHeader(_('Challenge %1 to a game', this.profileid));
+                document.getElementById('ailevel')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
+                document.getElementById('rmplay-block')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
+                (document.getElementById('id01') as HTMLDialogElement).showModal();
+                document.getElementById('color-selection-group')!.style.display = 'block';
+                document.getElementById('create-button')!.style.display = 'block';
+
+                // CREATE GAME from the main menu
+                if (this.profileid === 'any#') {
+                    this.profileid = '';
+                    this.createGame();
+                } else if (this.profileid === 'ai#') {
+                    this.profileid = '';
+                    this.playAI();
+                } else if (this.profileid === 'friend#') {
+                    this.profileid = '';
+                    this.playFriend();
+                }
+            }
+
+            // Seek from Editor with custom start position
+            if (this.fen !== "" && this.profileid === "") {
+                this.createGame(model.variant);
+            }
         }, 0);
 
         patch(document.getElementById('lobbychat') as HTMLElement, chatView(this, "lobbychat"));
@@ -127,40 +162,7 @@ export class LobbyController implements ChatController {
 
         this.spotlights = document.getElementById('spotlights') as HTMLElement;
 
-        this.dialogHeaderEl = document.getElementById('header-block') as HTMLElement;
 
-        // challenge (or CREATE GAME from the main menu)
-        if (this.profileid !== "") {
-            if (this.title === 'BOT') {
-                this.createMode = (this.profileid === 'Fairy-Stockfish') ? 'playAI' : 'playBOT';
-                this.preSelectVariant(model.variant);
-            }
-            else if (this.profileid === 'Invite-friend') this.createMode = 'playFriend';
-            document.getElementById('game-mode')!.style.display = (this.anon || this.title === 'BOT') ? 'none' : 'inline-flex';
-            this.renderDialogHeader(_('Challenge %1 to a game', this.profileid));
-            document.getElementById('ailevel')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
-            document.getElementById('rmplay-block')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
-            (document.getElementById('id01') as HTMLDialogElement).showModal();
-            document.getElementById('color-selection-group')!.style.display = 'block';
-            document.getElementById('create-button')!.style.display = 'block';
-
-            // CREATE GAME from the main menu
-            if (this.profileid === 'any#') {
-                this.profileid = '';
-                this.createGame();
-            } else if (this.profileid === 'ai#') {
-                this.profileid = '';
-                this.playAI();
-            } else if (this.profileid === 'friend#') {
-                this.profileid = '';
-                this.playFriend();
-            }
-        }
-
-        // Seek from Editor with custom start position
-        if (this.fen !== "" && this.profileid === "") {
-            this.createGame(model.variant);
-        }
 
         setAriaTabClick("lobby_tab");
 
