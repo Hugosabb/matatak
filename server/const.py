@@ -36,7 +36,7 @@ ANIMALS = [
     "Koala", "Panda", "Lama", "Cat",
     "Girafe", "Kangaroo", "Gazelle", "Buffalo", "Elephant", "Leopard", "Tortoise",
     "Outan", "Chimp", "Lemur",
-    "Eagle", "Falcon", "Jaguar", "Cougar", "Hawk", "Viper",
+    "Eagle", "Jaguar", "Cougar", "Viper",
     "Goat", "Duck", "Frog", "Platypus",
     "Bird", "Mouse", "Rabbit", "Deer", 
     "Monkey", "Pig", "Sheep", "Horse", "Donkey",
@@ -45,16 +45,15 @@ ANIMALS = [
 ]
 
 ADJECTIVES = [
-    "Red", "Blue", "Gold", "Grey", "Pink", "Black", "White", "Green", 
     "Dark", "Mad", "Bad", "Sad", "Evil", 
     "Zen", "Wild", "Cute", "Good", "Wise", 
     "Toxic", "Magic", "Lucky", "Crazy", "Lazy",
     "Smart", "Cheeky", "Sneaky",
     "Big", "Fat", "Hot", "Old", "Fast", "Slow", "Tiny", "Huge", "Mini",
     "Cool", "Epic", "Pure", "Prime",    
-    "Solo", "Hyper", "Super", "Mega", "Giga", "Small",
+    "Solo", "Hyper", "Super", "Mega", "Giga", "Small", "Tall", "Short",
     "Silly", "Goofy", "Jazzy",
-    "Dumb"
+    "Dumb", "Happy", "Jolly", "Brave", "Calm", "Kind"
 ]
 
 def random_anonyme_username():
