@@ -84,6 +84,7 @@ from views import (
     video,
     winners,
 )
+import pwa
 
 
 get_routes = (
@@ -183,6 +184,8 @@ get_routes = (
     ("/fishnet/monitor", fishnet_monitor),
     ("/fishnet/key/{key}", fishnet_validate_key),
     ("/robots.txt", robots),
+    ("/service-worker.js", pwa.service_worker),
+    ("/manifest.json", pwa.manifest),
 )
 
 post_routes = (
