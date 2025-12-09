@@ -45,7 +45,7 @@ async def process_ws(
         session.invalidate()
         return None
 
-    ws = WebSocketResponse(heartbeat=3.0, receive_timeout=10.0)
+    ws = WebSocketResponse(heartbeat=3.0, receive_timeout=30.0)
     ws_ready = ws.can_prepare(request)
     if not ws_ready.ok:
         log.error("ws_ready not ok: %r", ws_ready)
