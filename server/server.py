@@ -116,6 +116,15 @@ def make_app(db_client=None, simple_cookie_storage=False, anon_as_test_users=Fal
             )
         ),
     )
+    # Explicitly store storage in app for manual access during WS handshake
+    # aiohttp_session 2.9+ might not do this automatically, or local version behaves differently
+    app[aiohttp_session.STORAGE_KEY] = (
+        SimpleCookieStorage()
+        if simple_cookie_storage
+        else EncryptedCookieStorage(
+            SECRET_KEY, max_age=MAX_AGE, secure=parts.scheme == "https", samesite="Lax"
+        )
+    )
 
     app.middlewares.append(set_user_locale)
 

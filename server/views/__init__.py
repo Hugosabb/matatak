@@ -51,10 +51,17 @@ async def get_user_context(request):
             try:
                 user = await app_state.users.get(session_user)
             except NotInDbUsers:
-                log.info("User %s not found in DB (server restart?), invalidating session.", session_user)
-                session.invalidate()
-                raise web.HTTPFound("/")
+                user = None
 
+            if user is None or user.username == NONE_USER:
+                from const import NONE_USER
+                log.info("User %s not found in DB or is NONE_USER. Creating new anon user.", session_user)
+                
+                # Heal session without redirecting
+                user = User(app_state, anon=not app_state.anon_as_test_users)
+                app_state.users[user.username] = user
+                session["user_name"] = user.username
+                
             if not user.enabled:
                 session.invalidate()
                 raise web.HTTPFound("/")

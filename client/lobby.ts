@@ -1270,7 +1270,20 @@ export class LobbyController implements ChatController {
     }
 
     private onMsgUserConnected(msg: MsgUserConnected) {
-        this.username = msg.username;
+        if (this.username != msg.username) {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                    window.location.reload();
+                });
+            } else {
+                window.location.reload();
+            }
+        } else {
+            this.username = msg.username;
+        }
     }
 
     private onMsgChat(msg: MsgChat) {
