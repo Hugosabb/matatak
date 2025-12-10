@@ -23,8 +23,21 @@ async def get_user(session: aiohttp_session.Session, request: web.Request) -> Us
     try:
         user = await get_app_state(request.app).users.get(session_user)
     except NotInDbUsers:
-        log.info("WS User %s not found in DB.", session_user)
-        return get_app_state(request.app).users[NONE_USER]
+        user = None
+
+    if user is None or user.username == NONE_USER:
+        from user import User
+        
+        if user is None:
+             log.info("WS User %s not found in DB.", session_user)
+        else:
+             log.info("WS User is NONE_USER (session=%s). Creating new.", session_user)
+
+        app_state = get_app_state(request.app)
+        user = User(app_state, anon=True)
+        app_state.users[user.username] = user
+        session["user_name"] = user.username
+        
     return user
 
 
@@ -50,6 +63,14 @@ async def process_ws(
     if not ws_ready.ok:
         log.error("ws_ready not ok: %r", ws_ready)
         return None
+
+    # Manually save session to ensure cookie is sent with handshake
+    from aiohttp_session import STORAGE_KEY
+    if STORAGE_KEY in request.app:
+        storage = request.app[STORAGE_KEY]
+        await storage.save_session(request, ws, session)
+    else:
+        log.error("CheckCookie: Session storage not found in app. Storage check failed.")
 
     await ws.prepare(request)
 
