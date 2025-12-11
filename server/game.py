@@ -817,7 +817,7 @@ class Game:
             if is_game_end and (
                 game_result_value != 0
                 or (game_result_value == 0 and self.n_fold_is_draw)
-                or (self.wplayer.bot or self.bplayer.bot)
+                or (self.wplayer.bot or self.bplayer.bot or self.wplayer.title == "GHOST" or self.bplayer.title == "GHOST")
                 or self.variant == "ataxx"
             ):
                 self.result = result_string_from_value(self.board.color, game_result_value)
