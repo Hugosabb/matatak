@@ -88,6 +88,8 @@ whiteFlag = b3 c3 b4 c4
 blackFlag = b3 c3 b4 c4
 whiteDropRegion = b1 c1 d1 b2 c2 d2
 blackDropRegion = b6 c6 d6 b5 c5 d5
+promotionRegionWhite = *6
+promotionRegionBlack = *1
 startFen = 1kc1/1mm1/4/4/1FF1/1XK1 w - - 0 1
 
 # Hybrid variant of Grand-chess and crazyhouse, using Grand-chess as a template
