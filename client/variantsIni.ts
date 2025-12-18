@@ -59,8 +59,8 @@ nMoveRuleTypes = abefgjlmpq
 
 # Promotions
 promotionPawnTypes = abefgjlmpq 
-promotionPieceTypesWhite = d
-promotionPieceTypesBlack = d
+promotionPieceTypesWhite = dsio
+promotionPieceTypesBlack = dsio
 
 # King of the Hill (with Hill on a 8x8 board)
 king = k
