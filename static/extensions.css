@@ -13,26 +13,32 @@
   --pocketMargin: 10px;
   --movelist-max-height: 8rem;
 }
+
 .mini .pocket {
-    width: 100%;
-    justify-content: center;
+  width: 100%;
+  justify-content: center;
 }
+
 .mini .pocket square {
-    flex: 0 0 calc(100% / max(var(--files), var(--pocketLength)));
+  flex: 0 0 calc(100% / max(var(--files), var(--pocketLength)));
 }
+
 .mini .pocket.top {
-    border-radius: 3px 3px 0px 0px;
-    position: absolute;
-    top: calc(-100% / var(--ranks));
+  border-radius: 3px 3px 0px 0px;
+  position: absolute;
+  top: calc(-100% / var(--ranks));
 }
+
 .mini .pocket.bottom {
-    border-radius: 3px 3px 0px 0px;
-    position: absolute;
-    bottom: calc(-100% / var(--ranks));
+  border-radius: 3px 3px 0px 0px;
+  position: absolute;
+  bottom: calc(-100% / var(--ranks));
 }
+
 .mini .pocket piece::after {
-    padding: 1px 0.1em;
+  padding: 1px 0.1em;
 }
+
 #extension_choice {
   position: absolute;
   top: 0;
@@ -40,10 +46,11 @@
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  background: rgba(250, 250, 250, 0.7);
+  background: rgba(0, 0, 0, 0.7);
   text-align: center;
   z-index: 5;
 }
+
 #extension_choice square {
   position: absolute;
   top: 0;
@@ -52,42 +59,51 @@
   height: 12.5%;
   cursor: pointer;
   border-radius: 50%;
-  background-color: #b0b0b0;
-  box-shadow: inset 0 0 25px 3px #808080;
+  background-color: var(--bg-color0);
+  box-shadow: inset 0 0 25px 3px var(--bg-color1);
   box-sizing: border-box;
   transition: 0.2s;
 }
+
 .cg-640 #extension_choice square {
   width: 10%;
 }
+
 .cg-576 #extension_choice square {
   height: 11.11%;
   width: 11.11%;
 }
+
 .cg-540 #extension_choice square {
   height: 11.11%;
   width: 11.11%;
 }
-.cg-448-516  #extension_choice square {
+
+.cg-448-516 #extension_choice square {
   width: 14.2857%;
   height: 14.2857%;
 }
+
 .cg-640-640 #extension_choice square {
   height: 10%;
   width: 10%;
 }
+
 .cg-260-360 #extension_choice square {
   width: 20%;
   height: 16.66%;
 }
+
 .cg-260 #extension_choice square {
   height: 20%;
   width: 20%;
 }
+
 .cg-156 #extension_choice square {
   height: 25%;
   width: 33.33%;
 }
+
 #extension_choice piece {
   pointer-events: auto;
   top: 0;
@@ -97,8 +113,9 @@
   transition: 0.2s;
   transform: scale(0.8);
 }
+
 #extension_choice square:hover {
-  box-shadow: inset 0 0 48px 8px #d85000;
+  box-shadow: inset 0 0 48px 8px var(--link-hover);
   border-radius: 0%;
   transform: none;
 }
@@ -111,32 +128,38 @@
   width: calc(var(--pocketLength) * (var(--cg-width) / var(--files)));
   height: calc(var(--cg-height) / var(--ranks));
   border-radius: 3px;
-  box-shadow: 0 2px 3px rgba(0,0,0,0.3) inset;
-  background: #888;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3) inset;
+  background: var(--bg-color1);
   white-space: nowrap;
   display: flex;
   --fs: calc(var(--cg-height) / var(--ranks));
   font-size: var(--fs);
   padding-bottom: 1px;
 }
+
 .pocket.top {
   margin-bottom: var(--pocketMargin);
 }
+
 .pocket.top.editor {
   margin-bottom: 18px;
   flex-wrap: wrap-reverse;
 }
+
 .pocket.bottom {
   margin-top: var(--pocketMargin);
 }
+
 .pocket.bottom.editor {
   margin-top: 18px;
 }
-.pocket .editor{
+
+.pocket .editor {
   width: calc(var(--editorLength) * (var(--cg-width) / var(--files)));
 }
 
-.pocket square, .pocket nosquare {
+.pocket square,
+.pocket nosquare {
   flex: 0 0 calc(100% / var(--pocketLength));
   position: relative !important;
   pointer-events: none;
@@ -149,34 +172,41 @@
   pointer-events: auto;
 }
 
-.pocket square.selected-square{
+.pocket square.selected-square {
   background-color: #14551e80 !important;
 }
 
 .pocket.usable square:first-child:hover {
   border-radius: 3px 0 0 3px;
 }
+
 .pocket.usable square {
   cursor: pointer;
 }
+
 .pocket.usable square:hover {
-  background-color: #999;
+  background-color: var(--link-hover);
   transition: background-color 0.13s;
 }
+
 .pocket.usable square.premove {
   background-color: #555;
 }
+
 .pocket.usable square.premove:hover {
   background-color: #666;
 }
+
 .pocket square.last-move {
   will-change: transform;
   background-color: rgba(155, 199, 0, 0.41);
 }
+
 .pocket piece[data-nb='0'] {
   cursor: auto;
   opacity: 0.1;
 }
+
 .pocket piece::after {
   content: attr(data-nb);
   bottom: 0;
@@ -188,19 +218,26 @@
   border-radius: 2px;
   font-size: 0.3em;
 }
+
 .mini .pocket piece::after {
   font-size: 0.4em;
 }
-.shogi3x4 .mini .pocket piece::after, .shogi5x5 .mini .pocket piece::after, .shogi5x6 .mini .pocket piece::after {
+
+.shogi3x4 .mini .pocket piece::after,
+.shogi5x5 .mini .pocket piece::after,
+.shogi5x6 .mini .pocket piece::after {
   font-size: 0.3em;
 }
+
 .pocket piece[data-nb='0']::after {
   content: none;
 }
+
 /* board editor pieces are unlimited */
 .pocket piece[data-nb='-1']::after {
   content: none;
 }
+
 .pocket piece::after {
   color: #fff !important;
   text-shadow: 0 1px 0 #000 !important;
@@ -208,7 +245,8 @@
   box-shadow: 0 3px 4px rgba(0, 0, 0, 0.15) inset !important;
 }
 
-.campmate .cg-512 cg-board::before, .racingkings .cg-512 cg-board::before {
+.campmate .cg-512 cg-board::before,
+.racingkings .cg-512 cg-board::before {
   width: 100%;
   height: 12.5%;
   top: 0%;
@@ -263,8 +301,8 @@
 .kingofthehill .cg-512 cg-board::before {
   width: 25%;
   height: 25%;
-  box-shadow: 0 0 10px rgba(0,0,0,.7);
-  background: rgba(230,230,230,.2);
+  box-shadow: 0 0 10px rgba(0, 0, 0, .7);
+  background: rgba(230, 230, 230, .2);
   content: "";
   position: absolute;
   top: 37.5%;
@@ -279,20 +317,25 @@
   background-color: LightCyan;
   border: 1px solid blue;
 }
+
 /* Fog of War fog pieces */
 .standard piece.promoted._-piece {
   background-image: url('data:image/svg+xml;base64,PHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA0Ny41IDQ3LjUiIHZpZXdCb3g9IjAgMCA0Ny41IDQ3LjUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxjbGlwUGF0aCBpZD0iYSI+PHBhdGggZD0ibTAgMzhoMzh2LTM4aC0zOHoiLz48L2NsaXBQYXRoPjxnIGNsaXAtcGF0aD0idXJsKCNhKSIgdHJhbnNmb3JtPSJtYXRyaXgoMS4yNSAwIDAgLTEuMjUgMCA0Ny41KSI+PHBhdGggZD0ibTAgMGE0IDQgMCAwIDAgLTQtNGgtMjhhNCA0IDAgMCAwIC00IDR2MjhhNCA0IDAgMCAwIDQgNGgyOGE0IDQgMCAwIDAgNC00eiIgZmlsbD0iI2E5YTlhOSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMzcgNSkiLz48L2c+PC9zdmc+');
   opacity: 0.7;
 }
+
 /* Manchu banner */
-.xiangqi piece.m-piece, .manchu piece.m-piece {
+.xiangqi piece.m-piece,
+.manchu piece.m-piece {
   background-color: gold;
   border-radius: 50%;
 }
+
 /* Jieqi coovered pieces */
 .xiangqi piece.promoted.white {
   background-image: url('images/pieces/disguised/3d-red.svg');
 }
+
 .xiangqi piece.promoted.black {
   background-image: url('images/pieces/disguised/3d-black.svg');
 }
