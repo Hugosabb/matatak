@@ -16,7 +16,7 @@ import { WHITE, BLACK, uci2LastMove, getCounting, isHandicap } from './chess';
 import { crosstableView } from './crosstable';
 import { chatMessage, chatView } from './chat';
 import { createMovelistButtons, updateMovelist, updateResult, selectMove } from './movelist';
-import { renderRdiff } from './result'
+import { renderRdiff, result } from './result';
 import { player } from './player';
 import { updateCount, updatePoint } from './info';
 import { updateMaterial, emptyMaterial } from './material';
@@ -930,6 +930,23 @@ export class RoundController extends GameController {
             if ("ct" in msg && msg.ct) {
                 this.ctableContainer = patch(this.ctableContainer, h('div.ctable-container'));
                 this.ctableContainer = patch(this.ctableContainer, crosstableView(msg.ct, this.gameId));
+            }
+
+            // Add visual indication on the board
+            const cgWrap = document.querySelector('.cg-wrap');
+            if (cgWrap && !cgWrap.querySelector('.game-over-overlay')) {
+                const overlay = document.createElement('div');
+                overlay.className = 'game-over-overlay';
+                const reasonText = result(this.variant, msg.status, msg.result);
+                overlay.innerHTML = `
+                  <div class="content">
+                    <h1>${_("Game Over")}</h1>
+                    <h2>${reasonText}</h2>
+                    <div class="dismiss-hint">${_("(Click to dismiss)")}</div>
+                  </div>
+                `;
+                overlay.onclick = () => overlay.remove();
+                cgWrap.appendChild(overlay);
             }
 
             // clean up gating/promotion widget left over the ground while game ended by time out
