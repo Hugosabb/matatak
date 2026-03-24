@@ -532,9 +532,6 @@ div.more {
     box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.225);
 }
 
-#btn-controls-top button {
-    background: inherit;
-}
 
 .puzzle-meta .info2 span {
     padding-right: 1ch;
