@@ -96,7 +96,6 @@ export function analysisView(model: PyChessModel): VNode[] {
     const isAnalysisBoard = model["gameId"] === "";
     const isOngoingGame = model["status"] == -1;
     const tabindexCt = (isAnalysisBoard) ? '-1' : '0';
-    var tabindexPgn = (isAnalysisBoard) ? '0' : '-1';
 
     renderTimeago();
 
@@ -108,16 +107,12 @@ export function analysisView(model: PyChessModel): VNode[] {
 
     let tabs = [];
     if (!isOngoingGame) {
-        tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-1', id: 'tab-1', tabindex: '-1'}}, _('Computer analysis')));
         if (model.rated === "1") {
-            tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': true, 'aria-controls': 'panel-2', id: 'tab-2', tabindex: '-1'}}, _('Move times')))
+            tabs.push(h('span', { attrs: { role: 'tab', 'aria-selected': true, 'aria-controls': 'panel-2', id: 'tab-2', tabindex: '0' } }, _('Move times')))
         }
         if (model.ct) {
-            tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-3', id: 'tab-3', tabindex: tabindexCt}}, _('Crosstable')))
-        } else {
-            tabindexPgn = "0";
+            tabs.push(h('span', { attrs: { role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-3', id: 'tab-3', tabindex: tabindexCt } }, _('Crosstable')))
         }
-        tabs.push(h('span', {attrs: {role: 'tab', 'aria-selected': false, 'aria-controls': 'panel-4', id: 'tab-4', tabindex: tabindexPgn}}, _('FEN & PGN')));
     }
 
     return [
@@ -158,20 +153,20 @@ export function analysisView(model: PyChessModel): VNode[] {
             ]),
             h('under-left#spectators'),
             h('under-board', [
-                h('div', {attrs: {role: 'tablist', 'aria-label': 'Analysis Tabs'}}, tabs),
-                h('div.chart-container', {attrs: {id: 'panel-1', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-1'}}, [
+                h('div', { attrs: { role: 'tablist', 'aria-label': 'Analysis Tabs' } }, tabs),
+                h('div.chart-container', { style: { display: 'none' }, attrs: { id: 'panel-1', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-1' } }, [
                     h('div#request-analysis'),
                     h('div#chart-analysis'),
                     h('div#loader-wrapper', [spinner()])
                 ]),
-                h('div.chart-container', {attrs: {id: 'panel-2', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-2'}}, [
+                h('div.chart-container', { attrs: { id: 'panel-2', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-2' } }, [
                     h('div#chart-movetime'),
                 ]),
-                h('div.ctable-container', {attrs: {id: 'panel-3', role: 'tabpanel', tabindex: tabindexCt, 'aria-labelledby': 'tab-3'}}),
-                h('div.pgn-container', {attrs: {id: 'panel-4', role: 'tabpanel', tabindex: tabindexPgn, 'aria-labelledby': 'tab-4'}}, [
+                h('div.ctable-container', { attrs: { id: 'panel-3', role: 'tabpanel', tabindex: tabindexCt, 'aria-labelledby': 'tab-3' } }),
+                h('div.pgn-container', { style: { display: 'none' }, attrs: { id: 'panel-4', role: 'tabpanel', tabindex: '-1', 'aria-labelledby': 'tab-4' } }, [
                     h('div#fentext', [
                         h('strong', 'FEN'),
-                        h('input#fullfen', {attrs: {readonly: true, spellcheck: false}, on: { click: onClickFullfen } })
+                        h('input#fullfen', { attrs: { readonly: true, spellcheck: false }, on: { click: onClickFullfen } })
                     ]),
                     h('div#copyfen'),
                     h('div#pgntext'),
@@ -182,57 +177,57 @@ export function analysisView(model: PyChessModel): VNode[] {
 }
 
 
-export function analysisTools (isOngoingGame: boolean = false) {
+export function analysisTools(isOngoingGame: boolean = false) {
     return h('div.analysis-tools', [
-            (isOngoingGame) ? '' : h('div#ceval', [
-                h('div.engine', [
-                    h('score#score', ''),
-                    h('div.info', [
-                        'Fairy-Stockfish 14+ ',
-                        h('span.nnue', { props: { title: _('Multi-threaded WebAssembly (classical evaluation)') } } , 'HCE'),
-                        h('br'),
-                        h('info#info', _('in local browser'))
-                    ]),
-                    h('div.engine-toggle'),
+        (isOngoingGame) ? '' : h('div#ceval', [
+            h('div.engine', [
+                h('score#score', ''),
+                h('div.info', [
+                    'Fairy-Stockfish 14+ ',
+                    h('span.nnue', { props: { title: _('Multi-threaded WebAssembly (classical evaluation)') } }, 'HCE'),
+                    h('br'),
+                    h('info#info', _('in local browser'))
                 ]),
+                h('div.engine-toggle'),
             ]),
-            (isOngoingGame) ? '' : h('div.pvbox', [
-                h('div#pv1'),
-                h('div#pv2'),
-                h('div#pv3'),
-                h('div#pv4'),
-                h('div#pv5'),
+        ]),
+        (isOngoingGame) ? '' : h('div.pvbox', [
+            h('div#pv1'),
+            h('div#pv2'),
+            h('div#pv3'),
+            h('div#pv4'),
+            h('div#pv5'),
+        ]),
+        h('div.movelist-block', [
+            h('div#movelist'),
+        ]),
+        h('div#vari'),
+        h('div#misc-info', [
+            h('div#misc-infow'),
+            h('div#misc-info-center'),
+            h('div#misc-infob'),
+        ]),
+        (isOngoingGame) ? '' : h('div.feedback', [
+            h('div.player'),
+            h('div.view-hint', [
+                h('a.button.hint'),
             ]),
-            h('div.movelist-block', [
-                h('div#movelist'),
+            h('div.view-solution', [
+                h('a.button.solution'),
             ]),
-            h('div#vari'),
-            h('div#misc-info', [
-                h('div#misc-infow'),
-                h('div#misc-info-center'),
-                h('div#misc-infob'),
-            ]),
-            (isOngoingGame) ? '' : h('div.feedback', [
-                h('div.player'),
-                h('div.view-hint', [
-                    h('a.button.hint'),
-                ]),
-                h('div.view-solution', [
-                    h('a.button.solution'),
-                ]),
-            ]),
-        ])
+        ]),
+    ])
 }
 
-export function gauge (id: string = "gauge") {
-    return h('div#'+id, [
-        h('div.black',     { props: { style: "height: 50%;" } }),
-        h('div.tick',      { props: { style: "height: 12.5%;" } }),
-        h('div.tick',      { props: { style: "height: 25%;" } }),
-        h('div.tick',      { props: { style: "height: 37.5%;" } }),
+export function gauge(id: string = "gauge") {
+    return h('div#' + id, [
+        h('div.black', { props: { style: "height: 50%;" } }),
+        h('div.tick', { props: { style: "height: 12.5%;" } }),
+        h('div.tick', { props: { style: "height: 25%;" } }),
+        h('div.tick', { props: { style: "height: 37.5%;" } }),
         h('div.tick.zero', { props: { style: "height: 50%;" } }),
-        h('div.tick',      { props: { style: "height: 62.5%;" } }),
-        h('div.tick',      { props: { style: "height: 75%;" } }),
-        h('div.tick',      { props: { style: "height: 87.5%;" } }),
+        h('div.tick', { props: { style: "height: 62.5%;" } }),
+        h('div.tick', { props: { style: "height: 75%;" } }),
+        h('div.tick', { props: { style: "height: 87.5%;" } }),
     ])
 }
