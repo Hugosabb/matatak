@@ -318,25 +318,10 @@ export default class AnalysisControllerBughouse {
     }
 
     private renderFENAndPGN(pgn: string) {
-        let container = document.getElementById('copyfen') as HTMLElement;
-        if (container !== null) {
-            const buttons = [
-                h('a.i-pgn', { on: { click: () => console.log("downloadPgnText(\"pychess-variants_\" + this.gameId) not implemented") } }, [
-                    h('i', { props: { title: _('Download game to PGN file') }, class: { "icon": true, "icon-download": true } }, _('Download PGN'))]),
-                h('a.i-pgn', { on: { click: () => console.log("copyTextToClipboard(this.uci_usi) not implemented") } }, [
-                    h('i', { props: { title: _('Copy USI/UCI to clipboard') }, class: { "icon": true, "icon-clipboard": true } }, _('Copy UCI/USI'))]),
-                h('a.i-pgn', { on: { click: () => console.log("copyBoardToPNG not implemented") } }, [
-                    h('i', { props: { title: _('Download position to PNG image file') }, class: { "icon": true, "icon-download": true } }, _('PNG image'))]),
-            ]
-
-            patch(container, h('div', buttons));
-        }
-
         const e = document.getElementById('fullfen') as HTMLInputElement;
-        e.value = this.b1.fullfen + " | " + this.b2.fullfen;
-
-        container = document.getElementById('pgntext') as HTMLElement;
-        this.vpgn = patch(container, h('div#pgntext', pgn));
+        if (e) {
+            e.value = this.b1.fullfen + " | " + this.b2.fullfen;
+        }
     }
 
     private onMsgBoard = (msg: MsgBoard) => {

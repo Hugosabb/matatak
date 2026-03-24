@@ -168,8 +168,6 @@ export function analysisView(model: PyChessModel): VNode[] {
                         h('strong', 'FEN'),
                         h('input#fullfen', { attrs: { readonly: true, spellcheck: false }, on: { click: onClickFullfen } })
                     ]),
-                    h('div#copyfen'),
-                    h('div#pgntext'),
                 ]),
             ]),
         ]),

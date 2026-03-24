@@ -161,8 +161,6 @@ export function analysisView(model: PyChessModel): VNode[] {
                         h('strong', 'BFEN'),
                         h('input#fullfen', {attrs: {readonly: true, spellcheck: false}, on: { click: onClickFullfen } })
                     ]),
-                    h('div#copyfen'),
-                    h('div#pgntext'),
                 ]),
                 h('div', {attrs: {role: 'tablist', 'aria-label': 'Analysis Tabs'}}, [
                     h('span', {attrs: {role: 'tab', 'aria-selected': 'true', 'aria-controls': 'panel-2', id: 'tab-1', tabindex: '0'}}, _('Move times')),

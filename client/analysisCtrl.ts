@@ -349,25 +349,10 @@ export class AnalysisController extends GameController {
     }
 
     private renderFENAndPGN(pgn: string) {
-        let container = document.getElementById('copyfen') as HTMLElement;
-        if (container !== null) {
-            const buttons = [
-                h('a.i-pgn', { on: { click: () => downloadPgnText("pychess-variants_" + this.gameId) } }, [
-                    h('i', { props: { title: _('Download game to PGN file') }, class: { "icon": true, "icon-download": true } }, _('Download PGN'))]),
-                h('a.i-pgn', { on: { click: () => copyTextToClipboard(this.uci_usi) } }, [
-                    h('i', { props: { title: _('Copy USI/UCI to clipboard') }, class: { "icon": true, "icon-clipboard": true } }, _('Copy UCI/USI'))]),
-                h('a.i-pgn', { on: { click: () => copyBoardToPNG(this.fullfen) } }, [
-                    h('i', { props: { title: _('Download position to PNG image file') }, class: { "icon": true, "icon-download": true } }, _('PNG image'))]),
-                h('div#imported'),
-            ]
-            patch(container, h('div.pgnbuttons', buttons));
-        }
-
         const e = document.getElementById('fullfen') as HTMLInputElement;
-        e.value = this.fullfen;
-
-        container = document.getElementById('pgntext') as HTMLElement;
-        this.vpgn = patch(container, h('div#pgntext', pgn));
+        if (e) {
+            e.value = this.fullfen;
+        }
     }
 
     private deleteGame() {
