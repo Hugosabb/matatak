@@ -516,7 +516,7 @@ iframe {
   display: grid;
   grid-template-columns: 1fr;
   --board-scale: 1;
-  grid-template-areas: 'app' 'uboard' 'side' 'uside';
+  grid-template-areas: 'side' 'app' 'uboard' 'uside';
 }
 
 @media (min-width: 800px) and (min-height: 500px) {
@@ -556,10 +556,12 @@ iframe {
 
 /* Fix board scaling for tall non-square variants */
 @media (min-width: 800px) and (min-height: 500px) {
+
   body[data-variant="matatakmini"] .round,
   body[data-variant="matatakmini"] .analysis-app {
     --board-scale: calc((var(--zoom) / 100) * 0.62) !important;
   }
+
   body[data-variant="matatak6x8"] .round,
   body[data-variant="matatak6x8"] .analysis-app {
     --board-scale: calc((var(--zoom) / 100) * 0.72) !important;
@@ -612,6 +614,20 @@ div.seeks-table thead {
   display: flex;
   flex-flow: column nowrap;
   justify-content: right;
+}
+
+@media (max-width: 799px) {
+  .round .sidebar-first {
+    display: contents;
+  }
+
+  .round .infos {
+    grid-area: side;
+  }
+
+  .round #roundchat {
+    grid-area: uside;
+  }
 }
 
 .sidebar-second {

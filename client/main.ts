@@ -16,6 +16,7 @@ import { renderGames } from './games';
 import { editorView } from '@/editor/editor';
 import { analysisView, embedView } from './analysis';
 import { puzzleView } from './puzzle';
+import { tutorialView } from './tutorial';
 import { profileView } from './profile';
 import { tournamentView } from './tournament';
 import { calendarView } from './calendar';
@@ -144,6 +145,8 @@ export function view(el: HTMLElement, model: PyChessModel): VNode {
             }
         case 'puzzle':
             return h('div#main-wrap', puzzleView(model));
+        case 'tutorial':
+            return h('div#main-wrap', tutorialView(model));
         case 'invite':
             return h('div#main-wrap', inviteView(model));
         case 'editor':
@@ -180,7 +183,7 @@ function start() {
             }
         }
 
-        if (['round', 'analysis', 'puzzle', 'editor', 'tv', 'embed', 'paste'].includes(el.getAttribute("data-view") ?? "")) {
+        if (['round', 'analysis', 'puzzle', 'tutorial', 'editor', 'tv', 'embed', 'paste'].includes(el.getAttribute("data-view") ?? "")) {
             console.time('load ffish');
             if (model["variant"] === "alice") {
                 ffishAliceModule().then((loadedModule: any) => {

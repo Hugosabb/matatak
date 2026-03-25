@@ -24,7 +24,33 @@
 
     .analysis-app {
         grid-template-rows: auto;
-        grid-template-areas: 'pocket-top' 'board' 'pocket-bot' 'move-controls' 'ceval' 'pv' 'misc-info' 'vari' 'tools' 'uboard' 'side';
+        grid-template-areas: 'side' 'pocket-top' 'board' 'pocket-bot' 'tools' 'move-controls' 'ceval' 'pv' 'misc-info' 'vari' 'uboard' 'side-user' 'side-bot';
+    }
+    
+    .analysis-tools .feedback {
+        order: -1;
+    }
+
+    .analysis-app .sidebar-first,
+    .analysis-app .puzzle-meta {
+        display: contents;
+    }
+    
+    .analysis-app .infos,
+    .analysis-app .game-info {
+        grid-area: side;
+    }
+    
+    .analysis-app .puzzle-user {
+        grid-area: side-user;
+        margin-top: 20px;
+    }
+    
+    .analysis-app .config-toggle {
+        grid-area: side-bot;
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
     }
 
     under-left {
