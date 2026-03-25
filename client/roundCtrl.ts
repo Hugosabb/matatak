@@ -942,7 +942,7 @@ export class RoundController extends GameController {
                   <div class="content">
                     <h1>${_("Game Over")}</h1>
                     <h2>${reasonText}</h2>
-                    <div class="dismiss-hint">${_("(Click to dismiss)")}</div>
+                    <div class="dismiss-hint">${_("")}</div>
                   </div>
                 `;
                 overlay.onclick = () => overlay.remove();
