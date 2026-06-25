@@ -559,7 +559,7 @@ iframe {
 
   body[data-variant="matatakmini"] .round,
   body[data-variant="matatakmini"] .analysis-app {
-    --board-scale: calc((var(--zoom) / 100) * 0.62) !important;
+    --board-scale: calc((var(--zoom) / 100) * 0.55) !important;
   }
 
   body[data-variant="matatak6x8"] .round,

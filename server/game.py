@@ -447,7 +447,7 @@ class Game:
 
                     if self.variant == "matatakmini":
                         setup_fen = firstChampionsRank.lower() + "1/" + firstPawnRank.lower() + "1"
-                        setup_fen += "/4/4/" 
+                        setup_fen += "/4/4/4/4/" 
                         setup_fen += "1" + secondPawnRank.upper() + "/1" + secondChampionRank.upper()
                     else :
                         setup_fen = "2" + firstChampionsRank.lower() + "3/2" + firstPawnRank.lower() + "3"
