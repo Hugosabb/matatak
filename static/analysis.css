@@ -40,6 +40,10 @@
     .analysis-app .game-info {
         grid-area: side;
     }
+
+    .analysis-app #roundchat {
+        grid-area: side-bot;
+    }
     
     .analysis-app .puzzle-user {
         grid-area: side-user;
