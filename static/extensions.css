@@ -94,6 +94,16 @@
   height: 16.66%;
 }
 
+.cg-256-384 #extension_choice square {
+  width: 25%;
+  height: 16.6666%;
+}
+
+.cg-256-512 #extension_choice square {
+  width: 25%;
+  height: 12.5%;
+}
+
 .cg-260 #extension_choice square {
   height: 20%;
   width: 20%;
