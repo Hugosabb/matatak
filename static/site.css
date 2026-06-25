@@ -557,9 +557,12 @@ iframe {
 /* Fix board scaling for tall non-square variants */
 @media (min-width: 800px) and (min-height: 500px) {
 
-  body[data-variant="matatakmini"] .round,
-  body[data-variant="matatakmini"] .analysis-app {
+  body[data-variant="matatakmini"] .round {
     --board-scale: calc((var(--zoom) / 100) * 0.55) !important;
+  }
+
+  body[data-variant="matatakmini"] .analysis-app {
+    --board-scale: calc((var(--zoom) / 100) * 0.65) !important;
   }
 
   body[data-variant="matatak6x8"] .round,

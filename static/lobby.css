@@ -63,6 +63,12 @@
   padding-bottom: calc((var(--cg-height) / (var(--ranks)) * 2));
 }
 
+/* Constrain width of tall variants in TV to prevent massive heights */
+.tv #mainboard:has(.cg-256-512) {
+  max-width: 35vh;
+  margin: 0 auto;
+}
+
 .puzzle {
   grid-area: puzzle;
   display: block;
@@ -124,6 +130,7 @@
 .cg-wrap.cg-640-640.mini,
 .cg-wrap.cg-janggi.mini,
 .cg-wrap.cg-256-384.mini,
+.cg-wrap.cg-256-512.mini,
 .cg-wrap.cg-540.mini {
   width: unset;
 }
