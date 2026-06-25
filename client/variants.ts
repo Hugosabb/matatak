@@ -19,6 +19,7 @@ export interface PieceFamily {
 
 export const BOARD_FAMILIES: Record<string, BoardFamily> = {
     matatak8x8: { dimensions: { width: 8, height: 8 }, cg: "cg-512", boardCSS: ["matatak8x8.png"] },
+    matatak4x8: { dimensions: { width: 4, height: 8 }, cg: "cg-256-512", boardCSS: ["matatak4x8.png"] },
     matatak6x8: { dimensions: { width: 6, height: 8 }, cg: "cg-384-512", boardCSS: ["matatak6x8.png"] },
     matatak4x6: { dimensions: { width: 4, height: 6 }, cg: "cg-256-384", boardCSS: ["matatak4x6.png"] },
     ataxx7x7: { dimensions: { width: 7, height: 7 }, cg: "cg-448", boardCSS: ["ataxx.svg", "ataxx.png"] },
@@ -334,9 +335,9 @@ export const VARIANTS: Record<string, Variant> = {
 
     matatakmini: variant({
         name: "matatakmini", displayName: "MATATAK MINI", tooltip: "MATATAK for mobile!",
-        startFen: "4/4/4/4/4/4[abcdefghijklmnopqrstwxyzABCDEFGHIJKLMNOPQRSTWXYZ] w - - 0 1",
+        startFen: "4/4/4/4/4/4/4/4[abcdefghijklmnopqrstwxyzABCDEFGHIJKLMNOPQRSTWXYZ] w - - 0 1",
         icon: "🥝",
-        boardFamily: "matatak4x6", pieceFamily: "matatak",
+        boardFamily: "matatak4x8", pieceFamily: "matatak",
         pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
         pocket: {
             roles: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
