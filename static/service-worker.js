@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matatak-cache-v3';
+const CACHE_NAME = 'matatak-cache-v4';
 const URLS_TO_CACHE = [
     '/',
     '/static/site.css',
@@ -17,13 +17,20 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    // Pour la page HTML, on demande toujours au réseau d'abord (Network-First) 
+    // pour garantir que les utilisateurs ont la dernière version de l'application.
+    if (event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
+        event.respondWith(
+            fetch(event.request).catch(() => caches.match(event.request))
+        );
+        return;
+    }
+
+    // Pour tout le reste (Images, CSS, JS), on fait comme avant : Cache-First
+    // On regarde dans le cache, si ce n'y est pas, on va sur le réseau sans rien compliquer.
     event.respondWith(
-        fetch(event.request).then((networkResponse) => {
-            // If the network request succeeds, we return it and optionally update the cache
-            return networkResponse;
-        }).catch(() => {
-            // If the network fails (offline), we fallback to the cache
-            return caches.match(event.request);
+        caches.match(event.request).then((response) => {
+            return response || fetch(event.request);
         })
     );
 });
