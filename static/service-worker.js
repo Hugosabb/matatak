@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matatak-cache-v2';
+const CACHE_NAME = 'matatak-cache-v3';
 const URLS_TO_CACHE = [
     '/',
     '/static/site.css',
@@ -7,6 +7,7 @@ const URLS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
+    self.skipWaiting(); // Force activate immediately
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then((cache) => {
@@ -17,28 +18,26 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request)
-            .then((response) => {
-                // Cache hit - return response
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request);
-            })
+        fetch(event.request).then((networkResponse) => {
+            // If the network request succeeds, we return it and optionally update the cache
+            return networkResponse;
+        }).catch(() => {
+            // If the network fails (offline), we fallback to the cache
+            return caches.match(event.request);
+        })
     );
 });
 
 self.addEventListener('activate', (event) => {
-    const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
+                    if (cacheName !== CACHE_NAME) {
                         return caches.delete(cacheName);
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim()) // Take control of all pages immediately
     );
 });
