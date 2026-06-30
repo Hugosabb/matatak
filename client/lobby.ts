@@ -429,7 +429,7 @@ export class LobbyController implements ChatController {
 
     renderSeekButtons() {
         return [
-            h('img.lobby-title', { attrs: { src: '/static/images/matatak-title.webp', alt: 'Matatak' } }),
+            h('img.lobby-title', { attrs: { src: '/static/images/background/matatak-title_box.png', alt: 'Matatak' } }),
             h('button.lobby-button', { on: { click: () => this.playAI() } }, createModeStr('playAI')),
             h('button.lobby-button', { on: { click: () => this.playFriend() } }, createModeStr('playFriend')),
             h('button.lobby-button', { on: { click: () => this.createGame() } }, createModeStr('createGame')),
