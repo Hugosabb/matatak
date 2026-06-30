@@ -55,8 +55,8 @@
     data-oauth-email="{{ oauth_username_selection.oauth_email }}" {% endif %} data-wplayer-b="{{ wplayerB }}"
     data-wtitle-b="{{ wtitleB }}" data-wrating-b="{{ wratingB }}" data-bplayer-b="{{ bplayerB }}"
     data-btitle-b="{{ btitleB }}" data-brating-b="{{ bratingB }}">
-    <div class="background-layer"></div>
-    <div class="frame-layer"></div>
+    <img class="background-layer" src={{ static("images/background/eyes-star-merged.png") }} alt="">
+    <img class="frame-layer" src={{ static("images/background/leaves-all.png") }} alt="">
     {% block header %}{% endblock %}
     {% block content %}{% endblock %}
     <a id="reconnecting" class="link text" data-icon="p"><info-date id="reconnecting-ts" timestamp=""></info-date></a>
