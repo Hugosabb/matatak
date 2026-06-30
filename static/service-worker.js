@@ -1,4 +1,4 @@
-const CACHE_NAME = 'matatak-cache-v4';
+const CACHE_NAME = 'matatak-cache-v6';
 const URLS_TO_CACHE = [
     '/',
     '/static/site.css',

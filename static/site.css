@@ -137,17 +137,13 @@ body {
   position: fixed;
   /* Changed to fixed to stay in place */
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vmin;
+  height: auto;
   z-index: -2;
   /* Behind everything */
-  background-image: url('../images/background/eyes-star-merged.png');
-  /* Relative path from static/css/.. or just /static/images/ */
-  background-image: url('/static/images/background/eyes-star-merged.png');
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 80vmin;
   pointer-events: none;
   /* Let clicks pass through */
 }
@@ -155,22 +151,17 @@ body {
 /* --- LAYER 2: LEAF FRAME --- */
 .frame-layer {
   position: fixed;
-  /* Changed to fixed to overlay viewport */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   z-index: -1;
   /* Behind content but in front of eyes */
   pointer-events: none;
   /* Let clicks pass through */
   box-sizing: border-box;
-
-  /* Using standard background instead of border-image to prevent cutting/squishing */
-  background-image: url('/static/images/background/leaves-all.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: cover;
+  object-position: center;
 }
 
 [data-theme='dark'] {
