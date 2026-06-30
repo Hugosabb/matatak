@@ -142,9 +142,9 @@ body {
   height: 100%;
   z-index: -2;
   /* Behind everything */
-  background-image: url('../images/eyes.png');
+  background-image: url('../images/background/eyes-star-merged.png');
   /* Relative path from static/css/.. or just /static/images/ */
-  background-image: url('/static/images/eyes.png');
+  background-image: url('/static/images/background/eyes-star-merged.png');
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 80vmin;
@@ -166,21 +166,11 @@ body {
   /* Let clicks pass through */
   box-sizing: border-box;
 
-  /* 1. SOURCE: Your new leaves image */
-  border-image-source: url('/static/images/leaves.webp');
-
-  /* 2. SLICE: Your exact numbers (No 'px' needed here) */
-  /* This tells CSS exactly where to cut the corners in the image file */
-  border-image-slice: 589 569 590 582;
-
-  /* 3. REPEAT: 'round' makes them loop perfectly */
-  border-image-repeat: space;
-
-  /* 4. SOLID: Required for border-image to show */
-  border-style: solid;
-  border-color: #000000;
-
-  border-width: 45vmin;
+  /* Using standard background instead of border-image to prevent cutting/squishing */
+  background-image: url('/static/images/background/leaves-all.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 [data-theme='dark'] {
@@ -973,6 +963,11 @@ ul.guide li {
   float: left;
   height: var(--site-header-height);
   font-size: 14px;
+}
+
+.title-img {
+  height: 28px;
+  vertical-align: middle;
 }
 
 .topnav section>a {
