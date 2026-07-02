@@ -38,7 +38,7 @@ from settings import (
 )
 from users import NotInDbUsers
 from views import page404
-from lang import LOCALE
+from lang import LOCALE, detect_locale
 from logger import log
 
 
@@ -73,7 +73,12 @@ async def redirect_to_https(request, handler):
 @web.middleware
 async def set_user_locale(request, handler):
     session = await aiohttp_session.get_session(request)
-    LOCALE.set(session.get("lang", "en"))
+    lang = session.get("lang")
+    if not lang:
+        lang = detect_locale(request)
+        # We don't necessarily save it to session so it respects browser changes
+        # until the user explicitly selects a language which saves it to session.
+    LOCALE.set(lang)
     return await handler(request)
 
 

@@ -52,7 +52,7 @@ def parse_accept_language(accept_language):
 
 
 def detect_locale(request):
-    default_locale = "en"
+    default_locale = "fr"
     accept_language = request.headers.get("Accept-Language")
 
     if accept_language is not None:

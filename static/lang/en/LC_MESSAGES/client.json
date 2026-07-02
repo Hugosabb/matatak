@@ -20,7 +20,6 @@
     "Rated": "Rated",
     "Casual": "Casual",
     "Playing right now": "Playing right now",
-    "Play": "Play",
     " level ": " level ",
     "You need an account to do that.": "You need an account to do that.",
     "Download game to PGN file": "Download game to PGN file",
@@ -144,5 +143,14 @@
     "Show piece destinations": "Show piece destinations",
     "Two click drop moves": "Two click drop moves",
     "Promote to Queen automatically": "Promote to Queen automatically",
-    "Best move arrow": "Best move arrow"
+    "Best move arrow": "Best move arrow",
+    "Choose your username": "Choose your username",
+    "Please choose a username for your account.": "Please choose a username for your account.",
+    "Username": "Username",
+    "3-20 characters": "3-20 characters",
+    "Letters, numbers, underscore and dash only": "Letters, numbers, underscore and dash only",
+    "Must be unique": "Must be unique",
+    "Creating account...": "Creating account...",
+    "Confirm": "Confirm",
+    "Login": "Login"
 }

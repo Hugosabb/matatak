@@ -295,8 +295,7 @@ button [class*=' icon-']::before {
 
 .lobby-button {
   display: block;
-  margin-bottom: 80vh;
-  /* Large spacing to force scroll */
+  margin-bottom: 20px;
   padding: 1.5em 3em;
   font-size: 1.5em;
   width: 80%;
@@ -304,20 +303,134 @@ button [class*=' icon-']::before {
   text-align: center;
   cursor: pointer;
   z-index: 10;
-  /* Ensure clickable */
   position: relative;
 }
 
-.lobby-button:last-child {
-  margin-bottom: 40vh;
+.hero-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 50px;
 }
 
-.lobby-title {
-  max-width: 100%;
-  max-height: 100vh;
+.hero-images {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-title {
+  position: absolute;
+  top: -40px;
+  width: 85%;
+  max-width: 500px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-eyes {
+  position: relative;
+  width: 60%;
+  max-width: 500px;
   height: auto;
-  margin-bottom: 500px;
-  display: block;
+  margin-top: 180px;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.hero-action-center {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  margin-bottom: 100px;
+  width: 100%;
+}
+
+.action-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 100px;
+  width: 100%;
+  max-width: 800px;
+  align-items: center;
+}
+
+.action-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  width: 100%;
+}
+
+.hero-btn {
+  font-family: 'Tribeca', sans-serif;
+  background: linear-gradient(135deg, #d4c194, #a39066);
+  color: #100c0b;
+  font-weight: bold;
+  font-size: 24px;
+  padding: 15px 40px;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  max-width: 350px;
+}
+
+.hero-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 15px 25px rgba(0,0,0,0.7);
+  color: #100c0b;
+}
+
+/* 3D Card CSS */
+.card-perspective {
+  perspective: 1200px;
+  cursor: pointer;
+}
+.card-wrapper {
+  width: 200px;
+  height: 200px;
+  animation: float 4s ease-in-out infinite alternate;
+}
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform-style: preserve-3d;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  border-radius: 12px;
+}
+.hero-card:hover .card-inner,
+.hero-card.is-flipped .card-inner {
+  transform: rotateY(180deg);
+}
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+}
+.card-front { }
+.card-back { transform: rotateY(180deg); }
+@keyframes float {
+  0% { transform: translateY(0px) rotateZ(0deg); }
+  100% { transform: translateY(-15px) rotateZ(3deg); }
 }
 
 @media (min-width: 800px) {
@@ -332,11 +445,29 @@ button [class*=' icon-']::before {
     justify-self: center;
   }
 
-  .lobby-title {
+  .hero-container {
     grid-column: 1 / -1;
-    justify-self: center;
-    max-height: 80vh;
-    margin-top: -80px;
+    margin-top: 0;
+  }
+  .hero-title {
+    width: 80%;
+    max-width: 800px;
+    top: -60px;
+  }
+  
+  .hero-eyes {
+    width: 60%;
+    max-width: 650px;
+    margin-top: 220px;
+  }
+  
+  .action-row {
+    flex-direction: row;
+    justify-content: space-evenly;
+  }
+  
+  .action-row.reverse {
+    flex-direction: row-reverse;
   }
 }
 

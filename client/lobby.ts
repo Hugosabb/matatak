@@ -35,9 +35,9 @@ const autoPairingTCs: [number, number, number][] = [
 
 export function createModeStr(mode: CreateMode) {
     switch (mode) {
-        case 'playAI': return _("Play solo");
+        case 'playAI': return _("Play");
         case 'playBOT': return _("Play with a BOT");
-        case 'playFriend': return _("Play with friend");
+        case 'playFriend': return _("Challenge Friend");
         case 'createHost': return _("Host a game for others");
         case 'createGame': return _("Create a game");
         default:
@@ -156,10 +156,12 @@ export class LobbyController implements ChatController {
             }
         }, 0);
 
-        patch(document.getElementById('lobbychat') as HTMLElement, chatView(this, "lobbychat"));
+        const lobbyChatEl = document.getElementById('lobbychat');
+        if (lobbyChatEl) {
+            patch(lobbyChatEl, chatView(this, "lobbychat"));
+        }
 
         this.streams = document.getElementById('streams') as HTMLElement;
-
         this.spotlights = document.getElementById('spotlights') as HTMLElement;
 
 
@@ -169,8 +171,13 @@ export class LobbyController implements ChatController {
         const tabId = localStorage.lobby_tab ?? "tab-1";
         let initialEl = document.getElementById(tabId) as HTMLElement;
         if (initialEl === null) initialEl = document.getElementById('tab-1') as HTMLElement;
-        initialEl.setAttribute('aria-selected', 'true');
-        (initialEl!.parentNode!.parentNode!.querySelector(`#${initialEl.getAttribute('aria-controls')}`)! as HTMLElement).style.display = 'block';
+        if (initialEl) {
+            initialEl.setAttribute('aria-selected', 'true');
+            const targetPanel = initialEl.parentNode?.parentNode?.querySelector(`#${initialEl.getAttribute('aria-controls')}`) as HTMLElement;
+            if (targetPanel) {
+                targetPanel.style.display = 'block';
+            }
+        }
 
         const e = document.getElementById("fen") as HTMLInputElement;
         if (this.fen !== "")
@@ -427,11 +434,61 @@ export class LobbyController implements ChatController {
         this.dialogHeaderEl = patch(this.dialogHeaderEl, h('div#header-block', [h('h2', header)]));
     }
 
+    private renderCard(faceFront: string, faceBack: string) {
+        return h('div.hero-card', { on: { click: (e: Event) => (e.currentTarget as HTMLElement).classList.toggle('is-flipped') } }, [
+            h('div.card-perspective', [
+                h('div.card-wrapper', [
+                    h('div.card-inner', [
+                        h('div.card-face.card-front', { style: { backgroundImage: `url('${faceFront}')` } }),
+                        h('div.card-face.card-back', { style: { backgroundImage: `url('${faceBack}')` } })
+                    ])
+                ])
+            ])
+        ]);
+    }
+
     renderSeekButtons() {
+        if (window.location.pathname === '/') {
+            return [
+                h('div.hero-container', [
+                    h('div.hero-images', [
+                        h('img.hero-eyes', { attrs: { src: '/static/images/background/eyes-star-merged.png', alt: '' } }),
+                        h('img.hero-title', { attrs: { src: '/static/images/background/matatak-title_box.png', alt: 'Matatak' } }),
+                    ]),
+                    
+                    // Get Started alone in the center
+                    h('div.hero-action-center', [
+                        h('a.hero-btn', { attrs: { href: '/tutorial' } }, [
+                            h('span.hero-btn-text', _("Get Started"))
+                        ])
+                    ]),
+                    
+                    // Other buttons with alternating cards
+                    h('div.action-rows', [
+                        // Row 1: AI (Card Left, Button Right)
+                        h('div.action-row', [
+                            this.renderCard('/static/images/pieces/matatak/1k0.jpg', '/static/images/pieces/matatak/0k0.jpg'),
+                            h('button.hero-btn', { on: { click: () => this.playAI() } }, createModeStr('playAI'))
+                        ]),
+                        // Row 2: Friend (Button Left, Card Right)
+                        h('div.action-row.reverse', [
+                            this.renderCard('/static/images/pieces/matatak/1w.jpg', '/static/images/pieces/matatak/0w.jpg'),
+                            h('button.hero-btn', { on: { click: () => this.playFriend() } }, createModeStr('playFriend'))
+                        ]),
+                        // Row 3: Puzzles (Card Left, Button Right)
+                        h('div.action-row', [
+                            this.renderCard('/static/images/pieces/matatak/1n.jpg', '/static/images/pieces/matatak/0n.jpg'),
+                            h('a.hero-btn', { attrs: { href: '/puzzle/matatak' } }, [
+                                h('span', _("Puzzles"))
+                            ])
+                        ])
+                    ])
+                ])
+            ];
+        }
+
+        // Standard /lobby page buttons
         return [
-            h('img.lobby-title', { attrs: { src: '/static/images/background/matatak-title_box.png', alt: 'Matatak' } }),
-            h('button.lobby-button', { on: { click: () => this.playAI() } }, createModeStr('playAI')),
-            h('button.lobby-button', { on: { click: () => this.playFriend() } }, createModeStr('playFriend')),
             h('button.lobby-button', { on: { click: () => this.createGame() } }, createModeStr('createGame')),
             h('button.lobby-button', { on: { click: () => this.createHost() }, style: { display: this.tournamentDirector ? "block" : "none" } }, createModeStr('createHost')),
         ];
@@ -1256,8 +1313,10 @@ export class LobbyController implements ChatController {
         // console.log("!!!! got get_seeks msg:", msg);
 
         const oldSeeks = document.querySelector('.seek-container table.seeks') as Element;
-        oldSeeks.innerHTML = "";
-        patch(oldSeeks, h('table.seeks', this.renderSeeks(msg.seeks.filter(seek => seek.day === 0))));
+        if (oldSeeks) {
+            oldSeeks.innerHTML = "";
+            patch(oldSeeks, h('table.seeks', this.renderSeeks(msg.seeks.filter(seek => seek.day === 0))));
+        }
     }
 
     private onMsgNewGame(msg: MsgNewGame) {
@@ -1287,16 +1346,21 @@ export class LobbyController implements ChatController {
     }
 
     private onMsgChat(msg: MsgChat) {
-        chatMessage(msg.user, msg.message, "lobbychat", msg.time);
+        if (document.getElementById('lobbychat')) {
+            chatMessage(msg.user, msg.message, "lobbychat", msg.time);
+        }
     }
 
     private onMsgFullChat(msg: MsgFullChat) {
-        // To prevent multiplication of messages we have to remove old messages div first
-        patch(document.getElementById('messages') as HTMLElement, h('div#messages-clear'));
-        // then create a new one
-        patch(document.getElementById('messages-clear') as HTMLElement, h('div#messages'));
-        // console.log("NEW FULL MESSAGES");
-        msg.lines.forEach(line => chatMessage(line.user, line.message, "lobbychat", line.time));
+        const messagesEl = document.getElementById('messages');
+        if (messagesEl) {
+            // To prevent multiplication of messages we have to remove old messages div first
+            patch(messagesEl as HTMLElement, h('div#messages-clear'));
+            // then create a new one
+            patch(document.getElementById('messages-clear') as HTMLElement, h('div#messages'));
+            // console.log("NEW FULL MESSAGES");
+            msg.lines.forEach(line => chatMessage(line.user, line.message, "lobbychat", line.time));
+        }
     }
 
     private onMsgPing(msg: MsgPing) {
@@ -1312,29 +1376,30 @@ export class LobbyController implements ChatController {
     }
 
     private onMsgGameCounter(msg: MsgCounter) {
-        // console.log("Gcnt=", msg.cnt);
-        const gameCount = document.getElementById('g_cnt') as HTMLElement;
-        patch(gameCount, h('counter#g_cnt', ngettext('%1 game in play', '%1 games in play', msg.cnt)));
+        const gameCount = document.getElementById('g_cnt');
+        if (gameCount) patch(gameCount as HTMLElement, h('counter#g_cnt', ngettext('%1 game in play', '%1 games in play', msg.cnt)));
     }
 
     private onMsgUserCounter(msg: MsgCounter) {
-        // console.log("Ucnt=", msg.cnt);
-        const userCount = document.getElementById('u_cnt') as HTMLElement;
-        patch(userCount as HTMLElement, h('counter#u_cnt', ngettext('%1 player', '%1 players', msg.cnt)));
+        const userCount = document.getElementById('u_cnt');
+        if (userCount) patch(userCount as HTMLElement, h('counter#u_cnt', ngettext('%1 player', '%1 players', msg.cnt)));
     }
 
     private onMsgAutoPairingCounter(msg: MsgCounter) {
-        // console.log("APcnt=", msg.cnt);
-        const gameCount = document.getElementById('ap_cnt') as HTMLElement;
-        patch(gameCount, h('counter#ap_cnt', ngettext('%1 auto pairing', '%1 auto pairings', msg.cnt)));
+        const gameCount = document.getElementById('ap_cnt');
+        if (gameCount) patch(gameCount as HTMLElement, h('counter#ap_cnt', ngettext('%1 auto pairing', '%1 auto pairings', msg.cnt)));
     }
 
     private onMsgStreams(msg: MsgStreams) {
-        this.streams = patch(this.streams, h('div#streams', msg.items.map(stream => this.streamView(stream))));
+        if (this.streams) {
+            this.streams = patch(this.streams, h('div#streams', msg.items.map(stream => this.streamView(stream))));
+        }
     }
 
     private onMsgSpotlights(msg: MsgSpotlights) {
-        this.spotlights = patch(this.spotlights, h('div#spotlights', msg.items.map(spotlight => this.spotlightView(spotlight))));
+        if (this.spotlights) {
+            this.spotlights = patch(this.spotlights, h('div#spotlights', msg.items.map(spotlight => this.spotlightView(spotlight))));
+        }
     }
 
     private onMsgTvGame(msg: TvGame) {
@@ -1449,6 +1514,25 @@ export function lobbyView(model: PyChessModel): VNode[] {
         )
     }
 
+    if (model.view === 'landing') {
+        return [
+            h('div.seekbuttons'), // Will be patched with Hero Section
+            h('div.seekdialog', { hook: { insert: vnode => runSeeks(vnode, model) } }),
+            h('under-left', [
+                h('div.internalLinks', [
+                    h('a.reflist', { attrs: { href: 'https://discord.gg/ctGQa2WJjh', rel: "noopener", target: "_blank" } }, 'Discord'),
+                    h('a.reflist', { attrs: { href: 'https://github.com/Hugosabb/matatak', rel: "noopener", target: "_blank" } }, 'Github'),
+                    h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
+                    h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
+                ]),
+                h('div.internalLinks', [
+                    h('span.reflist', 'MATATAK © Synfaunia'),
+                    h('a.reflist', { attrs: { href: 'https://github.com/gbtami', rel: "noopener", target: "_blank" } }, 'Thanks to gbtami')
+                ])
+            ])
+        ];
+    }
+
     return [
         h('aside.sidebar-first', [
             h('div#streams'),
@@ -1465,11 +1549,16 @@ export function lobbyView(model: PyChessModel): VNode[] {
             h('div.seekdialog'),
         ]),
         h('under-left', [
-            h('a.reflist', { attrs: { href: 'https://discord.gg/ctGQa2WJjh', rel: "noopener", target: "_blank" } }, 'Discord'),
-            h('a.reflist', { attrs: { href: 'https://github.com/Hugosabb/matatak', rel: "noopener", target: "_blank" } }, 'Github'),
-            h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
-            h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
-
+            h('div.internalLinks', [
+                h('a.reflist', { attrs: { href: 'https://discord.gg/ctGQa2WJjh', rel: "noopener", target: "_blank" } }, 'Discord'),
+                h('a.reflist', { attrs: { href: 'https://github.com/Hugosabb/matatak', rel: "noopener", target: "_blank" } }, 'Github'),
+                h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
+                h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
+            ]),
+            h('div.internalLinks', [
+                h('span.reflist', 'MATATAK © Synfaunia'),
+                h('a.reflist', { attrs: { href: 'https://github.com/gbtami', rel: "noopener", target: "_blank" } }, 'Thanks to gbtami')
+            ])
         ]),
         h('div.tv', [h('a#tv-game', { attrs: { href: '/tv' } })]),
     ];

@@ -49,6 +49,7 @@ export type PyChessModel = {
     date: string;
     tv: boolean;
     embed: boolean;
+    view: string;
     seekEmpty: boolean;
     tournamentDirector: boolean;
     assetURL: string;

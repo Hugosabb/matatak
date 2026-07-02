@@ -106,6 +106,7 @@ function initModel(el: HTMLElement) {
         date: el.getAttribute("data-date") ?? "",
         tv: el.getAttribute("data-view") === 'tv',
         embed: el.getAttribute("data-view") === 'embed',
+        view: el.getAttribute("data-view") ?? "",
         seekEmpty: el.getAttribute("data-seekempty") === "True",
         tournamentDirector: el.getAttribute("data-tournamentdirector") === "True",
         assetURL: el.getAttribute("data-asset-url") ?? "",
@@ -302,7 +303,7 @@ if (el instanceof Element) {
     volumeSettings.update();
 
     const lang = el.getAttribute("data-lang") ?? 'en';
-    fetch(model.assetURL + '/lang/' + lang + '/LC_MESSAGES/client.json')
+    fetch(model.assetURL + '/lang/' + lang + '/LC_MESSAGES/client.json?v=8')
         .then(res => res.json())
         .then(translation => {
             i18n.loadJSON(translation, 'messages');

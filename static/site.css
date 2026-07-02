@@ -132,21 +132,7 @@ body {
   background-color: transparent;
 }
 
-/* --- LAYER 1: EYES --- */
-.background-layer {
-  position: fixed;
-  /* Changed to fixed to stay in place */
-  top: 0;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80vmin;
-  height: auto;
-  z-index: -2;
-  /* Behind everything */
-  pointer-events: none;
-  /* Let clicks pass through */
-}
+
 
 /* --- LAYER 2: LEAF FRAME --- */
 .frame-layer {

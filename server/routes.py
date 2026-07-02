@@ -94,6 +94,7 @@ get_routes = (
     ("/logout", logout),
     ("/select-username", select_username),
     ("/", lobby.lobby),
+    ("/lobby", lobby.lobby),
     ("/about", about.about),
     ("/faq", faq.faq),
     ("/stats", stats.stats),

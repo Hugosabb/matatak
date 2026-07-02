@@ -2389,3 +2389,18 @@ msgid ""
 "playing."
 msgstr ""
 "Lisez les règles pour comprendre les mouvements des pièces avant de jouer."
+
+msgid "Play"
+msgstr "Jouer"
+
+msgid "Challenge Friend"
+msgstr "Défier un ami"
+
+msgid "Get Started"
+msgstr "Découvrir"
+
+msgid "Create a game"
+msgstr "Créer une partie"
+
+msgid "Puzzles"
+msgstr "Puzzles"

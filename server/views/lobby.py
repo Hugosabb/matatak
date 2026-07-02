@@ -76,4 +76,9 @@ async def lobby(request):
     context["corr_games"] = json.dumps(c_games, default=datetime.isoformat)
 
 
+    if request.path == "/":
+        context["view"] = "landing"
+    else:
+        context["view"] = "lobby"
+
     return context

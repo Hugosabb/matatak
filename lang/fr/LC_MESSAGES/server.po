@@ -8,7 +8,7 @@
 # gbtami <gbtami@gmail.com>, 2022
 # Gael Huynh, 2022
 # 
-#, fuzzy
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
@@ -520,7 +520,19 @@ msgstr "Puzzles"
 
 #: ../templates/template.html:31
 msgid "Learn"
-msgstr ""
+msgstr "Apprendre"
+
+msgid "Challenge Friend"
+msgstr "Défier un ami"
+
+msgid "Multiplayer"
+msgstr "Multijoueur"
+
+msgid "Live"
+msgstr "En direct"
+
+msgid "Login"
+msgstr "Se connecter"
 
 #: ../templates/template.html:33
 msgid "Variants"
