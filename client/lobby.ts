@@ -530,14 +530,18 @@ export class LobbyController implements ChatController {
                             }),
                             h('label', { attrs: { for: "radio-matatakmini" } }, 'Matatak Mini')
                         ]),
-                        // A.I.Level (1-8 buttons)
+                        // A.I.Level (1-20 buttons in 4 rows)
                         h('form#ailevel', [
                             h('h4', _("Level")),
-                            h('div.radio-group',
-                                [1, 2, 3, 4, 5, 6, 7, 8].map(level => [
-                                    h('input#ai' + level, { props: { type: "radio", name: "level", value: level }, attrs: { checked: vLevel === level } }),
-                                    h('label.level-ai.ai' + level, { attrs: { for: "ai" + level } }, level),
-                                ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
+                            h('div',
+                                [0, 1, 2, 3].map(row =>
+                                    h('div.radio-group', { style: { display: 'flex', width: '100%', marginBottom: row < 3 ? '5px' : '20px' } },
+                                        Array.from({length: 5}, (_, i) => row * 5 + i + 1).map(level => [
+                                            h('input#ai' + level, { props: { type: "radio", name: "level", value: level }, attrs: { checked: vLevel === level } }),
+                                            h('label.level-ai.ai' + level, { attrs: { for: "ai" + level }, style: { flex: 1, textAlign: 'center' } }, level),
+                                        ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
+                                    )
+                                )
                             ),
                         ]),
                         h('div#advanced-params-block', [

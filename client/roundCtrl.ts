@@ -33,9 +33,9 @@ import { setPocketRowCssVars } from './pocketRow';
 
 let rang = false;
 const CASUAL = '0';
-const LVL_SKILL = [-4, 0, 3, 6, 10, 14, 16, 18, 20];
-const LVL_MOVETIMES = [50, 50, 100, 150, 200, 300, 400, 500, 1000];
-const LVL_DEPTHS = [1, 2, 3, 4, 6, 9, 13, 16, 22];
+const LVL_SKILL = [-20, -17, -14, -11, -8, -5, -3, -1, 0, 1, 3, 4, 5, 6, 7, 10, 12, 15, 17, 20];
+const LVL_MOVETIMES = Array(20).fill(7000);
+const LVL_DEPTHS = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 9, 13, 17, 22];
 
 export class RoundController extends GameController {
     assetURL: string;
