@@ -1220,8 +1220,8 @@ msgid "Practice with Random-Mover"
 msgstr "Jouer contre Random-Mover"
 
 #: ../client/lobby.ts:534
-msgid "A.I. Level"
-msgstr "Niveau I.A."
+msgid "Level"
+msgstr "Niveau"
 
 #: ../client/lobby.ts:545
 msgid "Random"

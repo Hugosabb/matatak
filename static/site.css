@@ -2434,10 +2434,10 @@ form.modal-content span {
 }
 
 .radio-group input[type='radio']:checked+label {
-  box-shadow: inset 0 2px 5px #537c23;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
   color: White;
-  background: var(--good);
-  text-shadow: 0 1px 1px #003d00;
+  background: var(--gold);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.4);
 }
 
 .radio-group label+input[type='radio']+label {

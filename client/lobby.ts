@@ -132,7 +132,6 @@ export class LobbyController implements ChatController {
                 document.getElementById('game-mode')!.style.display = (this.anon || this.title === 'BOT') ? 'none' : 'inline-flex';
                 this.renderDialogHeader(_('Challenge %1 to a game', this.profileid));
                 document.getElementById('ailevel')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
-                document.getElementById('rmplay-block')!.style.display = this.createMode === 'playAI' ? 'block' : 'none';
                 (document.getElementById('id01') as HTMLDialogElement).showModal();
                 document.getElementById('color-selection-group')!.style.display = 'block';
                 document.getElementById('create-button')!.style.display = 'block';
@@ -329,8 +328,8 @@ export class LobbyController implements ChatController {
         if (!this.validGameData) return;
 
         let e;
-        e = document.getElementById('variant') as HTMLSelectElement;
-        const variant = VARIANTS[e.options[e.selectedIndex].value];
+        const variantRadio = document.querySelector('input[name="variant-radio"]:checked') as HTMLInputElement;
+        const variant = VARIANTS[variantRadio.value];
         localStorage.seek_variant = variant.name;
 
         // TODO Standardize seek color
@@ -401,12 +400,7 @@ export class LobbyController implements ChatController {
                 e = document.querySelector('input[name="level"]:checked') as HTMLInputElement;
                 const level = Number(e.value);
                 localStorage.seek_level = e.value;
-                // console.log(level, e.value, localStorage.getItem("seek_level"));
-                e = document.getElementById('rmplay') as HTMLInputElement;
-                if (!'alice, fogofwar'.includes(variant.name)) {
-                    localStorage.seek_rmplay = e.checked;
-                }
-                const rm = e.checked;
+                const rm = false;
                 this.createAIChallengeMsg(variant.name, seekColor, fen, minutes, increment, byoyomiPeriod, level, rm, chess960, rated, isDraft, boost);
                 break;
             case 'playBOT':
@@ -455,14 +449,14 @@ export class LobbyController implements ChatController {
                         h('img.hero-eyes', { attrs: { src: '/static/images/background/eyes-star-merged.png', alt: '' } }),
                         h('img.hero-title', { attrs: { src: '/static/images/background/matatak-title_box.png', alt: 'Matatak' } }),
                     ]),
-                    
+
                     // Get Started alone in the center
                     h('div.hero-action-center', [
                         h('a.hero-btn', { attrs: { href: '/tutorial' } }, [
                             h('span.hero-btn-text', _("Get Started"))
                         ])
                     ]),
-                    
+
                     // Other buttons with alternating cards
                     h('div.action-rows', [
                         // Row 1: AI (Card Left, Button Right)
@@ -522,12 +516,32 @@ export class LobbyController implements ChatController {
                 h('div.container', [
                     h('div', [
                         h('div#header-block'),
-                        h('div', [
-                            h('label', { attrs: { for: "variant" } }, _("Variant")),
-                            selectVariant("variant", vVariant, () => this.setVariant(), () => this.setVariant()),
+                        h('div.radio-group.variant-radio-group', { style: { marginBottom: '20px' } }, [
+                            h('input#radio-matatak', {
+                                props: { type: "radio", name: "variant-radio", value: "matatak" },
+                                attrs: { checked: vVariant === 'matatak' },
+                                on: { change: () => this.setVariant() }
+                            }),
+                            h('label', { attrs: { for: "radio-matatak" } }, 'Matatak'),
+                            h('input#radio-matatakmini', {
+                                props: { type: "radio", name: "variant-radio", value: "matatakmini" },
+                                attrs: { checked: vVariant === 'matatakmini' },
+                                on: { change: () => this.setVariant() }
+                            }),
+                            h('label', { attrs: { for: "radio-matatakmini" } }, 'Matatak Mini')
+                        ]),
+                        // A.I.Level (1-8 buttons)
+                        h('form#ailevel', [
+                            h('h4', _("Level")),
+                            h('div.radio-group',
+                                [1, 2, 3, 4, 5, 6, 7, 8].map(level => [
+                                    h('input#ai' + level, { props: { type: "radio", name: "level", value: level }, attrs: { checked: vLevel === level } }),
+                                    h('label.level-ai.ai' + level, { attrs: { for: "ai" + level } }, level),
+                                ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
+                            ),
                         ]),
                         h('div#advanced-params-block', [
-                            h('label', { attrs: { for: "advanced-params" } }, _("Advanced Settings")),
+                            h('label.icon.icon-cog', { attrs: { for: "advanced-params" }, props: { title: _("Advanced Settings") }, style: { cursor: 'pointer', fontSize: '1.2em' } }),
                             h('input#advanced-params', {
                                 props: {
                                     name: "advanced-params",
@@ -566,7 +580,6 @@ export class LobbyController implements ChatController {
                                     attrs: {
                                         checked: vDraft === "true"
                                     },
-                                    // on: { click: () => this.setRM() },
                                 }),
                             ]),
                             h('div.tc-block', [
@@ -652,31 +665,6 @@ export class LobbyController implements ChatController {
                                 )
                             ]),
                         ]),
-                        // if play with the machine
-                        h('div#rmplay-block', [
-                            h('label', { attrs: { for: "rmplay" } }, "Random-Mover"),
-                            h('input#rmplay', {
-                                props: {
-                                    name: "rmplay",
-                                    type: "checkbox",
-                                    title: _("Practice with Random-Mover"),
-                                },
-                                attrs: {
-                                    checked: vRMplay === "true"
-                                },
-                                on: { click: () => this.setRM() },
-                            }),
-                        ]),
-                        // A.I.Level (1-8 buttons)
-                        h('form#ailevel', [
-                            h('h4', _("A.I. Level")),
-                            h('div.radio-group',
-                                [0, 1, 2, 3, 4, 5, 6, 7, 8].map(level => [
-                                    h('input#ai' + level, { props: { type: "radio", name: "level", value: level }, attrs: { checked: vLevel === level } }),
-                                    h('label.level-ai.ai' + level, { attrs: { for: "ai" + level } }, level),
-                                ]).reduce((arr, v) => (arr.push(...v), arr), []) // flatmap
-                            ),
-                        ]),
                         h('div#create-button', [
                             h('button', { props: { type: "button" }, on: { click: () => this.createSeek(this.selectedColor) } }, _("Play")),
                         ]),
@@ -738,9 +726,8 @@ export class LobbyController implements ChatController {
 
     preSelectVariant(variantName: string, chess960: boolean = false) {
         if (variantName !== '') {
-            const select = document.getElementById("variant") as HTMLSelectElement;
-            const options = Array.from(select.options).map(o => o.value);
-            if (select) select.selectedIndex = options.indexOf(variantName);
+            const radio = document.getElementById(`radio-${variantName}`) as HTMLInputElement;
+            if (radio) radio.checked = true;
 
             this.setVariant();
 
@@ -750,13 +737,10 @@ export class LobbyController implements ChatController {
     }
 
     renderVariantsDropDown(variantName: string = '', disabled: string[]) {
-        // variantName and chess960 are set when this was called from the variant catalog (layer3.ts)
         let vVariant = variantName || localStorage.seek_variant || "matatak";
         if (disabled.includes(vVariant)) vVariant = "matatak";
         const vChess960 = localStorage.seek_chess960 === 'true' || false;
-        const e = document.getElementById('variant');
-        e!.replaceChildren();
-        patch(e!, selectVariant("variant", disabled.includes(vVariant) ? null : vVariant, () => this.setVariant(), () => this.setVariant(), disabled));
+
         this.preSelectVariant(vVariant, vChess960);
     }
 
@@ -768,7 +752,6 @@ export class LobbyController implements ChatController {
         document.getElementById('game-mode')!.style.display = this.anon ? 'none' : 'inline-flex';
         document.getElementById('rating-range-setting')!.style.display = 'block';
         document.getElementById('ailevel')!.style.display = 'none';
-        document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-selection-group')!.style.display = 'block';
         document.getElementById('boost-selection-group')!.style.display = 'none';
@@ -782,7 +765,6 @@ export class LobbyController implements ChatController {
         document.getElementById('game-mode')!.style.display = this.anon ? 'none' : 'inline-flex';
         document.getElementById('rating-range-setting')!.style.display = 'none';
         document.getElementById('ailevel')!.style.display = 'none';
-        document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-selection-group')!.style.display = 'block';
         document.getElementById('boost-selection-group')!.style.display = 'block';
@@ -795,9 +777,7 @@ export class LobbyController implements ChatController {
         this.renderDialogHeader(createModeStr(this.createMode))
         document.getElementById('game-mode')!.style.display = 'none';
         document.getElementById('rating-range-setting')!.style.display = 'none';
-        const e = document.getElementById('rmplay') as HTMLInputElement;
-        document.getElementById('ailevel')!.style.display = e.checked ? 'none' : 'inline-block';
-        document.getElementById('rmplay-block')!.style.display = 'block';
+        document.getElementById('ailevel')!.style.display = 'inline-block';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('boost-selection-group')!.style.display = 'block';
         document.getElementById('color-selection-group')!.style.display = 'block';
@@ -811,7 +791,6 @@ export class LobbyController implements ChatController {
         document.getElementById('game-mode')!.style.display = this.anon ? 'none' : 'inline-flex';
         document.getElementById('rating-range-setting')!.style.display = 'none';
         document.getElementById('ailevel')!.style.display = 'none';
-        document.getElementById('rmplay-block')!.style.display = 'none';
         (document.getElementById('id01') as HTMLDialogElement).showModal();
         document.getElementById('color-selection-group')!.style.display = 'none';
         document.getElementById('create-button')!.style.display = 'block';
@@ -819,12 +798,9 @@ export class LobbyController implements ChatController {
 
     private setVariant() {
         let e;
-        e = document.getElementById('variant') as HTMLSelectElement;
-        if (e.selectedIndex === -1 && e.options.length > 0) {
-            e.selectedIndex = 0;
-        }
-        const selectedOption = e.options[e.selectedIndex];
-        const variant = VARIANTS[selectedOption.value];
+        const variantRadio = document.querySelector('input[name="variant-radio"]:checked') as HTMLInputElement;
+        const variantName = variantRadio ? variantRadio.value : "matatak";
+        const variant = VARIANTS[variantName];
         const byoyomi = variant.rules.defaultTimeControl === "byoyomi";
         if (variant.twoBoards) {
             const select = document.getElementById('tc') as HTMLSelectElement;
@@ -855,17 +831,8 @@ export class LobbyController implements ChatController {
                 ),
             ]));
         }
-        // Select Random-Mover but disable FSF play for "unsupported by FSF" variants
         if (this.createMode === 'playAI') {
-            e = document.getElementById('rmplay') as HTMLInputElement;
-            if ('alice, fogofwar'.includes(variant.name)) {
-                e.checked = true;
-                document.getElementById('ailevel')!.style.display = 'none';
-            } else {
-                const vRMplay = localStorage.seek_rmplay ?? "false";
-                e.checked = vRMplay === "true";
-                document.getElementById('ailevel')!.style.display = e.checked ? 'none' : 'inline-block';
-            }
+            document.getElementById('ailevel')!.style.display = 'inline-block';
         }
         switchEnablingLobbyControls(this.createMode, variant, this.anon);
         this.setStartButtons();
@@ -918,10 +885,6 @@ export class LobbyController implements ChatController {
         console.log("setRated", rated);
         this.setStartButtons();
     }
-    private setRM() {
-        const e = document.getElementById('rmplay') as HTMLInputElement;
-        document.getElementById('ailevel')!.style.display = e.checked ? 'none' : 'block';
-    }
     private setStartButtons() {
         this.validGameData = this.validateTimeControl() && this.validateFen();
         const e = document.getElementById('create-button') as HTMLElement;
@@ -941,8 +904,8 @@ export class LobbyController implements ChatController {
         return atLeast && !(tooFast && rated);
     }
     private validateFen() {
-        const e = document.getElementById('variant') as HTMLSelectElement;
-        const variant = e.options[e.selectedIndex].value;
+        const variantRadio = document.querySelector('input[name="variant-radio"]:checked') as HTMLInputElement;
+        const variant = variantRadio ? variantRadio.value : "matatak";
         const fen = (document.getElementById('fen') as HTMLInputElement).value;
         return fen === "" || validFen(VARIANTS[variant], fen);
     }
