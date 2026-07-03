@@ -405,7 +405,7 @@ header {
   position: relative;
   height: var(--site-header-height);
   z-index: 106;
-  max-width: 1800px;
+  max-width: 100%;
   margin: 0 auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -971,36 +971,60 @@ ul.guide li {
 }
 
 .topnav {
+  display: none;
   flex-direction: column;
-  height: initial;
-  transform: translateX(-100%);
+  position: absolute;
+  top: var(--site-header-height);
+  left: 0;
+  background-color: var(--drop-down);
+  box-shadow: 1px 5px 6px rgba(0, 0, 0, .3);
+  border-radius: 0 0 5px 0;
+  width: 20rem;
+  max-width: 100vw;
+  z-index: 100;
+  padding: 10px 0;
+  height: auto;
+  transform: none;
 }
 
-.topnav a {
-  transform: translateX(-100%);
-  transition: transform 200ms;
-  width: 20rem;
+.topnav.navbar-show {
+  display: flex;
 }
 
 .hamburger.is-active {
   background-color: var(--bg-color0);
 }
 
-.topnav a.navbar-show {
-  transform: translateX(calc(0% + 64px));
+.topnav a {
+  width: 100%;
+  padding: 8px 20px;
+  box-sizing: border-box;
   color: var(--font-color);
-  background-color: var(--bg-color0);
-  border-radius: 5px;
-  padding-left: 40px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  text-align: left;
+  font-family: 'Tribeca', sans-serif;
+  font-size: 16px;
+  transform: none;
+  transition: background-color 0.2s;
+  margin: 0;
+  display: flex;
+  align-items: center;
 }
 
-.topnav a.navbar-show.home {
-  padding-left: 20px;
+.topnav a.home {
+  font-size: 24px;
+  font-family: 'Tribeca', sans-serif;
+  border-bottom: 1px solid var(--bg-color2);
+  margin-bottom: 10px;
 }
 
-.topnav a.navbar-show:hover {
+.topnav a:hover {
+  background-color: var(--bg-color2);
   color: var(--blue-hover);
-  transform: translateX(calc(0% + 64px)) scale(1.1);
+  transform: none;
+  box-shadow: none;
 }
 
 .site-buttons {
@@ -1012,11 +1036,20 @@ ul.guide li {
 }
 
 .topnav section>a {
-  display: none;
+  display: block;
+  font-family: 'Tribeca', sans-serif;
+  font-size: 18px;
+  color: #d4c194;
+  padding: 15px 20px 5px 20px;
+  border-bottom: 1px solid rgba(212, 193, 148, 0.3);
+  margin-bottom: 5px;
+  pointer-events: none;
+  text-transform: uppercase;
 }
 
 /* Dropdown */
 /* Desktop dropdown styles removed to enforce mobile layout globally */
+
 
 /* Site buttons */
 

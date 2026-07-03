@@ -209,10 +209,16 @@ function start() {
     if (model["embed"]) return;
 
     (document.querySelector('.hamburger') as HTMLElement).addEventListener('click', () => {
-        document.querySelectorAll('.topnav a').forEach(nav => nav.classList.toggle('navbar-show'));
+        const topnav = document.querySelector('.topnav');
+        if (topnav) {
+            topnav.classList.toggle('navbar-show');
+            if (topnav.classList.contains('navbar-show')) {
+                hideSettings();
+                hideNotify();
+            }
+        }
         (document.querySelector('.hamburger') as HTMLElement).classList.toggle('is-active');
-    }
-    );
+    });
 
 
     renderTimeago();

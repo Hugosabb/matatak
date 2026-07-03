@@ -1689,7 +1689,7 @@ msgstr "Fondo"
 
 #: ../client/settingsView.ts:71 ../client/settingsView.ts:130
 msgid "Board Settings"
-msgstr "Preferencias del tablero"
+msgstr "Tablero"
 
 #: ../client/settingsView.ts:72 ../client/settingsView.ts:122
 msgid "Zen Mode"

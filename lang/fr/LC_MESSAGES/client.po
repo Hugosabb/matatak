@@ -1738,7 +1738,7 @@ msgstr "Arrière-plan"
 
 #: ../client/settingsView.ts:71 ../client/settingsView.ts:130
 msgid "Board Settings"
-msgstr "Réglages de l'échiquier"
+msgstr "Échiquier"
 
 #: ../client/settingsView.ts:72 ../client/settingsView.ts:122
 msgid "Zen Mode"

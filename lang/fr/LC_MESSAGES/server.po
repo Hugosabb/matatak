@@ -572,7 +572,7 @@ msgstr "Outils"
 
 #: ../templates/template.html:56
 msgid "Editor"
-msgstr "Editeur de position"
+msgstr "Éditeur"
 
 #: ../templates/template.html:57
 msgid "Analysis"

@@ -50,6 +50,13 @@ function showMainSettings() {
     (document.getElementById('settings') as HTMLElement).style.display = 'flex';
     (document.getElementById('settings-main') as HTMLElement).style.display = 'flex';
     (document.getElementById('settings-sub') as HTMLElement).style.display = 'none';
+
+    // Close hamburger menu if open
+    const topnav = document.querySelector('.topnav');
+    if (topnav && topnav.classList.contains('navbar-show')) {
+        topnav.classList.remove('navbar-show');
+        (document.querySelector('.hamburger') as HTMLElement).classList.remove('is-active');
+    }
 }
 
 function userMenu() {
