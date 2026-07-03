@@ -208,16 +208,21 @@ function start() {
 
     if (model["embed"]) return;
 
-    (document.querySelector('.hamburger') as HTMLElement).addEventListener('click', () => {
+    (document.querySelector('.hamburger') as HTMLElement).addEventListener('click', (e) => {
         const topnav = document.querySelector('.topnav');
-        if (topnav) {
-            topnav.classList.toggle('navbar-show');
-            if (topnav.classList.contains('navbar-show')) {
+        const hamburger = document.querySelector('.hamburger');
+        if (topnav && hamburger) {
+            const isOpening = !topnav.classList.contains('navbar-show');
+            if (isOpening) {
+                topnav.classList.add('navbar-show');
+                hamburger.classList.add('is-active');
                 hideSettings();
                 hideNotify();
+            } else {
+                topnav.classList.remove('navbar-show');
+                hamburger.classList.remove('is-active');
             }
         }
-        (document.querySelector('.hamburger') as HTMLElement).classList.toggle('is-active');
     });
 
 
