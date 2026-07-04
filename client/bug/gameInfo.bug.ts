@@ -70,7 +70,7 @@ function playerInfo(model: PyChessModel, color: "w" | "b", board: "a" | "b") {
 
     return h('a.user-link', { attrs: { href: '/@/' + username } }, [
         h('player-title', " " + title + " "),
-        username + aiLevel(title, level) + (title !== 'BOT' ? (" (" + rating + ") ") : ''),
+        username + aiLevel(title, level) + ((!['BOT', 'GHOST'].includes(title) && rating !== '1500?') ? (" (" + rating + ") ") : ''),
         h('rdiff#' + color + 'rdiff'),
         h('berserk#' + color + 'berserk'),
     ]);

@@ -13,7 +13,7 @@ export function player(id: string, title: string, name: string, rating: string, 
                     (title !== '') ? h('player-title', title + ' ') : '',
                     displayName(name) + aiLevel(title, level),
                 ]),
-                h('rating', !isBotOrGhost ? rating : ''),
+                h('rating', (!isBotOrGhost && rating !== '1500?') ? rating : ''),
             ]),
         ]),
     ]);
