@@ -1551,7 +1551,7 @@ export class RoundController extends GameController {
         this.fsfPostMessage('setoption name UCI_Variant value ' + this.variant.name);
         //this.fsfPostMessage('setoption name UCI_Chess960 value ' + this.chess960);
         // this.fsfPostMessage('setoption name UCI_LimitStrength value true');
-        this.fsfPostMessage('setoption name Skill Level value ' + LVL_SKILL[this.level]);
+        this.fsfPostMessage('setoption name Skill Level value ' + LVL_SKILL[this.level - 1]);
         //this.fsfPostMessage('setoption name UCI_AnalyseMode value false');
 
         this.fsfPostMessage('ucinewgame');
@@ -1568,10 +1568,10 @@ export class RoundController extends GameController {
         //this.fsfPostMessage(`go wtime ${wtime} btime ${btime} winc ${this.inc * 1000} binc ${this.inc * 1000}`);
 
         const threads = parseInt(localStorage.threads || '1');
-        const baseMovetime = LVL_MOVETIMES[this.level];
+        const baseMovetime = LVL_MOVETIMES[this.level - 1];
         const movetime = Math.round(baseMovetime / (threads * Math.pow(0.9, threads - 1)));
 
-        this.fsfPostMessage(`go depth ${LVL_DEPTHS[this.level]} movetime 7000`);
+        this.fsfPostMessage(`go depth ${LVL_DEPTHS[this.level - 1]} movetime 7000`);
 
         this.isSearching = false;
     }
