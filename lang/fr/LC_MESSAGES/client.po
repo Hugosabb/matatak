@@ -1576,7 +1576,7 @@ msgstr "Répétition"
 
 #: ../client/result.ts:156
 msgid "%1 won"
-msgstr ""
+msgstr "%1 gagnent"
 
 #: ../client/roundCtrl.ts:241 ../client/roundCtrl.ts:1245
 msgid " +15 seconds"
