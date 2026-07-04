@@ -327,6 +327,7 @@ button [class*=' icon-']::before {
 .hero-title {
   width: 70%;
   max-width: 800px;
+  aspect-ratio: 1525 / 241;
   z-index: 1;
   pointer-events: none;
   order: -1;
@@ -338,6 +339,7 @@ button [class*=' icon-']::before {
   width: 75%;
   max-width: 600px;
   height: auto;
+  aspect-ratio: 910 / 670;
   margin-top: 15vh;
   z-index: -2;
   pointer-events: none;
