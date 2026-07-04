@@ -133,7 +133,12 @@ export class PromotionInput extends ExtraInput {
             hook: {
                 insert: vnode => {
                     const el = vnode.elm as HTMLElement;
-                    el.addEventListener("click", () => this.cancel());
+                    const handler = (e: Event) => {
+                        e.stopPropagation();
+                        this.cancel();
+                    };
+                    el.addEventListener("pointerdown", handler);
+                    el.addEventListener("click", handler);
                     el.addEventListener("contextmenu", e => {
                         e.preventDefault();
                         return false;
@@ -146,10 +151,18 @@ export class PromotionInput extends ExtraInput {
                 const top = rank * (100 / height);
                 return h("square", {
                     style: { top: top + "%", left: left + "%" },
-                    hook: bind("click", e => {
-                        e.stopPropagation();
-                        this.finish(role as cg.Role);
-                    }, null)
+                    hook: {
+                        insert: vnode => {
+                            const el = vnode.elm as HTMLElement;
+                            const handler = (e: Event) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                this.finish(role as cg.Role);
+                            };
+                            el.addEventListener("pointerdown", handler);
+                            el.addEventListener("click", handler);
+                        }
+                    }
                 },
                     [ h(`piece.${role}.${color}.${side}`) ]
                 );
