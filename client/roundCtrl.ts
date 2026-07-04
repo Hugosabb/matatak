@@ -1266,10 +1266,12 @@ export class RoundController extends GameController {
             let clock_times: Clocks, increment;
             const oppclock = !this.flipped() ? 0 : 1
             const myclock = 1 - oppclock;
+            const activeclock = (this.turnColor === this.mycolor) ? myclock : oppclock;
+            const inactiveclock = 1 - activeclock;
 
             if (!this.corr) {
                 // pause() will add increment!
-                this.clocks[myclock].pause((this.base === 0 && this.ply < 2) ? false : true);
+                this.clocks[activeclock].pause((this.base === 0 && this.ply < 2) ? false : true);
 
                 let bclock;
                 if (!this.flipped()) {
@@ -1279,14 +1281,14 @@ export class RoundController extends GameController {
                 }
                 const wclock = 1 - bclock
 
-                if (!this.berserked[(this.mycolor === "white") ? "wberserk" : "bberserk"]) {
+                if (!this.berserked[(this.turnColor === "white") ? "wberserk" : "bberserk"]) {
                     increment = (this.inc > 0 && this.ply >= 2 && !this.byoyomi) ? this.inc * 1000 : 0;
                 } else {
                     increment = 0;
                 }
 
-                const bclocktime = (this.mycolor === "black" && this.preaction) ? this.clocktimes[BLACK] + increment : this.clocks[bclock].duration;
-                const wclocktime = (this.mycolor === "white" && this.preaction) ? this.clocktimes[WHITE] + increment : this.clocks[wclock].duration;
+                const bclocktime = (this.turnColor === "black" && this.preaction) ? this.clocktimes[BLACK] + increment : this.clocks[bclock].duration;
+                const wclocktime = (this.turnColor === "white" && this.preaction) ? this.clocktimes[WHITE] + increment : this.clocks[wclock].duration;
 
                 clock_times = [wclocktime, bclocktime];
             } else {
@@ -1297,15 +1299,15 @@ export class RoundController extends GameController {
             this.lastMaybeSentMsgMove = { type: "move", gameId: this.gameId, move: move, clocks: clock_times, ply: this.ply + 1 };
             this.doSend(this.lastMaybeSentMsgMove as JSONObject);
 
-            if (this.preaction) {
+            if (this.preaction && this.turnColor === this.mycolor) {
                 this.clocks[myclock].setTime(this.clocktimes[(this.mycolor === 'white') ? WHITE : BLACK] + increment);
             }
 
             // Prevent sending "flag" message by opp clock via flagCallback
             // fixes https://github.com/gbtami/pychess-variants/issues/1588
-            this.turnColor = this.oppcolor;
+            this.turnColor = this.turnColor === "white" ? "black" : "white";
 
-            if (this.clockOn) this.clocks[oppclock].start();
+            if (this.clockOn) this.clocks[inactiveclock].start();
         }
 
         const confirmCorrMove = localStorage.confirmCorrMove === undefined ? true : localStorage.getItem("confirmCorrMove") === "true";
