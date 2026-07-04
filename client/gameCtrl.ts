@@ -94,6 +94,7 @@ export abstract class GameController extends ChessgroundController implements Ch
     plyVari: number;
 
     undo?: any;
+    private drawTimeout?: number;
 
     constructor(el: HTMLElement, model: PyChessModel, fullfen: string, pocket0: HTMLElement, pocket1: HTMLElement, boardName: BoardName = '') {
         super(el, model, fullfen, pocket0, pocket1, boardName);
@@ -177,6 +178,31 @@ export abstract class GameController extends ChessgroundController implements Ch
         Mousetrap.bind('enter', () => this.skipGating());
         Mousetrap.bind('f', () => this.toggleOrientation());
         Mousetrap.bind('?', () => this.helpDialog());
+
+        if (el) {
+            el.addEventListener('mousedown', (e) => {
+                if (e.button === 2) { // Right click
+                    this.inspectedKey = undefined;
+                    if (this.drawTimeout) clearTimeout(this.drawTimeout);
+                    this.chessground.set({ drawable: { shapes: [] } });
+                }
+            }, { capture: true });
+
+            el.addEventListener('mouseup', (e) => {
+                if (e.button === 0) { // Left click
+                    setTimeout(() => {
+                        // Natively, chessground handles double-click-to-deselect for friendly pieces
+                        // by clearing state.selectable.selected on mouseup.
+                        const isFriendly = this.inspectedKey && this.chessground.state.movable.dests?.has(this.inspectedKey);
+                        if (isFriendly && !this.chessground.state.selectable.selected) {
+                            this.inspectedKey = undefined;
+                            if (this.drawTimeout) clearTimeout(this.drawTimeout);
+                            this.chessground.set({ drawable: { shapes: [] } });
+                        }
+                    }, 10);
+                }
+            });
+        }
     }
 
     skipGating() {
@@ -256,6 +282,7 @@ export abstract class GameController extends ChessgroundController implements Ch
     abstract doSendMove(move: string): void;
 
     processInput(piece: cg.Piece, orig: cg.Orig, dest: cg.Key, meta: cg.MoveMetadata, lastSuffix?: string, lastInputType?: InputType): void {
+        this.inspectedKey = undefined;
         switch (lastInputType) {
             case undefined:
                 this.suffix = '';
@@ -337,6 +364,9 @@ export abstract class GameController extends ChessgroundController implements Ch
     }
 
     goPly(ply: number, plyVari = 0) {
+        this.inspectedKey = undefined;
+        if (this.drawTimeout) clearTimeout(this.drawTimeout);
+        this.chessground.set({ drawable: { shapes: [] } });
         // console.log("gameCtrl.goPly()");
         const vv = this.steps[plyVari]?.vari;
         const step = (plyVari > 0 && vv) ? vv[ply - plyVari] : this.steps[ply];
@@ -412,62 +442,77 @@ export abstract class GameController extends ChessgroundController implements Ch
     protected onSelect = () => {
         let lastTime = performance.now();
         let lastKey: cg.Key | undefined;
-        return (key: cg.Key) => {
+        return (key?: cg.Key) => {
             if (this.duck.inputState === 'click') {
-                this.duck.finish(key);
+                if (key) this.duck.finish(key);
                 return;
             }
-            const piece = this.chessground.state.boardState.pieces.get(key);
-            if (piece) {
-                // Calculate theoretic moves on an empty board
-                const emptyBoardState: cg.BoardState = {
-                    pieces: new Map([[key, piece]]),
-                    turnColor: piece.color,
-                    pockets: this.variant.pocket ? { white: new Map(), black: new Map() } : undefined,
-                };
-                const theoreticMoves = premove(this.variant.name, this.chess960, this.variant.board.dimensions)(emptyBoardState, key, false);
+            const piece = key ? this.chessground.state.boardState.pieces.get(key) : undefined;
+            if (piece && key) {
+                const isFriendly = this.chessground.state.movable.dests?.has(key);
+                if (this.inspectedKey === key && !isFriendly) {
+                    this.inspectedKey = undefined;
+                    if (this.drawTimeout) clearTimeout(this.drawTimeout);
+                    this.chessground.set({ drawable: { shapes: [] } });
+                } else {
+                    this.inspectedKey = key;
+                    const emptyBoardState: cg.BoardState = {
+                        pieces: new Map([[key, piece]]),
+                        turnColor: piece.color,
+                        pockets: this.variant.pocket ? { white: new Map(), black: new Map() } : undefined,
+                    };
+                    const theoreticMoves = premove(this.variant.name, this.chess960, this.variant.board.dimensions)(emptyBoardState, key, false);
 
-                const shapes = theoreticMoves.map(dest => {
+                    const shapes = theoreticMoves.map(dest => {
+                        const uniqueDiamondId = `diamond_${dest}`;
+                        const uniqueShadowId = `shadow_${dest}`;
 
-                    const uniqueDiamondId = `diamond_${dest}`;
-                    const uniqueShadowId = `shadow_${dest}`;
+                        const moveSvg = `
+                            <defs>
+                                <linearGradient id="${uniqueDiamondId}" x1="100%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stop-color="rgb(71, 57, 46)" />
+                                    <stop offset="100%" stop-color="rgb(164, 139, 114)" />
+                                </linearGradient>
+                                <radialGradient id="${uniqueShadowId}" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                                    <stop offset="0%" stop-color="black" stop-opacity="1" />
+                                    <stop offset="100%" stop-color="black" stop-opacity=".0" />
+                                </radialGradient>
+                            </defs>
 
-                    const moveSvg = `
-                    <defs>
-                        <linearGradient id="${uniqueDiamondId}" x1="100%" y1="100%" x2="0%" y2="0%">
-                            <stop offset="0%" stop-color="rgb(71, 57, 46)" />
-                            <stop offset="100%" stop-color="rgb(164, 139, 114)" />
-                        </linearGradient>
-                        <radialGradient id="${uniqueShadowId}" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                            <stop offset="0%" stop-color="black" stop-opacity="1" />
-                            <stop offset="100%" stop-color="black" stop-opacity=".0" />
-                        </radialGradient>
-                    </defs>
+                            <circle cx="50" cy="50" r="18" fill="url(#${uniqueShadowId})" opacity="1"/>
 
-                    <circle cx="50" cy="50" r="18" fill="url(#${uniqueShadowId})" opacity="1"/>
+                            <rect x="44" y="44" width="12" height="12" 
+                                    transform="rotate(45 50 50)" 
+                                    fill="url(#${uniqueDiamondId})" 
+                                    opacity="1" />
+                            `;
 
-                    <rect x="44" y="44" width="12" height="12" 
-                            transform="rotate(45 50 50)" 
-                            fill="url(#${uniqueDiamondId})" 
-                            opacity="1" />
-                    `;
+                        return {
+                            orig: dest,
+                            customSvg: moveSvg as any
+                        } as cg.DrawShape;
+                    });
 
-                    return {
-                        orig: dest,
-                        customSvg: moveSvg as any
-                    } as cg.DrawShape;
-                });
-
-                this.chessground.set({
-                    drawable: {
-                        shapes: shapes,
-                    }
-                });
+                    if (this.drawTimeout) clearTimeout(this.drawTimeout);
+                    this.drawTimeout = window.setTimeout(() => {
+                        this.chessground.set({
+                            drawable: {
+                                shapes: shapes
+                            }
+                        });
+                    }, 1);
+                }
             } else {
-                this.chessground.set({ drawable: { shapes: [] } });
+                const selected = this.chessground.state.selectable.selected;
+                const isDest = selected && key && this.chessground.state.movable.dests?.get(selected)?.includes(key);
+                if (!isDest) {
+                    this.inspectedKey = undefined;
+                    if (this.drawTimeout) clearTimeout(this.drawTimeout);
+                    this.chessground.set({ drawable: { shapes: [] } });
+                }
             }
 
-            if (this.chessground.state.movable.dests === undefined) return;
+            if (!key || this.chessground.state.movable.dests === undefined) return;
 
             const curTime = performance.now();
 
@@ -527,7 +572,8 @@ export abstract class GameController extends ChessgroundController implements Ch
       * Custom variant-specific logic to be triggered on move and alter state of board/pocket depending on variant rules.
       */
     protected onUserMove(orig: cg.Key, dest: cg.Key, meta: cg.MoveMetadata) {
-        // this.chessground.set({ drawable: { autoShapes: [] } });
+        if (this.drawTimeout) clearTimeout(this.drawTimeout);
+        this.chessground.set({ drawable: { shapes: [] } });
         if (this.duck.inputState === "move") {
             this.duck.finish(dest);
             return;
@@ -572,7 +618,8 @@ export abstract class GameController extends ChessgroundController implements Ch
      * Variant specific logic for when dropping a piece from pocket is performed
      */
     protected onUserDrop(piece: cg.Piece, dest: cg.Key, meta: cg.MoveMetadata) {
-        //this.chessground.set({ drawable: { autoShapes: [] } });
+        if (this.drawTimeout) clearTimeout(this.drawTimeout);
+        this.chessground.set({ drawable: { shapes: [] } });
         this.preaction = meta.premove;
         const role = piece.role;
         this.processInput(piece, util.dropOrigOf(role), dest, meta);
