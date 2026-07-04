@@ -1,4 +1,5 @@
 @import 'hamburger.css';
+@import 'switch.css';
 
 @font-face {
   font-family: 'Tribeca';
@@ -3390,4 +3391,10 @@ div button.login-btn {
     right: -10px;
     min-width: 160px;
   }
+}
+
+/* Moves Toggle CSS */
+body:has(#toggle-moves:not(:checked)) #btn-controls-top,
+body:has(#toggle-moves:not(:checked)) #movelist > *:not(.result):not(.status) {
+    display: none;
 }

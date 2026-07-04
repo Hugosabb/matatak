@@ -74,8 +74,14 @@ export function roundView(model: PyChessModel): VNode[] {
             ]),
             h('div.bug-round-tools-part', [
                 h('div.movelist-block', [
-                    h('div#movelist'),
+                    h('div.moves-toggle-wrap', { style: { display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '5px' } }, [
+                        h('label.switch', { attrs: { title: 'Toggle moves' } }, [
+                            h('input#toggle-moves', { attrs: { type: 'checkbox', checked: false } }),
+                            h('span.sw-slider'),
+                        ]),
+                    ]),
                     h('div#move-controls'),
+                    h('div#movelist'),
                 ]),
                 h('div#offer-dialog'),
                 h('div#game-controls'),
