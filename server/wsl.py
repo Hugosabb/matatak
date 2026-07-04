@@ -137,7 +137,7 @@ async def handle_create_ai_challenge(app_state: PychessGlobalAppState, ws, user,
     if variant in ("alice", "fogofwar") or data["rm"]:
         engine = app_state.users["Random-Mover"]
     else:
-        ghost = User(app_state, username=f"Level {data['level']}", title="GHOST", anon=True)
+        ghost = User(app_state, username=f"Level {data['level']}", title="LIA", anon=True)
         app_state.users[ghost.username] = ghost
         engine = ghost
 

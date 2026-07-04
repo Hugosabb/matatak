@@ -1118,7 +1118,7 @@ export class RoundControllerBughouse implements ChatController {
     private onMsgUserDisconnected = (msg: MsgUserDisconnected) => {
         console.log(msg);
         const titles = new Map<string, string>([[this.wplayer, this.wtitle], [this.bplayer, this.btitle], [this.wplayerB, this.wtitleB], [this.bplayerB, this.btitleB]]);
-        if (['BOT', 'GHOST'].includes(titles.get(msg.username) ?? '')) return;
+        if (['BOT', 'LIA'].includes(titles.get(msg.username) ?? '')) return;
         if (msg.username === this.players[0]) {
             const container = document.getElementById('player0a') as HTMLElement;
             patch(container, h('i-side.online#player0a', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));

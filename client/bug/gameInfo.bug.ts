@@ -17,35 +17,35 @@ export function gameInfoBug(model: PyChessModel): VNode {
 
     return h('div.game-info', [
         h('section', [
-        h('div.info0.icon', { attrs: { "data-icon": dataIcon } }, [
-            h('div.info2', [
-                h('div.tc', [
-                    timeControlStr(model["base"], model["inc"], model["byo"]) + " • " + gameType(model["rated"]) + " • ",
-                    h('a.user-link', {
-                        attrs: {
-                            target: '_blank',
-                            href: '/variants/' + model["variant"] + (chess960 ? '960': ''),
-                        }
-                    },
-                        variant.displayName(chess960)),
+            h('div.info0.icon', { attrs: { "data-icon": dataIcon } }, [
+                h('div.info2', [
+                    h('div.tc', [
+                        timeControlStr(model["base"], model["inc"], model["byo"]) + " • " + gameType(model["rated"]) + " • ",
+                        h('a.user-link', {
+                            attrs: {
+                                target: '_blank',
+                                href: '/variants/' + model["variant"] + (chess960 ? '960' : ''),
+                            }
+                        },
+                            variant.displayName(chess960)),
+                    ]),
+                    Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now"),
                 ]),
-                Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now"),
             ]),
-        ]),
-        h('div.player-data', [
-            h('i-side.icon', {class: {[colorIcon(model.variant, variant.colors.first)]: true}}),
-            h('player', playerInfo(model, 'w', 'a')),
-            h('div', {style:{display:"inline", paddingRight:"8px"}},'+'),
-            h('i-side.icon', {class: {[colorIcon(model.variant, variant.colors.second)]: true}}),
-            h('player', playerInfo(model, 'b', 'b')),
-        ]),
-        h('div.player-data', [
-            h('i-side.icon', {class: {[colorIcon(model.variant, variant.colors.second)]: true}}),
-            h('player', playerInfo(model, 'w', 'b')),
-            h('div', {style:{display:"inline", paddingRight:"8px"}},'+'),
-            h('i-side.icon', {class: {[colorIcon(model.variant, variant.colors.first)]: true}}),
-            h('player', playerInfo(model, 'b', 'a')),
-        ]),
+            h('div.player-data', [
+                h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.first)]: true } }),
+                h('player', playerInfo(model, 'w', 'a')),
+                h('div', { style: { display: "inline", paddingRight: "8px" } }, '+'),
+                h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.second)]: true } }),
+                h('player', playerInfo(model, 'b', 'b')),
+            ]),
+            h('div.player-data', [
+                h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.second)]: true } }),
+                h('player', playerInfo(model, 'w', 'b')),
+                h('div', { style: { display: "inline", paddingRight: "8px" } }, '+'),
+                h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.first)]: true } }),
+                h('player', playerInfo(model, 'b', 'a')),
+            ]),
         ]),
         h('section', [
             h('div.tourney', (model["tournamentId"]) ? [
@@ -56,9 +56,9 @@ export function gameInfoBug(model: PyChessModel): VNode {
 }
 
 export function playerInfoData(model: PyChessModel, color: "w" | "b", board: "a" | "b"): [string, string, string] {
-    const username = model[board == "a"? (color === "w"? "wplayer": "bplayer"): (color === "w"? "wplayerB": "bplayerB")];
-    const title = model[board == "a"? color === "w"? "wtitle": "btitle": color === "w"? "wtitleB": "btitleB"];
-    const rating = model[board == "a"? color === "w"? "wrating": "brating": color === "w"? "wratingB": "bratingB"];
+    const username = model[board == "a" ? (color === "w" ? "wplayer" : "bplayer") : (color === "w" ? "wplayerB" : "bplayerB")];
+    const title = model[board == "a" ? color === "w" ? "wtitle" : "btitle" : color === "w" ? "wtitleB" : "btitleB"];
+    const rating = model[board == "a" ? color === "w" ? "wrating" : "brating" : color === "w" ? "wratingB" : "bratingB"];
     return [username, title, rating];
 }
 
@@ -70,7 +70,7 @@ function playerInfo(model: PyChessModel, color: "w" | "b", board: "a" | "b") {
 
     return h('a.user-link', { attrs: { href: '/@/' + username } }, [
         h('player-title', " " + title + " "),
-        username + aiLevel(title, level) + ((!['BOT', 'GHOST'].includes(title) && rating !== '1500?') ? (" (" + rating + ") ") : ''),
+        username + aiLevel(title, level) + ((!['BOT', 'LIA'].includes(title) && rating !== '1500?') ? (" (" + rating + ") ") : ''),
         h('rdiff#' + color + 'rdiff'),
         h('berserk#' + color + 'berserk'),
     ]);

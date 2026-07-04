@@ -277,7 +277,7 @@ async def handle_board(ws, user, game):
 
 async def handle_bot_setup(users, game, player, color, phase, fen):
     """Si le joueur est un bot, il valide immédiatement son tour de draft."""
-    if player.bot or player.title == "GHOST":
+    if player.bot or player.title == "LIA":
         await asyncio.sleep(0.1)  # Petit délai pour un effet plus naturel
         await handle_setup(None, users, player, {
             "phase": phase,
@@ -457,7 +457,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
         fen = FairyBoard.start_fen(game.variant, game.chess960, disabled_fen=game.initial_fen)
         reused_fen = False
 
-    if opp_player.title == "GHOST":
+    if opp_player.title == "LIA":
         color = "w" if game.wplayer.username == opp_name else "b"
         if handicap:
             color = "w" if color == "b" else "b"

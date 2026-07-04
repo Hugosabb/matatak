@@ -1444,7 +1444,7 @@ export class RoundController extends GameController {
 
     private onMsgUserDisconnected = (msg: MsgUserDisconnected) => {
         // console.log(msg);
-        if (['BOT', 'GHOST'].includes(this.titles[this.players.indexOf(msg.username)])) return;
+        if (['BOT', 'LIA'].includes(this.titles[this.players.indexOf(msg.username)])) return;
 
         if (msg.username === this.players[0]) {
             const container = document.getElementById('player0') as HTMLElement;
@@ -1525,7 +1525,7 @@ export class RoundController extends GameController {
     }
 
     private async searchBestMove(): Promise<void> {
-        if (this.isSearching || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor || (this.wtitle != 'GHOST' && this.btitle != 'GHOST')) {
+        if (this.isSearching || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor || (this.wtitle != 'LIA' && this.btitle != 'LIA')) {
             return;
         } else if (this.draftPhase == "CUT") {
             const legalMoves = this.ffishBoard.legalMoves().split(' ').filter(o => o);

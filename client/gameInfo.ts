@@ -19,30 +19,30 @@ export function gameInfo(model: PyChessModel): VNode {
     const startFen = model.initialFen.replace(/\+/g, '.');
     const sections = [
         h('section', [
-        h('div.info0.icon', { attrs: { "data-icon": dataIcon } }, [
-            h('div.info2', [
-                h('div.tc', [
-                    tc + " • " + gameType(model["rated"]) + " • ",
-                    h('a.user-link', {
-                        attrs: {
-                            target: '_blank',
-                            href: '/variants/' + model["variant"] + (chess960 ? '960': ''),
-                        }
-                    },
-                        variant.displayName(chess960)),
+            h('div.info0.icon', { attrs: { "data-icon": dataIcon } }, [
+                h('div.info2', [
+                    h('div.tc', [
+                        tc + " • " + gameType(model["rated"]) + " • ",
+                        h('a.user-link', {
+                            attrs: {
+                                target: '_blank',
+                                href: '/variants/' + model["variant"] + (chess960 ? '960' : ''),
+                            }
+                        },
+                            variant.displayName(chess960)),
+                    ]),
+                    h('div', (altStartName) ? altStartName : ''),
+                    h('div', Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now")),
                 ]),
-                h('div', (altStartName) ? altStartName : ''),
-                h('div', Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now")),
             ]),
-        ]),
-        h('div.player-data', [
-            h('i-side.icon', {class: {[colorIcon(model.variant, variant.colors.first)]: true}}),
-            h('player', playerInfo(model, 'w')),
-        ]),
-        h('div.player-data', [
-            h('i-side.icon', {class: {[colorIcon(model.variant, variant.colors.second)]: true}}),
-            h('player', playerInfo(model, 'b')),
-        ]),
+            h('div.player-data', [
+                h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.first)]: true } }),
+                h('player', playerInfo(model, 'w')),
+            ]),
+            h('div.player-data', [
+                h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.second)]: true } }),
+                h('player', playerInfo(model, 'b')),
+            ]),
         ]),
     ];
     if (model["posnum"] >= 0) {
@@ -73,16 +73,16 @@ export function gameInfo(model: PyChessModel): VNode {
 }
 
 function playerInfo(model: PyChessModel, color: string) {
-    const username = model[color === "w"? "wplayer": "bplayer"];
-    const title = model[color === "w"? "wtitle": "btitle"];
+    const username = model[color === "w" ? "wplayer" : "bplayer"];
+    const title = model[color === "w" ? "wtitle" : "btitle"];
     const level = model.level;
-    const rating = model[color === "w"? "wrating": "brating"];
-    const rdiff = model[color === "w"? "wrdiff": "brdiff"];
-    const berserk = model[color === "w"? "wberserk": "bberserk"];
+    const rating = model[color === "w" ? "wrating" : "brating"];
+    const rdiff = model[color === "w" ? "wrdiff" : "brdiff"];
+    const berserk = model[color === "w" ? "wberserk" : "bberserk"];
 
     return h('a.user-link', { attrs: { href: '/@/' + username } }, [
         (title !== '') ? h('player-title', title + ' ') : '',
-        displayName(username) + aiLevel(title, level) + ((!['BOT', 'GHOST'].includes(title) && rating !== '1500?') ? (" (" + rating + ") ") : ''),
+        displayName(username) + aiLevel(title, level) + ((!['BOT', 'LIA'].includes(title) && rating !== '1500?') ? (" (" + rating + ") ") : ''),
         model["status"] < 1 || model["rated"] !== '1' ? h('rdiff#' + color + 'rdiff') : renderRdiff(rdiff),
         (berserk === "True") ? h('icon.icon-berserk') : h('berserk#' + color + 'berserk'),
     ]);
