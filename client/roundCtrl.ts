@@ -1444,6 +1444,8 @@ export class RoundController extends GameController {
 
     private onMsgUserDisconnected = (msg: MsgUserDisconnected) => {
         // console.log(msg);
+        if (['BOT', 'GHOST'].includes(this.titles[this.players.indexOf(msg.username)])) return;
+
         if (msg.username === this.players[0]) {
             const container = document.getElementById('player0') as HTMLElement;
             patch(container, h('i-side.online#player0', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
