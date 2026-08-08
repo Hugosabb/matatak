@@ -51,17 +51,26 @@ async def get_puzzle(request, puzzleId):
 async def get_daily_puzzle(request):
     app_state = get_app_state(request.app)
     if app_state.db is None:
-        return empty_puzzle("chess")
+        return empty_puzzle("matatak")
 
     db_collections = await app_state.db.list_collection_names()
     if "puzzle" not in db_collections:
-        return empty_puzzle("chess")
+        return empty_puzzle("matatak")
 
     today = datetime.now(timezone.utc).date().isoformat()
     daily_puzzle_ids = app_state.daily_puzzle_ids
     if today in daily_puzzle_ids:
         puzzle = await get_puzzle(request, daily_puzzle_ids[today])
-    else:
+        if puzzle is not None:
+            return puzzle
+        # Cached puzzle was deleted, clear cache and DB entry, pick a new one
+        del daily_puzzle_ids[today]
+        try:
+            await app_state.db.dailypuzzle.delete_one({"_id": today})
+        except Exception:
+            pass
+
+    if True:
         user = app_state.users["PyChess"]
 
         # skip previous daily puzzles

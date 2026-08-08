@@ -1247,7 +1247,6 @@ export const contestVariants = [
 
 // variants having 0 puzzle so far
 export const noPuzzleVariants = [
-    "matatak",
     "placement",
     "gorogoroplus",
     "cannonshogi",
