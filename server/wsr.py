@@ -457,6 +457,8 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
         fen = FairyBoard.start_fen(game.variant, game.chess960, disabled_fen=game.initial_fen)
         reused_fen = False
 
+    target_level = data.get("level", game.level)
+
     if opp_player.title == "LIA":
         color = "w" if game.wplayer.username == opp_name else "b"
         if handicap:
@@ -468,7 +470,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             "minutes": game.base,
             "increment": game.inc,
             "byoyomiPeriod": game.byoyomi_period,
-            "level": game.level,
+            "level": target_level,
             "rm": False,  
             "chess960": game.chess960,
             "rated": False,
@@ -503,7 +505,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             inc=game.inc,
             byoyomi_period=game.byoyomi_period,
             day=game.base if game.corr else 0,
-            level=game.level,
+            level=target_level,
             rated=game.rated,
             player1=user,
             chess960=game.chess960,
@@ -536,7 +538,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
                 inc=game.inc,
                 byoyomi_period=game.byoyomi_period,
                 day=game.base if game.corr else 0,
-                level=game.level,
+                level=target_level,
                 rated=game.rated,
                 player1=user,
                 chess960=game.chess960,

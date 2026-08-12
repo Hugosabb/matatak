@@ -453,7 +453,7 @@ export class LobbyController implements ChatController {
                     // Get Started alone in the center
                     h('div.hero-action-center', [
                         h('a.hero-btn', { attrs: { href: '/tutorial' } }, [
-                            h('span.hero-btn-text', _("Get Started"))
+                            h('span.hero-btn-text', _("Tutoriel"))
                         ])
                     ]),
 
@@ -472,7 +472,7 @@ export class LobbyController implements ChatController {
                         // Row 3: Puzzles (Card Left, Button Right)
                         h('div.action-row', [
                             this.renderCard('/static/images/pieces/matatak/1n.jpg', '/static/images/pieces/matatak/0n.jpg'),
-                            h('a.hero-btn', { attrs: { href: '/puzzle/matatak' } }, [
+                            h('a.hero-btn', { attrs: { href: '/puzzle/campaign/matatakmini' } }, [
                                 h('span', _("Puzzles"))
                             ])
                         ])

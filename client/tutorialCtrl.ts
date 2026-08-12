@@ -3,6 +3,7 @@ import { _ } from './i18n';
 import { PuzzleController } from './puzzleCtrl';
 import { PyChessModel } from "./types";
 import { patch } from './document';
+import { showBannerOverlay } from './bannerOverlay';
 
 export class TutorialController extends PuzzleController {
     instruction: string;
@@ -122,6 +123,16 @@ export class TutorialController extends PuzzleController {
                 h('span.tutorial-step-label', `Étape ${this.tutorialId} / ${totalSteps}`),
             ]));
         }
+
+        // Affichage du bandeau pop-up interactif au centre du plateau
+        showBannerOverlay({
+            title: this.tutorialId < 10 ? _('Étape Réussie ! 🎉') : _('Tutoriel Terminé ! 🎉'),
+            subtitle: this.successMsg,
+            actionText: this.tutorialId < 10 ? _('Étape Suivante ➔') : _('Retour à l\'accueil ➔'),
+            onAction: () => {
+                this.nextTutorial();
+            }
+        });
 
         // Clear the old feedback zone
         const feedbackEl = document.querySelector('.feedback') as HTMLElement;

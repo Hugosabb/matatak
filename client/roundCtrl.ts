@@ -28,6 +28,7 @@ import { GameController } from './gameCtrl';
 import { handleOngoingGameEvents, Game, gameViewPlaying, compareGames } from './nowPlaying';
 import { createWebsocket } from "@/socket/webSocketUtils";
 import { variantsIni } from './variantsIni';
+import { showBannerOverlay } from './bannerOverlay';
 import { loadEngine } from './engineLoader';
 import { setPocketRowCssVars } from './pocketRow';
 
@@ -841,8 +842,8 @@ export class RoundController extends GameController {
         patch(rematch_button_location, rematch_button);
     }
 
-    private rematch = () => {
-        this.doSend({ type: "rematch", gameId: this.gameId, handicap: this.handicap });
+    private rematch = (level?: number) => {
+        this.doSend({ type: "rematch", gameId: this.gameId, handicap: this.handicap, level: level ?? this.level });
         this.setDialog(_("Rematch offer sent"));
     }
 
@@ -932,22 +933,78 @@ export class RoundController extends GameController {
                 this.ctableContainer = patch(this.ctableContainer, crosstableView(msg.ct, this.gameId));
             }
 
-            // Add visual indication on the board
-            const cgWrap = document.querySelector('.cg-wrap');
-            if (cgWrap && !cgWrap.querySelector('.game-over-overlay')) {
-                const overlay = document.createElement('div');
-                overlay.className = 'game-over-overlay';
-                const reasonText = result(this.variant, msg.status, msg.result);
-                overlay.innerHTML = `
-                  <div class="content">
-                    <h1>${_("Game Over")}</h1>
-                    <h2>${reasonText}</h2>
-                    <div class="dismiss-hint">${_("")}</div>
-                  </div>
-                `;
-                overlay.onclick = () => overlay.remove();
-                cgWrap.appendChild(overlay);
+            // Add visual indication on the board (Overlay Banner)
+            const reasonText = result(this.variant, msg.status, msg.result);
+            const isWin = (msg.result === "1-0" && this.mycolor === "white") || (msg.result === "0-1" && this.mycolor === "black");
+            const isLoss = (msg.result === "1-0" && this.mycolor === "black") || (msg.result === "0-1" && this.mycolor === "white");
+
+            let bannerTitle = _("Partie terminée");
+            if (isWin) bannerTitle = _("Victoire ! 🎉");
+            else if (isLoss) bannerTitle = _("Défaite");
+            else if (msg.result === "1/2-1/2") bannerTitle = _("Égalité");
+
+            const isAi = this.wtitle === 'BOT' || this.btitle === 'BOT' || Boolean(this.level && this.level > 0);
+            const buttons = [];
+            if (!this.spectator) {
+                if (this.tournamentGame) {
+                    buttons.push({
+                        text: _("TOURNOI"),
+                        style: 'primary' as const,
+                        onClick: () => this.joinTournament()
+                    });
+                } else if (!this.corr) {
+                    if (isAi && this.level && this.level > 0) {
+                        // Match contre l'IA (niveaux 1 à 20)
+                        if (this.level < 20) {
+                            const nextLvl = this.level + 1;
+                            buttons.push({
+                                text: `Niveau IA ${nextLvl} ➔`,
+                                style: 'primary' as const,
+                                onClick: () => this.rematch(nextLvl)
+                            });
+                            buttons.push({
+                                text: `Rejouer (Niv. ${this.level})`,
+                                style: 'secondary' as const,
+                                onClick: () => this.rematch(this.level)
+                            });
+                        } else {
+                            buttons.push({
+                                text: `Rejouer (Niv. ${this.level}) ➔`,
+                                style: 'primary' as const,
+                                onClick: () => this.rematch(this.level)
+                            });
+                        }
+                        buttons.push({
+                            text: _("Nouvel Adversaire"),
+                            style: 'outline' as const,
+                            onClick: () => this.newOpponent(this.home)
+                        });
+                    } else {
+                        // Match contre un humain
+                        buttons.push({
+                            text: _("Revanche ➔"),
+                            style: 'primary' as const,
+                            onClick: () => this.rematch()
+                        });
+                        buttons.push({
+                            text: _("Nouvel Adversaire"),
+                            style: 'secondary' as const,
+                            onClick: () => this.newOpponent(this.home)
+                        });
+                    }
+                }
             }
+            buttons.push({
+                text: _("Analyse"),
+                style: 'outline' as const,
+                onClick: () => this.analysis(this.home)
+            });
+
+            showBannerOverlay({
+                title: bannerTitle,
+                subtitle: reasonText,
+                buttons: buttons
+            });
 
             // clean up gating/promotion widget left over the ground while game ended by time out
             const container = document.getElementById('extension_choice') as HTMLElement;

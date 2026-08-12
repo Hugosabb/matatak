@@ -674,9 +674,12 @@ div.paste,
 div.invite,
 div.blogs,
 div.memory,
-div.not-found {
+div.not-found,
+div.campaign {
   grid-area: main;
   margin: 0 auto;
+  width: 100%;
+  max-width: 950px;
   border-radius: 5px;
   font-size: 1.1em;
   box-shadow: var(--base-shadow);

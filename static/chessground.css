@@ -647,10 +647,56 @@ piece.fading {
   text-shadow: 0 1px 3px rgba(0,0,0,0.8);
 }
 
-.game-over-overlay .dismiss-hint {
-  font-size: 0.9em;
-  color: #aaa;
+.game-over-overlay .banner-buttons-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.game-over-overlay .banner-btn {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 22px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+  user-select: none;
+}
+
+.game-over-overlay .banner-btn:hover {
+  transform: scale(1.04);
+  filter: brightness(1.15);
+}
+
+.game-over-overlay .banner-btn-primary {
+  background: #28a745;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.game-over-overlay .banner-btn-secondary {
+  background: #007bff;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+}
+
+.game-over-overlay .banner-btn-outline {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.game-over-overlay .banner-dismiss-hint {
+  margin-top: 12px;
+  font-size: 0.85em;
+  color: #bbb;
   opacity: 0.8;
+  letter-spacing: 0.5px;
 }
 
 @keyframes bannerPop {

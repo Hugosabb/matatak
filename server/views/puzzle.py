@@ -11,17 +11,48 @@ from puzzle import (
     default_puzzle_perf,
 )
 from views import get_user_context
-from variants import VARIANTS
+from campaign import get_level, get_total_levels, load_campaign
 
 
 @aiohttp_jinja2.template("analysis.html")
 async def puzzle(request):
     user, context = await get_user_context(request)
 
-    variant = request.match_info.get("variant")
+    variant = request.match_info.get("variant", "matatakmini")
+    level_str = request.match_info.get("level")
+
+    if "/campaign" in request.path:
+        context["view"] = "campaign"
+        context["variant"] = variant
+        context["view_css"] = "analysis.css"
+        return context
 
     if request.path.endswith("/daily"):
         puzzle = await get_daily_puzzle(request)
+    elif level_str is not None:
+        try:
+            level_num = int(level_str)
+        except ValueError:
+            raise web.HTTPNotFound()
+
+        level_data = get_level(variant, level_num)
+        if not level_data:
+            raise web.HTTPNotFound()
+
+        puzzle = {
+            "_id": level_data["puzzle_id"],
+            "fen": level_data["fen"],
+            "moves": level_data["moves"],
+            "eval": level_data["eval"],
+            "type": level_data["type"],
+            "variant": level_data["variant"],
+            "level": level_data["level"],
+            "total_levels": get_total_levels(variant),
+        }
+        if "intro" in level_data:
+            puzzle["intro"] = level_data["intro"]
+
+        user.puzzle_variant = variant
     else:
         puzzleId = request.match_info.get("puzzleId")
 
@@ -60,3 +91,10 @@ async def puzzle(request):
     context["puzzle"] = json.dumps(puzzle, default=datetime.isoformat)
 
     return context
+
+
+async def api_campaign_levels(request):
+    variant = request.match_info.get("variant", "matatak")
+    levels = load_campaign(variant)
+    return web.json_response(levels)
+

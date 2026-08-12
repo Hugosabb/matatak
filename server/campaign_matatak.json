@@ -1,0 +1,2074 @@
+[
+  {
+    "level": 1,
+    "puzzle_id": "aqiQs",
+    "fen": "6I1/2e5/8/8/8/2k5/6K1/8 b - - 0 36",
+    "moves": "c3d4",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 1",
+    "intro": {
+      "piece": "i",
+      "piece_name": "Rhinocéros",
+      "title": "Nouveau personnage : Le Rhinocéros !",
+      "text": "Le Rhinocéros avance en ligne droite comme une Tour mais charge avec puissance."
+    }
+  },
+  {
+    "level": 2,
+    "puzzle_id": "cOxXH",
+    "fen": "8/2ek4/8/8/4n3/2c3l1/8/5K2 b - - 3 15",
+    "moves": "c3e1",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 2",
+    "intro": {
+      "piece": "e",
+      "piece_name": "Tortue",
+      "title": "Nouveau personnage : Le Tortue !",
+      "text": "Découvrez les pouvoirs du Tortue dans ce niveau."
+    }
+  },
+  {
+    "level": 3,
+    "puzzle_id": "mhlZy",
+    "fen": "8/8/3k4/2e1F3/2I1nK2/8/8/6s1 w - - 0 25",
+    "moves": "f4e4",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 3",
+    "intro": {
+      "piece": "k",
+      "piece_name": "Lion",
+      "title": "Nouveau personnage : Le Lion !",
+      "text": "Le Lion est votre Roi. Protégez-le tout en traquant le Lion adverse !"
+    }
+  },
+  {
+    "level": 4,
+    "puzzle_id": "0LElN",
+    "fen": "8/3k4/2e5/8/2G1HK2/3n4/8/6s1 w - - 0 28",
+    "moves": "f4e5",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 4",
+    "intro": {
+      "piece": "g",
+      "piece_name": "Panda",
+      "title": "Nouveau personnage : Le Panda !",
+      "text": "Découvrez les pouvoirs du Panda dans ce niveau."
+    }
+  },
+  {
+    "level": 5,
+    "puzzle_id": "ir4o0",
+    "fen": "8/2e5/2nM4/5k2/8/8/1G3KI1/5H2 b - - 0 12",
+    "moves": "f5e4",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 5",
+    "intro": {
+      "piece": "n",
+      "piece_name": "Orang-outan",
+      "title": "Nouveau personnage : Le Orang-outan !",
+      "text": "Découvrez les pouvoirs du Orang-outan dans ce niveau."
+    }
+  },
+  {
+    "level": 6,
+    "puzzle_id": "lRckh",
+    "fen": "8/2e5/4k3/2l2n2/5M2/3G4/3I1K2/8 b - - 0 13",
+    "moves": "e6d5",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 6",
+    "intro": {
+      "piece": "m",
+      "piece_name": "Chimpanzé",
+      "title": "Nouveau personnage : Le Chimpanzé !",
+      "text": "Le Chimpanzé saute comme un Fou ou un Cavalier avec une grande agilité."
+    }
+  },
+  {
+    "level": 7,
+    "puzzle_id": "iA60F",
+    "fen": "8/3b4/2e1k3/2l1H3/8/6M1/4n3/4K3 b - - 0 16",
+    "moves": "e6e5",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 7",
+    "intro": {
+      "piece": "b",
+      "piece_name": "Chat",
+      "title": "Nouveau personnage : Le Chat !",
+      "text": "Le Chat est agile et se déplace d'une case dans n'importe quelle direction."
+    }
+  },
+  {
+    "level": 8,
+    "puzzle_id": "IqWof",
+    "fen": "8/2eb4/5k2/8/4nM2/2c5/G7/3K4 b - - 1 17",
+    "moves": "e4f3",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 8",
+    "intro": {
+      "piece": "c",
+      "piece_name": "Léopard",
+      "title": "Nouveau personnage : Le Léopard !",
+      "text": "Le Léopard bondit sur 2 cases en diagonale ou en ligne droite."
+    }
+  },
+  {
+    "level": 9,
+    "puzzle_id": "6nBAF",
+    "fen": "8/3O4/2e5/5k2/4n3/4M2I/3G4/1s1K4 b - - 5 19",
+    "moves": "f5e5",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 9",
+    "intro": {
+      "piece": "o",
+      "piece_name": "Gorille",
+      "title": "Nouveau personnage : Le Gorille !",
+      "text": "Découvrez les pouvoirs du Gorille dans ce niveau."
+    }
+  },
+  {
+    "level": 10,
+    "puzzle_id": "yQlpn",
+    "fen": "8/2ebk3/8/8/4F3/2lc4/3I1M2/4KH2 b - - 1 12",
+    "moves": "d3d2",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 10",
+    "intro": {
+      "piece": "f",
+      "piece_name": "Phacochère",
+      "title": "Nouveau personnage : Le Phacochère !",
+      "text": "Découvrez les pouvoirs du Phacochère dans ce niveau."
+    }
+  },
+  {
+    "level": 11,
+    "puzzle_id": "TvI9k",
+    "fen": "8/2e2k2/8/5b1n/4c3/4l1K1/2G4M/3I4 b - - 1 12",
+    "moves": "e4g4",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 11"
+  },
+  {
+    "level": 12,
+    "puzzle_id": "EsPMu",
+    "fen": "3k4/2eb4/8/4F3/1l2n3/2c5/K4M2/2I2H2 b - - 3 11",
+    "moves": "c3a3",
+    "eval": "#1",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 12",
+    "intro": {
+      "piece": "h",
+      "piece_name": "Ours",
+      "title": "Nouveau personnage : Le Ours !",
+      "text": "Découvrez les pouvoirs du Ours dans ce niveau."
+    }
+  },
+  {
+    "level": 13,
+    "puzzle_id": "pMos3",
+    "fen": "8/2e1Fn2/8/8/8/1k6/5K2/8 w - - 3 34",
+    "moves": "f2e3",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 13"
+  },
+  {
+    "level": 14,
+    "puzzle_id": "PLMbg",
+    "fen": "8/6k1/8/6l1/6S1/3s4/2e1K3/8 w - - 18 43",
+    "moves": "e2d3",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 14",
+    "intro": {
+      "piece": "s",
+      "piece_name": "Cheval",
+      "title": "Nouveau personnage : Le Cheval !",
+      "text": "Le Cheval se déplace en L comme le Cavalier classique aux échecs."
+    }
+  },
+  {
+    "level": 15,
+    "puzzle_id": "YiWHb",
+    "fen": "4n3/2e5/4k3/2I5/8/4c3/6K1/8 b - - 1 15",
+    "moves": "e3c5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 15"
+  },
+  {
+    "level": 16,
+    "puzzle_id": "xNLhH",
+    "fen": "8/2e5/4k3/5H2/2b5/3G4/4KM2/8 b - - 0 12",
+    "moves": "e6f5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 16"
+  },
+  {
+    "level": 17,
+    "puzzle_id": "mHa2h",
+    "fen": "8/2e5/8/4c1k1/2G5/3KF3/5M2/8 w - - 0 16",
+    "moves": "e3e5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 17"
+  },
+  {
+    "level": 18,
+    "puzzle_id": "4l6xC",
+    "fen": "8/2e1k3/6n1/1Ib5/8/2M1K3/8/3H4 w - - 0 13",
+    "moves": "b5c5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 18"
+  },
+  {
+    "level": 19,
+    "puzzle_id": "cxNSm",
+    "fen": "4n3/3b4/2ek1l2/8/5M2/8/1c1H4/5K2 b - - 5 12",
+    "moves": "b2d2",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 19"
+  },
+  {
+    "level": 20,
+    "puzzle_id": "F39dR",
+    "fen": "8/2e2n2/4k3/2lc4/5M2/4b3/8/3I1K1H b - - 1 11",
+    "moves": "d5f3",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 20"
+  },
+  {
+    "level": 21,
+    "puzzle_id": "Bne77",
+    "fen": "8/2eI4/2c1k1n1/6l1/5M2/5K2/2G1F3/5H2 b - - 6 8",
+    "moves": "c6d7",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 21"
+  },
+  {
+    "level": 22,
+    "puzzle_id": "0Ya1o",
+    "fen": "8/2e5/2kb2I1/2l3H1/5M2/1n1c4/1KG1F3/8 b - - 27 19",
+    "moves": "d3c2",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 22"
+  },
+  {
+    "level": 23,
+    "puzzle_id": "3p4Ar",
+    "fen": "4I3/8/3s4/8/6k1/8/8/2K5 b - - 1 45",
+    "moves": "d6e8",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 23"
+  },
+  {
+    "level": 24,
+    "puzzle_id": "mxs0y",
+    "fen": "8/8/8/2e5/2I4K/8/2k5/8 b - - 5 47",
+    "moves": "c5c4",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 24"
+  },
+  {
+    "level": 25,
+    "puzzle_id": "w7lkd",
+    "fen": "8/2e5/k7/4F3/8/8/4n3/6K1 w - - 8 26",
+    "moves": "g1f2",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 25"
+  },
+  {
+    "level": 26,
+    "puzzle_id": "wuPov",
+    "fen": "8/2e5/k7/1n2F3/8/8/7K/8 b - - 1 22",
+    "moves": "a6b6",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 26"
+  },
+  {
+    "level": 27,
+    "puzzle_id": "0pr3j",
+    "fen": "8/7k/5S2/6l1/8/8/2e5/4sK2 b - - 13 40",
+    "moves": "h7g6",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 27"
+  },
+  {
+    "level": 28,
+    "puzzle_id": "E69gB",
+    "fen": "1I6/8/3M4/7k/2G5/4s3/8/2K5 w - - 19 42",
+    "moves": "c1d2",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 28"
+  },
+  {
+    "level": 29,
+    "puzzle_id": "u8MOH",
+    "fen": "8/2e5/k7/1H2F3/8/3n4/6K1/8 b - - 1 21",
+    "moves": "a6b5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 29"
+  },
+  {
+    "level": 30,
+    "puzzle_id": "6qfjs",
+    "fen": "8/8/k7/2e5/8/G6K/n3s3/8 w - - 10 40",
+    "moves": "h3g4",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 30"
+  },
+  {
+    "level": 31,
+    "puzzle_id": "P6Xct",
+    "fen": "8/2e5/4k3/In6/5M2/8/4bK2/8 w - - 4 31",
+    "moves": "a5b5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 31"
+  },
+  {
+    "level": 32,
+    "puzzle_id": "nSgOk",
+    "fen": "8/2eI4/2k5/1H6/2c2MK1/8/8/8 w - - 14 30",
+    "moves": "g4f5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 32"
+  },
+  {
+    "level": 33,
+    "puzzle_id": "hdggz",
+    "fen": "2k5/8/2eb4/3c4/3HF3/4KGM1/8/8 w - - 2 15",
+    "moves": "d4d5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 33"
+  },
+  {
+    "level": 34,
+    "puzzle_id": "ZQw0c",
+    "fen": "8/2e5/3kc3/1I4l1/8/4M3/3G4/4KH2 b - - 1 7",
+    "moves": "e6d5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 34"
+  },
+  {
+    "level": 35,
+    "puzzle_id": "2MGvt",
+    "fen": "4k3/2e5/3b2n1/4F3/5K2/6M1/3I4/5H2 w - - 1 14",
+    "moves": "d2d6",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 35"
+  },
+  {
+    "level": 36,
+    "puzzle_id": "pEojF",
+    "fen": "8/2H2n2/4k3/3b2I1/7M/5K2/2G1F3/8 w - - 1 11",
+    "moves": "c7c6",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 36"
+  },
+  {
+    "level": 37,
+    "puzzle_id": "x8IrX",
+    "fen": "8/2ebk3/8/2lc4/4H3/8/2K2M2/2GI4 b - - 0 7",
+    "moves": "d5e4",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 37"
+  },
+  {
+    "level": 38,
+    "puzzle_id": "DPCwU",
+    "fen": "8/2ek4/3b1l2/8/3I4/4Fn2/2G2M2/1K6 b - - 0 11",
+    "moves": "f6d4",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 38"
+  },
+  {
+    "level": 39,
+    "puzzle_id": "uyHmG",
+    "fen": "8/3I4/1ke1F3/2l5/3H2n1/2G1M3/4K3/8 w - - 7 13",
+    "moves": "d4g4",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 39"
+  },
+  {
+    "level": 40,
+    "puzzle_id": "eBtl9",
+    "fen": "4n3/2e5/1k3c2/4H3/3GF3/4K3/5M2/2I5 w - - 13 21",
+    "moves": "d4d5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 40"
+  },
+  {
+    "level": 41,
+    "puzzle_id": "bZskx",
+    "fen": "8/2e5/1c1k2n1/I3b3/8/2K1MH2/3GF3/8 b - - 1 9",
+    "moves": "b6a5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 41"
+  },
+  {
+    "level": 42,
+    "puzzle_id": "iKL4x",
+    "fen": "8/2e5/3b1k2/2l1c3/2K1nM2/8/2G5/3I1H2 b - - 7 9",
+    "moves": "e5f4",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 42"
+  },
+  {
+    "level": 43,
+    "puzzle_id": "eupzM",
+    "fen": "2c5/2e1l3/3bk3/1n6/4F3/3I4/3KGM2/5H2 b - - 0 5",
+    "moves": "d6e5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 43"
+  },
+  {
+    "level": 44,
+    "puzzle_id": "mVEvr",
+    "fen": "5I2/8/3M4/8/2s3k1/8/8/2K5 w - - 2 44",
+    "moves": "c1c2",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 44"
+  },
+  {
+    "level": 45,
+    "puzzle_id": "JrxXW",
+    "fen": "k7/8/8/2e5/1G6/3n3K/4s3/8 b - - 1 35",
+    "moves": "a8b7",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 45"
+  },
+  {
+    "level": 46,
+    "puzzle_id": "hebXA",
+    "fen": "8/3k4/2e5/8/2G1H1K1/3n4/8/6s1 b - - 1 28",
+    "moves": "d7d6",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 46"
+  },
+  {
+    "level": 47,
+    "puzzle_id": "JTaQj",
+    "fen": "4n3/2e5/4k3/2I1c3/4F3/8/5M2/6K1 b - - 0 13",
+    "moves": "e5e4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 47"
+  },
+  {
+    "level": 48,
+    "puzzle_id": "EfLB7",
+    "fen": "8/2ek4/2n5/2b1G3/4H3/3K4/5M2/8 w - - 6 17",
+    "moves": "e4d4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 48"
+  },
+  {
+    "level": 49,
+    "puzzle_id": "b8zN3",
+    "fen": "8/8/1ke5/2l1M3/8/2KH4/6n1/2G5 w - - 6 20",
+    "moves": "c3c4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 49"
+  },
+  {
+    "level": 50,
+    "puzzle_id": "btMsU",
+    "fen": "8/2e1k3/8/2cb4/4n3/8/2G2K2/7I b - - 1 12",
+    "moves": "e4h1",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 50"
+  },
+  {
+    "level": 51,
+    "puzzle_id": "9ztBf",
+    "fen": "8/2eb4/5k2/8/4F3/3cI3/5H2/2K5 b - - 0 15",
+    "moves": "d3e3",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 51"
+  },
+  {
+    "level": 52,
+    "puzzle_id": "gaQKJ",
+    "fen": "8/2eb4/5kn1/1I6/5l2/5c2/2G5/1K6 b - - 1 10",
+    "moves": "d7c6",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 52"
+  },
+  {
+    "level": 53,
+    "puzzle_id": "NIdyG",
+    "fen": "8/2e1k3/2nb4/8/3lFM2/5K2/4G3/5H2 b - - 0 9",
+    "moves": "d6e5",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 53"
+  },
+  {
+    "level": 54,
+    "puzzle_id": "CyoS2",
+    "fen": "4n3/2e5/4kl2/8/2c1F3/5HM1/3I4/4K3 b - - 0 11",
+    "moves": "c4e4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 54"
+  },
+  {
+    "level": 55,
+    "puzzle_id": "SlDz6",
+    "fen": "3kn3/2eb4/8/2l5/I7/4F3/2c2M2/4KH2 b - - 0 5",
+    "moves": "e8h5",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 55"
+  },
+  {
+    "level": 56,
+    "puzzle_id": "AgmZQ",
+    "fen": "4n3/2e1k3/8/2lb4/3IF3/2G5/4HM2/4K3 b - - 0 8",
+    "moves": "d5d4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 56"
+  },
+  {
+    "level": 57,
+    "puzzle_id": "1zmKY",
+    "fen": "8/3k4/2e1F1n1/I1c3l1/7M/8/2GK4/5H2 b - - 1 11",
+    "moves": "c5a5",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 57"
+  },
+  {
+    "level": 58,
+    "puzzle_id": "YBLGK",
+    "fen": "8/2e5/3kb3/4Fcl1/2K5/2G2nM1/8/4I3 b - - 5 14",
+    "moves": "f5e5",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 58"
+  },
+  {
+    "level": 59,
+    "puzzle_id": "bwveb",
+    "fen": "8/2e5/3k1cn1/3b4/4F3/2l3M1/2GIK3/8 b - - 1 14",
+    "moves": "c3d2",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 59"
+  },
+  {
+    "level": 60,
+    "puzzle_id": "itgnD",
+    "fen": "3k4/2eb4/8/4F3/1l1c4/2G2n2/2K2M2/2I2H2 b - - 7 9",
+    "moves": "d4c3",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 60"
+  },
+  {
+    "level": 61,
+    "puzzle_id": "a5fJL",
+    "fen": "8/2e5/c1kb1l2/7n/2G1F3/8/3I1M2/4KH2 b - - 3 7",
+    "moves": "a6c4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 61"
+  },
+  {
+    "level": 62,
+    "puzzle_id": "zctoH",
+    "fen": "8/2eb4/2c5/2l2k1n/4F3/4H1K1/5M2/2GI4 b - - 6 9",
+    "moves": "c5e3",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 62"
+  },
+  {
+    "level": 63,
+    "puzzle_id": "MqAHr",
+    "fen": "8/8/1I6/2e5/2sM4/6k1/2G5/4K3 b - - 8 29",
+    "moves": "c4b6",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 63"
+  },
+  {
+    "level": 64,
+    "puzzle_id": "eVCrI",
+    "fen": "8/8/8/2e1s3/1I1M4/2G3k1/8/4K3 w - - 13 32",
+    "moves": "d4e5",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 64"
+  },
+  {
+    "level": 65,
+    "puzzle_id": "vFQeq",
+    "fen": "8/4S3/7k/6l1/2eb4/8/3K4/4M3 b - - 0 25",
+    "moves": "h6g7",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 65"
+  },
+  {
+    "level": 66,
+    "puzzle_id": "Nh4WZ",
+    "fen": "8/2e1k3/6H1/5b2/3cn3/8/2G2M2/4K3 b - - 3 11",
+    "moves": "d4f6",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 66"
+  },
+  {
+    "level": 67,
+    "puzzle_id": "lTHci",
+    "fen": "4n3/3bk3/2e2l2/8/5M2/1I1c4/8/4KH2 b - - 1 9",
+    "moves": "d3b3",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 67"
+  },
+  {
+    "level": 68,
+    "puzzle_id": "s1ivJ",
+    "fen": "8/2eck3/8/2lI4/4n3/8/2G2H1M/4K3 b - - 0 8",
+    "moves": "d7d5",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 68"
+  },
+  {
+    "level": 69,
+    "puzzle_id": "WmDk1",
+    "fen": "8/2e5/2kb2I1/2l3H1/2n2M2/1c6/2GKF3/8 b - - 23 17",
+    "moves": "b3d3",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 69"
+  },
+  {
+    "level": 70,
+    "puzzle_id": "AzK3I",
+    "fen": "8/2e2n2/3k1I2/2lcb3/8/1G3H2/4F3/4K1M1 b - - 7 10",
+    "moves": "d5e6",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 70"
+  },
+  {
+    "level": 71,
+    "puzzle_id": "oGzOG",
+    "fen": "8/2ebk3/8/3c2ln/8/3GF3/3K1M2/I2H4 b - - 9 6",
+    "moves": "g5e3",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 71"
+  },
+  {
+    "level": 72,
+    "puzzle_id": "w9ENH",
+    "fen": "4n3/2e5/4kl2/3b4/2c5/4FHM1/3I4/4K3 b - - 3 10",
+    "moves": "d5e4",
+    "eval": "#6",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 72"
+  },
+  {
+    "level": 73,
+    "puzzle_id": "qA7j9",
+    "fen": "8/2e5/2kbc3/1nl5/5M2/2G5/2K1F3/3I1H2 b - - 11 8",
+    "moves": "b5a4",
+    "eval": "#7",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 73"
+  },
+  {
+    "level": 74,
+    "puzzle_id": "PwFL5",
+    "fen": "8/2e5/4bk2/2l2c1n/5M2/8/2GIF1K1/4H3 b - - 1 10",
+    "moves": "f5g4",
+    "eval": "#7",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 74"
+  },
+  {
+    "level": 75,
+    "puzzle_id": "adN1p",
+    "fen": "8/2ebk3/I5n1/6l1/2c5/4F3/2GK1M2/8 b - - 2 8",
+    "moves": "d7d6",
+    "eval": "#9",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 75"
+  },
+  {
+    "level": 76,
+    "puzzle_id": "QvV4s",
+    "fen": "8/2e5/4b3/2l2k1n/4Fc2/8/2G2IK1/4H3 b - - 2 12",
+    "moves": "f4f2",
+    "eval": "#9",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 76"
+  },
+  {
+    "level": 77,
+    "puzzle_id": "wfLTD",
+    "fen": "3I4/8/3s4/8/6k1/8/8/2K5 w - - 0 45",
+    "moves": "d8f8",
+    "eval": "246",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 77"
+  },
+  {
+    "level": 78,
+    "puzzle_id": "uYsqo",
+    "fen": "4I3/2e2n2/8/8/8/1k6/5K2/8 b - - 0 34",
+    "moves": "b3c4",
+    "eval": "-59",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 78"
+  },
+  {
+    "level": 79,
+    "puzzle_id": "BDanv",
+    "fen": "8/8/3k4/1I2b3/2n5/4K3/7M/8 w - - 38 37",
+    "moves": "b5a5",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 79"
+  },
+  {
+    "level": 80,
+    "puzzle_id": "VCNwf",
+    "fen": "8/8/3k4/1I1nb1M1/8/4K3/8/8 w - - 6 21",
+    "moves": "g5f4",
+    "eval": "410",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 80"
+  },
+  {
+    "level": 81,
+    "puzzle_id": "3N9OR",
+    "fen": "8/8/k7/8/2e5/G4K2/n3s3/8 b - - 3 43",
+    "moves": "a2b1",
+    "eval": "562",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 81"
+  },
+  {
+    "level": 82,
+    "puzzle_id": "aYMp3",
+    "fen": "8/2e5/4k3/2l2n2/5M2/4K3/8/3I4 w - - 0 13",
+    "moves": "e3f3",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 82"
+  },
+  {
+    "level": 83,
+    "puzzle_id": "XUraG",
+    "fen": "8/8/2n5/5k2/1l1I1M2/8/2e3K1/8 w - - 2 48",
+    "moves": "g2f2",
+    "eval": "548",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 83"
+  },
+  {
+    "level": 84,
+    "puzzle_id": "Ncf5e",
+    "fen": "8/1ne5/4k3/8/1l3MK1/8/8/3I4 b - - 3 32",
+    "moves": "b4d2",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 84"
+  },
+  {
+    "level": 85,
+    "puzzle_id": "P35ou",
+    "fen": "2k5/8/2e1H3/8/2G3K1/3n4/8/6s1 b - - 3 29",
+    "moves": "c8d7",
+    "eval": "-296",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 85"
+  },
+  {
+    "level": 86,
+    "puzzle_id": "ud1Kq",
+    "fen": "8/2e5/3k2n1/8/3b1K2/4H1M1/5G2/8 w - - 2 16",
+    "moves": "e3e5",
+    "eval": "327",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 86"
+  },
+  {
+    "level": 87,
+    "puzzle_id": "tjZ6w",
+    "fen": "8/2e1l3/4Hk2/5n2/5M2/8/4K3/3I4 b - - 0 11",
+    "moves": "f6e6",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 87"
+  },
+  {
+    "level": 88,
+    "puzzle_id": "gMu2e",
+    "fen": "8/8/3kF3/2e1c2I/3G4/4K3/5M2/8 w - - 1 19",
+    "moves": "e3d3",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 88"
+  },
+  {
+    "level": 89,
+    "puzzle_id": "KTaPC",
+    "fen": "8/2e5/8/5k2/1I2bM2/5nK1/4G3/8 b - - 1 17",
+    "moves": "f3e2",
+    "eval": "121",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 89"
+  },
+  {
+    "level": 90,
+    "puzzle_id": "0PrFF",
+    "fen": "8/2e5/8/3b1k2/1I3M2/5n2/4GK2/8 b - - 1 16",
+    "moves": "d5e4",
+    "eval": "116",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 90"
+  },
+  {
+    "level": 91,
+    "puzzle_id": "0rFcO",
+    "fen": "8/2e5/2k3n1/4F3/2GH4/8/4K3/4s3 w - - 0 13",
+    "moves": "e2e1",
+    "eval": "631",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 91"
+  },
+  {
+    "level": 92,
+    "puzzle_id": "ty5zB",
+    "fen": "4O3/8/2e5/5k2/4n3/4M2I/3G4/1s1K4 w - - 4 19",
+    "moves": "h3h5",
+    "eval": "99",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 92"
+  },
+  {
+    "level": 93,
+    "puzzle_id": "47kj8",
+    "fen": "8/8/3b1kn1/2e5/2cIG2M/4K3/8/8 w - - 0 15",
+    "moves": "d4c4",
+    "eval": "37",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 93"
+  },
+  {
+    "level": 94,
+    "puzzle_id": "uMvZC",
+    "fen": "3k4/2eb4/8/8/3HF3/2c1KG2/5M2/8 w - - 3 10",
+    "moves": "d4d3",
+    "eval": "-98",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 94"
+  },
+  {
+    "level": 95,
+    "puzzle_id": "1GhAt",
+    "fen": "4S3/2e2k2/7I/4b1l1/2c5/8/5M2/3K4 w - - 4 17",
+    "moves": "e8d6",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 95"
+  },
+  {
+    "level": 96,
+    "puzzle_id": "TYQhD",
+    "fen": "7I/2e3k1/4F3/2l5/4n3/1G2M3/4K3/8 b - - 3 15",
+    "moves": "g7h8",
+    "eval": "414",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 96"
+  },
+  {
+    "level": 97,
+    "puzzle_id": "jUDEt",
+    "fen": "8/2ek4/3c2n1/1I2F3/2H2K2/8/5l2/8 b - - 5 18",
+    "moves": "d7c8",
+    "eval": "-187",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 97"
+  },
+  {
+    "level": 98,
+    "puzzle_id": "zdZqF",
+    "fen": "8/2e5/3k1l2/4b3/8/3GFKH1/5M2/8 w - - 0 14",
+    "moves": "d3d4",
+    "eval": "417",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 98"
+  },
+  {
+    "level": 99,
+    "puzzle_id": "2wHqU",
+    "fen": "8/2e1k3/7I/8/4cl2/5nMK/8/4H3 w - - 4 22",
+    "moves": "e1e4",
+    "eval": "643",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 99"
+  },
+  {
+    "level": 100,
+    "puzzle_id": "55QfL",
+    "fen": "8/2ek4/6n1/3bF3/3H4/2G1l3/4K3/8 w - - 0 10",
+    "moves": "d4d5",
+    "eval": "567",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 100"
+  },
+  {
+    "level": 101,
+    "puzzle_id": "Eaov1",
+    "fen": "8/2e5/8/3b2k1/4I3/4l1K1/1G2n3/5H2 b - - 0 15",
+    "moves": "d5e4",
+    "eval": "84",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 101"
+  },
+  {
+    "level": 102,
+    "puzzle_id": "7irwv",
+    "fen": "8/2e1k3/6I1/8/3bn1K1/2H1c1M1/5G2/8 w - - 0 14",
+    "moves": "c3e3",
+    "eval": "237",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 102"
+  },
+  {
+    "level": 103,
+    "puzzle_id": "iofnF",
+    "fen": "8/2k5/2e2Mn1/2l2cI1/8/3H4/2GK4/8 w - - 10 16",
+    "moves": "g5f5",
+    "eval": "311",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 103"
+  },
+  {
+    "level": 104,
+    "puzzle_id": "hTHHU",
+    "fen": "8/2ekl3/3b4/4c3/1I2H3/3G4/5K2/6M1 w - - 7 11",
+    "moves": "e4e5",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 104"
+  },
+  {
+    "level": 105,
+    "puzzle_id": "nZzrH",
+    "fen": "2c5/2e5/2k5/2lI4/4n2M/3H4/2G5/4K3 w - - 0 8",
+    "moves": "d5d6",
+    "eval": "-75",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 105"
+  },
+  {
+    "level": 106,
+    "puzzle_id": "6c4a6",
+    "fen": "8/2e4I/4bk2/6H1/6K1/5GM1/4F1c1/8 b - - 2 17",
+    "moves": "g2e2",
+    "eval": "-104",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 106"
+  },
+  {
+    "level": 107,
+    "puzzle_id": "Umf3P",
+    "fen": "8/2e5/6k1/4I1Mn/2c1F3/8/2GK4/5H2 b - - 0 10",
+    "moves": "c4d4",
+    "eval": "890",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 107"
+  },
+  {
+    "level": 108,
+    "puzzle_id": "1KspJ",
+    "fen": "8/2eb4/8/5k2/1l2nM2/5H2/4G3/3IK3 b - - 4 13",
+    "moves": "e4f3",
+    "eval": "387",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 108"
+  },
+  {
+    "level": 109,
+    "puzzle_id": "2e9Q5",
+    "fen": "8/2e2k2/c2b2I1/8/8/2G1F3/5M2/4KH2 b - - 0 7",
+    "moves": "f7g6",
+    "eval": "584",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 109"
+  },
+  {
+    "level": 110,
+    "puzzle_id": "2txzD",
+    "fen": "4n3/2e5/4Fk2/2b3H1/8/8/3G1M2/I3K3 b - - 0 7",
+    "moves": "f6g5",
+    "eval": "652",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 110"
+  },
+  {
+    "level": 111,
+    "puzzle_id": "IyPdv",
+    "fen": "8/2ebk3/8/6M1/2c1nH2/4G3/8/3IK3 b - - 3 7",
+    "moves": "c4c3",
+    "eval": "456",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 111"
+  },
+  {
+    "level": 112,
+    "puzzle_id": "gPEW9",
+    "fen": "8/2eb4/4k3/7n/4G3/2c3H1/4KM2/3I4 w - - 9 9",
+    "moves": "g3f3",
+    "eval": "-239",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 112"
+  },
+  {
+    "level": 113,
+    "puzzle_id": "pGPuq",
+    "fen": "8/2k5/2e1cM2/2lI4/4n3/3H4/2GK4/8 w - - 6 14",
+    "moves": "d5c5",
+    "eval": "-124",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 113"
+  },
+  {
+    "level": 114,
+    "puzzle_id": "XGQlL",
+    "fen": "8/2e5/2ck2n1/2l1H3/8/2GIF3/5K2/6M1 b - - 0 11",
+    "moves": "g6d3",
+    "eval": "1130",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 114"
+  },
+  {
+    "level": 115,
+    "puzzle_id": "EhcV8",
+    "fen": "8/2e1k3/2c3n1/2l2H2/4F3/5KM1/2GI4/8 b - - 0 8",
+    "moves": "g6f5",
+    "eval": "999",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 115"
+  },
+  {
+    "level": 116,
+    "puzzle_id": "KaD5U",
+    "fen": "8/2ekl3/3b2n1/3I4/4F3/4K3/2G2M2/6H1 b - - 0 6",
+    "moves": "d6d5",
+    "eval": "151",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 116"
+  },
+  {
+    "level": 117,
+    "puzzle_id": "VNMh1",
+    "fen": "4n3/2e1k3/8/3b2I1/2c2H1M/5K2/2G1F3/8 w - - 2 9",
+    "moves": "f4c4",
+    "eval": "746",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 117"
+  },
+  {
+    "level": 118,
+    "puzzle_id": "Ui16D",
+    "fen": "3k4/3b4/2e1FHn1/8/3lI3/8/2G2M2/4K3 b - - 0 11",
+    "moves": "g6e4",
+    "eval": "-29",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 118"
+  },
+  {
+    "level": 119,
+    "puzzle_id": "w3XV3",
+    "fen": "3kn3/2e5/2cI4/6l1/8/5KM1/2G1F3/5H2 b - - 0 5",
+    "moves": "d8e7",
+    "eval": "433",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 119"
+  },
+  {
+    "level": 120,
+    "puzzle_id": "tZdz4",
+    "fen": "8/2e1l3/2k1b3/5n2/4F1H1/4G3/5M2/3IK3 b - - 2 9",
+    "moves": "f5g4",
+    "eval": "346",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 120"
+  },
+  {
+    "level": 121,
+    "puzzle_id": "Hp8ci",
+    "fen": "4I3/2e3k1/4F1n1/2l2c2/5H2/1G2M3/8/5K2 w - - 11 13",
+    "moves": "f4f5",
+    "eval": "-23",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 121"
+  },
+  {
+    "level": 122,
+    "puzzle_id": "aCRgx",
+    "fen": "4k3/2e5/3b2n1/8/4F2l/2cGK3/4H3/6I1 b - - 5 11",
+    "moves": "c3c5",
+    "eval": "230",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 122"
+  },
+  {
+    "level": 123,
+    "puzzle_id": "cJgBa",
+    "fen": "3k4/2eb2H1/8/8/1lc5/4F3/2GI1M2/4K3 b - - 1 7",
+    "moves": "b4d2",
+    "eval": "251",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 123"
+  },
+  {
+    "level": 124,
+    "puzzle_id": "tMnel",
+    "fen": "8/2ebk3/8/6M1/1l2n3/3cH3/4G3/3IK3 w - - 6 11",
+    "moves": "d1d3",
+    "eval": "46",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 124"
+  },
+  {
+    "level": 125,
+    "puzzle_id": "CWdOS",
+    "fen": "8/2e5/3k2n1/2cb2H1/4F3/2G2K2/5M2/3I4 b - - 0 12",
+    "moves": "g6e4",
+    "eval": "346",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 125"
+  },
+  {
+    "level": 126,
+    "puzzle_id": "pkzc4",
+    "fen": "8/2e5/2k3n1/2c3H1/3bF3/3G1K2/5M2/3I4 w - - 2 14",
+    "moves": "d3d4",
+    "eval": "464",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 126"
+  },
+  {
+    "level": 127,
+    "puzzle_id": "xXlT6",
+    "fen": "3k4/2e1l3/3b2n1/8/4c3/3G4/4KM2/2I2H2 w - - 0 6",
+    "moves": "d3e3",
+    "eval": "-246",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 127"
+  },
+  {
+    "level": 128,
+    "puzzle_id": "KrNAx",
+    "fen": "8/2ebk3/1c4n1/6I1/8/2K1M3/2G1F3/5H2 b - - 0 6",
+    "moves": "e7f6",
+    "eval": "279",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 128"
+  },
+  {
+    "level": 129,
+    "puzzle_id": "U9IIN",
+    "fen": "3k4/2ebl3/6n1/8/2c5/6M1/3KG3/3I1H2 w - - 2 6",
+    "moves": "f1f4",
+    "eval": "-261",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 129"
+  },
+  {
+    "level": 130,
+    "puzzle_id": "8zL7B",
+    "fen": "3kn3/2eb4/8/8/4c3/2G1l3/4KM2/3I3H w - - 2 6",
+    "moves": "h1h4",
+    "eval": "-93",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 130"
+  },
+  {
+    "level": 131,
+    "puzzle_id": "TFRV1",
+    "fen": "8/2ekl3/3b4/3I1n2/8/4F1H1/5M2/2G1K3 b - - 0 7",
+    "moves": "d6d5",
+    "eval": "829",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 131"
+  },
+  {
+    "level": 132,
+    "puzzle_id": "oVUak",
+    "fen": "3k4/2eb4/3c2n1/4F3/5H2/2G1l3/8/3IK3 w - - 2 7",
+    "moves": "d1d6",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 132"
+  },
+  {
+    "level": 133,
+    "puzzle_id": "OjRrd",
+    "fen": "2k5/1Iebl3/6n1/8/4F3/8/3GKM2/5H2 b - - 0 4",
+    "moves": "c8b7",
+    "eval": "137",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 133"
+  },
+  {
+    "level": 134,
+    "puzzle_id": "y1Rf8",
+    "fen": "8/2eb4/3ckl2/3H4/2G5/8/4FM2/3IK3 w - - 7 9",
+    "moves": "e2e4",
+    "eval": "367",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 134"
+  },
+  {
+    "level": 135,
+    "puzzle_id": "sCFAO",
+    "fen": "8/2e1k2n/2c5/2l4I/4F3/4GK2/5M2/3H4 b - - 6 9",
+    "moves": "h7g6",
+    "eval": "-149",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 135"
+  },
+  {
+    "level": 136,
+    "puzzle_id": "0y21e",
+    "fen": "8/2ebk3/8/6l1/2c2M2/4F3/3InH2/3K4 w - - 0 8",
+    "moves": "d2e2",
+    "eval": "-206",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 136"
+  },
+  {
+    "level": 137,
+    "puzzle_id": "sa2Qy",
+    "fen": "8/1ceb4/5k2/6ln/8/3KF3/2G2MH1/3I4 b - - 9 6",
+    "moves": "b7d5",
+    "eval": "1416",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 137"
+  },
+  {
+    "level": 138,
+    "puzzle_id": "OU3lU",
+    "fen": "2c1n3/2ebk3/5l2/8/8/3GK3/4FM2/3I1H2 b - - 3 3",
+    "moves": "e8g6",
+    "eval": "353",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 138"
+  },
+  {
+    "level": 139,
+    "puzzle_id": "2haYl",
+    "fen": "3k4/2e1l3/c2b2n1/8/8/2K1F3/2G2M2/3I1H2 b - - 3 4",
+    "moves": "a6b6",
+    "eval": "439",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 139"
+  },
+  {
+    "level": 140,
+    "puzzle_id": "sdP08",
+    "fen": "c2k4/2e1l3/1Ib3n1/8/4F3/4K3/3G1M2/5H2 b - - 1 5",
+    "moves": "e7f6",
+    "eval": "288",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 140"
+  },
+  {
+    "level": 141,
+    "puzzle_id": "cegHM",
+    "fen": "3k4/2eb1n2/8/3c4/7l/2G1F3/2K2M2/3I2H1 w - - 0 7",
+    "moves": "d1d5",
+    "eval": "898",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 141"
+  },
+  {
+    "level": 142,
+    "puzzle_id": "MDpNU",
+    "fen": "8/3b4/3k1lH1/2ecF2I/3G4/4K2n/5M2/8 w - - 9 16",
+    "moves": "g6f6",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 142"
+  },
+  {
+    "level": 143,
+    "puzzle_id": "j4sdq",
+    "fen": "2ck4/2eb4/6n1/8/4F2l/8/3GKM2/I4H2 b - - 0 4",
+    "moves": "c8b7",
+    "eval": "253",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 143"
+  },
+  {
+    "level": 144,
+    "puzzle_id": "sd9Q9",
+    "fen": "2k5/3b4/2e1F1n1/2l5/1cH5/2G1M3/8/3IK3 w - - 4 8",
+    "moves": "c4b4",
+    "eval": "327",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 144"
+  },
+  {
+    "level": 145,
+    "puzzle_id": "iddPK",
+    "fen": "8/2e5/c4k2/3Ib1ln/4FM2/8/2GK4/5H2 b - - 3 8",
+    "moves": "a6c4",
+    "eval": "586",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 145"
+  },
+  {
+    "level": 146,
+    "puzzle_id": "r8ySn",
+    "fen": "3k4/2eb4/8/2l1F3/6n1/5G2/2c1KM1H/3I4 w - - 9 9",
+    "moves": "d1d2",
+    "eval": "-276",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 146"
+  },
+  {
+    "level": 147,
+    "puzzle_id": "gSuVl",
+    "fen": "6H1/2kb4/5l2/1ce1F2I/2G5/7n/3K1M2/8 w - - 3 13",
+    "moves": "c4d4",
+    "eval": "-100",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 147"
+  },
+  {
+    "level": 148,
+    "puzzle_id": "InvLd",
+    "fen": "3k4/2eb4/2c2Hn1/2l1F3/8/4M3/2G5/3IK3 b - - 4 6",
+    "moves": "c6e4",
+    "eval": "223",
+    "type": "turnaround",
+    "variant": "matatak",
+    "title": "Niveau 148"
+  },
+  {
+    "level": 149,
+    "puzzle_id": "Yeeas",
+    "fen": "2ck4/2ebl3/8/8/4F3/4Gn2/5M2/3IKH2 b - - 4 3",
+    "moves": "f3d1",
+    "eval": "456",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 149"
+  },
+  {
+    "level": 150,
+    "puzzle_id": "ay9lU",
+    "fen": "c7/2e1k3/1Ib2ln1/8/4F3/4K3/3G1M2/6H1 w - - 2 7",
+    "moves": "b6b3",
+    "eval": "-153",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 150"
+  },
+  {
+    "level": 151,
+    "puzzle_id": "jaem4",
+    "fen": "8/2ebk3/8/1c4ln/8/4F1M1/2GK1H2/3I4 w - - 8 7",
+    "moves": "f2f5",
+    "eval": "-284",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 151"
+  },
+  {
+    "level": 152,
+    "puzzle_id": "c7Srl",
+    "fen": "3kn3/2e1l3/3bc3/8/8/4F3/3GKM2/3I1H2 w - - 2 3",
+    "moves": "d2d3",
+    "eval": "-114",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 152"
+  },
+  {
+    "level": 153,
+    "puzzle_id": "mtmg5",
+    "fen": "8/2ek4/3bc3/1nl5/5M2/2G5/3KF3/1I3H2 w - - 8 7",
+    "moves": "b1d1",
+    "eval": "-265",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 153"
+  },
+  {
+    "level": 154,
+    "puzzle_id": "TWUHb",
+    "fen": "3k4/2ebl3/c5n1/8/8/8/2GKFM2/I4H2 b - - 5 3",
+    "moves": "a6c6",
+    "eval": "504",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 154"
+  },
+  {
+    "level": 155,
+    "puzzle_id": "KOIo2",
+    "fen": "2c1n3/2e1k3/2b5/6l1/4F3/8/2G1KM2/3I1H2 w - - 2 4",
+    "moves": "f2g3",
+    "eval": "-91",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 155"
+  },
+  {
+    "level": 156,
+    "puzzle_id": "crTSy",
+    "fen": "4n3/2ekl3/3bc3/8/8/8/1G1KFM2/3I1H2 w - - 4 4",
+    "moves": "f2e1",
+    "eval": "-303",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 156"
+  },
+  {
+    "level": 157,
+    "puzzle_id": "k5NcT",
+    "fen": "2ckn3/2e1l3/8/3b4/8/8/2GKFM2/3I1H2 w - - 0 3",
+    "moves": "d2c1",
+    "eval": "-208",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 157"
+  },
+  {
+    "level": 158,
+    "puzzle_id": "EhDwa",
+    "fen": "2c5/2e1k3/6n1/2lb4/4F3/4GK2/5M2/3I1H2 w - - 0 6",
+    "moves": "d1d5",
+    "eval": "20",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 158"
+  },
+  {
+    "level": 159,
+    "puzzle_id": "kLBvw",
+    "fen": "8/2ebk3/c4l2/5I2/8/4Fn2/2G2M2/4K1H1 w - - 8 6",
+    "moves": "g1g3",
+    "eval": "-297",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 159"
+  },
+  {
+    "level": 160,
+    "puzzle_id": "kOGsz",
+    "fen": "8/2ec4/3kb1n1/2l5/3G1H2/4F1M1/4K3/3I4 w - - 6 7",
+    "moves": "d4c4",
+    "eval": "56",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 160"
+  },
+  {
+    "level": 161,
+    "puzzle_id": "eAKYY",
+    "fen": "8/8/2e5/8/5I2/6K1/8/2k5 w - - 14 44",
+    "moves": "g3f3,c1d2,f3e4",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 161"
+  },
+  {
+    "level": 162,
+    "puzzle_id": "ZLvKC",
+    "fen": "8/2e5/8/4F3/1k6/5n2/5K2/8 w - - 18 31",
+    "moves": "f2f3,b4b3,f3e4",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 162"
+  },
+  {
+    "level": 163,
+    "puzzle_id": "Wlh5e",
+    "fen": "8/8/8/2M2s1k/2G5/8/1I1K4/8 w - - 13 39",
+    "moves": "d2d3,f5d6,d3d4",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 163"
+  },
+  {
+    "level": 164,
+    "puzzle_id": "PxCDx",
+    "fen": "8/1k6/8/2e5/8/G7/n3s1K1/8 b - - 13 41",
+    "moves": "b7c6,a3a2,c6d5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 164"
+  },
+  {
+    "level": 165,
+    "puzzle_id": "PZsRf",
+    "fen": "8/2ek4/2n1G3/2b5/2H5/3K4/5M2/8 w - - 10 19",
+    "moves": "c4c5,d7e6,d3d4",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 165"
+  },
+  {
+    "level": 166,
+    "puzzle_id": "LQsH1",
+    "fen": "1k6/8/2eM4/2l5/2K5/3H4/6n1/2G5 w - - 10 22",
+    "moves": "d6c5,g2f3,c4d4",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 166"
+  },
+  {
+    "level": 167,
+    "puzzle_id": "QkLKz",
+    "fen": "8/2e5/8/2kb4/5Gc1/3IF1M1/5K2/8 b - - 5 13",
+    "moves": "d5d4,f4g4,c5d5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 167"
+  },
+  {
+    "level": 168,
+    "puzzle_id": "ayePG",
+    "fen": "8/2e5/4k3/2lc2H1/4n3/8/2G4M/4K3 b - - 3 10",
+    "moves": "d5e5,c2b2,e6d5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 168"
+  },
+  {
+    "level": 169,
+    "puzzle_id": "0V3AN",
+    "fen": "8/2e1k3/c3b3/5n2/3H4/2K1F3/2G2M2/8 w - - 0 9",
+    "moves": "d4d7,e7f8,c3d4",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 169"
+  },
+  {
+    "level": 170,
+    "puzzle_id": "UY8V9",
+    "fen": "3k4/2eb4/8/4F3/1l6/2c5/K1I2M2/5H2 b - - 0 12",
+    "moves": "c3c2,a2a1,b4c3",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 170"
+  },
+  {
+    "level": 171,
+    "puzzle_id": "lHRkh",
+    "fen": "2ck4/2e1l3/2n5/3b4/8/2K5/2G1FM2/3I1H2 w - - 2 4",
+    "moves": "d1d5,c6d5,c3d4",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 171"
+  },
+  {
+    "level": 172,
+    "puzzle_id": "oIX4e",
+    "fen": "2c5/2e1l3/4k3/1n2b3/4F3/3IG3/3K1M2/5H2 b - - 1 6",
+    "moves": "b5d3,d2c1,e6d5",
+    "eval": "#2",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 172"
+  },
+  {
+    "level": 173,
+    "puzzle_id": "01EiC",
+    "fen": "8/3k4/4Fc2/2e4I/4G3/3K4/8/4M3 w - - 7 22",
+    "moves": "h5e5,f6e5,e4e5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 173"
+  },
+  {
+    "level": 174,
+    "puzzle_id": "ALRVf",
+    "fen": "8/2e5/8/4cklH/2G5/3KF3/5M2/8 w - - 0 15",
+    "moves": "h5g5,f5e6,g5e5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 174"
+  },
+  {
+    "level": 175,
+    "puzzle_id": "lmfjF",
+    "fen": "8/2e5/c2k2n1/3b4/7I/4F1M1/2K5/2H5 b - - 6 9",
+    "moves": "d5e4,h4h5,g6h5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 175"
+  },
+  {
+    "level": 176,
+    "puzzle_id": "2GRz0",
+    "fen": "2c1n3/2e5/8/2l2k2/3I1M2/4b3/2G5/2K1H3 b - - 1 9",
+    "moves": "c5d4,e1e3,d4e3",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 176"
+  },
+  {
+    "level": 177,
+    "puzzle_id": "EFwGu",
+    "fen": "8/2eb4/3k1l2/I7/2c5/3nFKM1/8/4H3 b - - 9 10",
+    "moves": "c4c5,a5c5,d6c5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 177"
+  },
+  {
+    "level": 178,
+    "puzzle_id": "wTbAF",
+    "fen": "8/2e5/2bk2n1/I7/4cM2/2G1l3/4K3/7H b - - 3 10",
+    "moves": "c6c5,a5c5,d6c5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 178"
+  },
+  {
+    "level": 179,
+    "puzzle_id": "s7ZF1",
+    "fen": "8/2eb4/2ck4/I5ln/4F3/5GK1/5M2/4H3 b - - 17 13",
+    "moves": "c6c5,a5c5,d6c5",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 179"
+  },
+  {
+    "level": 180,
+    "puzzle_id": "A20bm",
+    "fen": "8/2e1l3/8/2k2c2/n1b1F3/4H3/G4M2/1K1I4 b - - 5 11",
+    "moves": "a4d1,e3d3,c4d3",
+    "eval": "#3",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 180"
+  },
+  {
+    "level": 181,
+    "puzzle_id": "Jon3o",
+    "fen": "8/8/2S4k/6l1/2e5/8/8/3Ks3 w - - 0 28",
+    "moves": "d1e1,g5f4,e1e2",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 181"
+  },
+  {
+    "level": 182,
+    "puzzle_id": "qgShs",
+    "fen": "8/8/8/2e1s3/1I1M4/6k1/2G5/4K3 b - - 10 30",
+    "moves": "e5f3,e1e2,g3f4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 182"
+  },
+  {
+    "level": 183,
+    "puzzle_id": "hmDPA",
+    "fen": "8/3k4/2e2H2/8/4bM2/2l5/6K1/8 w - - 0 15",
+    "moves": "f4e5,c6c5,g2g3",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 183"
+  },
+  {
+    "level": 184,
+    "puzzle_id": "jt4g7",
+    "fen": "8/8/2e5/4bk2/3G4/4HKM1/8/8 w - - 1 19",
+    "moves": "d4d5,e5e4,e3e4",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 184"
+  },
+  {
+    "level": 185,
+    "puzzle_id": "o9oEy",
+    "fen": "8/2eb4/2c1k3/2G2n2/3I4/4FKl1/8/8 b - - 1 10",
+    "moves": "c6c5,e3e4,c5e5",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 185"
+  },
+  {
+    "level": 186,
+    "puzzle_id": "x3BYn",
+    "fen": "8/1keb4/6n1/2l5/4F3/3K4/3G4/4MH2 b - - 1 6",
+    "moves": "b7c6,d3c4,g6f7",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 186"
+  },
+  {
+    "level": 187,
+    "puzzle_id": "DQpaZ",
+    "fen": "8/2e5/2kbc3/2l3I1/8/3GF3/4KM2/7H b - - 4 9",
+    "moves": "e6e5,g5e5,d6e5",
+    "eval": "#4",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 187"
+  },
+  {
+    "level": 188,
+    "puzzle_id": "ccRqg",
+    "fen": "8/2e5/2nM1k2/8/4c3/8/2GI1K2/5H2 b - - 0 8",
+    "moves": "e4f3,f2e1,f3e3",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 188"
+  },
+  {
+    "level": 189,
+    "puzzle_id": "IDqXt",
+    "fen": "8/2e1k3/2c5/2l2n2/4FM2/5K2/2GI4/8 b - - 1 9",
+    "moves": "c6e4,f3g3,e7e6",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 189"
+  },
+  {
+    "level": 190,
+    "puzzle_id": "VyP6f",
+    "fen": "8/2ebk3/6n1/Ic6/3M4/3G4/3K4/3H4 b - - 4 9",
+    "moves": "b5a5,d4c5,e7e6",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 190"
+  },
+  {
+    "level": 191,
+    "puzzle_id": "IRY90",
+    "fen": "8/2ebk3/1c4n1/4l3/8/3G4/4KM2/3I1H2 b - - 5 8",
+    "moves": "e7e6,d3e3,e5d4",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 191"
+  },
+  {
+    "level": 192,
+    "puzzle_id": "0a6LQ",
+    "fen": "8/2e1k3/5ln1/3c4/3b4/4F3/2GI1M2/3H1K2 b - - 3 9",
+    "moves": "e7e6,d2d3,d5e4",
+    "eval": "#5",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 192"
+  },
+  {
+    "level": 193,
+    "puzzle_id": "wKHJA",
+    "fen": "8/2e5/3kb3/1I3n2/8/4K3/5M2/8 b - - 1 13",
+    "moves": "e6e5,e3e2,c7c6",
+    "eval": "#6",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 193"
+  },
+  {
+    "level": 194,
+    "puzzle_id": "cweZx",
+    "fen": "8/2ek4/3l4/3nF3/8/8/2G1KM2/8 b - - 0 11",
+    "moves": "d7c6,e2d3,c6c5",
+    "eval": "#6",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 194"
+  },
+  {
+    "level": 195,
+    "puzzle_id": "PtvVB",
+    "fen": "3I4/8/3M4/8/2s3k1/8/8/2K5 b - - 3 44",
+    "moves": "g4f4,d8e8,c4d6",
+    "eval": "#8",
+    "type": "mate",
+    "variant": "matatak",
+    "title": "Niveau 195"
+  },
+  {
+    "level": 196,
+    "puzzle_id": "8WExx",
+    "fen": "8/2e5/k7/4F3/8/8/4n2K/8 w - - 2 23",
+    "moves": "h2g3,a6b5,g3f4",
+    "eval": "548",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 196"
+  },
+  {
+    "level": 197,
+    "puzzle_id": "zdsBR",
+    "fen": "6k1/8/4S3/6l1/8/3s4/2e5/5K2 w - - 4 36",
+    "moves": "f1e2,d3e5,e6g5",
+    "eval": "619",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 197"
+  },
+  {
+    "level": 198,
+    "puzzle_id": "6Z2nw",
+    "fen": "8/2eb4/3k4/5n2/8/8/3K1M2/1I6 w - - 0 12",
+    "moves": "b1b5,d7e6,f2e3",
+    "eval": "-6",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 198"
+  },
+  {
+    "level": 199,
+    "puzzle_id": "v5Ox7",
+    "fen": "k7/8/8/2e5/1G5K/3n4/4H3/6s1 b - - 5 34",
+    "moves": "a8b7,e2e3,d3e4",
+    "eval": "723",
+    "type": "winning",
+    "variant": "matatak",
+    "title": "Niveau 199"
+  },
+  {
+    "level": 200,
+    "puzzle_id": "NcCnW",
+    "fen": "8/2ek4/6H1/4b3/3l4/2G3M1/8/5K2 w - - 0 12",
+    "moves": "g6f6,d7e7,f6g6",
+    "eval": "0",
+    "type": "defensive",
+    "variant": "matatak",
+    "title": "Niveau 200"
+  }
+]

@@ -10,6 +10,7 @@ import { updateMovelist } from './movelist';
 import { variants } from './variants';
 import { RatedSettings, AutoNextSettings } from './puzzleSettings';
 import { updatePoint } from './info';
+import { showBannerOverlay } from './bannerOverlay';
 
 
 export class PuzzleController extends AnalysisController {
@@ -33,11 +34,17 @@ export class PuzzleController extends AnalysisController {
     gaugeNeeded: boolean;
     wrating: string;
     brating: string;
+    level?: number;
+    totalLevels?: number;
+    intro?: { piece: string; piece_name: string; title: string; text: string };
 
     constructor(el: HTMLElement, model: PyChessModel) {
         super(el, model);
         const data = JSON.parse(model.puzzle);
         this._id = data._id;
+        this.level = data.level;
+        this.totalLevels = data.total_levels;
+        this.intro = data.intro;
         this.gameId = data.gameId;
         this.site = data.site;
         this.played = data.played ?? "0";
@@ -198,6 +205,10 @@ export class PuzzleController extends AnalysisController {
 
         const infosEl = document.querySelector('.infos') as HTMLElement;
         patch(infosEl, h('div.game-info', [
+            this.level ? h('div.campaign-level-badge', { style: { background: '#007bff', color: '#fff', padding: '6px 12px', borderRadius: '6px', marginBottom: '12px', textAlign: 'center', fontWeight: 'bold' } }, [
+                `🎯 Niveau ${this.level} / ${this.totalLevels || 200}`,
+                h('a', { attrs: { href: `/puzzle/campaign/${this.variant.name}` }, style: { color: '#fff', marginLeft: '10px', fontSize: '0.85em', textDecoration: 'underline' } }, "☰ Liste")
+            ]) : null,
             h('section', [
                 h('div.info0.icon.icon-puzzle', [
                     h('div.info2', [
@@ -229,7 +240,7 @@ export class PuzzleController extends AnalysisController {
                     ])
                 ]),
             ])
-        ]));
+        ].filter(Boolean) as VNode[]));
     }
 
     viewSolution() {
@@ -376,12 +387,24 @@ export class PuzzleController extends AnalysisController {
     puzzleComplete(success: boolean) {
         var text: string = '';
         if (!this.failed && success) {
-            // completed without any failed move
             text = _('Success!');
             this.postSuccess(true);
+
+            // Enregistrer la réussite du niveau dans le localStorage
+            if (this.level !== undefined) {
+                const key = `matatak_campaign_solved_${this.variant.name}`;
+                try {
+                    const solved: number[] = JSON.parse(localStorage.getItem(key) || "[]");
+                    if (!solved.includes(this.level)) {
+                        solved.push(this.level);
+                        localStorage.setItem(key, JSON.stringify(solved));
+                    }
+                } catch (e) {
+                    console.error("Erreur sauvegarde localStorage niveau:", e);
+                }
+            }
         } else if (!success) {
             if (this._id !== '0') {
-                // failed by viewing the solution
                 text = _('Puzzle complete!');
                 this.postSuccess(false);
             } else {
@@ -389,32 +412,69 @@ export class PuzzleController extends AnalysisController {
             }
         }
         this.completed = true;
+
+        const nextLevelNum = (this.level ?? 0) + 1;
         const feedbackEl = document.querySelector('.feedback') as HTMLInputElement;
+
         patch(feedbackEl,
             h('div.feedback.after', [
-                h('div.complete', text),
-                h('div.puzzle_vote', [
-                    h('div.puzzle_vote_help', [
-                        h('p', _('Did you like this puzzle?')),
-                        h('p', _('Vote to load the next one!'))
-                    ]),
-                    h('div.puzzle_vote_buttons.enabled', [
-                        h('div.vote.vote-up.icon.icon-thumbs-o-up',
-                            { on: { click: () => this.postVote(true) } }
-                        ),
-                        h('div.vote.vote-down.icon.icon-thumbs-o-up',
-                            { on: { click: () => this.postVote(false) } }
-                        )
-                    ])
-                ]),
-                h('div.more', [
+                h('div.complete', this.level ? `Niveau ${this.level} Réussi ! 🎉` : text),
+                this.level ? h('div.campaign-buttons', { style: { display: 'flex', gap: '10px', justifyContent: 'center', margin: '15px 0' } }, [
+                    nextLevelNum <= (this.totalLevels || 200) ? h('a.button.hero-btn', {
+                        attrs: { href: `/puzzle/${this.variant.name}/level/${nextLevelNum}` },
+                        style: { background: '#28a745', color: '#fff', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }
+                    }, `Niveau ${nextLevelNum} ➔`) : null,
+                    h('a.button', {
+                        attrs: { href: `/puzzle/campaign/${this.variant.name}` },
+                        style: { background: 'rgba(255,255,255,0.15)', color: '#fff', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none' }
+                    }, "Grille des niveaux ☰")
+                ]) : h('div.more', [
                     h('a',
                         { on: { click: () => this.continueTraining(this.variant.name) } },
                         _('Continue training')
                     ),
                 ]),
             ])
-        )
+        );
+
+        // Affichage du bandeau pop-up au centre du plateau
+        if (success) {
+            if (this.level && nextLevelNum <= (this.totalLevels || 200)) {
+                showBannerOverlay({
+                    title: `Niveau ${this.level} Réussi ! 🎉`,
+                    buttons: [
+                        {
+                            text: `Niveau ${nextLevelNum} ➔`,
+                            style: 'primary',
+                            onClick: () => {
+                                window.location.assign(`/puzzle/${this.variant.name}/level/${nextLevelNum}`);
+                            }
+                        },
+                        {
+                            text: "Grille ☰",
+                            style: 'outline',
+                            onClick: () => {
+                                window.location.assign(`/puzzle/campaign/${this.variant.name}`);
+                            }
+                        }
+                    ]
+                });
+            } else {
+                showBannerOverlay({
+                    title: _("Puzzle réussi ! 🎉"),
+                    subtitle: _("Bravo !"),
+                    buttons: [
+                        {
+                            text: _("Continuer ➔"),
+                            style: 'primary',
+                            onClick: () => {
+                                this.continueTraining(this.variant.name);
+                            }
+                        }
+                    ]
+                });
+            }
+        }
         if (this.gaugeNeeded) {
             const gaugeEl = document.getElementById('gauge') as HTMLElement;
             gaugeEl.style.display = 'block';
