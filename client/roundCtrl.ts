@@ -958,7 +958,7 @@ export class RoundController extends GameController {
                         if (this.level < 20) {
                             const nextLvl = this.level + 1;
                             buttons.push({
-                                text: `Niveau IA ${nextLvl} ➔`,
+                                text: `Niveau ${nextLvl} ➔`,
                                 style: 'primary' as const,
                                 onClick: () => this.rematch(nextLvl)
                             });

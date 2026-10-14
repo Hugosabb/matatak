@@ -153,6 +153,18 @@ export class LobbyController implements ChatController {
             if (this.fen !== "" && this.profileid === "") {
                 this.createGame(model.variant);
             }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto_ai')) {
+                const lvl = parseInt(urlParams.get('auto_ai') || '1');
+                const variantName = urlParams.get('variant') || 'matatakmini';
+                this.createAIChallengeMsg(variantName, 'random', '', 0, 0, 0, lvl, false, false, false, false, 0);
+            } else if (urlParams.get('ai')) {
+                const lvl = parseInt(urlParams.get('ai') || '1');
+                this.playAI();
+                const aiLvlSelect = document.getElementById('ailevel-select') as HTMLSelectElement;
+                if (aiLvlSelect) aiLvlSelect.value = String(lvl);
+            }
         }, 0);
 
         const lobbyChatEl = document.getElementById('lobbychat');

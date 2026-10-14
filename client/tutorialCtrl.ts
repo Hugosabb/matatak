@@ -125,14 +125,36 @@ export class TutorialController extends PuzzleController {
         }
 
         // Affichage du bandeau pop-up interactif au centre du plateau
-        showBannerOverlay({
-            title: this.tutorialId < 10 ? _('Étape Réussie ! 🎉') : _('Tutoriel Terminé ! 🎉'),
-            subtitle: this.successMsg,
-            actionText: this.tutorialId < 10 ? _('Étape Suivante ➔') : _('Retour à l\'accueil ➔'),
-            onAction: () => {
-                this.nextTutorial();
-            }
-        });
+        if (this.tutorialId < 10) {
+            showBannerOverlay({
+                title: _('Étape Réussie ! 🎉'),
+                subtitle: this.successMsg,
+                buttons: [
+                    {
+                        text: _('Étape Suivante ➔'),
+                        style: 'primary',
+                        onClick: () => this.nextTutorial()
+                    }
+                ]
+            });
+        } else {
+            showBannerOverlay({
+                title: _('Tutoriel Terminé ! 🎉'),
+                subtitle: this.successMsg,
+                buttons: [
+                    {
+                        text: _('Puzzles (Niv. 1) ➔'),
+                        style: 'primary',
+                        onClick: () => window.location.assign('/puzzle/matatakmini/level/1')
+                    },
+                    {
+                        text: _('Jouer (Niv. 1)'),
+                        style: 'secondary',
+                        onClick: () => window.location.assign('/?auto_ai=1&variant=matatakmini')
+                    }
+                ]
+            });
+        }
 
         // Clear the old feedback zone
         const feedbackEl = document.querySelector('.feedback') as HTMLElement;
