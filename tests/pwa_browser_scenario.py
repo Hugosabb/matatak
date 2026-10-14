@@ -1,8 +1,8 @@
 """Scénario navigateur de la mise à jour de la PWA (à lancer à la main, pas collecté par pytest).
 
 Simule trois déploiements successifs et vérifie, dans un vrai Chromium :
-  - page calme (À propos) : la mise à jour s'applique toute seule (rechargement) ;
-  - page occupée (tutoriel) : bannière « Nouvelle version disponible », rechargement au clic seulement ;
+  - toute page (À propos, tutoriel…) : la mise à jour s'applique toute seule (rechargement) ;
+  - page occupée (tutoriel) : même comportement, sans bannière ni clic ;
   - première visite : le service worker prend la main sans recharger la page.
 
 Prérequis : `playwright install chromium` dans l'environnement de test, puis, depuis la racine du dépôt :
@@ -102,35 +102,21 @@ try:
         check("après rechargement : fichiers ?v=v2", "site.css?v=v2" in page.content())
         check("page calme : aucune bannière", page.query_selector("#update-banner") is None)
 
-        # 3) nouveau déploiement (v3), page occupée (tutoriel) -> bannière, pas de rechargement
+        # 3) nouveau déploiement (v3), même sur une page « occupée » (tutoriel) : mise à jour automatique
         page.goto(BASE + "/tutorial/1", wait_until="load")
         page.wait_for_function("navigator.serviceWorker.controller !== null", timeout=15000)
         page.evaluate("window.__marqueur = 1")
         start_server("v3")
         page.evaluate("navigator.serviceWorker.getRegistration().then(r => r.update())")
         try:
-            page.wait_for_selector("#update-banner", timeout=15000)
-            banner = True
+            page.wait_for_function("window.__marqueur === undefined", timeout=15000)
+            reloaded = True
         except Exception:
-            banner = False
-        check("page occupée : la bannière apparaît", banner)
-        time.sleep(1.5)
-        check(
-            "page occupée : PAS de rechargement tant qu'on ne clique pas",
-            page.evaluate("window.__marqueur") == 1,
-        )
-        if banner:
-            text = page.inner_text("#update-banner")
-            print("      texte de la bannière :", text.replace("\n", " | "))
-            page.click("#update-banner button")
-            try:
-                page.wait_for_function("window.__marqueur === undefined", timeout=15000)
-                reloaded = True
-            except Exception:
-                reloaded = False
-            check("clic sur « Mettre à jour » : la page se recharge", reloaded)
-            page.wait_for_load_state("load")
-            check("après clic : fichiers ?v=v3", "site.css?v=v3" in page.content())
+            reloaded = False
+        check("page occupée (tutoriel) : rechargement automatique vers la v3", reloaded)
+        page.wait_for_load_state("load")
+        check("après rechargement : fichiers ?v=v3", "site.css?v=v3" in page.content())
+        check("aucune bannière à cliquer", page.query_selector("#update-banner") is None)
         browser.close()
 finally:
     for p in procs:
