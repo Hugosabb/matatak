@@ -6,7 +6,7 @@ from pathlib import Path
 import aiohttp_session
 from aiohttp import web
 
-from const import DARK_FEN, STARTED
+from const import DARK_FEN, NONE_USER, STARTED
 from fairy import BLACK, WHITE
 from lang import LOCALE
 from pychess_global_app_state_utils import get_app_state
@@ -54,7 +54,6 @@ async def get_user_context(request):
                 user = None
 
             if user is None or user.username == NONE_USER:
-                from const import NONE_USER
                 log.info("User %s not found in DB or is NONE_USER. Creating new anon user.", session_user)
                 
                 # Heal session without redirecting

@@ -10,6 +10,7 @@ from puzzle import (
     get_daily_puzzle,
     default_puzzle_perf,
 )
+from variants import VARIANTS
 from views import get_user_context
 from campaign import get_level, get_total_levels, load_campaign
 
