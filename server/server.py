@@ -102,6 +102,27 @@ async def cross_origin_policy_middleware(request, handler):
     return response
 
 
+# Fichiers dont le contenu change d'un déploiement à l'autre : toujours à revalider (ETag, réponse 304).
+REVALIDATE_EXTENSIONS = (".css", ".js", ".json", ".html", ".md")
+
+
+async def static_cache_control(request, response):
+    """Dit aux navigateurs combien de temps garder les fichiers de /static.
+
+    - adresse versionnée (`?v=...`) : le contenu ne changera jamais à cette adresse, on garde 1 an ;
+    - style, script et données sans version : on revalide à chaque fois (rapide grâce à l'ETag) ;
+    - images, sons, polices : 1 jour.
+    """
+    if not request.path.startswith("/static/") or response.status not in (200, 304):
+        return
+    if "v" in request.query:
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    elif request.path.endswith(REVALIDATE_EXTENSIONS):
+        response.headers["Cache-Control"] = "no-cache"
+    else:
+        response.headers["Cache-Control"] = "public, max-age=86400"
+
+
 def make_app(db_client=None, simple_cookie_storage=False, anon_as_test_users=False) -> Application:
     app = web.Application()
     app.middlewares.append(redirect_to_https)
@@ -155,6 +176,7 @@ def make_app(db_client=None, simple_cookie_storage=False, anon_as_test_users=Fal
     for route in post_routes:
         app.router.add_post(route[0], route[1])
     app.router.add_static("/static", "static", append_version=True)
+    app.on_response_prepare.append(static_cache_control)
     app.middlewares.append(handle_404)
 
     # Configure default CORS settings.

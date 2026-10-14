@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import os
 import json
 import string
+from pathlib import Path
 
 LOCALHOST = "http://127.0.0.1:8080"
 URI = os.getenv("URI", LOCALHOST)
@@ -44,10 +46,34 @@ ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS", "https://www.matatak.org,https://cdn.jsdelivr.net"
 ).split(",")
 
-SOURCE_VERSION = os.getenv("SOURCE_VERSION", "")
-if SOURCE_VERSION != "":
-    SOURCE_VERSION = "?v=%s" % SOURCE_VERSION
+
+def compute_asset_version(static_dir: Path | None = None) -> str:
+    """Empreinte courte du contenu des fichiers de style et de script.
+
+    Elle change à chaque modification de ces fichiers, donc à chaque déploiement : elle sert de
+    numéro de version aux adresses (`?v=...`) et au service worker, pour que navigateurs et PWA
+    récupèrent toujours les fichiers à jour sans intervention manuelle.
+    """
+    if static_dir is None:
+        static_dir = Path(__file__).resolve().parent.parent / "static"
+    digest = hashlib.sha256()
+    patterns = ("*.css", "*.js", "js/*.js", "piece/mono/*.css")
+    files = sorted({f for pattern in patterns for f in static_dir.glob(pattern)})
+    for f in files:
+        if f.name == "service-worker.js":  # servi à part, avec la version injectée
+            continue
+        digest.update(f.relative_to(static_dir).as_posix().encode())
+        digest.update(f.read_bytes())
+    return digest.hexdigest()[:10]
+
+
+# Variable d'environnement SOURCE_VERSION : prioritaire si elle est définie, sinon empreinte calculée.
+ASSET_VERSION = os.getenv("SOURCE_VERSION") or compute_asset_version()
+SOURCE_VERSION = "?v=%s" % ASSET_VERSION
 
 
 def static_url(static_file_path):
-    return "%s/%s" % (STATIC_ROOT, static_file_path)
+    url = "%s/%s" % (STATIC_ROOT, static_file_path)
+    if static_file_path.endswith((".css", ".js")):
+        url += SOURCE_VERSION
+    return url

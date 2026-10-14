@@ -3401,3 +3401,40 @@ body:has(#toggle-moves:not(:checked)) #btn-controls-top,
 body:has(#toggle-moves:not(:checked)) #movelist > *:not(.result):not(.status) {
     display: none;
 }
+
+/* Bannière « nouvelle version disponible » (voir static/js/pwa-update.js) */
+#update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: calc(100vw - 32px);
+  padding: 10px 12px 10px 18px;
+  border: 1px solid #b36a1d;
+  border-radius: 999px;
+  background: #1c1917;
+  color: #f2ddce;
+  font-size: 15px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+#update-banner button {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #eac45a;
+  color: #1c1917;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#update-banner button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

@@ -1,50 +1,51 @@
-const CACHE_NAME = 'matatak-cache-v6';
-const URLS_TO_CACHE = [
-    '/',
-    '/static/site.css',
-    '/static/style.css',
-    '/static/favicon/favicon.ico',
-];
+// Service worker de Matatak.
+//
+// __VERSION__ est remplacé par le serveur à chaque déploiement (voir server/pwa.py) : le fichier
+// change donc d'octets à chaque nouvelle version, ce qui déclenche la mise à jour dans le navigateur.
+// Ne jamais modifier la ligne suivante à la main.
+const VERSION = '__VERSION__';
+const CACHE_NAME = 'matatak-' + VERSION;
 
-self.addEventListener('install', (event) => {
-    self.skipWaiting(); // Force activate immediately
+// Pas de skipWaiting() automatique : la page décide du bon moment (jamais en pleine partie).
+// Elle envoie 'SKIP_WAITING' quand c'est sans risque ou quand le joueur clique sur la bannière.
+self.addEventListener('message', (event) => {
+    if (event.data === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
+// À l'activation : supprimer les caches des versions précédentes, puis prendre la main sur les pages.
+self.addEventListener('activate', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                return cache.addAll(URLS_TO_CACHE);
-            })
+        caches.keys()
+            .then((names) => Promise.all(
+                names.filter((name) => name !== CACHE_NAME).map((name) => caches.delete(name))
+            ))
+            .then(() => self.clients.claim())
     );
 });
 
 self.addEventListener('fetch', (event) => {
-    // Pour la page HTML, on demande toujours au réseau d'abord (Network-First) 
-    // pour garantir que les utilisateurs ont la dernière version de l'application.
-    if (event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
+    const request = event.request;
+    if (request.method !== 'GET') return;
+
+    const url = new URL(request.url);
+    const versioned = url.origin === self.location.origin
+        && url.pathname.startsWith('/static/')
+        && url.searchParams.has('v');
+
+    // Fichiers versionnés (?v=...) : l'adresse change dès que le contenu change, donc on peut les
+    // garder sans risque (chargement instantané, même avec une mauvaise connexion).
+    if (versioned) {
         event.respondWith(
-            fetch(event.request).catch(() => caches.match(event.request))
+            caches.open(CACHE_NAME).then(async (cache) => {
+                const cached = await cache.match(request);
+                if (cached) return cached;
+                const response = await fetch(request);
+                if (response.ok) cache.put(request, response.clone());
+                return response;
+            })
         );
-        return;
     }
-
-    // Pour tout le reste (Images, CSS, JS), on fait comme avant : Cache-First
-    // On regarde dans le cache, si ce n'y est pas, on va sur le réseau sans rien compliquer.
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
-        })
-    );
-});
-
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim()) // Take control of all pages immediately
-    );
+    // Tout le reste (pages, API, images sans version, WebSocket) : le réseau, toujours à jour.
 });

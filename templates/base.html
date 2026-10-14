@@ -60,26 +60,7 @@
     {% block content %}{% endblock %}
     <a id="reconnecting" class="link text" data-icon="p"><info-date id="reconnecting-ts" timestamp=""></info-date></a>
     <script src="{{ static('./js/zoomManager.js') }}"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js?v=2')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    })
-                    .catch(err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-
-            let refreshing;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (refreshing) return;
-                refreshing = true;
-                window.location.reload();
-            });
-        }
-    </script>
+    <script src="{{ static('./js/pwa-update.js') }}"></script>
 </body>
 
 </html>
