@@ -26,3 +26,11 @@ tournament*.json
 yarn-error.log
 .idea/
 docker-compose.override.yaml
+
+# Illustrations MATATAK (tous droits reserves, voir static/COPYING.md) : ne jamais les committer
+static/images/pieces/matatak/
+static/images/background/
+static/images/board/matatak*.png
+static/favicon/*.png
+static/favicon/favicon.ico
+!static/favicon/og-image.png

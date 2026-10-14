@@ -18,6 +18,23 @@ details.
 
 See the LICENSE file in the root directory for a copy of the _GNU Affero General Public License_.
 
+## MATATAK : illustrations, tous droits réservés
+
+Le **code** de ce dépôt reste sous licence AGPL-3.0 (voir ci-dessus). Les **illustrations du jeu MATATAK**
+ne sont **pas** sous licence libre : elles sont © MATATAK / Synfaunia, **tous droits réservés**, et
+ne sont pas distribuées avec ce dépôt. Sont concernés :
+
+Files | Notes
+--- | ---
+static/images/pieces/matatak/* | Illustrations des Personnages (72 fichiers)
+static/images/board/matatak*.png | Plateaux de jeu
+static/images/background/* | Fonds d'écran et visuel de la boîte du jeu
+static/favicon/*.png, static/favicon/favicon.ico | Icônes du site (tirées de l'illustration de la boîte) ; `og-image.png` reste celui de pychess
+
+Ces fichiers sont ignorés par git (voir `.gitignore`). Sans eux, le site fonctionne mais les images des
+pièces, des plateaux, des fonds et les icônes sont absentes (`scripts/generate_icons.py` génère les icônes à partir d'une image source). Aucune licence n'est accordée sur ces images ; leur
+reproduction, modification ou redistribution requiert une autorisation écrite des titulaires des droits.
+
 ## Exceptions
 
 Files | Author(s) | License | Notes

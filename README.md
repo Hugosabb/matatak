@@ -1,3 +1,7 @@
+> **MATATAK** : ce dépôt est le code du site de jeu en ligne MATATAK, un fork de pychess-variants (AGPL-3.0).
+> Le code est libre ; les **illustrations du jeu (Personnages, plateaux, fonds) sont © MATATAK / Synfaunia, tous droits réservés**
+> et ne sont pas incluses (voir [static/COPYING.md](static/COPYING.md)).
+
 ## [www.pychess.org](https://www.pychess.org)
 
 [![Python-CI](https://github.com/gbtami/pychess-variants/actions/workflows/ci.yml/badge.svg)](https://github.com/gbtami/pychess-variants/actions/workflows/ci.yml)
