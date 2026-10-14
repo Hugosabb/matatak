@@ -54,6 +54,7 @@ from settings import (
     URI,
     LOCALHOST,
     STATIC_ROOT,
+    ASSET_VERSION,
     SOURCE_VERSION,
     DEV,
     static_url,
@@ -434,6 +435,7 @@ class PychessGlobalAppState:
         env.install_gettext_translations(_Translations, newstyle=True)
 
         env.globals["static"] = static_url
+        env.globals["asset_version"] = ASSET_VERSION
         env.globals["js"] = "/static/pychess-variants.js%s" % SOURCE_VERSION
         env.globals["dev"] = DEV
         env.globals["app_name"] = "Matatak"

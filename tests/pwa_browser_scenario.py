@@ -73,9 +73,15 @@ try:
         )
 
         # 1) première visite sur une page calme
+        requests = []
+        page.on("request", lambda r: requests.append(r.url))
         page.goto(BASE + "/about", wait_until="load")
         page.wait_for_function("navigator.serviceWorker.controller !== null", timeout=15000)
         check("1re visite : le service worker prend la main", True)
+        check(
+            "traductions demandées avec la version (client.json?v=v1)",
+            any("client.json?v=v1" in u for u in requests),
+        )
         page.evaluate("window.__marqueur = 1")
         time.sleep(1.5)
         check("1re visite : la page n'a PAS été rechargée", page.evaluate("window.__marqueur") == 1)

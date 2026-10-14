@@ -1,4 +1,3 @@
-import { sanitizeURL } from './url';
 import { h, VNode } from 'snabbdom';
 
 import ffishModule, { FairyStockfish } from 'ffish-es6';
@@ -58,7 +57,8 @@ function initModel(el: HTMLElement) {
     if (board) board = JSON.parse(board);
     return {
         ffish: {} as FairyStockfish,
-        home: sanitizeURL(el.getAttribute("data-home")) ?? "",
+        // Toujours l'origine réelle de la page (apex ou www) : une autre adresse sortirait de la PWA installée.
+        home: window.location.origin,
         anon: el.getAttribute("data-anon") ?? "",
         profileid: el.getAttribute("data-profile") ?? "",
         title: el.getAttribute("data-title") ?? "",
@@ -317,7 +317,7 @@ if (el instanceof Element) {
     volumeSettings.update();
 
     const lang = el.getAttribute("data-lang") ?? 'en';
-    fetch(model.assetURL + '/lang/' + lang + '/LC_MESSAGES/client.json?v=8')
+    fetch(model.assetURL + '/lang/' + lang + '/LC_MESSAGES/client.json?v=' + (el.getAttribute("data-asset-version") ?? ''))
         .then(res => res.json())
         .then(translation => {
             i18n.loadJSON(translation, 'messages');

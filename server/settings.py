@@ -57,7 +57,7 @@ def compute_asset_version(static_dir: Path | None = None) -> str:
     if static_dir is None:
         static_dir = Path(__file__).resolve().parent.parent / "static"
     digest = hashlib.sha256()
-    patterns = ("*.css", "*.js", "js/*.js", "piece/mono/*.css")
+    patterns = ("*.css", "*.js", "js/*.js", "piece/mono/*.css", "lang/*/LC_MESSAGES/client.json")
     files = sorted({f for pattern in patterns for f in static_dir.glob(pattern)})
     for f in files:
         if f.name == "service-worker.js":  # servi à part, avec la version injectée

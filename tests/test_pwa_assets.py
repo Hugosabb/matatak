@@ -38,7 +38,14 @@ class AssetVersionTestCase(unittest.TestCase):
             self.assertEqual(first, compute_asset_version(root))
 
             (root / "site.css").write_text("a{color:red}")
-            self.assertNotEqual(first, compute_asset_version(root))
+            changed = compute_asset_version(root)
+            self.assertNotEqual(first, changed)
+
+            # les traductions du client comptent aussi (chargées avec la même version)
+            translations = root / "lang" / "fr" / "LC_MESSAGES"
+            translations.mkdir(parents=True)
+            (translations / "client.json").write_text("{}")
+            self.assertNotEqual(changed, compute_asset_version(root))
 
 
 class PwaAssetsTestCase(AioHTTPTestCase):
@@ -60,6 +67,8 @@ class PwaAssetsTestCase(AioHTTPTestCase):
         html = await resp.text()
         for name in ("site.css", "style.css", "pychess-variants.js", "pwa-update.js"):
             self.assertIn("%s?v=%s" % (name, ASSET_VERSION), html, name)
+        # le client en a besoin pour demander les traductions à la bonne version
+        self.assertIn('data-asset-version="%s"' % ASSET_VERSION, html)
 
     async def test_service_worker_has_version_and_is_never_cached(self):
         resp = await self.client.request("GET", "/service-worker.js")

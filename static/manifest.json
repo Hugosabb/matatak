@@ -40,6 +40,8 @@
         }
     ],
     "start_url": "/",
+    "id": "/",
+    "scope": "/",
     "display": "fullscreen",
     "theme_color": "#dbd7d1",
     "background_color": "#dbd7d1"
