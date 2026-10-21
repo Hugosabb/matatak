@@ -21,12 +21,13 @@ from vsco import SR, np  # noqa: E402
 SON = os.path.join(ICI, "..", "..", "static", "sound")
 DEST = os.path.join(SON, "matatak")
 
-# sons longs : volume intégré (LUFS) ; sons courts : crête en dB
+# sons longs : (composition, durée en s, volume intégré en LUFS) ; assez longs pour s'éteindre
+# d'eux-mêmes, avec un fondu d'une seconde (avant : victoire et défaite coupées en pleine résonance)
 LONGS = {
-    "GenericNotify": (debut, 2.4, -18),
-    "Victory": (victoire_tresillo, 3.2, -18),
-    "Defeat": (defaite, 3.0, -20),
-    "Draw": (nulle, 2.0, -20),
+    "GenericNotify": (debut, 2.9, -18),
+    "Victory": (victoire_tresillo, 4.2, -18),
+    "Defeat": (defaite, 4.0, -20),
+    "Draw": (nulle, 2.6, -20),
 }
 # sons courts : variante de courts.py, rallonge (s) et réglages de l'export (crête, égaliseur,
 # salle, fondu). Hugo : « ça change tout quand ça résonne » ; ne pas couper net.
@@ -51,7 +52,7 @@ if __name__ == "__main__":
 
     vsco.SORTIE = DEST
     for nom, (f, longueur, integre) in LONGS.items():
-        vsco.exporter(nom, f(j), longueur, integre)
+        vsco.exporter(nom, f(j), longueur, integre, fondu_d=1.0)
 
     courts.SORTIE = DEST
     catalogue = courts.sons(j)

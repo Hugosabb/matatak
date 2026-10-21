@@ -522,7 +522,7 @@ def reverb(mix, duree=1.3, humide=0.16):
     return mix + humide * mouille.astype(np.float32)
 
 
-def exporter(nom, mix, longueur=3.0, integre=-14):
+def exporter(nom, mix, longueur=3.0, integre=-14, fondu_d=0.6):
     os.makedirs(SORTIE, exist_ok=True)
     mix = reverb(mix)
     mix = mix / max(1e-9, np.abs(mix).max()) * 0.9
@@ -532,12 +532,12 @@ def exporter(nom, mix, longueur=3.0, integre=-14):
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes((mix * 32767).astype(np.int16).tobytes())
-    fondu = longueur - 0.6
+    fondu = longueur - fondu_d
     # échantillons d'orchestre pris de loin : on rend le grave et on creuse le médium
     filtre = (
         f"bass=g=7:f=100:w=0.7,equalizer=f=450:t=o:w=1.5:g=-3,"
         f"acompressor=threshold=-20dB:ratio=3:attack=8:release=180:makeup=2,"
-        f"loudnorm=I={integre}:TP=-1:LRA=11,atrim=0:{longueur},afade=t=out:st={fondu}:d=0.6"
+        f"loudnorm=I={integre}:TP=-1:LRA=11,atrim=0:{longueur},afade=t=out:st={fondu}:d={fondu_d}"
     )
     for ext, codec in (
         ("ogg", ["-c:a", "libvorbis", "-q:a", "5"]),
