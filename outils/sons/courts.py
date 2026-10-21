@@ -19,12 +19,20 @@ from vsco import SR, np  # noqa: E402
 SORTIE = os.path.join(ICI, "rendu-courts")
 
 
-def exporter(nom, mix, longueur, crete_db=-1.0, eq="bass=g=5:f=100:w=0.7"):
-    """Sons courts : crête fixée (pas de loudnorm, peu fiable sous une seconde), petite salle,
-    coupe nette avec un fondu sur le dernier tiers."""
+def exporter(
+    nom,
+    mix,
+    longueur,
+    crete_db=-1.0,
+    eq="bass=g=5:f=100:w=0.7",
+    salle=(0.6, 0.08),
+    part_fondu=1 / 3,
+):
+    """Sons courts : crête fixée (pas de loudnorm, peu fiable sous une seconde), salle réglable
+    (durée, part de réverbération), fondu sur la fin (part_fondu de la longueur)."""
     os.makedirs(SORTIE, exist_ok=True)
-    mix = vsco.reverb(mix, duree=0.6, humide=0.08)[: int(longueur * SR)]
-    fondu = int(len(mix) / 3)
+    mix = vsco.reverb(mix, duree=salle[0], humide=salle[1])[: int(longueur * SR)]
+    fondu = int(len(mix) * part_fondu)
     mix[-fondu:] *= np.linspace(1, 0, fondu)[:, None] ** 2
     mix = mix / max(1e-9, np.abs(mix).max()) * 10 ** (crete_db / 20)
     wav = os.path.join(SORTIE, nom + ".wav")
@@ -58,13 +66,13 @@ def exporter(nom, mix, longueur, crete_db=-1.0, eq="bass=g=5:f=100:w=0.7"):
 def sons(j):
     """{nom: (fonction(mix), longueur, crête)}. Les temps sont en secondes."""
 
-    def c(cle, t, vel):
-        return (cle, t, vel)
+    def c(cle, t, vel, transpo=0.0):
+        return (cle, t, vel, transpo)
 
     def jouer(*coups):
         def f(mix):
-            for cle, t, vel in coups:
-                j[cle].jouer(mix, t, vel)
+            for cle, t, vel, transpo in coups:
+                j[cle].jouer(mix, t, vel, transpo=transpo)
 
         return f
 
@@ -87,6 +95,96 @@ def sons(j):
             0.5,
             -1,
         ),
+        # alternatives proches de la prise claquée (même traitement, à comparer)
+        "prise-e-claves-tumba": (
+            jouer(c("claves", 0, 115), c("tumba", 0, 122), c("ethnique_grave", 0, 110)),
+            0.4,
+            -1,
+        ),
+        # « tic-tic » : deux claves, le grave sur le premier ou le second
+        "prise-e2-tic-tic-grave-2e": (
+            jouer(
+                c("claves", 0, 105),
+                c("claves", r, 118),
+                c("tumba", r, 122),
+                c("ethnique_grave", r, 110),
+            ),
+            0.45,
+            -1,
+        ),
+        "prise-e3-tic-tic-grave-1er": (
+            jouer(
+                c("claves", 0, 118),
+                c("tumba", 0, 122),
+                c("ethnique_grave", 0, 110),
+                c("claves", r, 100),
+            ),
+            0.45,
+            -1,
+        ),
+        "prise-e4-tic-tic-espace": (
+            jouer(
+                c("claves", 0, 105),
+                c("claves", 0.11, 118),
+                c("tumba", 0.11, 122),
+                c("ethnique_grave", 0.11, 110),
+            ),
+            0.5,
+            -1,
+        ),
+        # « tic-tic » sans le grave, ou joué dans le grave
+        "prise-e5-tic-tic-claves-seules": (
+            jouer(c("claves", 0, 110), c("claves", r, 120)),
+            0.35,
+            -1,
+        ),
+        "prise-e6-tic-tic-claves-graves": (
+            jouer(c("claves", 0, 110, -7), c("claves", r, 120, -7)),
+            0.4,
+            -1,
+        ),
+        "prise-e7-tic-tic-claves-tres-graves": (
+            jouer(c("claves", 0, 110, -12), c("claves", r, 120, -12)),
+            0.4,
+            -1,
+        ),
+        "prise-e8-toc-toc-tambours-graves": (
+            jouer(
+                c("tumba", 0, 110),
+                c("ethnique_grave", 0, 100),
+                c("tumba", r, 125),
+                c("ethnique_grave", r, 115),
+            ),
+            0.45,
+            -1,
+        ),
+        "prise-f-ka-TA-geant": (
+            jouer(c("bongo_aigu", 0, 105), c("tumba", r, 122), c("geant_main", r, 118)),
+            0.5,
+            -1,
+        ),
+        "prise-g-TA-ka": (
+            jouer(c("tumba", 0, 125), c("ethnique_grave", 0, 115), c("quinto", r, 110)),
+            0.45,
+            -1,
+        ),
+        "prise-h-ta-ka-BOUM": (
+            jouer(c("bongo_aigu", 0, 100), c("bongo_grave", r, 105), c("tumba", 2 * r, 125)),
+            0.55,
+            -1,
+        ),
+        "prise-i-geant-claves": (
+            jouer(c("geant_main", 0, 120), c("claves", 0, 110), c("quinto", 0, 100)),
+            0.5,
+            -1,
+        ),
+        # en deux temps : « je bouge » (conga douce) puis « je dégage l'autre » (tumba + bongo)
+        "prise-k-deux-temps": (
+            jouer(c("conga", 0, 95), c("tumba", 0.12, 122), c("bongo_aigu", 0.12, 108)),
+            1.1,
+            -1,
+        ),
+        "prise-j-seche": (jouer(c("quinto", 0, 120), c("tumba", 0, 120)), 0.3, -1),
         "prise-d-claquee": (
             jouer(
                 c("quinto", 0, 122),

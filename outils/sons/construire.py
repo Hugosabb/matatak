@@ -28,16 +28,15 @@ LONGS = {
     "Defeat": (defaite, 3.0, -20),
     "Draw": (nulle, 2.0, -20),
 }
-# la prise n'a pas le renfort de basses mais un peu de présence : sinon elle paraît plus discrète
-# qu'un coup (son énergie était toute dans le grave)
-PRESENCE = (
-    "bass=g=-3:f=120,equalizer=f=2500:t=o:w=1.5:g=8,volume=8dB,alimiter=limit=0.89:level=false"
-)
+# sons courts : variante de courts.py, rallonge (s) et réglages de l'export (crête, égaliseur,
+# salle, fondu). Hugo : « ça change tout quand ça résonne » ; ne pas couper net.
+RESONANCE = {"salle": (1.1, 0.14), "part_fondu": 0.25}
+DOUX = "equalizer=f=2500:t=o:w=2:g=2"  # un peu de présence, sans agresser l'oreille
 COURTS = {
-    "Capture": ("prise-d-claquee", -1, PRESENCE),
-    "Check": ("echec-a-ta-ka-TA", -1, None),
-    "LowTime": ("temps-b-maracas-qui-monte", -1, None),
-    "Promotion": ("promotion-a-lente", -1, None),
+    "Capture": ("prise-k-deux-temps", 0.0, {"eq": DOUX, **RESONANCE}),
+    "Check": ("echec-a-ta-ka-TA", 0.5, RESONANCE),
+    "LowTime": ("temps-b-maracas-qui-monte", 0.5, RESONANCE),
+    "Promotion": ("promotion-a-lente", 0.5, RESONANCE),
 }
 
 if __name__ == "__main__":
@@ -56,11 +55,11 @@ if __name__ == "__main__":
 
     courts.SORTIE = DEST
     catalogue = courts.sons(j)
-    for nom, (cle, crete, eq) in COURTS.items():
-        f, longueur, _ = catalogue[cle]
-        mix = np.zeros((SR * 2, 2), np.float32)
+    for nom, (cle, rallonge, options) in COURTS.items():
+        f, longueur, crete = catalogue[cle]
+        mix = np.zeros((SR * 3, 2), np.float32)
         f(mix)
-        courts.exporter(nom, mix, longueur, crete, **({"eq": eq} if eq else {}))
+        courts.exporter(nom, mix, longueur + rallonge, crete, **options)
         print(os.path.join(DEST, nom + ".ogg"))
 
     with open(os.path.join(DEST, "license.txt"), "w") as fichier:
