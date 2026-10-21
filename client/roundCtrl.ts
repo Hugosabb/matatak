@@ -1155,6 +1155,10 @@ export class RoundController extends GameController {
         if (msg.steps.length <= 2 && this.steps.length > 1 && (this.turnColor === this.mycolor || this.spectator)) {
             if (!this.finishedGame) sound.moveSound(this.variant, capture);
         }
+        // promotion (coup terminé par la pièce choisie, ex. a7a8d) : son en plus du coup, pour les deux joueurs
+        if (msg.steps.length <= 2 && this.steps.length > 1 && !this.finishedGame && /^[a-z]\d+[a-z]\d+[a-z]$/.test(msg.lastMove ?? '')) {
+            sound.promotion();
+        }
         this.checkStatus(msg);
         if (msg.steps.length === 1 && !this.spectator && msg.check && !this.finishedGame) {
             sound.check();

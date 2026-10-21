@@ -7,6 +7,9 @@ import { Variant } from './variants';
 import { StringSettings, NumberSettings } from './settings';
 import { radioList, slider } from './view';
 
+const MATATAK_TRACKS = new Set([
+    'GenericNotify', 'Victory', 'Defeat', 'Draw', 'Capture', 'Check', 'LowTime', 'Promotion',
+]);
 
 class Sounds {
 
@@ -27,6 +30,7 @@ class Sounds {
         Tick: 'Tick',
         Explosion: 'Explosion',
         Berserk: 'Berserk',
+        Promotion: 'Promotion',
     };
 
     private static readonly bugTrackNames = {
@@ -90,6 +94,10 @@ class Sounds {
 
     private buildSound(assetURL: string, soundTheme: string, trackName: string) {
         const soundTrack = (soundTheme === 'silent') ? 'Silence' : trackName;
+        // le thème Matatak ne contient que ses propres sons (outils/sons/construire.py) : le reste
+        // vient du thème standard ; la promotion n'existe que dans Matatak, les autres l'empruntent
+        if (soundTheme === 'matatak' && !MATATAK_TRACKS.has(trackName)) soundTheme = 'standard';
+        else if (trackName === 'Promotion' && soundTheme !== 'silent') soundTheme = 'matatak';
         const sound = new Howl({
             src: [
                 assetURL + '/sound/' + soundTheme + '/' + soundTrack + '.ogg',
@@ -125,6 +133,7 @@ class Sounds {
     tick()          { if (this.audio()) this.tracks.Tick.play(); }
     explosion()     { if (this.audio()) this.tracks.Explosion.play(); }
     berserk()       { if (this.audio()) this.tracks.Berserk.play(); }
+    promotion()     { if (this.audio()) this.tracks.Promotion.play(); }
 
     bugchat(msg:string) { if (this.audio()) this.tracks[msg].play(); }
 
@@ -202,6 +211,7 @@ class VolumeSettings extends NumberSettings {
 
 const soundThemes = {
     silent: "Silent",
+    matatak: "Matatak",
     standard: "Standard",
     piano: "Piano",
     nes: "NES",
@@ -215,7 +225,9 @@ class SoundThemeSettings extends StringSettings {
     assetURL: string;
 
     constructor() {
-        super('soundtheme', 'standard');
+        super('soundtheme', 'matatak');
+        // le panneau Paramètres est masqué : un ancien « standard » enregistré passe au thème Matatak
+        if (this._value === 'standard') this._value = 'matatak';
     }
 
     update(): void {
