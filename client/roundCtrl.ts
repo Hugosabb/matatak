@@ -41,7 +41,11 @@ import { setPocketRowCssVars } from './pocketRow';
 let rang = false;
 const CASUAL = '0';
 const LVL_SKILL = [-20, -17, -14, -11, -8, -5, -3, -1, 0, 1, 3, 4, 5, 6, 7, 10, 12, 15, 17, 20];
-const LVL_MOVETIMES = Array(20).fill(7000);
+// Temps de réflexion de l'ordinateur (Solo) : il calcule, puis attend d'avoir « réfléchi » le temps
+// visé (tempsVise). Jamais instantané, jamais 10 s ; avec une pendule, il ne s'autorise qu'une petite
+// part de son temps, et joue tout de suite sous 30 s (idée d'Hugo, 22/10/2026).
+const REFLEXION_MAX = 5000;
+const RESERVE_PRESSE = 30 * 1000;
 const LVL_DEPTHS = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 9, 13, 17, 22];
 
 export class RoundController extends GameController {
@@ -168,8 +172,9 @@ export class RoundController extends GameController {
             if (line.startsWith('bestmove')) {
                 const bestMove = line.split(' ')[1];
                 if (bestMove && bestMove !== '(none)' && !this.mate1) {
-                    console.log(bestMove);
-                    this.doSendMove(bestMove);
+                    this.jouerCoupOrdinateur(bestMove);
+                } else if (!this.mate1) {
+                    this.marquerReflexion(false);
                 }
             } else if (line.split(' ')[8] == 'mate' // avoid FSF not finishing the game for severals moves even if obvious win
                 && line.split(' ')[2] != '0'
@@ -178,8 +183,7 @@ export class RoundController extends GameController {
                 && !this.mate1) {
                 const mate1 = line.split(' ')[19];
                 this.mate1 = true;
-                console.log('mate in 1 :', mate1);
-                this.doSendMove(mate1);
+                this.jouerCoupOrdinateur(mate1);
             } else if (line.startsWith('Fairy-Stockfish')) {
                 window.prompt = function () {
                     return variantsIni + '\nEOF';
@@ -1666,6 +1670,8 @@ export class RoundController extends GameController {
             return;
         }
         this.isSearching = true;
+        this.reflexion = { debut: performance.now(), vise: this.tempsVise() };
+        this.marquerReflexion(true);
         await this.isReady();
 
         this.fsfPostMessage('setoption name UCI_Variant value ' + this.variant.name);
@@ -1687,13 +1693,48 @@ export class RoundController extends GameController {
         //const [wtime, btime] = this.clocktimes;
         //this.fsfPostMessage(`go wtime ${wtime} btime ${btime} winc ${this.inc * 1000} binc ${this.inc * 1000}`);
 
-        const threads = parseInt(localStorage.threads || '1');
-        const baseMovetime = LVL_MOVETIMES[this.level - 1];
-        const movetime = Math.round(baseMovetime / (threads * Math.pow(0.9, threads - 1)));
-
-        this.fsfPostMessage(`go depth ${LVL_DEPTHS[this.level - 1]} movetime 7000`);
+        // Les niveaux 1 à 15 s'arrêtent à la profondeur 5 en quelques millisecondes ; les plus forts
+        // calculent pendant le temps visé (au moins 1 s, sauf quand la pendule presse).
+        const movetime = Math.max(this.reflexion.vise, this.reflexion.vise === 0 ? 200 : 1000);
+        this.fsfPostMessage(`go depth ${LVL_DEPTHS[this.level - 1]} movetime ${Math.round(movetime)}`);
 
         this.isSearching = false;
+    }
+
+    private reflexion = { debut: 0, vise: 0 };
+
+    /** Temps de réflexion visé pour le prochain coup de l'ordinateur, en ms. */
+    private tempsVise(): number {
+        const coups = this.ffishBoard ? this.ffishBoard.legalMoves().split(' ').filter(c => c).length : 20;
+        if (coups <= 1) return 400; // coup forcé
+        // Un Roi plus fort réfléchit un peu plus ; une position riche aussi ; un peu de hasard
+        let vise = (600 + this.level * 80 + Math.sqrt(coups) * 170) * (0.6 + Math.random() * 0.8);
+        if (this.ply < 4) vise *= 0.5; // début de partie : coups naturels, vite joués
+        vise = Math.min(vise, REFLEXION_MAX);
+        if (!this.unlimited) {
+            const reste = this.clocktimes[this.oppcolor === 'white' ? WHITE : BLACK];
+            if (reste < RESERVE_PRESSE) return 0;
+            vise = Math.min(vise, reste / 40 + this.inc * 1000 * 0.5);
+        }
+        return vise;
+    }
+
+    /** Joue le coup trouvé quand le temps visé est écoulé, si la partie n'a pas bougé entre-temps. */
+    private jouerCoupOrdinateur(coup: string) {
+        const ply = this.ply;
+        const attente = Math.max(0, this.reflexion.vise - (performance.now() - this.reflexion.debut));
+        setTimeout(() => {
+            this.marquerReflexion(false);
+            if (this.status >= 0 || this.ply !== ply || this.turnColor === this.mycolor) return;
+            this.doSendMove(coup);
+        }, attente);
+    }
+
+    /** Trois losanges qui pulsent à côté du nom de l'ordinateur pendant qu'il réfléchit. */
+    private marquerReflexion(oui: boolean) {
+        const enHaut = !this.flipped();
+        document.body.classList.toggle('ordi-reflechit-haut', oui && enHaut);
+        document.body.classList.toggle('ordi-reflechit-bas', oui && !enHaut);
     }
 
     fsfPostMessage(msg: string) {

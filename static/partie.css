@@ -362,3 +362,17 @@ button.dr-carte:focus-visible { outline: 2px solid var(--mt-jaune); outline-offs
   .draft { --dr-carte: 96px; }
 }
 @media (prefers-reduced-motion: reduce) { .dr-attente i { animation: none; } }
+
+/* L'ordinateur réfléchit (roundCtrl.marquerReflexion) : trois losanges qui pulsent après son nom */
+body.ordi-reflechit-haut round-player0 .player-data::after,
+body.ordi-reflechit-bas round-player1 .player-data::after {
+  content: ''; flex: none; width: 34px; height: 10px; margin-left: 6px; background: var(--mt-or);
+  /* trois losanges reliés par un trait d'épaisseur nulle : une seule forme */
+  clip-path: polygon(0 50%, 6px 0, 12px 50%, 6px 100%, 0 50%, 11px 50%, 17px 0, 23px 50%, 17px 100%, 11px 50%, 22px 50%, 28px 0, 34px 50%, 28px 100%, 22px 50%);
+  animation: ordi-pense 1.2s ease-in-out infinite;
+}
+@keyframes ordi-pense { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) {
+  body.ordi-reflechit-haut round-player0 .player-data::after,
+  body.ordi-reflechit-bas round-player1 .player-data::after { animation: none; }
+}
