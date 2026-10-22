@@ -44,7 +44,10 @@ const LVL_SKILL = [-20, -17, -14, -11, -8, -5, -3, -1, 0, 1, 3, 4, 5, 6, 7, 10, 
 // Temps de réflexion de l'ordinateur (Solo) : il calcule, puis attend d'avoir « réfléchi » le temps
 // visé (tempsVise). Jamais instantané, jamais 10 s ; avec une pendule, il ne s'autorise qu'une petite
 // part de son temps, et joue tout de suite sous 30 s (idée d'Hugo, 22/10/2026).
+// Les niveaux 16 à 20 réfléchissent vraiment plus longtemps : à ce niveau, le temps de calcul fait
+// la force du moteur, et un adversaire fort qui prend son temps paraît crédible (Hugo).
 const REFLEXION_MAX = 5000;
+const REFLEXION_MAX_FORT = 8000;
 const RESERVE_PRESSE = 30 * 1000;
 const LVL_DEPTHS = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 9, 13, 17, 22];
 
@@ -1709,8 +1712,10 @@ export class RoundController extends GameController {
         if (coups <= 1) return 400; // coup forcé
         // Un Roi plus fort réfléchit un peu plus ; une position riche aussi ; un peu de hasard
         let vise = (600 + this.level * 80 + Math.sqrt(coups) * 170) * (0.6 + Math.random() * 0.8);
+        const fort = this.level >= 16;
+        if (fort) vise += (this.level - 15) * 700 * (0.8 + Math.random() * 0.4);
         if (this.ply < 4) vise *= 0.5; // début de partie : coups naturels, vite joués
-        vise = Math.min(vise, REFLEXION_MAX);
+        vise = Math.min(vise, fort ? REFLEXION_MAX_FORT : REFLEXION_MAX);
         if (!this.unlimited) {
             const reste = this.clocktimes[this.oppcolor === 'white' ? WHITE : BLACK];
             if (reste < RESERVE_PRESSE) return 0;
