@@ -244,6 +244,8 @@ async def test_analyse_d_une_partie_moteur_et_jauge(site, chromium):
     await page.wait_for_selector(".fin-partie", timeout=10000)
     await page.goto(f"{site}/{game_id}?ply=0")
     await page.wait_for_selector("cg-board")
+    # Même Roi que pendant la partie : en Solo niveau 1, l'ordinateur est AZAR (image k1)
+    assert await attendre(page, "(document.getElementById('rois-partie') || {}).textContent?.includes('k1.jpg')", 5000)
     await page.locator(".engine-toggle label").first.click()
     assert await attendre(page, "document.querySelector('#score') && document.querySelector('#score').textContent.trim() !== ''", 15000)
     assert await attendre(page, "getComputedStyle(document.getElementById('gauge')).getPropertyValue('--noirs') !== ''", 5000)

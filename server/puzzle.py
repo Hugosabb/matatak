@@ -152,6 +152,10 @@ async def puzzle_complete(request):
     rated = post_data["rated"] == "true"
 
     puzzle_data = await get_puzzle(request, puzzleId)
+    if puzzle_data is None:
+        # Niveaux de la campagne : ils viennent des JSON (server/campaign_*.json), pas de la base ;
+        # la progression est gardée sur l'appareil. Rien à enregistrer (avant : erreur 500).
+        return web.json_response({})
     puzzle = Puzzle(app_state.db, puzzle_data)
 
     await puzzle.set_played()

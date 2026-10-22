@@ -63,7 +63,8 @@ export function result(variant: Variant, status: number, result: string, bughous
             text = _('%1 resigned', loser);
             break;
         case 3:
-            text = _('Stalemate');
+            // Matatak : le joueur bloqué gagne (livret, « Patatrak »)
+            text = variantName.startsWith('matatak') ? 'Patatrak' : _('Stalemate');
             break;
         case 4:
             text = _('Time out');
@@ -112,6 +113,10 @@ export function result(variant: Variant, status: number, result: string, bughous
                     break;
                 case 'kingofthehill':
                     text = _('King in the center');
+                    break;
+                case 'matatak':
+                case 'matatakmini':
+                    text = 'Roi sur la Colline';
                     break;
                 case '3check':
                     text = _('Three checks');

@@ -33,6 +33,7 @@ import { createWebsocket } from "@/socket/webSocketUtils";
 import { setPocketRowCssVars } from './pocketRow';
 import { updatePoint } from './info';
 import { CheckCounterSvg, Counter } from './glyphs';
+import { appliquerRois, saisonDuCamp, saisonDuNiveau } from './rois';
 
 const EVAL_REGEX = new RegExp(''
     + /^info depth (\d+) seldepth \d+ multipv (\d+) /.source
@@ -355,6 +356,23 @@ export class AnalysisController extends GameController {
         }
     }
 
+    /** Même Roi que pendant la partie (roundCtrl.appliquerLesRois) : celui tiré au Draft, sinon
+     *  celui du palier de l'ordinateur en Solo, sinon le Roi assorti à l'équipe. */
+    private appliquerLesRois(msg: MsgBoard) {
+        if (!this.variant.name.startsWith('matatak') || !msg.steps?.length) return;
+        if (msg.rois) {
+            appliquerRois(boardSettings.assetURL, msg.rois.white, msg.rois.black);
+            return;
+        }
+        const saison = (couleur: 'white' | 'black') => {
+            const nom = couleur === 'white' ? this.wplayer : this.bplayer;
+            const niveau = Number((nom ?? '').replace('Level ', ''));
+            const titre = couleur === 'white' ? this.wtitle : this.btitle;
+            return titre === 'LIA' && niveau > 0 ? saisonDuNiveau(niveau) : saisonDuCamp(msg.steps[0].fen, couleur, this.gameId);
+        };
+        appliquerRois(boardSettings.assetURL, saison('white'), saison('black'));
+    }
+
     private deleteGame() {
         if (confirm(_('Are you sure you want to delete this game?'))) {
             this.doSend({ type: "delete", gameId: this.gameId });
@@ -363,6 +381,7 @@ export class AnalysisController extends GameController {
 
     onMsgBoard(msg: MsgBoard) {
         if (msg.gameId !== this.gameId) return;
+        this.appliquerLesRois(msg);
 
         this.importedBy = msg.by;
         // Enable to delete imported games

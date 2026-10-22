@@ -579,3 +579,26 @@ class RedemarrageTestCase(AioHTTPTestCase):
         resp = await self.client.request("GET", "/" + game_id, cookies=session_cookie("Brave-Koala#000040"))
         self.assertEqual(resp.status, 200)
         self.assertIn("Brave-Koala", await resp.text())
+
+
+class CampagneTestCase(AioHTTPTestCase):
+    async def get_application(self):
+        return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
+
+    async def test_niveau_de_campagne_reussi_sans_erreur(self):
+        """Les niveaux de la campagne ne sont pas en base : POST /puzzle/complete renvoyait 500
+        à chaque niveau réussi (AUDIT P2-11)."""
+        import json as js
+
+        puzzle_id = js.load(open("server/campaign_matatakmini.json", encoding="utf-8"))[0]["puzzle_id"]
+        resp = await self.client.post(
+            f"/puzzle/complete/{puzzle_id}",
+            data={"rated": "false", "variant": "matatakmini", "color": "white", "win": "true"},
+        )
+        self.assertEqual(resp.status, 200)
+
+    async def test_ancienne_page_learn_redirige_vers_apprendre(self):
+        """/variants était la page « Learn » de pychess, qui parlait d'échecs (AUDIT P2-13)."""
+        for chemin in ("/variants", "/variants/matatak"):
+            resp = await self.client.get(chemin, allow_redirects=False)
+            self.assertEqual((resp.status, resp.headers["Location"]), (302, "/apprendre"))
