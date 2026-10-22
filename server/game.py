@@ -509,6 +509,8 @@ class Game:
         }
         if self.rois:
             new_data["ro"] = self.rois
+        if self.draft is not None:
+            new_data["dr"] = 0
         if self.app_state.db is not None:
             await self.app_state.db.game.find_one_and_update({"_id": self.id}, {"$set": new_data})
 

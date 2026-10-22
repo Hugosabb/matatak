@@ -309,6 +309,11 @@ class PychessGlobalAppState:
                     if doc["d"] < today - timedelta(days=1):
                         continue
 
+                # Draft interrompu par le redémarrage : son état n'était qu'en mémoire, la partie
+                # repartirait sur la position d'attente. On ne la recharge pas.
+                if doc.get("dr"):
+                    continue
+
                 if doc["s"] < ABORTED:
                     game_id = doc["_id"]
                     try:

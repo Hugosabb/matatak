@@ -459,6 +459,8 @@ class DraftTestCase(AioHTTPTestCase):
         # Le joueur a les Noirs : l'ordinateur (Blancs) forme ses groupes dès la connexion
         joueur, game = await self.partie_draft("Draft-Ours#000030", "b")
         self.assertIsNotNone(game.draft)
+        doc = await app_state.db.game.find_one({"_id": game.id})
+        self.assertEqual(doc["dr"], 1)  # pas rechargée si le serveur redémarre pendant le Draft
         await handle_board(AsyncMock(), joueur, game)
         self.assertEqual(game.draft.phase, PIONS_CHOISIR)
         # Un coup est refusé tant que le Draft n'est pas fini
@@ -477,6 +479,8 @@ class DraftTestCase(AioHTTPTestCase):
         self.assertEqual(game.initial_fen, game.draft.fen())
         self.assertEqual(game.rois, {"white": game.draft.equipes["white"]["roi"], "black": equipe["roi"]})
         self.assertIs(game.stopwatch.board, game.board)
+        doc = await app_state.db.game.find_one({"_id": game.id})
+        self.assertEqual((doc["dr"], doc["if"], doc["ro"]), (0, game.initial_fen, game.rois))
 
     async def test_revanche_garde_les_equipes(self):
         from draft import tourner

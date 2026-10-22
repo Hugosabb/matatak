@@ -558,6 +558,8 @@ async def insert_game_to_db(game, app_state: PychessGlobalAppState):
         document["if"] = game.initial_fen
     if game.rois:
         document["ro"] = game.rois
+    if game.draft is not None:
+        document["dr"] = 1  # Draft pas fini : la partie n'a pas encore de vraie position de départ
 
     result = await app_state.db.game.insert_one(document)
     if result.inserted_id != game.id:
