@@ -9,7 +9,7 @@ import { changeBoardCSS, changePieceCSS } from './document';
 import { Settings, NumberSettings, BooleanSettings } from './settings';
 import { slider, checkbox } from './view';
 import { BoardName, PyChessModel } from "./types";
-import { BOARD_FAMILIES, PIECE_FAMILIES, Variant, VARIANTS } from './variants';
+import { BOARD_FAMILIES, PIECE_FAMILIES, Variant, VARIANTS, variantGroups } from './variants';
 import { renderResized, updateBounds } from "chessgroundx/render";
 
 export interface BoardController {
@@ -77,8 +77,11 @@ class BoardSettings {
     }
 
     updateBoardAndPieceStyles() {
-        Object.keys(BOARD_FAMILIES).forEach(family => this.updateBoardStyle(family));
-        Object.keys(PIECE_FAMILIES).forEach(family => this.updatePieceStyle(family));
+        // Seulement les plateaux et pièces des variantes du site (Matatak, Matatak Mini) : avant,
+        // chaque page chargeait les 31 feuilles de pièces de pychess (xiangqi, shogi…), 1,5 Mo.
+        const variantes = Object.values(variantGroups).flatMap(g => g.variants).map(v => VARIANTS[v]);
+        new Set(variantes.map(v => v.boardFamily)).forEach(family => this.updateBoardStyle(family as keyof typeof BOARD_FAMILIES));
+        new Set(variantes.map(v => v.pieceFamily)).forEach(family => this.updatePieceStyle(family as keyof typeof PIECE_FAMILIES));
     }
 
     updateBoardStyle(family: keyof typeof BOARD_FAMILIES) {
