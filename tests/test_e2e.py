@@ -22,9 +22,9 @@ async def test_lobby_page(aiohttp_server):
 
         # Assert page content
         content = await page.content()
-        assert "Free Online Chess Variants" in content
+        assert "<title>MATATAK!" in content  # vitrine (avant : site pychess)
 
         # Use Playwright's expect for UI assertions (e.g., if there's a heading)
-        await expect(page.locator("body")).to_contain_text("PyChess")
+        await expect(page.locator("body")).to_contain_text("Jouer en ligne")
 
         await browser.close()

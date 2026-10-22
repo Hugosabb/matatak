@@ -251,7 +251,7 @@ class RequestLobbyTestCase(AioHTTPTestCase):
         resp = await self.client.request("GET", "/")
         self.assertEqual(resp.status, 200)
         text = await resp.text()
-        self.assertIn("<title>PyChess", text)
+        self.assertIn("<title>MATATAK!", text)  # vitrine (avant : site pychess)
 
 
 class HighscoreTestCase(AioHTTPTestCase):

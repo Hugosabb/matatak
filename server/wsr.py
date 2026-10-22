@@ -700,20 +700,16 @@ async def handle_abort_resign_abandon_flag(ws, users, user, data, game):
     async with game.move_lock:
         response = await game.game_ended(user, data["type"])
 
-    await ws_send_json(ws, response)
-
     opp_name = (
         game.wplayer.username if user.username == game.bplayer.username else game.bplayer.username
     )
-    if opp_name in users:
-        opp_player = users[opp_name]
-        if opp_player.bot:
-            if data["gameId"] in opp_player.game_queues:
-                await opp_player.game_queues[data["gameId"]].put(game.game_end)
-        else:
-            await opp_player.send_game_message(data["gameId"], response)
+    if opp_name in users and users[opp_name].bot:
+        if game.id in users[opp_name].game_queues:
+            await users[opp_name].game_queues[game.id].put(game.game_end)
 
-    await round_broadcast(game, response)
+    # Tous les onglets des deux joueurs, et les spectateurs : avant, seul l'onglet qui avait envoyé
+    # l'abandon voyait la fin (une partie ouverte sur deux appareils restait « en cours »).
+    await round_broadcast(game, response, full=True)
 
 
 async def handle_embed_user_connected(ws):
