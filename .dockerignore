@@ -21,3 +21,31 @@ static/ffish-alice.wasm
 static/stockfish.js
 static/stockfish.wasm
 static/stockfish.worker.js
+
+# Ressources de pychess sans lien avec Matatak (AUDIT P2-17) : seuls les plateaux, pièces et sons de
+# Matatak partent dans l'image. Ajouter une exception « ! » si une page en a besoin.
+static/images/*
+!static/images/background
+!static/images/board
+!static/images/pieces
+!static/images/bugroundchat
+!static/images/trophy
+!static/images/zen.png
+!static/images/Santa_hat.svg
+!static/images/4ArmyKings.svg
+!static/images/4FairyPieces.svg
+static/images/board/*
+!static/images/board/matatak*
+static/images/pieces/*
+!static/images/pieces/matatak
+!static/images/pieces/invisible.svg
+static/piece-css/*
+!static/piece-css/matatak
+!static/piece-css/*.css
+static/sound/*
+!static/sound/matatak
+!static/sound/standard
+# Fichiers de développement
+docs
+tests
+outils

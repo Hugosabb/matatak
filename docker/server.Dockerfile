@@ -23,7 +23,9 @@ COPY templates /app/templates/
 RUN yarn md
 
 
-FROM python:3.12
+# Dépendances Python dans une étape à part : l'image finale (slim) ne garde ni uv ni les outils de
+# compilation de l'image complète (AUDIT P2-17 : l'image faisait 1,45 Go).
+FROM python:3.12 AS python
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
@@ -47,6 +49,15 @@ COPY variants.ini /app/
 # Install the project itself
 # This installs the current package into the environment
 RUN uv sync --frozen --no-dev
+
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Même chemin (/app) et même Python (/usr/local/bin/python3.12) que l'étape précédente : le
+# .venv copié tel quel fonctionne.
+COPY --from=python /app /app/
 
 # Add venv to PATH
 ENV PATH="/app/.venv/bin:$PATH"

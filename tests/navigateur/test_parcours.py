@@ -155,7 +155,8 @@ async def inviter_un_ami(chromium, site, draft=False):
     await ami.goto(hote.url)
     await ami.click("text=Rejoindre la partie")
     for page in (hote, ami):
-        await page.wait_for_selector("cg-board", timeout=15000)
+        # « attached » : pendant un Draft, le plateau est là mais caché par l'écran du Draft
+        await page.wait_for_selector("cg-board", state="attached", timeout=15000)
     return hote, ami
 
 

@@ -1,7 +1,8 @@
 """Tests de navigateur de Matatak (Chromium, ordinateur et téléphone) : outils communs.
 
 Lancer : `PYTHONPATH=server python -m pytest -q tests/navigateur` (après `node esbuild.mjs dev`).
-Chaque test démarre son propre serveur, base MongoDB simulée en mémoire.
+Chaque test démarre son propre serveur, base MongoDB simulée en mémoire. Avec
+MATATAK_SITE=http://127.0.0.1:8097, les parcours visent un serveur déjà lancé (image Docker).
 """
 
 import os
@@ -28,7 +29,11 @@ TELEPHONE = "iPhone 13"
 
 @pytest_asyncio.fixture
 async def site(aiohttp_server):
-    """Adresse d'un serveur Matatak tout neuf."""
+    """Adresse d'un serveur Matatak tout neuf, ou celle de MATATAK_SITE pour tester un serveur
+    déjà lancé (par exemple l'image Docker avant un déploiement). Jamais la prod : les parcours
+    créent des parties et des invités."""
+    if os.environ.get("MATATAK_SITE"):
+        return os.environ["MATATAK_SITE"].rstrip("/")
     serveur = await aiohttp_server(make_app(db_client=AsyncMongoMockClient()))
     return f"http://{serveur.host}:{serveur.port}"
 
