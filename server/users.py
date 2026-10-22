@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from collections import UserDict
 
 from const import BLOCK, MAX_USER_BLOCK, NONE_USER, TYPE_CHECKING
@@ -9,6 +10,10 @@ from variants import RATED_VARIANTS
 
 if TYPE_CHECKING:
     from pychess_global_app_state import PychessGlobalAppState
+
+# Noms jamais en base : invités (const.random_anonyme_username) et ordinateur du mode Solo
+INVITE = re.compile(r"^[A-Z][A-Za-z]*-[A-Z][A-Za-z]*#\d{6}$")
+ORDINATEUR = re.compile(r"^Level ([1-9]|1[0-9]|20)$")
 
 
 class NotInAppUsers(Exception):
@@ -37,6 +42,26 @@ class Users(UserDict):
         else:
             # raise NotInAppUsers("%s is not in Users. Use await users.get() instead.", username)
             user = self.data[NONE_USER]
+            return user
+
+    async def get_joueur(self, username):
+        """Comme get(), mais recrée sous le même nom un invité ou l'ordinateur (Level N).
+
+        Ils ne sont jamais en base, seulement en mémoire : après un redémarrage, leurs parties en
+        cours n'étaient plus rechargées et l'invité revenait sous un nouveau nom (AUDIT P1-7).
+        À n'utiliser que pour un nom sûr : joueur d'une partie en base, ou cookie de session
+        (chiffré par le serveur), jamais pour un nom tapé dans une adresse.
+        """
+        try:
+            return await self.get(username)
+        except NotInDbUsers:
+            if ORDINATEUR.match(username or ""):
+                user = User(self.app_state, username=username, title="LIA", anon=True)
+            elif INVITE.match(username or ""):
+                user = User(self.app_state, username=username, anon=True)
+            else:
+                raise
+            self.data[username] = user
             return user
 
     async def get(self, username):

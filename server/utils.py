@@ -101,8 +101,8 @@ async def load_game(app_state: PychessGlobalAppState, game_id):
     # log.debug("load_game() parse START")
     wp, bp = doc["us"]
 
-    wplayer = await app_state.users.get(wp)
-    bplayer = await app_state.users.get(bp)
+    wplayer = await app_state.users.get_joueur(wp)
+    bplayer = await app_state.users.get_joueur(bp)
 
     initial_fen = doc.get("if")
     if variant == "manchu" and initial_fen is None and doc["d"].date() < date(2024, 9, 9):

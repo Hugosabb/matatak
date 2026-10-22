@@ -49,7 +49,7 @@ async def get_user_context(request):
             user = app_state.users[session_user]
         else:
             try:
-                user = await app_state.users.get(session_user)
+                user = await app_state.users.get_joueur(session_user)
             except NotInDbUsers:
                 user = None
 

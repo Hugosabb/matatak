@@ -21,7 +21,7 @@ async def get_user(session: aiohttp_session.Session, request: web.Request) -> Us
     from const import NONE_USER
     session_user = session.get("user_name")
     try:
-        user = await get_app_state(request.app).users.get(session_user)
+        user = await get_app_state(request.app).users.get_joueur(session_user)
     except NotInDbUsers:
         user = None
 

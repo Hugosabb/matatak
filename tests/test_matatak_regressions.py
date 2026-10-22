@@ -49,9 +49,15 @@ class MatatakViewsTestCase(AioHTTPTestCase):
         self.assertIn("ChipsouChess", await resp.text())  # reconnu, pas remplacé par un invité
 
     async def test_unknown_session_user_becomes_guest(self):
-        """Un pseudo absent de la base (invité d'avant le redémarrage) reçoit un nouvel invité, sans 500."""
+        """Un invité d'avant le redémarrage garde son nom (sa partie en cours est rechargée sous ce
+        nom, AUDIT P1-7) ; un pseudo inconnu qui n'a pas la forme d'un nom d'invité reçoit un
+        nouvel invité. Jamais de 500."""
         resp = await self.client.request("GET", "/about", cookies=session_cookie("Fake-Tiger#123456"))
         self.assertEqual(resp.status, 200)
+        self.assertIn("Fake-Tiger", await resp.text())
+        resp = await self.client.request("GET", "/about", cookies=session_cookie("Pseudo-inventé"))
+        self.assertEqual(resp.status, 200)
+        self.assertNotIn("Pseudo-inventé", await resp.text())
 
     async def test_puzzle_pages_do_not_crash(self):
         """/puzzle, /puzzle/{variante} et /puzzle/{id} utilisaient VARIANTS sans l'importer (NameError).
@@ -516,3 +522,56 @@ class DraftTestCase(AioHTTPTestCase):
         }
         seek = await create_seek(app_state.db, app_state.invites, app_state.seeks, joueur, data)
         self.assertTrue(seek.isDraft)
+
+
+class RedemarrageTestCase(AioHTTPTestCase):
+    """AUDIT P1-7 : une partie Solo ou entre invités survit au redémarrage du serveur."""
+
+    async def get_application(self):
+        return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
+
+    async def tearDownAsync(self):
+        app_state = get_app_state(self.app)
+        for user in app_state.users.values():
+            if user.anon and not reserved(user.username) and user.remove_task:
+                user.remove_task.cancel()
+        await self.client.close()
+
+    async def test_partie_solo_rechargee_apres_redemarrage(self):
+        from user import User
+        from utils import load_game
+        from wsl import handle_create_ai_challenge
+        from wsr import process_message
+
+        app_state = get_app_state(self.app)
+        joueur = User(app_state, username="Brave-Koala#000040", anon=True)
+        app_state.users[joueur.username] = joueur
+        data = {
+            "variant": "matatakmini", "fen": "", "color": "w", "minutes": 0, "increment": 0,
+            "byoyomiPeriod": 0, "rated": False, "level": 4, "chess960": False, "rm": False,
+            "draft": False, "boost": 0,
+        }
+        with patch("wsl.ws_send_json", new=AsyncMock()) as envoi:
+            await handle_create_ai_challenge(app_state, AsyncMock(), joueur, data)
+        game = app_state.games[envoi.await_args.args[1]["gameId"]]
+        coup = game.board.legal_moves()[0]
+        await process_message(app_state, joueur, AsyncMock(), {"type": "move", "gameId": game.id, "move": coup, "clocks": [0, 0], "ply": 1}, game)
+        self.assertEqual(game.board.ply, 1)
+
+        # Redémarrage : plus rien en mémoire, ni la partie, ni l'invité, ni l'ordinateur
+        game_id = game.id
+        del app_state.games[game_id]
+        for nom in (joueur.username, "Level 4"):
+            app_state.users[nom].remove_task.cancel()
+            del app_state.users[nom]
+
+        rechargee = await load_game(app_state, game_id)
+        self.assertIsNotNone(rechargee)
+        self.assertEqual(rechargee.wplayer.username, "Brave-Koala#000040")
+        self.assertEqual(rechargee.bplayer.title, "LIA")
+        self.assertEqual(rechargee.board.ply, 1)
+
+        # L'invité revient avec son cookie : même nom, il retrouve sa partie
+        resp = await self.client.request("GET", "/" + game_id, cookies=session_cookie("Brave-Koala#000040"))
+        self.assertEqual(resp.status, 200)
+        self.assertIn("Brave-Koala", await resp.text())
