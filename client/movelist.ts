@@ -43,9 +43,16 @@ function activatePly (ctrl: GameController) {
 }
 
 function scrollToPly (ctrl: GameController) {
-    if (ctrl.steps.length < 9) return;
     const movelistEl = document.getElementById('movelist') as HTMLElement;
     const plyEl = movelistEl.querySelector('move.active') as HTMLElement | null;
+    // Téléphone : la liste est une ligne qui défile à l'horizontale (partie.css)
+    if (movelistEl.scrollWidth > movelistEl.clientWidth + 1) {
+        if (ctrl.ply === ctrl.steps.length - 1) movelistEl.scrollLeft = 99999;
+        else if (plyEl) movelistEl.scrollLeft = plyEl.offsetLeft - movelistEl.clientWidth / 2 + plyEl.offsetWidth / 2;
+        else if (ctrl.ply === 0) movelistEl.scrollLeft = 0;
+        return;
+    }
+    if (ctrl.steps.length < 9) return;
 
     let st: number | undefined = undefined;
 
@@ -174,10 +181,9 @@ export function updateResult (ctrl: GameController) {
     const resultEl = document.querySelector('.result');
     if (resultEl) return;
 
+    // Toute la liste avec le résultat (avant : seul le résultat restait, les coups disparaissaient)
+    updateMovelist(ctrl, true, true, true);
     const container = document.getElementById('movelist') as HTMLElement;
-    ctrl.vmovelist = patch(container, h('div#movelist', [
-        h('div.result', ctrl.result),
-        h('div.status', result(ctrl.variant, ctrl.status, ctrl.result))
-    ]));
     container.scrollTop = 99999;
+    container.scrollLeft = 99999;
 }

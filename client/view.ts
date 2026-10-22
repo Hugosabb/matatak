@@ -134,6 +134,7 @@ function saveNnueFileToIdb (settings: Settings<string>, variant: string, file: F
 
 export function timeControlStr(minutes: number | string, increment = 0, byoyomiPeriod = 0, day = 0): string {
     if (day > 0) return ngettext('%1 day', '%1 days', day);
+    if (Number(minutes) === 0 && Number(increment) === 0 && Number(byoyomiPeriod) === 0) return 'Sans limite';
 
     minutes = Number(minutes);
     byoyomiPeriod = Number(byoyomiPeriod)

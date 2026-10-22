@@ -1,0 +1,90 @@
+/* Puzzles : campagne (vue campaign) et résolution (vue puzzle). Chargé après analysis.css
+ * (extra_css de server/views/puzzle.py). Une action principale par écran. */
+
+/* ---------- Campagne ---------- */
+/* #main-wrap reste en grille pychess : la campagne prend toute la largeur utile */
+body[data-view="campaign"] #main-wrap { display: block; }
+.campagne {
+  width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 40px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.campagne h1 { margin: 0; font: 400 34px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
+.campagne-sous-titre { margin: 8px 0 18px; font-size: 15.5px; color: var(--mt-doux); }
+.campagne-progression { width: min(100%, 420px); display: grid; gap: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 700; color: var(--mt-doux); }
+.campagne .barre, .puzzle-campagne .barre { height: 8px; border-radius: 99px; background: var(--mt-filet); overflow: hidden; }
+.campagne .barre i, .puzzle-campagne .barre i { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--mt-or); }
+.campagne-continuer { width: min(100%, 340px); margin-bottom: 28px; }
+.campagne-fini { margin: 0 0 28px; font-weight: 800; color: var(--mt-or); }
+
+.chapitres { width: 100%; display: grid; gap: 10px; text-align: left; }
+.chapitre { border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); }
+.chapitre summary {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  min-height: 52px; padding: 0 18px; cursor: pointer; list-style: none;
+  font: 800 15.5px 'Nunito', sans-serif; color: var(--mt-encre);
+}
+.chapitre summary::-webkit-details-marker { display: none; }
+.chapitre summary::after { content: ''; width: 9px; height: 9px; margin-left: 4px; border-right: 2px solid var(--mt-doux); border-bottom: 2px solid var(--mt-doux); transform: rotate(45deg) translateY(-3px); transition: transform .2s; }
+.chapitre[open] summary::after { transform: rotate(-135deg) translateY(-3px); }
+.chapitre summary:focus-visible { outline: 2px solid var(--mt-or); outline-offset: -2px; border-radius: 16px; }
+.chapitre-nom { flex: 1; }
+.chapitre-compte { font-size: 13.5px; font-weight: 700; color: var(--mt-doux); }
+.chapitre-compte.complet { color: var(--mt-or); }
+
+.niveaux { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; padding: 4px 16px 18px; }
+.niveau {
+  display: grid; place-items: center; aspect-ratio: 1; min-height: 44px; border-radius: 12px;
+  background: var(--mt-nuit); box-shadow: inset 0 0 0 1.5px var(--mt-filet);
+  font: 800 15px 'Nunito', sans-serif; color: var(--mt-doux); text-decoration: none;
+  transition: box-shadow .15s, transform .15s;
+}
+.niveau:hover { box-shadow: inset 0 0 0 1.5px var(--mt-doux); color: var(--mt-encre); }
+.niveau:active { transform: scale(.94); }
+.niveau:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; }
+.niveau.fait { background: rgba(234, 196, 90, .16); box-shadow: inset 0 0 0 1.5px rgba(234, 196, 90, .45); color: var(--mt-or); }
+.niveau.actuel { background: var(--mt-or); box-shadow: 0 6px 18px rgba(234, 196, 90, .25); color: #241805; }
+.campagne-autre { margin-top: 22px; min-height: 44px; display: inline-flex; align-items: center; font-weight: 800; font-size: 14px; color: var(--mt-or); text-decoration: none; }
+.campagne-autre:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 760px) {
+  .campagne { padding-top: 20px; }
+  .campagne h1 { font-size: 27px; }
+  .niveaux { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 4px 12px 14px; }
+  .chapitre summary { padding: 0 14px; }
+}
+
+/* ---------- Résolution : en-tête de campagne ---------- */
+.puzzle-campagne {
+  display: grid; gap: 10px; padding: 16px 18px; border-radius: 16px;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+}
+.puzzle-campagne .niveau-titre { white-space: nowrap; font: 400 22px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
+.puzzle-campagne .niveau-titre small { font-size: 15px; color: var(--mt-doux); }
+.puzzle-campagne .niveau-titre a { color: inherit; }
+.puzzle-campagne .puzzle-type { margin: 0; font-weight: 700; color: var(--mt-doux); }
+.puzzle-campagne .lien { justify-self: start; min-height: 32px; display: inline-flex; align-items: center; font: 800 14px 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; color: var(--mt-or); text-decoration: none; }
+.puzzle-campagne .lien:hover { text-decoration: underline; text-underline-offset: 3px; }
+.puzzle-connexion { display: grid; gap: 12px; color: var(--mt-doux); font-size: 14.5px; }
+
+/* ---------- Résolution : consigne et fin ---------- */
+/* Pendant la résolution, la liste des coups est vide : la consigne prend sa place */
+body[data-view="puzzle"] .analysis-tools:has(.feedback:not(.after)) .movelist-block { display: none; }
+body[data-view="puzzle"] .analysis-tools:has(.feedback:not(.after)) .feedback { flex: 1 1 auto; }
+.feedback { background: var(--mt-surface); border-radius: 16px; box-shadow: inset 0 0 0 1px var(--mt-filet); }
+.feedback .instruction strong { font: 400 22px/1.2 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-encre); }
+.feedback .instruction em { font-style: normal; color: var(--mt-doux); }
+.feedback.good .icon { color: var(--mt-or); }
+.feedback.fail .icon, san span.fail { color: var(--mt-doux); }
+.feedback .button.hint, .feedback .button.solution { color: var(--mt-or); font-weight: 800; }
+.fin-puzzle {
+  align-items: center; gap: 10px; padding: 20px 16px 14px; text-align: center; max-height: none;
+  animation: fin-apparait .35s cubic-bezier(.16, 1, .3, 1);
+}
+.fin-puzzle.reussi { box-shadow: inset 0 0 0 1.5px var(--mt-or), 0 10px 30px rgba(234, 196, 90, .12); }
+.fin-puzzle.reussi .fin-titre { color: var(--mt-or); }
+.fin-puzzle .mt-btn { width: min(100%, 320px); margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { .fin-puzzle { animation: none; } }
+@media (max-width: 799px) {
+  .analysis-app .puzzle-campagne { margin: 10px 10px 0; }
+  .analysis-tools .feedback { margin: 0 10px; }
+}

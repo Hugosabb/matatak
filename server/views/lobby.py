@@ -75,9 +75,11 @@ async def lobby(request):
     c_games = corr_games(user.correspondence_games)
     context["corr_games"] = json.dumps(c_games, default=datetime.isoformat)
 
-
-    if request.path == "/":
-        context["view"] = "landing"
+    if request.path == "/jouer":
+        context["view"] = "jouer"
+        context["title"] = "Jouer · MATATAK!"
+        context["view_css"] = "lobby.css"
+        context["extra_css"] = "jouer.css"
     else:
         context["view"] = "lobby"
 

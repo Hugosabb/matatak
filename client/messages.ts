@@ -94,6 +94,7 @@ export interface MsgBoard {
 
     takeback?: boolean;
     phase: string;
+    rois?: { white: 'printemps' | 'ete' | 'automne' | 'hiver', black: 'printemps' | 'ete' | 'automne' | 'hiver' } | null;
 }
 
 export interface Ceval {

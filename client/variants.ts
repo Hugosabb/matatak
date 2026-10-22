@@ -1273,36 +1273,54 @@ export const variantGroups: { [key: string]: { variants: string[] } } = {
     other: { variants: [] }
 };
 
-function variantGroupLabel(group: string): string {
-    const groups: { [index: string]: string } = {
-        standard: _("Variants"),
-        sea: _("Makruk Variants"),
-        shogi: _("Shogi Variants"),
-        xiangqi: _("Xiangqi Variants"),
-        fairy: _("Fairy Piece Variants"),
-        army: _("New Army Variants"),
-        other: _("Other"),
-    }
-    return groups[group];
-}
+// Vignettes des vrais plateaux et formats, pour le sélecteur de variante en boutons
+const PLATEAUX_VARIANTE: Record<string, { nom: string; img: string; format: string }> = {
+    matatak: { nom: 'Matatak', img: '/static/images/background/collection/plateaux/matatak8x8-112.webp', format: '8 × 8' },
+    matatakmini: { nom: 'Matatak Mini', img: '/static/images/background/collection/plateaux/matatak4x8-112.webp', format: '4 × 8' },
+};
 
+/**
+ * Choix de la variante en boutons (vignette du plateau + nom), au lieu d'un menu déroulant.
+ * Un <select> caché garde l'identifiant `id` : les pages qui lisent sa valeur ou écoutent `change`
+ * (analyse, éditeur, puzzles, réglages du plateau) fonctionnent sans changement.
+ */
 export function selectVariant(id: string, selected: string, onChange: EventListener, hookInsert: InsertHook, disableds: string[] = []): VNode {
-    return h('select#' + id, {
-        props: { name: id },
-        on: { change: onChange },
-        hook: { insert: hookInsert },
-    },
-        Object.keys(variantGroups).filter(g => variantGroups[g].variants.length > 0).map(g => {
-            const group = variantGroups[g];
-            return h('optgroup', { props: { label: variantGroupLabel(g) } }, group.variants.map(v => {
-                const variant = VARIANTS[v];
-                return h('option', {
-                    props: { value: v, title: variant.tooltip },
-                    attrs: { selected: v === selected, disabled: disableds.includes(variant.name) },
-                }, variant.displayName(false));
-            }));
+    const noms = Object.values(variantGroups).flatMap(g => g.variants);
+    const choisir = (e: Event, v: string) => {
+        const select = document.getElementById(id) as HTMLSelectElement | null;
+        if (!select || select.value === v) return;
+        select.value = v;
+        const groupe = (e.currentTarget as HTMLElement).parentElement;
+        groupe?.querySelectorAll('button.variante').forEach(b => {
+            const actif = (b as HTMLElement).dataset.variante === v;
+            b.classList.toggle('on', actif);
+            b.setAttribute('aria-checked', String(actif));
+        });
+        select.dispatchEvent(new Event('change'));
+    };
+    return h('div.choix-variante', { attrs: { role: 'radiogroup', 'aria-label': 'Plateau' } }, [
+        ...noms.map(v => {
+            const variant = VARIANTS[v];
+            const plateau = PLATEAUX_VARIANTE[v];
+            return h('button.variante', {
+                class: { on: v === selected },
+                attrs: { type: 'button', role: 'radio', 'aria-checked': String(v === selected), 'data-variante': v, disabled: disableds.includes(v), title: variant.tooltip },
+                on: { click: (e: Event) => choisir(e, v) },
+            }, [
+                plateau ? h('img', { attrs: { src: plateau.img, alt: '', 'aria-hidden': 'true' } }) : '',
+                h('span', [h('b', plateau?.nom ?? variant.displayName(false)), plateau ? h('small', plateau.format) : '']),
+            ]);
         }),
-    );
+        h('select#' + id + '.variante-cachee', {
+            props: { name: id },
+            attrs: { 'aria-hidden': 'true', tabindex: '-1' },
+            on: { change: onChange },
+            hook: { insert: hookInsert },
+        }, noms.map(v => h('option', {
+            props: { value: v },
+            attrs: { selected: v === selected, disabled: disableds.includes(v) },
+        }, VARIANTS[v].displayName(false)))),
+    ]);
 }
 
 // Some variants need to be treated differently according to the FEN.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 
 from const import TYPE_CHECKING
 
@@ -142,6 +143,7 @@ async def load_game(app_state: PychessGlobalAppState, game_id):
         corr=corr,
         create=False,
         tournamentId=doc.get("tid"),
+        rois=doc.get("ro"),
     )
 
     if variant == "jieqi":
@@ -238,9 +240,27 @@ async def load_game(app_state: PychessGlobalAppState, game_id):
     return game
 
 
+async def joueur_inscrit(request):
+    """Le joueur connecté (compte Lichess), ou None pour un invité ou un visiteur sans session."""
+    session = await aiohttp_session.get_session(request)
+    nom = session.get("user_name")
+    if nom is None:
+        return None
+    try:
+        user = await get_app_state(request.app).users.get(nom)
+    except NotInDbUsers:
+        return None
+    return None if user.anon else user
+
+
 async def import_game(request):
     data = await request.post()
     app_state = get_app_state(request.app)
+
+    # Avant : n'importe qui écrivait des parties en base au nom de n'importe qui (AUDIT P2-4).
+    importeur = await joueur_inscrit(request)
+    if importeur is None:
+        return web.json_response({"error": "Connectez-vous pour importer une partie."}, status=403)
 
     # print("---IMPORT GAME---")
     # print(data)
@@ -344,7 +364,7 @@ async def import_game(request):
         "x": new_game.level,
         "y": IMPORTED,
         "z": int(new_game.chess960),
-        "by": data["username"],
+        "by": importeur.username,
     }
 
     if initial_fen or new_game.chess960:
@@ -415,7 +435,9 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
     else:
         sanitized_fen = ""
 
-    color = random.choice(("w", "b")) if seek.color == "r" else seek.color
+    # Toute autre valeur que "w"/"b" (dont "random", envoyé par d'anciens liens) = au hasard :
+    # sinon wplayer et bplayer valaient tous deux player2.
+    color = seek.color if seek.color in ("w", "b") else random.choice(("w", "b"))
     wplayer = seek.player1 if color == "w" else seek.player2
     bplayer = seek.player1 if color == "b" else seek.player2
 
@@ -452,6 +474,7 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
             new_960_fen_needed_for_rematch=seek.reused_fen,
             isDraft=seek.isDraft,
             boost=boost,
+            rois=seek.rois,
         )
     except Exception:
         log.exception(
@@ -533,6 +556,8 @@ async def insert_game_to_db(game, app_state: PychessGlobalAppState):
 
     if game.initial_fen or game.chess960:
         document["if"] = game.initial_fen
+    if game.rois:
+        document["ro"] = game.rois
 
     result = await app_state.db.game.insert_one(document)
     if result.inserted_id != game.id:
@@ -920,7 +945,7 @@ async def get_names(request):
         return web.json_response(names)
 
     # case insensitive _id prefix search
-    cursor = app_state.db.user.find({"_id": {"$regex": "^%s" % prefix, "$options": "i"}}, limit=12)
+    cursor = app_state.db.user.find({"_id": {"$regex": "^%s" % re.escape(prefix), "$options": "i"}}, limit=12)
     async for doc in cursor:
         names.append((doc["_id"], doc["title"]))
     return web.json_response(names)

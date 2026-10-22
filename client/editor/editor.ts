@@ -22,63 +22,31 @@ export function editorView(model: PyChessModel): VNode[] {
     const vVariant = model.variant || "matatak";
     const variant = VARIANTS[vVariant];
 
+    // Ordinateur : cartes à gauche, plateau au centre à sa taille maximale (comme en partie), outils à
+    // droite. Téléphone : plateau, puis le bac en une ligne qui défile, puis les outils.
     return [
-        h('style', `
-            .pocket-top, .pocket-bot {
-                display: none;
-            }
-            #mainboard.pockets-visible ~ .pocket-top,
-            #mainboard.pockets-visible ~ .pocket-bot {
-                display: flex; 
-            }
-        `),
         h('div.editor-app', [
-            h('aside.sidebar-first', [
-                h('div.container', [
-                    h('div', [
-                        h('label', { attrs: { for: "variant" } }, _("Variant")),
-                        selectVariant("variant", vVariant, () => setVariant(true), () => setVariant(false), twoBoarsVariants), /*todo:bughouse editor not implemented*/
-                    ]),
-                ])
-            ]),
-
-            h('div.pocket-wrapper.top', [
-                h('div.' + variant.pieceFamily + '.' + model["variant"], [
-                    h('div.cg-wrap.pocket', [
-                        h('div#pieces0'),
-                    ]),
-                ]),
-            ]),
+            h('aside.ed-gauche', [h('div#ed-bac')]),
             h(`selection#mainboard.${variant.boardFamily}.${variant.pieceFamily}.${variant.ui.boardMark}`, [
                 h('div.cg-wrap.' + variant.board.cg,
                     { hook: { insert: (vnode) => runEditor(vnode, model)},
                 }),
             ]),
-            h('div.pocket-wrapper.bot', [
-                h('div.' + variant.pieceFamily + '.' + model["variant"], [
-                    h('div.cg-wrap.pocket', [
-                        h('div#pieces1'),
-                    ]),
+            h('aside.ed-droite', [
+                h('div.ed-variante', [
+                    h('label', { attrs: { for: "variant" } }, 'Plateau'),
+                    selectVariant("variant", vVariant, () => setVariant(true), () => setVariant(false), twoBoarsVariants), /*todo:bughouse editor not implemented*/
+                ]),
+                h('div#editor-button-container'),
+                h('div.ed-fen', [
+                    h('label', { attrs: { for: 'fen' } }, 'Position (FEN)'),
+                    h('input#fen'),
                 ]),
             ]),
-
-            h('div.pocket-top', [
-                h('div.' + variant.pieceFamily + '.' + model["variant"], [
-                    h('div.cg-wrap.pocket', [
-                        h('div#pocket0.pocketrow'),
-                    ]),
-                ]),
-            ]),
-            h('div#editor-button-container'),
-            h('div.pocket-bot', [
-                h('div.' + variant.pieceFamily + '.' + model["variant"], [
-                    h('div.cg-wrap.pocket', [
-                        h('div#pocket1.pocketrow'),
-                    ]),
-                ]),
-            ]),
-            h('under-board', [
-                h('input#fen'),
+            // Réserves de pièces (variantes à drop) : chessground les veut, Matatak ne s'en sert pas
+            h('div.ed-reserves', [
+                h('div.' + variant.pieceFamily + '.' + model["variant"], [h('div.cg-wrap.pocket', [h('div#pocket0.pocketrow')])]),
+                h('div.' + variant.pieceFamily + '.' + model["variant"], [h('div.cg-wrap.pocket', [h('div#pocket1.pocketrow')])]),
             ]),
         ]),
     ];

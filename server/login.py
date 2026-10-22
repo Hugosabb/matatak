@@ -59,11 +59,11 @@ async def oauth(request):
         state = request.rel_url.query.get("state")
         if state != client_secret:
             log.error("OAuth state value mismatch for provider '%s'", provider)
-            return web.HTTPFound("/")
+            return web.HTTPFound("/jouer")
 
         if "oauth_code_verifier" not in session:
             log.error("No oauth_code_verifier in session")
-            return web.HTTPFound("/")
+            return web.HTTPFound("/jouer")
 
         data = {
             "grant_type": "authorization_code",
@@ -90,7 +90,7 @@ async def oauth(request):
                     return web.HTTPFound("/login/%s" % provider)
                 else:
                     log.error("Failed to get OAuth token for provider '%s'", provider)
-                    return web.HTTPFound("/")
+                    return web.HTTPFound("/jouer")
 
 
 async def login(request):
@@ -117,19 +117,19 @@ async def login(request):
 
     if reserved(username):
         log.error("User %s tried to log in.", username)
-        return web.HTTPFound("/")
+        return web.HTTPFound("/jouer")
 
     elif (not DEV) and title == "BOT":
         log.error("BOT user %s tried to log in.", username)
-        return web.HTTPFound("/")
+        return web.HTTPFound("/jouer")
 
     elif tosViolation == "true":
         log.error("tosViolation user %s tried to log in.", username)
-        return web.HTTPFound("/")
+        return web.HTTPFound("/jouer")
 
     elif closed == "true":
         log.error("closed user %s tried to log in.", username)
-        return web.HTTPFound("/")
+        return web.HTTPFound("/jouer")
 
     log.info("+++ authenticated user: %s", username)
     app_state = get_app_state(request.app)
@@ -164,7 +164,7 @@ async def login(request):
         session["oauth_title"] = title
         return web.HTTPFound("/select-username")
 
-    return web.HTTPFound("/")
+    return web.HTTPFound("/jouer")
 
 
 async def get_user_data(url, token):
@@ -188,7 +188,7 @@ async def logout(request, user=None):
         app_state = user.app_state
 
     if user is None:
-        return web.HTTPFound("/")
+        return web.HTTPFound("/jouer")
     response = {"type": "logout"}
 
     # close lobby socket
@@ -215,7 +215,7 @@ async def logout(request, user=None):
     if request is not None:
         session.invalidate()
 
-    return web.HTTPFound("/")
+    return web.HTTPFound("/jouer")
 
 
 async def select_username(request):
@@ -224,10 +224,10 @@ async def select_username(request):
 
     # Check if user is in the middle of OAuth flow
     if "oauth_id" not in session:
-        return web.HTTPFound("/")
+        return web.HTTPFound("/jouer")
 
     # This will be handled by the client-side view
-    return web.HTTPFound("/")
+    return web.HTTPFound("/jouer")
 
 
 async def check_username_availability(request):

@@ -36,7 +36,7 @@ function leftSide(model: PyChessModel) {
 
         return h('div.container', [
             h('div', [
-                h('label', { attrs: { for: "variant" } }, _("Variant")),
+                h('label', { attrs: { for: "variant" } }, 'Plateau'),
                 selectVariant("variant", vVariant, () => setVariant(true), () => setVariant(false)),
             ]),
         ]);
@@ -181,10 +181,9 @@ export function analysisTools(isOngoingGame: boolean = false) {
             h('div.engine', [
                 h('score#score', ''),
                 h('div.info', [
-                    'Fairy-Stockfish 14+ ',
-                    h('span.nnue', { props: { title: _('Multi-threaded WebAssembly (classical evaluation)') } }, 'HCE'),
+                    h('span.moteur-nom', { props: { title: 'Fairy-Stockfish 14+ (HCE), calculé dans votre navigateur' } }, 'Moteur d\'analyse'),
                     h('br'),
-                    h('info#info', _('in local browser'))
+                    h('info#info', 'Fairy-Stockfish, dans votre navigateur')
                 ]),
                 h('div.engine-toggle'),
             ]),

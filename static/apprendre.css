@@ -1,0 +1,38 @@
+/* Page « Apprendre » (client/apprendre.ts). Couleurs et boutons : matatak-ui.css. */
+#main-wrap { --main-max-width: 100%; }
+main.apprendre { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1.5 'Nunito', system-ui, sans-serif; color: var(--mt-encre); }
+.apprendre-page { width: min(860px, 100% - 32px); margin: 0 auto; padding: 28px 0 40px; display: grid; gap: 16px; }
+.apprendre-page h1 { margin: 0 0 4px; font: 400 clamp(30px, 4vw, 40px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); text-shadow: 0 2px 14px rgba(0, 0, 0, .9); }
+
+.bloc {
+  display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 22px; align-items: center;
+  padding: 20px 22px; border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+}
+.bloc.tutoriel:not(.fait) { box-shadow: inset 0 0 0 1.5px var(--mt-or), 0 12px 32px rgba(234, 196, 90, .1); }
+.bloc .illus { display: flex; justify-content: center; }
+.bloc .illus img { width: 120px; aspect-ratio: 1; border-radius: 6%; box-shadow: 0 10px 24px rgba(0, 0, 0, .5); transform: rotate(-4deg); }
+.bloc .illus.trio img { width: 78px; margin: 0 -14px; }
+.bloc .illus.trio img:nth-child(1) { transform: rotate(-10deg) translateY(6px); }
+.bloc .illus.trio img:nth-child(2) { transform: translateY(-6px); z-index: 1; width: 92px; }
+.bloc .illus.trio img:nth-child(3) { transform: rotate(9deg) translateY(6px); }
+.bloc .txt { display: grid; gap: 10px; justify-items: start; }
+.bloc h2 { margin: 0; font: 400 22px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-encre); }
+.bloc p { margin: 0; color: var(--mt-doux); max-width: 52ch; }
+.bloc .mt-btn { min-width: 220px; }
+.bloc .barre { width: min(100%, 320px); height: 6px; border-radius: 99px; background: var(--mt-nuit); overflow: hidden; }
+.bloc .barre i { display: block; height: 100%; min-width: 4px; background: var(--mt-or); border-radius: inherit; }
+
+.outils { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; padding: 4px 6px; font-size: 14.5px; font-weight: 700; }
+.outils span { font: 900 12px 'Jost', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mt-discret); }
+.outils a, .outils button { min-height: 40px; display: inline-flex; align-items: center; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--mt-doux); text-decoration: none; }
+.outils a:hover, .outils button:hover { color: var(--mt-or); }
+
+@media (max-width: 600px) {
+  .apprendre-page { width: calc(100% - 24px); padding-top: 18px; gap: 12px; }
+  .bloc { grid-template-columns: 84px minmax(0, 1fr); gap: 14px; padding: 16px; align-items: start; }
+  .bloc .illus img { width: 72px; }
+  .bloc .illus.trio img { width: 48px; margin: 0 -10px; }
+  .bloc .illus.trio img:nth-child(2) { width: 56px; }
+  .bloc .mt-btn { min-width: 0; width: 100%; font-size: 14px; }
+  .bloc h2 { font-size: 19px; }
+}

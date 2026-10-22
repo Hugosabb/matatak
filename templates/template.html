@@ -1,67 +1,31 @@
 {% extends "base.html" %}
 {% block header %}
-<header>
+{% set rubrique = "apprendre" if view in ["apprendre", "puzzle", "campaign", "tutorial", "variants", "editor", "analysis", "collection"] else "jouer" %}
+<header class="mt-haut">
     <a id="zen-button"></a>
-    <div class="site-title-nav">
-        <div class="hamburger hamburger--vortex">
-            <div class="hamburger-box">
-                <div class="hamburger-inner"></div>
-            </div>
-        </div>
-        <div class="topnav">
-            <a class="nav-link active home" href="/">MATATAK{% if dev %}<span>DEV</span>{% endif %}</a>
-            <section>
-                <a class="nav-link category-header" href="/?any">{% trans %}Play{% endtrans %}</a>
-                <div class="drp">
-                    <a class="nav-link" href="/?ai">🐴 {% trans %}Play{% endtrans %}</a>
-                    <a class="nav-link" href="/?friend">🐼 {% trans %}Challenge Friend{% endtrans %}</a>
-                    <a class="nav-link" href="/lobby">🐯 {% trans %}Multiplayer{% endtrans %}</a>
-                    <a class="nav-link" href="/puzzle/campaign/matatakmini">🗝️ {% trans %}Puzzles{% endtrans %}</a>
-                </div>
-            </section>
-            <section>
-                <a class="nav-link category-header" href="/variants">{% trans %}Learn{% endtrans %}</a>
-                <div class="drp">
-                    <a class="nav-link" href="/variants">📜 {% trans %}Learn{% endtrans %}</a>
-                    <a class="nav-link" href="/editor/matatak">🌱 {% trans %}Editor{% endtrans %}</a>
-                    <a class="nav-link" href="/analysis/matatak">🕯️ {% trans %}Analysis{% endtrans %}</a>
-                </div>
-            </section>
-            <section>
-                <a class="nav-link category-header" href="/tv">{% trans %}Watch{% endtrans %}</a>
-                <div class="drp">
-                    <a class="nav-link" href="/tv">🔮 {% trans %}Tv{% endtrans %}</a>
-                    <a class="nav-link" href="/games">⚡ {% trans %}Live{% endtrans %}</a>
-                    <a class="nav-link" href="/players">🐵 {% trans %}Players{% endtrans %}</a>
-                </div>
-            </section>
-        </div>
-    </div>
+    <a class="mt-logo" href="/jouer" aria-label="MATATAK, jouer">
+        <img src="/static/images/background/vitrine/logo.png" alt="MATATAK">{% if dev %}<small>DEV</small>{% endif %}
+    </a>
+    <nav class="mt-onglets">
+        <a href="/jouer" class="{{ 'actif' if rubrique == 'jouer' }}">Jouer</a>
+        <a href="/apprendre" class="{{ 'actif' if rubrique == 'apprendre' }}">Apprendre</a>
+        <a href="/">Le jeu de société</a>
+    </nav>
     <div class="site-buttons">
         {% if anon %}
-        <div class="login-dropdown">
-            <button class="login-btn nav-link" aria-haspopup="true" aria-expanded="false">
-                <span class="login-icon">🐾</span>
-                <span class="login-text">{% trans %}Login{% endtrans %}</span>
-                <span class="dropdown-arrow">▼</span>
-            </button>
-            <div class="login-dropdown-menu" role="menu">
-                <a class="login-option" href="/login/lichess" role="menuitem">
-                    <span class="provider-icon lichess-icon">
-                        <svg viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-                            <path fill="currentColor" stroke="currentColor" stroke-linejoin="round"
-                                d="M38.956.5c-3.53.418-6.452.902-9.286 2.984C5.534 1.786-.692 18.533.68 29.364 3.493 50.214 31.918 55.785 41.329 41.7c-7.444 7.696-19.276 8.752-28.323 3.084C3.959 39.116-.506 27.392 4.683 17.567 9.873 7.742 18.996 4.535 29.03 6.405c2.43-1.418 5.225-3.22 7.655-3.187l-1.694 4.86 12.752 21.37c-.439 5.654-5.459 6.112-5.459 6.112-.574-1.47-1.634-2.942-4.842-6.036-3.207-3.094-17.465-10.177-15.788-16.207-2.001 6.967 10.311 14.152 14.04 17.663 3.73 3.51 5.426 6.04 5.795 6.756 0 0 9.392-2.504 7.838-8.927L37.4 7.171z" />
-                        </svg>
-                    </span>
-                    <span class="provider-name">Lichess</span>
-                </a>
-            </div>
-        </div>
+        <a class="mt-profil" href="/login/lichess"><span class="av">🐾</span><span class="nom">{{ username.split("#")[0] }}<small>Invité · Se connecter</small></span></a>
         {% else %}
-        <div id="username"><a class="user-link nav-link" href="/@/{{ username }}">👑 {{ username }}</a></div>
+        <a class="mt-profil" href="/@/{{ username }}"><span class="av">👑</span><span class="nom">{{ username }}<small>Mon profil</small></span></a>
         {% endif %}
         <div id="notify-panel"></div>
         <div id="settings-panel"></div>
     </div>
 </header>
+{% if view not in ["round", "tv", "analysis", "editor", "embed", "puzzle", "tutorial", "invite"] %}
+<nav class="mt-tab" aria-label="Navigation">
+    <a href="/jouer" class="{{ 'actif' if rubrique == 'jouer' }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>Jouer</a>
+    <a href="/apprendre" class="{{ 'actif' if rubrique == 'apprendre' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h7v15H4zM13 5h7v15h-7"/></svg>Apprendre</a>
+    <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>Le jeu</a>
+</nav>
+{% endif %}
 {% endblock %}

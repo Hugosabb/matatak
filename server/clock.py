@@ -31,6 +31,10 @@ class Clock:
     def restart(self, secs=None):
         self.ply = self.game.ply
         self.color = self.board.color
+        if getattr(self.game, "unlimited", False):
+            # Partie sans limite de temps : la pendule ne tourne jamais.
+            self.running = False
+            return
         if secs is not None:
             self.secs = secs
         else:

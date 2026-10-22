@@ -70,8 +70,14 @@ def get_main_variation(game: Game, base_tc_ms: int) -> [list, list]:
 
 
 async def import_game_bpgn(request):
+    from utils import joueur_inscrit
+
     data = await request.post()
     app_state = get_app_state(request.app)
+
+    importeur = await joueur_inscrit(request)
+    if importeur is None:
+        return web.json_response({"error": "Connectez-vous pour importer une partie."}, status=403)
 
     # print("---IMPORT GAME---")
     # print(data)
@@ -181,7 +187,7 @@ async def import_game_bpgn(request):
         "x": 0,
         "y": IMPORTED,
         "z": int(chess960),
-        "by": first_game.headers.get("username"),
+        "by": importeur.username,
     }
 
     if initial_fen or chess960:

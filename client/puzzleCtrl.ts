@@ -10,7 +10,11 @@ import { updateMovelist } from './movelist';
 import { variants } from './variants';
 import { RatedSettings, AutoNextSettings } from './puzzleSettings';
 import { updatePoint } from './info';
-import { showBannerOverlay } from './bannerOverlay';
+
+/** Nombre de niveaux de campagne réussis sur cet appareil. */
+function niveauxResolus(variant: string): number {
+    try { return JSON.parse(localStorage.getItem(`matatak_campaign_solved_${variant}`) || '[]').length; } catch { return 0; }
+}
 
 
 export class PuzzleController extends AnalysisController {
@@ -88,13 +92,14 @@ export class PuzzleController extends AnalysisController {
         });
 
         const rt = document.querySelector('.rated-toggle') as HTMLElement;
-        if (this.anon) {
-            patch(rt, h('div', [
-                h('div', 'To solve the puzzles rated'),
-                h('button.join',
-                    { on: { click: () => window.location.assign('/login') } },
-                    _('LOGIN')
-                )
+        if (this.level) {
+            // Campagne : ni classement, ni choix de variante, ni enchaînement automatique
+            document.querySelector('.puzzle-user')?.remove();
+            document.querySelector('.puzzle-info')?.remove();
+        } else if (this.anon) {
+            patch(rt, h('div.puzzle-connexion', [
+                h('span', 'Connectez-vous pour avoir un classement de puzzles.'),
+                h('a.mt-btn.mt-btn-petit.mt-btn-ligne', { attrs: { href: '/login/lichess' } }, 'Se connecter avec Lichess'),
             ]));
         } else {
             const ratedSettings = new RatedSettings(this);
@@ -102,9 +107,8 @@ export class PuzzleController extends AnalysisController {
             this.renderRating(this.isRated, this.color, this.wrating, this.brating);
         }
 
-        const autoNextSettings = new AutoNextSettings(this);
         const ant = document.querySelector('.auto-next-toggle') as HTMLElement;
-        patch(ant, autoNextSettings.view());
+        if (ant) patch(ant, new AutoNextSettings(this).view());
 
         this.playerEl = document.querySelector('.player') as HTMLElement;
         this.yourTurn();
@@ -204,43 +208,22 @@ export class PuzzleController extends AnalysisController {
         }
 
         const infosEl = document.querySelector('.infos') as HTMLElement;
-        patch(infosEl, h('div.game-info', [
-            this.level ? h('div.campaign-level-badge', { style: { background: '#007bff', color: '#fff', padding: '6px 12px', borderRadius: '6px', marginBottom: '12px', textAlign: 'center', fontWeight: 'bold' } }, [
-                `🎯 Niveau ${this.level} / ${this.totalLevels || 200}`,
-                h('a', { attrs: { href: `/puzzle/campaign/${this.variant.name}` }, style: { color: '#fff', marginLeft: '10px', fontSize: '0.85em', textDecoration: 'underline' } }, "☰ Liste")
-            ]) : null,
-            h('section', [
-                h('div.info0.icon.icon-puzzle', [
-                    h('div.info2', [
-                        h('div', [h('span', _('Puzzle')), (this._id === '0') ? '' : h('a', { attrs: { href: `/puzzle/${this._id}` } }, `#${this._id}`) ]),
-                        h('div', [h('span', _('Rating:')), h('span.hidden', _('hidden'))]),
-                        h('div', [h('span', _('Played:')), this.played])
-                    ])
-                ]),
-            ]),
-            h('div.info0.icon', { attrs: { "data-icon": this.variant.icon() } }, [
-                h('div.info2', [
-                    h('div', [
-                        h('span', _('Variant')),
-                        h('a', {
-                            attrs: {
-                                target: '_blank',
-                                href: '/variants/' + this.variant.name,
-                            }
-                        },
-                        this.variant.displayName())
-                    ]),
-                    h('div', [
-                        h('span', _('Source:')),
-                        h('a', { attrs: { href: sourceLink } }, sourceText),
-                    ]),
-                    h('div', [
-                        h('span', _('Type:')),
-                        this.puzzleType + mateIn
-                    ])
-                ]),
-            ])
-        ].filter(Boolean) as VNode[]));
+        if (this.level) {
+            const total = this.totalLevels || 200;
+            const resolus = niveauxResolus(this.variant.name);
+            patch(infosEl, h('div.puzzle-campagne', [
+                h('div.niveau-titre', [`Niveau ${this.level}`, h('small', ` sur ${total}`)]),
+                h('div.barre', h('i', { style: { width: `${resolus / total * 100}%` } })),
+                h('a.lien', { attrs: { href: `/puzzle/campaign/${this.variant.name}` } }, 'Tous les niveaux'),
+            ]));
+            return;
+        }
+        patch(infosEl, h('div.puzzle-campagne', [
+            h('div.niveau-titre', (this._id === '0') ? 'Puzzle' : [`Puzzle `, h('a', { attrs: { href: `/puzzle/${this._id}` } }, `#${this._id}`)]),
+            mateIn ? h('p.puzzle-type', `Mat en ${mateIn.replace(' #', '')}`) : '',
+            h('a.lien', { attrs: { href: '/puzzle/campaign/' + this.variant.name } }, 'Campagne de puzzles'),
+        ]));
+        void sourceLink; void sourceText;
     }
 
     viewSolution() {
@@ -335,14 +318,12 @@ export class PuzzleController extends AnalysisController {
         const turnColor = this.fullfen.split(" ")[1];
         const pieceColor = (turnColor == 'w') ? 'white' : 'black';
         const kingRole = this.variant.kingRoles[0];
-        const first = _(this.variant.colors.first);
-        const second = _(this.variant.colors.second);
         this.playerEl = patch(this.playerEl,
             h(`div.player.${this.variant.pieceFamily}`, [
                 h(`piece.${pieceColor}.no-square.${kingRole}.ally`),
                 h('div.instruction', [
-                    h('strong', _('Your turn')),
-                    h('em', _('Find the best move for %1.', (turnColor === 'w') ? first : second)),
+                    h('strong', 'À vous de jouer'),
+                    h('em', `${turnColor === 'w' ? 'Les Blancs' : 'Les Noirs'} jouent : trouvez le meilleur coup.`),
                 ]),
             ])
         );
@@ -359,8 +340,8 @@ export class PuzzleController extends AnalysisController {
                 h('div.icon', '✗'),
                 h('div.instruction', [
                     h('san', [san, h('span.fail', '?')]),
-                    h('strong', _("That's not the move!")),
-                    h('em', _('Try something else.')),
+                    h('strong', 'Ce n\'est pas le bon coup'),
+                    h('em', 'Essayez autre chose.'),
                 ]),
             ])
         );
@@ -374,8 +355,8 @@ export class PuzzleController extends AnalysisController {
             h('div.player', [
                 h('div.icon', '✓'),
                 h('div.instruction', [
-                    h('strong', _("Best move!")),
-                    h('em', _('Keep going...')),
+                    h('strong', 'Bon coup !'),
+                    h('em', 'Continuez…'),
                 ]),
             ])
         );
@@ -385,12 +366,10 @@ export class PuzzleController extends AnalysisController {
     }
 
     puzzleComplete(success: boolean) {
-        var text: string = '';
-        if (!this.failed && success) {
-            text = _('Success!');
+        // Réussi seulement sans erreur ni indice : sinon le niveau n'est pas compté
+        const reussi = success && !this.failed;
+        if (reussi) {
             this.postSuccess(true);
-
-            // Enregistrer la réussite du niveau dans le localStorage
             if (this.level !== undefined) {
                 const key = `matatak_campaign_solved_${this.variant.name}`;
                 try {
@@ -403,78 +382,54 @@ export class PuzzleController extends AnalysisController {
                     console.error("Erreur sauvegarde localStorage niveau:", e);
                 }
             }
-        } else if (!success) {
-            if (this._id !== '0') {
-                text = _('Puzzle complete!');
-                this.postSuccess(false);
-            } else {
-                text = _('We have no more puzzles for this variant.');
-            }
+        } else if (this._id !== '0') {
+            this.postSuccess(false);
         }
         this.completed = true;
 
-        const nextLevelNum = (this.level ?? 0) + 1;
-        const feedbackEl = document.querySelector('.feedback') as HTMLInputElement;
+        const total = this.totalLevels || 200;
+        const suivant = (this.level ?? 0) + 1;
+        const aller = (url: string) => () => window.location.assign(url);
+        const lien = (texte: string, onClick: () => void) => h('button.fin-lien', { attrs: { type: 'button' }, on: { click: onClick } }, texte);
+        const bouton = (texte: string, onClick: () => void) => h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: onClick } }, texte);
 
+        let titre: string;
+        let phrase: string;
+        let principal: VNode | string = '';
+        const liens: VNode[] = [];
+        if (this._id === '0') {
+            titre = 'Plus de puzzles';
+            phrase = "Il n'y a pas d'autre puzzle pour ce plateau pour l'instant.";
+        } else if (this.level) {
+            const niveau = `/puzzle/${this.variant.name}/level/`;
+            const grille = `/puzzle/campaign/${this.variant.name}`;
+            if (reussi) {
+                titre = 'Réussi !';
+                phrase = suivant <= total ? `Niveau ${this.level} terminé.` : 'Vous avez terminé la campagne !';
+                principal = suivant <= total ? bouton(`Niveau ${suivant}`, aller(niveau + suivant)) : bouton('Tous les niveaux', aller(grille));
+            } else {
+                titre = success ? "Résolu, avec de l'aide" : 'Voici la solution';
+                phrase = 'Réessayez sans aide pour valider ce niveau.';
+                principal = bouton('Réessayer', aller(niveau + this.level));
+                if (suivant <= total) liens.push(lien('Niveau suivant', aller(niveau + suivant)));
+            }
+            liens.push(lien('Tous les niveaux', aller(grille)));
+        } else {
+            titre = reussi ? 'Réussi !' : success ? "Résolu, avec de l'aide" : 'Voici la solution';
+            phrase = reussi ? 'Bien joué.' : 'Rejouez les coups avec les flèches pour comprendre.';
+            principal = bouton('Puzzle suivant', () => this.continueTraining(this.variant.name));
+        }
+
+        const feedbackEl = document.querySelector('.feedback') as HTMLInputElement;
         patch(feedbackEl,
-            h('div.feedback.after', [
-                h('div.complete', this.level ? `Niveau ${this.level} Réussi ! 🎉` : text),
-                this.level ? h('div.campaign-buttons', { style: { display: 'flex', gap: '10px', justifyContent: 'center', margin: '15px 0' } }, [
-                    nextLevelNum <= (this.totalLevels || 200) ? h('a.button.hero-btn', {
-                        attrs: { href: `/puzzle/${this.variant.name}/level/${nextLevelNum}` },
-                        style: { background: '#28a745', color: '#fff', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none', fontWeight: 'bold' }
-                    }, `Niveau ${nextLevelNum} ➔`) : null,
-                    h('a.button', {
-                        attrs: { href: `/puzzle/campaign/${this.variant.name}` },
-                        style: { background: 'rgba(255,255,255,0.15)', color: '#fff', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none' }
-                    }, "Grille des niveaux ☰")
-                ]) : h('div.more', [
-                    h('a',
-                        { on: { click: () => this.continueTraining(this.variant.name) } },
-                        _('Continue training')
-                    ),
-                ]),
+            h('div.feedback.after.fin-puzzle', { class: { reussi }, attrs: { role: 'status', 'aria-live': 'polite' } }, [
+                h('div.fin-titre', titre),
+                h('p.fin-raison', phrase),
+                principal,
+                liens.length ? h('div.fin-liens', liens) : '',
             ])
         );
 
-        // Affichage du bandeau pop-up au centre du plateau
-        if (success) {
-            if (this.level && nextLevelNum <= (this.totalLevels || 200)) {
-                showBannerOverlay({
-                    title: `Niveau ${this.level} Réussi ! 🎉`,
-                    buttons: [
-                        {
-                            text: `Niveau ${nextLevelNum} ➔`,
-                            style: 'primary',
-                            onClick: () => {
-                                window.location.assign(`/puzzle/${this.variant.name}/level/${nextLevelNum}`);
-                            }
-                        },
-                        {
-                            text: "Grille ☰",
-                            style: 'outline',
-                            onClick: () => {
-                                window.location.assign(`/puzzle/campaign/${this.variant.name}`);
-                            }
-                        }
-                    ]
-                });
-            } else {
-                showBannerOverlay({
-                    title: _("Puzzle réussi ! 🎉"),
-                    subtitle: _("Bravo !"),
-                    buttons: [
-                        {
-                            text: _("Continuer ➔"),
-                            style: 'primary',
-                            onClick: () => {
-                                this.continueTraining(this.variant.name);
-                            }
-                        }
-                    ]
-                });
-            }
-        }
         if (this.gaugeNeeded) {
             const gaugeEl = document.getElementById('gauge') as HTMLElement;
             gaugeEl.style.display = 'block';

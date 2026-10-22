@@ -1,7 +1,6 @@
 import { h, VNode } from "snabbdom";
 import { PyChessModel } from "./types";
-import { _ } from "./i18n";
-import { VARIANTS } from "./variants";
+import { patch } from "./document";
 
 export interface CampaignLevel {
     level: number;
@@ -36,105 +35,59 @@ export class CampaignView {
 
     render(levels: CampaignLevel[]): VNode {
         this.levels = levels;
-        const variantObj = VARIANTS[this.variant] || VARIANTS["matatak"];
+        const total = levels.length || 200;
+        const autre = this.variant === "matatakmini" ? "matatak" : "matatakmini";
+        const nomVariante = (v: string) => v === "matatakmini" ? "Matatak Mini" : "Matatak";
 
-        // Trouver le niveau recommandé (le plus petit non résolu, ou 1)
-        let recommendedLevel = 1;
-        for (let i = 1; i <= 200; i++) {
-            if (!this.solvedLevels.includes(i)) {
-                recommendedLevel = i;
-                break;
-            }
+        // Niveau recommandé : le plus petit non résolu
+        let suivant = total + 1;
+        for (let i = 1; i <= total; i++) {
+            if (!this.solvedLevels.includes(i)) { suivant = i; break; }
         }
+        const resolus = this.solvedLevels.filter(n => n >= 1 && n <= total).length;
+        const fini = suivant > total;
 
-        const completedCount = this.solvedLevels.length;
-
-        return h("div.campaign", [
-            h("div.campaign-header", { style: { textAlign: "center", marginBottom: "20px" } }, [
-                h("h1", [
-                    h("span.icon", { attrs: { "data-icon": variantObj.icon() } }),
-                    ` ${_("Mode Aventure")} - ${variantObj.displayName()}`,
+        // Chapitres de 20 niveaux : seul celui du niveau recommandé est ouvert
+        const TAILLE = 20;
+        const chapitres = Array.from({ length: Math.ceil(total / TAILLE) }, (_, c) => {
+            const debut = c * TAILLE + 1;
+            const fin = Math.min(total, debut + TAILLE - 1);
+            const niveaux = Array.from({ length: fin - debut + 1 }, (_, i) => debut + i);
+            const faits = niveaux.filter(n => this.solvedLevels.includes(n)).length;
+            const ouvert = fini ? c === 0 : suivant >= debut && suivant <= fin;
+            return h("details.chapitre", { attrs: { open: ouvert } }, [
+                h("summary", [
+                    h("span.chapitre-nom", `Niveaux ${debut} à ${fin}`),
+                    h("span.chapitre-compte", { class: { complet: faits === niveaux.length } }, `${faits} / ${niveaux.length}`),
                 ]),
-                h("p.description", { style: { fontSize: "1.1em", opacity: "0.9" } }, [
-                    _("Apprenez la tactique à votre rythme."),
-                ]),
-                h("div.campaign-progress", { style: { marginTop: "10px" } }, [
-                    h("span.badge", { style: { background: "#28a745", color: "#fff", padding: "5px 12px", borderRadius: "15px", fontWeight: "bold" } }, [
-                        `✅ ${completedCount} / 200 ${_("niveaux réussis")}`
-                    ]),
-                    recommendedLevel <= 200
-                        ? h("a.button.hero-btn", {
-                              attrs: { href: `/puzzle/${this.variant}/level/${recommendedLevel}` },
-                              style: { marginLeft: "15px", display: "inline-block", background: "#007bff", color: "#fff", padding: "6px 16px", borderRadius: "6px", textDecoration: "none" }
-                          }, [
-                              `▶ ${_("Continuer : Niveau")} ${recommendedLevel}`
-                          ])
-                        : null
-                ])
-            ]),
-
-            // Grille des 200 niveaux sous forme de radio-group / boutons
-            h("div.campaign-grid-container", { style: { background: "rgba(0, 0, 0, 0.15)", padding: "15px", borderRadius: "8px" } }, [
-                h("h3", { style: { marginBottom: "15px", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "8px" } }, [
-                    _("Sélectionnez n'importe quel niveau :")
-                ]),
-                h("div.campaign-grid", {
-                    style: {
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(65px, 1fr))",
-                        gap: "8px",
-                        maxHeight: "550px",
-                        overflowY: "auto",
-                        paddingRight: "5px"
-                    }
-                }, Array.from({ length: 200 }, (_, i) => i + 1).map(lvl => {
-                    const isSolved = this.solvedLevels.includes(lvl);
-                    const isRecommended = lvl === recommendedLevel;
-
-                    let bg = "rgba(255, 255, 255, 0.08)";
-                    let border = "1px solid rgba(255, 255, 255, 0.15)";
-                    let color = "#ddd";
-                    let badge = "";
-
-                    if (isSolved) {
-                        bg = "#28a745";
-                        border = "1px solid #218838";
-                        color = "#fff";
-                        badge = "✓";
-                    } else if (isRecommended) {
-                        bg = "#007bff";
-                        border = "2px solid #6610f2";
-                        color = "#fff";
-                        badge = "★";
-                    }
-
-                    return h("a.level-card", {
+                h("div.niveaux", niveaux.map(n => {
+                    const fait = this.solvedLevels.includes(n);
+                    const actuel = n === suivant;
+                    return h("a.niveau", {
+                        class: { fait, actuel },
                         attrs: {
-                            href: `/puzzle/${this.variant}/level/${lvl}`,
-                            title: `Niveau ${lvl} ${isSolved ? "(Réussi)" : ""}`
+                            href: `/puzzle/${this.variant}/level/${n}`,
+                            "aria-label": `Niveau ${n}${fait ? ", réussi" : actuel ? ", à jouer" : ""}`,
                         },
-                        style: {
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            padding: "8px 4px",
-                            background: bg,
-                            border: border,
-                            borderRadius: "6px",
-                            color: color,
-                            textDecoration: "none",
-                            fontWeight: "bold",
-                            fontSize: "14px",
-                            transition: "transform 0.1s ease, filter 0.1s ease",
-                            boxShadow: isRecommended ? "0 0 8px rgba(0,123,255,0.6)" : "none"
-                        }
-                    }, [
-                        h("span.lvl-num", `${lvl}`),
-                        badge ? h("span.badge-icon", { style: { fontSize: "10px", marginTop: "2px" } }, badge) : null
-                    ]);
-                }))
-            ])
+                    }, String(n));
+                })),
+            ]);
+        });
+
+        return h("div.campagne", [
+            h("h1", "Campagne de puzzles"),
+            h("p.campagne-sous-titre", `${nomVariante(this.variant)} · ${total} niveaux, du plus simple au plus rusé.`),
+            h("div.campagne-progression", [
+                h("div.barre", { attrs: { role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(total), "aria-valuenow": String(resolus) } },
+                    h("i", { style: { width: `${resolus / total * 100}%` } })),
+                h("span", resolus === 0 ? "Aucun niveau réussi pour l'instant" : `${resolus} niveau${resolus > 1 ? "x" : ""} réussi${resolus > 1 ? "s" : ""} sur ${total}`),
+            ]),
+            fini
+                ? h("p.campagne-fini", "Bravo, vous avez réussi tous les niveaux !")
+                : h("a.mt-btn.mt-btn-or.campagne-continuer", { attrs: { href: `/puzzle/${this.variant}/level/${suivant}` } },
+                    resolus === 0 ? "Commencer" : `Continuer · Niveau ${suivant}`),
+            h("div.chapitres", chapitres),
+            h("a.campagne-autre", { attrs: { href: `/puzzle/campaign/${autre}` } }, `Campagne ${nomVariante(autre)} →`),
         ]);
     }
 }
@@ -158,6 +111,6 @@ export function campaignView(model: PyChessModel): VNode {
         })
         .catch(err => console.error("Error fetching campaign levels:", err));
 
-    return h("div#campaign-container.campaign", [view.render(levels)]);
+    return h("div#campaign-container", [view.render(levels)]);
 }
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ lang }}">
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -10,12 +10,12 @@
     <meta name="keywords"
         content="Chess variants xiangqi janggi shogi dobutsu gorogoro kyoto tori makruk sittuyin asean makpong capablanca seirawan grand shako shogun synochess orda shinobi empire chak chennis duck spartan">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#dbd7d1">
+    <meta name="theme-color" content="#12100e">
     <title>{{ title }}</title>
     <link rel="stylesheet" href={{ static("chessground.css") }}>
     <link rel="stylesheet" href={{ static("board.css") }} crossorigin="anonymous">
     {% for key in piece_sets %}
-    <link id="piece-set-{{ key }}" rel="stylesheet" href={{ static("piece/{{ key }}/empty.css") }}>
+    <link id="piece-set-{{ key }}" rel="stylesheet"><!-- la feuille du jeu de pièces est posée par client/document.ts -->
     {% endfor %}
     <link rel="stylesheet" href={{ static("extensions.css") }}>
     <link rel="stylesheet" href={{ static("style.css") }}>
@@ -26,11 +26,15 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Sans+Display:wght@100;200;300;400;500;600;700&family=Noto+Sans:wght@400;700&display=swap"
         rel="stylesheet" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Jost:wght@700;900&display=swap"
+        rel="stylesheet" crossorigin>
     <link rel="stylesheet" href={{ static("site.css") }}>
+    <link rel="stylesheet" href={{ static("matatak-ui.css") }}>
     <link rel="stylesheet" href={{ static("reconnecting.css") }}>
     <link rel="stylesheet" href={{ static("bughouse.css") }}>
     <link rel="stylesheet" href={{ static("piece/mono/mono.css") }}>
     <link rel="stylesheet" href={{ static(view_css) }}>
+    {% if extra_css %}<link rel="stylesheet" href={{ static(extra_css) }}>{% endif %}
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href={{ static("favicon/apple-icon-180x180.png") }}>
     <link rel="icon" href={{ static("favicon/favicon.ico") }} type="image/x-icon" />
@@ -61,6 +65,7 @@
     <a id="reconnecting" class="link text" data-icon="p"><info-date id="reconnecting-ts" timestamp=""></info-date></a>
     <script src="{{ static('./js/zoomManager.js') }}"></script>
     <script src="{{ static('./js/pwa-update.js') }}"></script>
+    <script src="{{ static('./js/installer.js') }}"></script>
 </body>
 
 </html>

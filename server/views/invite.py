@@ -64,5 +64,6 @@ async def invite(request):
 
         context["view"] = "round"
         context["view_css"] = "round.css"
+        context["extra_css"] = "partie.css"  # écran de partie MATATAK, comme round_view
 
     return context

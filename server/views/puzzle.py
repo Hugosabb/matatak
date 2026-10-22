@@ -26,6 +26,7 @@ async def puzzle(request):
         context["view"] = "campaign"
         context["variant"] = variant
         context["view_css"] = "analysis.css"
+        context["extra_css"] = "puzzle.css"
         return context
 
     if request.path.endswith("/daily"):
@@ -85,6 +86,7 @@ async def puzzle(request):
         wrating = puzzle_rating
 
     context["view_css"] = "analysis.css"
+    context["extra_css"] = "puzzle.css"
     context["variant"] = variant
     context["fen"] = puzzle["fen"]
     context["wrating"] = wrating

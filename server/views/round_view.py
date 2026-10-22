@@ -26,6 +26,7 @@ async def round_view(request):
 
     context["view"] = "round"
     context["view_css"] = "round.css"
+    context["extra_css"] = "partie.css"
 
     if not game.is_player(user):
         game.spectators.add(user)

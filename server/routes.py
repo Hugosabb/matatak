@@ -84,6 +84,11 @@ from views import (
     videos,
     video,
     winners,
+    vitrine,
+    apprendre,
+    solo,
+    collection,
+    livret,
 )
 import pwa
 
@@ -93,7 +98,12 @@ get_routes = (
     ("/oauth/{provider}", oauth),
     ("/logout", logout),
     ("/select-username", select_username),
-    ("/", lobby.lobby),
+    ("/", vitrine.vitrine),
+    ("/jouer", lobby.lobby),
+    ("/collection", collection.collection),
+    ("/apprendre", apprendre.apprendre),
+    ("/jouer/solo", solo.solo),
+    ("/livret/{cible}", livret.livret),
     ("/lobby", lobby.lobby),
     ("/about", about.about),
     ("/faq", faq.faq),
@@ -116,6 +126,7 @@ get_routes = (
     ("/api/campaign/{variant}", puzzle.api_campaign_levels),
     ("/tutorial", tutorial.tutorial),
     ("/tutorial/{stepId}", tutorial.tutorial),
+    ("/api/tutorial/{stepId}", tutorial.api_tutorial),
     (r"/corranalysis/{gameId:\w{8}}", analysis.analysis),
     ("/analysis/{variant}", analysis.analysis),
     ("/analysis/{variant}/{fen}", analysis.analysis),

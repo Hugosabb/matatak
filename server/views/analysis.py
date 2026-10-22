@@ -42,4 +42,5 @@ async def analysis(request):
         if not request.path.startswith("/corr"):
             context["ct"] = json.dumps(game.crosstable)
 
+    context["extra_css"] = "analyse.css"  # page Analyse aux couleurs MATATAK
     return context

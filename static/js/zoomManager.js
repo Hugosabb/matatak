@@ -13,6 +13,8 @@
 
     //Attach this function to each element detected by the observer
     function attachZoomEvents(target) {
+        // Cartes du Draft (client/draft.ts) : déjà en grand, l'aperçu cacherait les groupes
+        if (target.closest && target.closest('.draft')) return;
 
         let clone = null;
         let zoomTimer = null;

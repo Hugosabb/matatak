@@ -139,10 +139,8 @@ class FairyBoard:
             while new_fen == disabled_fen:
                 new_fen = FairyBoard.shuffle_start(variant)
         elif variant.startswith("matatak"):
-            if isDraft:
-                new_fen = FairyBoard.matatak_draft_board(variant=="matatakmini")
-            else:
-                new_fen = FairyBoard.matatak_random_start(variant=="matatakmini", boost)
+            # Le Draft se compose avant la partie (server/draft.py) : position ordinaire en attendant
+            new_fen = FairyBoard.matatak_random_start(variant=="matatakmini", boost)
         elif variant == "alice":
             new_fen = sf_alice.start_fen("alice")
         else:
@@ -471,15 +469,25 @@ class FairyBoard:
     
         return bchampions, bpawns, wpawns, wchampions
     
-    @staticmethod
-    def matatak_seasons_teams():
-        spring = ("m", "c")
-        summer = ("f", "x")
-        autumn = ("b", "i")
-        winter = ("l", "w")
+    # Équipes de départ du Mini (Pion, Champion), par Saison
+    MINI_SAISONS = {
+        "printemps": ("m", "c"),
+        "ete": ("f", "x"),
+        "automne": ("b", "i"),
+        "hiver": ("l", "w"),
+    }
 
-        wteam = random.choice([spring, summer, autumn, winter])
-        bteam = random.choice([spring, summer, autumn, winter])
+    @staticmethod
+    def matatak_mini_start(wseason=None, bseason=None):
+        """Position de départ du Mini avec des Saisons imposées (None = au hasard)."""
+        teams = FairyBoard.matatak_seasons_teams(wseason, bseason)
+        return FairyBoard.matatak_placement_start(*teams, True)
+
+    @staticmethod
+    def matatak_seasons_teams(wseason=None, bseason=None):
+        saisons = FairyBoard.MINI_SAISONS
+        wteam = saisons[wseason] if wseason else random.choice(list(saisons.values()))
+        bteam = saisons[bseason] if bseason else random.choice(list(saisons.values()))
 
         bchampions = "k" + bteam[1]
         bpawns = bteam[0] * 2
@@ -488,28 +496,56 @@ class FairyBoard:
 
         return bchampions, bpawns, wpawns, wchampions
     
+    # Coup de pouce (livret) : rang, étoiles et Saison du Personnage affiché pour chaque lettre
+    FORCE = {
+        "a": ("pion", 1, "printemps"), "e": ("pion", 1, "automne"), "j": ("pion", 1, "ete"),
+        "f": ("pion", 2, "ete"), "m": ("pion", 2, "printemps"), "p": ("pion", 2, "printemps"),
+        "g": ("pion", 3, "hiver"), "l": ("pion", 3, "hiver"),
+        "b": ("pion", 4, "automne"), "q": ("pion", 4, "automne"),
+        "n": ("champion", 1, "automne"), "r": ("champion", 1, "ete"),
+        "h": ("champion", 2, "printemps"), "o": ("champion", 2, "ete"), "s": ("champion", 2, "printemps"),
+        "c": ("champion", 3, "printemps"), "i": ("champion", 3, "automne"), "t": ("champion", 3, "automne"),
+        "w": ("champion", 3, "hiver"), "z": ("champion", 3, "hiver"),
+        "d": ("champion", 4, "hiver"), "x": ("champion", 4, "ete"), "y": ("champion", 4, "printemps"),
+    }
+
+    EXTENSIONS = set("pqrtyz")  # HOP, GAMBY, YXEL, BOONG, BLUFF, RAY
+
+    @staticmethod
+    def changer_force(groupe, delta):
+        """Chaque Personnage du groupe (lettres) gagne (delta=+1) ou perd (-1) une étoile : remplacé par
+        un Personnage du même rang, de la même Saison si possible. Impossible (1 ou 4 étoiles) : inchangé."""
+        force = FairyBoard.FORCE
+        choix = {}
+        for lettre in set(groupe.lower()) - {"k"}:
+            rang, etoiles, saison = force[lettre]
+            candidats = [k for k, v in force.items() if v[0] == rang and v[1] == etoiles + delta]
+            # « pris dans la boîte » : jeu de base d'abord, et la même Saison si possible
+            base = [k for k in candidats if k not in FairyBoard.EXTENSIONS]
+            meme_saison = [k for k in base if force[k][2] == saison]
+            if candidats:
+                choix[lettre] = random.choice(meme_saison or base or candidats)
+        return "".join(
+            (choix[c.lower()].upper() if c.isupper() else choix[c]) if c.lower() in choix else c
+            for c in groupe
+        )
+
     @staticmethod
     def add_boost(isMini, boost, bchampions, bpawns, wpawns, wchampions):
-        pawns_boost = ["b", "b", "b", "b"]
-        champions_boost = ["n", "o", "i", "d"]
-        
-        bchampionsboost = champions_boost[abs(boost)-1] if boost<0 else ""
-        bpawnsboost = pawns_boost[abs(boost)-1] if boost<0 else ""
-        wpawnsboost = pawns_boost[abs(boost)-1].upper() if boost>0 else ""
-        wchampionsboost = champions_boost[abs(boost)-1].upper() if boost>0 else ""
-
-        if isMini:
-            bpawns = bpawnsboost + bpawns
-            bchampions = bchampionsboost + bchampions
-            wpawns += wpawnsboost
-            wchampions += wchampionsboost
-        else:
-            bpawns += bpawnsboost
-            bchampions += bchampionsboost
-            wpawns = wpawnsboost + wpawns
-            wchampions = wchampionsboost + wchampions
-
-        return bchampions, bpawns, wpawns, wchampions
+        """Coup de pouce du livret, crans cumulés : 1) le Champion du joueur aidé gagne une étoile ;
+        2) ses Pions aussi ; 3) les Pions adverses en perdent une ; 4) le Champion adverse aussi.
+        boost > 0 aide les Blancs, < 0 les Noirs (|boost| = nombre de crans, 4 au plus)."""
+        crans = min(abs(boost), 4)
+        if crans == 0:
+            return bchampions, bpawns, wpawns, wchampions
+        aide = {"champions": wchampions, "pions": wpawns} if boost > 0 else {"champions": bchampions, "pions": bpawns}
+        autre = {"champions": bchampions, "pions": bpawns} if boost > 0 else {"champions": wchampions, "pions": wpawns}
+        etapes = [(aide, "champions", 1), (aide, "pions", 1), (autre, "pions", -1), (autre, "champions", -1)]
+        for camp, groupe, delta in etapes[:crans]:
+            camp[groupe] = FairyBoard.changer_force(camp[groupe], delta)
+        if boost > 0:
+            return autre["champions"], autre["pions"], aide["pions"], aide["champions"]
+        return aide["champions"], aide["pions"], autre["pions"], autre["champions"]
 
     @staticmethod
     def matatak_placement_start(bchampions: str, bpawns: str, wpawns: str, wchampions: str, isMini: bool) -> str:
@@ -537,34 +573,6 @@ class FairyBoard:
         fen += " w - - 0 1"
         return fen
 
-    @staticmethod
-    def matatak_draft_board(isMini=False) -> str:
-        """Generates a FEN for the matatak cutting phase with pieces in pocket."""
-        # Use a generic 8x8 empty board with pieces in the pocket.
-        pawns = "abefgjlmpq"
-        champions = "cdhinorstwxyz"
-
-        c1 = random.choice(champions).upper()
-        c2 = random.choice(champions).upper()
-        c3 = random.choice(champions).upper()
-        c4 = random.choice(champions).upper()
-        c5 = random.choice(champions).upper()
-        c6 = random.choice(champions).upper()
-        p1 = random.choice(pawns)
-        p2 = random.choice(pawns)
-        p3 = random.choice(pawns)
-        p4 = random.choice(pawns)
-        p5 = random.choice(pawns)
-        p6 = random.choice(pawns)
-        p7 = random.choice(pawns)
-        p8 = random.choice(pawns)
-
-        pieces_in_pocket = "KK"+c1+c2+c3+c4+c5+c6+p1+p2+p3+p4+p5+p6+p7+p8
-
-        empty_board = "8/8/8/8/8/8/8/8" if not isMini else "4/4/4/4/4/4/4/4"
-        fen = empty_board + f"[{pieces_in_pocket}] w - - 0 1"
-
-        return fen
 
 @cache
 def get_fog_fen(fen, persp_color):

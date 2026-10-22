@@ -1,4 +1,8 @@
+import { carteTournante, duoEchange } from './carteAnimee';
+import { ROIS, roiDuNiveau, saisonDuNiveau, Saison } from './rois';
 import { WebsocketHeartbeatJs } from './socket/socket';
+import { installeur, ouvrirInstallation } from './installer';
+import { equipeMemorisee, fenPourCouleur } from './equipe';
 
 import { h, VNode } from 'snabbdom';
 
@@ -45,6 +49,115 @@ export function createModeStr(mode: CreateMode) {
     }
 }
 
+// ----- Page /jouer : choix mémorisés sur l'appareil -----
+type JouerAdversaire = 'ia' | 'ami';
+interface JouerChoix {
+    adv: JouerAdversaire;
+    variant: 'matatak' | 'matatakmini';
+    level: number;
+    tc: string;
+    color: 'w' | 'r' | 'b';
+    equipe: 'nouvelle' | 'garder';
+}
+interface Cadence { id: string; label: string; detail: string; min: number; inc: number; }
+
+const CADENCES_IA: Cadence[] = [
+    { id: '0+0', label: 'Sans limite', detail: '', min: 0, inc: 0 },
+    { id: '3+2', label: '3 min', detail: '+2', min: 3, inc: 2 },
+    { id: '5+3', label: '5 min', detail: '+3', min: 5, inc: 3 },
+    { id: '10+5', label: '10 min', detail: '+5', min: 10, inc: 5 },
+];
+const CADENCES_AMI: Cadence[] = [
+    { id: '3+2', label: '3 min', detail: '+2', min: 3, inc: 2 },
+    { id: '5+3', label: '5 min', detail: '+3', min: 5, inc: 3 },
+    { id: '10+5', label: '10 min', detail: '+5', min: 10, inc: 5 },
+    { id: '15+10', label: '15 min', detail: '+10', min: 15, inc: 10 },
+];
+const IMG_VITRINE = '/static/images/background/vitrine/';
+const IMG_ROI: Record<Saison, string> = { ete: '01-azar.webp', automne: '02-shans.webp', hiver: '03-karma.webp', printemps: '04-mojo.webp' };
+
+function lireStockage(cle: string): string | null {
+    try { return localStorage.getItem(cle); } catch { return null; }
+}
+
+// Onboarding : « fini » (tutoriel terminé, tutorialCtrl.ts) ou « connu » (le joueur a dit connaître les règles)
+function reglesConnues(): boolean {
+    const v = lireStockage('matatak_tutoriel');
+    return v === 'fini' || v === 'connu';
+}
+function noterReglesConnues() {
+    try { localStorage.setItem('matatak_tutoriel', 'connu'); } catch { /* navigation privée */ }
+}
+function etapeTutoriel(): number {
+    return Math.min(7, Number(lireStockage('matatak_tutoriel_etape')) || 0);
+}
+
+// Bandeau « Installer l'appli » sous le panneau de /jouer : seulement si l'installation est possible sur cet
+// appareil, hors de l'appli installée, après une première partie terminée (roundCtrl.ts note
+// « matatak_partie_finie ») pour ne pas concurrencer le bouton doré d'un nouveau joueur, et plus
+// jamais une fois fermé.
+function bandeauInstallation(maj: () => void): VNode | null {
+    const i = installeur();
+    if (!i || i.installee() || !lireStockage('matatak_partie_finie') || lireStockage('matatak_installer') === 'ferme') return null;
+    const { appareil } = i.plateforme();
+    // Sur ordinateur, seuls Chrome et Edge installent (invitation native) ; sur téléphone, il y a
+    // toujours un geste à expliquer (Partager › Sur l'écran d'accueil, menu ⋮…).
+    if (!i.peutInviter() && appareil === 'ordinateur') return null;
+    const installer = async () => {
+        if (i.peutInviter()) {
+            if (await i.inviter() === 'indisponible') ouvrirInstallation();
+        } else ouvrirInstallation();
+        maj();
+    };
+    const fermer = () => {
+        try { localStorage.setItem('matatak_installer', 'ferme'); } catch { /* navigation privée */ }
+        maj();
+    };
+    return h('div.bandeau-installer', { attrs: { role: 'region', 'aria-label': "Installer l'appli" } }, [
+        h('button.installer', { attrs: { type: 'button' }, on: { click: installer } }, [
+            h('span.icone', { attrs: { 'aria-hidden': 'true' } }, [
+                h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } }, [
+                    h('path', { attrs: { d: 'M12 3v12M7 10l5 5 5-5M5 20h14' } }),
+                ]),
+            ]),
+            h('span.txt', [h('b', "Installer l'appli"), h('small', "En plein écran, depuis l'écran d'accueil")]),
+        ]),
+        h('button.fermer', { attrs: { type: 'button', 'aria-label': 'Ne plus proposer' }, on: { click: fermer } }, '×'),
+    ]);
+}
+
+/** Ce que fait le cran choisi (règle du livret, crans cumulés). Positif : vous ; négatif : votre ami. */
+function texteCoupDePouce(n: number): string {
+    if (n === 0) return 'Les deux équipes sont de même force. Le Coup de pouce équilibre une partie entre joueurs de niveaux différents.';
+    const etapes = n > 0
+        ? ['votre Champion gagne une étoile', 'vos Pions aussi', 'les Pions de votre ami en perdent une', 'et son Champion aussi']
+        : ['le Champion de votre ami gagne une étoile', 'ses Pions aussi', 'vos Pions en perdent une', 'et votre Champion aussi'];
+    const texte = etapes.slice(0, Math.abs(n)).join(', ');
+    return texte.charAt(0).toUpperCase() + texte.slice(1) + '.';
+}
+
+function lireJouerChoix(): JouerChoix {
+    const choix: JouerChoix = { adv: 'ia', variant: 'matatakmini', level: 3, tc: '0+0', color: 'r', equipe: 'nouvelle' };
+    try {
+        Object.assign(choix, JSON.parse(lireStockage('jouer_choix') ?? '{}'));
+    } catch { /* choix par défaut */ }
+    if (!['ia', 'ami'].includes(choix.adv)) choix.adv = 'ia';
+    if (!['matatak', 'matatakmini'].includes(choix.variant)) choix.variant = 'matatakmini';
+    if (!['w', 'r', 'b'].includes(choix.color)) choix.color = 'r';
+    choix.equipe = 'nouvelle'; // option retirée du menu : un ancien choix « garder » ne s'applique plus
+    choix.level = Math.min(20, Math.max(1, Number(choix.level) || 3));
+    return choix;
+}
+
+function ecrireJouerChoix(choix: JouerChoix) {
+    try { localStorage.setItem('jouer_choix', JSON.stringify(choix)); } catch { /* navigation privée */ }
+}
+
+// Vignette du vrai plateau (images réduites dans static/images/background/collection/plateaux/)
+function damier(taille: 8 | 4) {
+    return h(`img.damier.d${taille}`, { attrs: { src: `/static/images/background/collection/plateaux/matatak${taille}x8-112.webp`, alt: '', 'aria-hidden': 'true' } });
+}
+
 export class LobbyController implements ChatController {
     sock: WebsocketHeartbeatJs;
     home: string;
@@ -81,6 +194,17 @@ export class LobbyController implements ChatController {
     ];
     minutesStrings = ["0", "¼", "½", "¾"];
     daysValues = [1, 2, 3, 5, 7, 10, 14];
+    // Messages envoyés avant l'ouverture de la WebSocket : envoyés dès qu'elle s'ouvre.
+    pendingMessages: string[] = [];
+    // Page /jouer
+    jouerEl: VNode | HTMLElement | null = null;
+    jouer: JouerChoix = lireJouerChoix();
+    jouerEnvoi = false;
+    // « Plus d'options » de /jouer : non mémorisées, pour ne pas garder un Draft ou une FEN par surprise
+    jouerOptions = false;
+    jouerDraft = false;
+    jouerBoost = 0;
+    jouerFen = '';
 
     constructor(el: HTMLElement, model: PyChessModel) {
         console.log("LobbyController constructor", el, model);
@@ -102,6 +226,9 @@ export class LobbyController implements ChatController {
 
         const onOpen = () => {
             console.log('onOpen()');
+            const pending = this.pendingMessages;
+            this.pendingMessages = [];
+            pending.forEach(data => this.sock.send(data));
         }
 
 
@@ -121,6 +248,13 @@ export class LobbyController implements ChatController {
             }
 
             this.dialogHeaderEl = document.getElementById('header-block') as HTMLElement;
+
+            const jouerEl = document.querySelector('.jouer-page') as HTMLElement | null;
+            if (jouerEl) {
+                this.jouerEl = patch(jouerEl, this.renderJouer(model));
+                // L'invitation d'installation du navigateur arrive après le chargement
+                installeur()?.surChangement(() => this.majJouer(model));
+            }
 
             // challenge (or CREATE GAME from the main menu)
             if (this.profileid !== "") {
@@ -158,7 +292,7 @@ export class LobbyController implements ChatController {
             if (urlParams.get('auto_ai')) {
                 const lvl = parseInt(urlParams.get('auto_ai') || '1');
                 const variantName = urlParams.get('variant') || 'matatakmini';
-                this.createAIChallengeMsg(variantName, 'random', '', 0, 0, 0, lvl, false, false, false, false, 0);
+                this.createAIChallengeMsg(variantName, 'r', '', 0, 0, 0, lvl, false, false, false, false, 0);
             } else if (urlParams.get('ai')) {
                 const lvl = parseInt(urlParams.get('ai') || '1');
                 this.playAI();
@@ -212,7 +346,9 @@ export class LobbyController implements ChatController {
 
     doSend(message: JSONObject) {
         // console.log("---> lobby doSend():", message);
-        this.sock.send(JSON.stringify(message));
+        const data = JSON.stringify(message);
+        if (this.sock.ws.readyState === WebSocket.OPEN) this.sock.send(data);
+        else this.pendingMessages.push(data);
     }
 
     createSeekMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, day: number, chess960: boolean, rated: boolean, rrMin: number, rrMax: number, draft: boolean) {
@@ -430,7 +566,7 @@ export class LobbyController implements ChatController {
         }
         // prevent to create challenges continuously
         this.profileid = '';
-        window.history.replaceState({}, this.title, '/');
+        window.history.replaceState({}, this.title, window.location.pathname);
 
         // We need to ask the user for permission
         notify(null, undefined);
@@ -440,58 +576,195 @@ export class LobbyController implements ChatController {
         this.dialogHeaderEl = patch(this.dialogHeaderEl, h('div#header-block', [h('h2', header)]));
     }
 
-    private renderCard(faceFront: string, faceBack: string) {
-        return h('div.hero-card', { on: { click: (e: Event) => (e.currentTarget as HTMLElement).classList.toggle('is-flipped') } }, [
-            h('div.card-perspective', [
-                h('div.card-wrapper', [
-                    h('div.card-inner', [
-                        h('div.card-face.card-front', { style: { backgroundImage: `url('${faceFront}')` } }),
-                        h('div.card-face.card-back', { style: { backgroundImage: `url('${faceBack}')` } })
-                    ])
-                ])
-            ])
+    private majJouer(model: PyChessModel) {
+        ecrireJouerChoix(this.jouer);
+        if (this.jouerEl) this.jouerEl = patch(this.jouerEl, this.renderJouer(model));
+    }
+
+    private lancerJouer(model: PyChessModel) {
+        if (this.jouerEnvoi) return;
+        const c = this.jouer;
+        const cadences = c.adv === 'ia' ? CADENCES_IA : CADENCES_AMI;
+        const tc = cadences.find(x => x.id === c.tc) ?? cadences[0];
+        this.jouerEnvoi = true;
+        this.majJouer(model);
+        this.profileid = '';
+        // Même équipe : on tire la couleur ici pour envoyer la position vue du bon côté
+        let color: string = c.color;
+        let fen = this.jouerDraft ? '' : this.jouerFen.trim();
+        const boost = c.adv === 'ia' ? 0 : this.jouerBoost; // Coup de pouce : entre amis seulement
+        const avecOptions = this.jouerDraft || boost !== 0 || fen !== '';
+        const equipe = c.equipe === 'garder' && !avecOptions ? equipeMemorisee(c.variant) : null;
+        if (equipe) {
+            const couleur = c.color === 'r' ? (Math.random() < 0.5 ? 'w' : 'b') : c.color;
+            color = couleur;
+            fen = fenPourCouleur(equipe, couleur);
+        }
+        if (c.adv === 'ia') {
+            this.createMode = 'playAI';
+            this.createAIChallengeMsg(c.variant, color, fen, tc.min, tc.inc, 0, c.level, false, false, false, this.jouerDraft, 0);
+        } else {
+            this.createMode = 'playFriend';
+            this.createInviteFriendMsg(c.variant, color, fen, tc.min, tc.inc, 0, 0, false, false, this.jouerDraft, boost);
+        }
+        // Si le serveur ne répond pas (connexion coupée), on peut réessayer.
+        setTimeout(() => { this.jouerEnvoi = false; this.majJouer(model); }, 8000);
+    }
+
+    /** Options de /jouer cachées par défaut : cadence, qui commence, équipes, puis Draft, Coup de pouce
+     *  (contre un ami seulement), position de départ (remplace l'ancienne fenêtre de pychess). */
+    private renderPlusOptions(maj: () => void, reglages: VNode[], ia: boolean): VNode {
+        const boost = this.jouerBoost;
+        return h('div#plus-options.plus-options', [
+            ...reglages,
+            h('label.interrupteur', [
+                h('input', {
+                    props: { type: 'checkbox', checked: this.jouerDraft },
+                    on: { change: (e: Event) => { this.jouerDraft = (e.target as HTMLInputElement).checked; maj(); } },
+                }),
+                h('span.glissiere'),
+                h('span', [h('b', 'Draft'), h('small', "Les Personnages sont tirés au hasard. L'un forme deux groupes, l'autre choisit le sien, puis chacun place son équipe.")]),
+            ]),
+            // Coup de pouce (règle du livret) : entre amis seulement ; en Solo, on choisit un niveau plus facile
+            ia ? '' : h('div.bloc.pouce', { class: { inactif: this.jouerDraft } }, [
+                h('div.etiq', [h('label', { attrs: { for: 'jouer-pouce' } }, 'Coup de pouce'),
+                    h('b', this.jouerDraft ? 'Sans effet en Draft' : boost === 0 ? 'Aucun' : `${boost > 0 ? 'Pour vous' : 'Pour votre ami'} · ${Math.abs(boost)}`)]),
+                h('input#jouer-pouce', {
+                    props: { type: 'range', min: -4, max: 4, step: 1, value: boost, disabled: this.jouerDraft },
+                    style: { '--f': `${(boost + 4) / 8}` },
+                    on: { input: (e: Event) => { this.jouerBoost = Number((e.target as HTMLInputElement).value); maj(); } },
+                }),
+                h('div.reperes-pouce', [h('span', 'Votre ami'), h('span', 'Équilibré'), h('span', 'Vous')]),
+                h('small.aide', texteCoupDePouce(boost)),
+            ]),
+            h('div.bloc', { class: { inactif: this.jouerDraft } }, [
+                h('label.etiq', { attrs: { for: 'jouer-fen' } }, 'Position de départ'),
+                h('input#jouer-fen', {
+                    props: { value: this.jouerFen, disabled: this.jouerDraft },
+                    attrs: { placeholder: 'Coller une FEN (vide : position tirée au hasard)', autocomplete: 'off', spellcheck: 'false' },
+                    on: { input: (e: Event) => { this.jouerFen = (e.target as HTMLInputElement).value; } },
+                }),
+            ]),
         ]);
     }
 
+    renderJouer(model: PyChessModel): VNode {
+        const c = this.jouer;
+        const ia = c.adv === 'ia';
+        const maj = () => this.majJouer(model);
+        const cadences = ia ? CADENCES_IA : CADENCES_AMI;
+        if (!cadences.some(x => x.id === c.tc)) c.tc = ia ? '0+0' : '5+3';
+
+        const bouton = (actif: boolean, sel: string, onClick: () => void, contenu: (VNode | string)[], attrs: Record<string, string> = {}) =>
+            h(sel, { class: { on: actif }, attrs: { type: 'button', 'aria-pressed': String(actif), ...attrs }, on: { click: onClick } }, contenu);
+
+
+        const camps: [JouerChoix['color'], string, string][] = [
+            ['w', 'Je commence', 'clair'],
+            ['r', 'Au hasard', 'hasard'],
+            ['b', 'En second', 'sombre'],
+        ];
+
+        const reglages = [
+            h('div.bloc', [
+                h('div.etiq', 'Cadence'),
+                h('div.cadences', cadences.map(x =>
+                    bouton(c.tc === x.id, 'button.cadence', () => { c.tc = x.id; maj(); }, [x.label, ...(x.detail ? [h('small', x.detail)] : [])])
+                )),
+            ]),
+            h('div.bloc', [
+                h('div.etiq', 'Qui commence ?'),
+                h('div.camp', { attrs: { role: 'group', 'aria-label': 'Qui commence ?' } }, camps.map(([v, label, cls]) =>
+                    bouton(c.color === v, 'button', () => { c.color = v; maj(); }, [h(`i.${cls}`), h('span', label)], { title: label })
+                )),
+            ]),
+            // « Garder les mêmes équipes » retiré du menu (Hugo, 21/10/2026) : le code reste (equipe.ts)
+        ];
+
+        // Options repliées : on rappelle ce qui sera joué (cadence toujours, le reste seulement s'il a changé).
+        const cadence = cadences.find(x => x.id === c.tc)!;
+        const resume = [
+            cadence.detail ? `${cadence.label} ${cadence.detail}` : cadence.label,
+            c.color === 'w' ? 'vous commencez' : c.color === 'b' ? 'en second' : '',
+            this.jouerDraft ? 'Draft' : '',
+            !ia && !this.jouerDraft && this.jouerBoost !== 0 ? `Coup de pouce ${this.jouerBoost > 0 ? 'pour vous' : 'pour votre ami'}` : '',
+            !this.jouerDraft && this.jouerFen.trim() ? 'position choisie' : '',
+        ].filter(x => x).join(' · ');
+
+        const partie = h('section.panneau.partie', [
+            h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
+                bouton(ia, 'button', () => { c.adv = 'ia'; maj(); }, [h('img', { attrs: { src: IMG_VITRINE + IMG_ROI[saisonDuNiveau(c.level)], alt: '' } }), 'Solo']),
+                bouton(!ia, 'button', () => { c.adv = 'ami'; maj(); }, [h('img', { attrs: { src: IMG_VITRINE + '11-frank.webp', alt: '' } }), 'Contre un ami']),
+            ]),
+            h('div.etiq', 'Plateau'),
+            h('div.plateaux', [
+                bouton(c.variant === 'matatakmini', 'button.plat', () => { c.variant = 'matatakmini'; maj(); }, [
+                    damier(4), h('span', [h('b', 'Matatak Mini'), h('small', '4 × 8 · rapide et facile')]),
+                ]),
+                bouton(c.variant === 'matatak', 'button.plat', () => { c.variant = 'matatak'; maj(); }, [
+                    damier(8), h('span', [h('b', 'Matatak'), h('small', '8 × 8 · grand format')]),
+                ]),
+            ]),
+            ia ? h('div.niveau', [
+                h('div.etiq', [h('label', { attrs: { for: 'jouer-niveau' } }, 'Adversaire'), h('b', `${roiDuNiveau(c.level)} · Niveau ${c.level}`)]),
+                h('div.curseur', [
+                    h('button.pas', { attrs: { type: 'button', 'aria-label': 'Niveau plus faible' }, on: { click: () => { c.level = Math.max(1, c.level - 1); maj(); } } }, '−'),
+                    h('input#jouer-niveau', {
+                        props: { type: 'range', min: 1, max: 20, value: c.level },
+                        style: { '--f': `${(c.level - 1) / 19}` },
+                        on: { input: (e: Event) => { c.level = Number((e.target as HTMLInputElement).value); maj(); } },
+                    }),
+                    h('button.pas', { attrs: { type: 'button', 'aria-label': 'Niveau plus fort' }, on: { click: () => { c.level = Math.min(20, c.level + 1); maj(); } } }, '+'),
+                ]),
+                // Un Roi par palier de 5 niveaux
+                h('div.reperes', (['ete', 'automne', 'hiver', 'printemps'] as const).map(sa =>
+                    h('span', { class: { actif: saisonDuNiveau(c.level) === sa } }, ROIS[sa].nom))),
+            ]) : '',
+            h('button.plus', {
+                attrs: { type: 'button', 'aria-expanded': String(this.jouerOptions), 'aria-controls': 'plus-options' },
+                on: { click: () => { this.jouerOptions = !this.jouerOptions; maj(); } },
+            }, this.jouerOptions ? [h('span', "Moins d'options")] : [h('span', "Plus d'options"), h('small', resume)]),
+            this.jouerOptions ? this.renderPlusOptions(maj, reglages, ia) : '',
+            // Nouveau joueur (tutoriel ni fini ni écarté sur cet appareil) : on apprend d'abord.
+            // Contre un ami, on ne bloque pas : c'est l'ami qui peut montrer les règles.
+            ...(ia && !reglesConnues() ? [
+                h('a.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { href: `/tutorial/${etapeTutoriel() + 1}` } },
+                    etapeTutoriel() > 0 ? 'Reprendre le tutoriel' : 'Apprendre à jouer'),
+                h('button.deja', { attrs: { type: 'button' }, on: { click: () => { noterReglesConnues(); maj(); } } }, 'Je connais déjà les règles'),
+            ] : [
+                h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', {
+                    attrs: { type: 'button', disabled: this.jouerEnvoi },
+                    on: { click: () => this.lancerJouer(model) },
+                }, this.jouerEnvoi ? 'Préparation…' : (ia ? 'Lancer la partie' : 'Inviter un ami')),
+            ]),
+        ]);
+
+        // À côté du panneau (ordinateur) : l'adversaire en grand, qui change avec le curseur
+        const saison = saisonDuNiveau(c.level);
+        const roi = ROIS[saison];
+        const debut = Math.floor((c.level - 1) / 5) * 5 + 1;
+        const scene = ia
+            ? h('aside.scene', { key: 'roi-' + saison }, [
+                h('div.scene-cartes', [carteTournante(IMG_ROI[saison])]),
+                h('div.scene-txt', [
+                    h('b', roi.nom),
+                    h('span', `${roi.titre} · niveaux ${debut} à ${debut + 4}`),
+                    h('q', roi.replique),
+                ]),
+            ])
+            : h('aside.scene.duo', { key: 'ami' }, [
+                h('div.scene-cartes', [duoEchange('11-frank.webp', '10-krak.webp')]),
+                h('div.scene-txt', [h('b', 'Entre amis')]),
+            ]);
+
+        // Collection, Analyse et Éditeur sont rangés dans « Apprendre » ; « Installer l'appli » aussi,
+        // et dans le bandeau du bas (bandeauInstallation)
+        const installation = bandeauInstallation(maj);
+        return h('div.jouer-page', [h('div.grille', [partie, scene]), installation ?? '']);
+    }
+
     renderSeekButtons() {
-        if (window.location.pathname === '/') {
-            return [
-                h('div.hero-container', [
-                    h('div.hero-images', [
-                        h('img.hero-eyes', { attrs: { src: '/static/images/background/eyes-star-merged.png', alt: '' } }),
-                        h('img.hero-title', { attrs: { src: '/static/images/background/matatak-title_box.png', alt: 'Matatak' } }),
-                    ]),
-
-                    // Get Started alone in the center
-                    h('div.hero-action-center', [
-                        h('a.hero-btn', { attrs: { href: '/tutorial' } }, [
-                            h('span.hero-btn-text', _("Tutoriel"))
-                        ])
-                    ]),
-
-                    // Other buttons with alternating cards
-                    h('div.action-rows', [
-                        // Row 1: AI (Card Left, Button Right)
-                        h('div.action-row', [
-                            this.renderCard('/static/images/pieces/matatak/1k0.jpg', '/static/images/pieces/matatak/0k0.jpg'),
-                            h('button.hero-btn', { on: { click: () => this.playAI() } }, createModeStr('playAI'))
-                        ]),
-                        // Row 2: Friend (Button Left, Card Right)
-                        h('div.action-row.reverse', [
-                            this.renderCard('/static/images/pieces/matatak/1w.jpg', '/static/images/pieces/matatak/0w.jpg'),
-                            h('button.hero-btn', { on: { click: () => this.playFriend() } }, createModeStr('playFriend'))
-                        ]),
-                        // Row 3: Puzzles (Card Left, Button Right)
-                        h('div.action-row', [
-                            this.renderCard('/static/images/pieces/matatak/1n.jpg', '/static/images/pieces/matatak/0n.jpg'),
-                            h('a.hero-btn', { attrs: { href: '/puzzle/campaign/matatakmini' } }, [
-                                h('span', _("Puzzles"))
-                            ])
-                        ])
-                    ])
-                ])
-            ];
-        }
+        if (window.location.pathname === '/jouer') return [];
 
         // Standard /lobby page buttons
         return [
@@ -1303,7 +1576,8 @@ export class LobbyController implements ChatController {
     }
 
     private onMsgGameInProgress(msg: MsgGameInProgress) {
-        const response = confirm(_("You have an unfinished game!\nPress OK to continue."));
+        // Une partie pas encore commencée est annulée par le serveur : ici, elle a vraiment commencé.
+        const response = confirm("Vous avez une partie en cours.\n\nOK : la reprendre.\nAnnuler : rester ici (pour en lancer une nouvelle, abandonnez-la d'abord).");
         if (response) window.location.assign('/' + msg.gameId);
     }
 
@@ -1383,6 +1657,7 @@ export class LobbyController implements ChatController {
 
     private onMsgTvGame(msg: TvGame) {
         this.tvGame = msg;
+        if (!document.getElementById('tv-game')) return; // pas d'encart TV sur /jouer
         this.renderEmptyTvGame();
         this.renderTvGame();
     }
@@ -1493,22 +1768,11 @@ export function lobbyView(model: PyChessModel): VNode[] {
         )
     }
 
-    if (model.view === 'landing') {
+    if (model.view === 'jouer') {
         return [
-            h('div.seekbuttons'), // Will be patched with Hero Section
+            h('div.jouer-page'), // remplie par LobbyController.renderJouer()
+            h('div.seekbuttons'),
             h('div.seekdialog', { hook: { insert: vnode => runSeeks(vnode, model) } }),
-            h('under-left', [
-                h('div.internalLinks', [
-                    h('a.reflist', { attrs: { href: 'https://discord.gg/ctGQa2WJjh', rel: "noopener", target: "_blank" } }, 'Discord'),
-                    h('a.reflist', { attrs: { href: 'https://github.com/Hugosabb/matatak', rel: "noopener", target: "_blank" } }, 'Github'),
-                    h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
-                    h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
-                ]),
-                h('div.internalLinks', [
-                    h('span.reflist', 'MATATAK © Synfaunia'),
-                    h('a.reflist', { attrs: { href: 'https://github.com/gbtami', rel: "noopener", target: "_blank" } }, 'Thanks to gbtami')
-                ])
-            ])
         ];
     }
 
@@ -1532,7 +1796,7 @@ export function lobbyView(model: PyChessModel): VNode[] {
                 h('a.reflist', { attrs: { href: 'https://discord.gg/ctGQa2WJjh', rel: "noopener", target: "_blank" } }, 'Discord'),
                 h('a.reflist', { attrs: { href: 'https://github.com/Hugosabb/matatak', rel: "noopener", target: "_blank" } }, 'Github'),
                 h('a.reflist', { attrs: { href: 'https://www.youtube.com/@matatakgame', rel: "noopener", target: "_blank" } }, 'YouTube'),
-                h('a.reflist', { attrs: { href: 'https://www.instagram.com/matatakgame/', rel: "noopener", target: "_blank" } }, _("Instagram")),
+                h('a.reflist', { attrs: { href: 'https://www.instagram.com/playmatatak/', rel: "noopener", target: "_blank" } }, _("Instagram")),
             ]),
             h('div.internalLinks', [
                 h('span.reflist', 'MATATAK © Synfaunia'),

@@ -1,0 +1,471 @@
+/* Socle visuel MATATAK : couleurs, boutons, en-tête et barre d'onglets mobile.
+ * Chargé sur toutes les pages (base.html) et par la vitrine. Toutes les classes sont préfixées mt-
+ * pour ne pas entrer en conflit avec les styles hérités de pychess. */
+
+:root {
+  --mt-nuit: #12100e;
+  --mt-noir: #1c1917;
+  /* Dalle du plateau très sombre : teinte choisie par Hugo le 20/10/2026 (page « Teinte des menus ») */
+  --mt-surface: #1f1512;
+  --mt-surface-2: #281e1b;
+  --mt-filet: #362d2b;
+  --mt-encre: #f2ddce;
+  --mt-doux: #b8a291;
+  --mt-discret: #8a7666;
+  --mt-or: #eac45a;
+  --mt-or-fonce: #b36a1d;
+  --mt-jaune: #f6c945;
+  --mt-printemps: #da98c7;
+  --mt-ete: #9bc781;
+  --mt-automne: #eb963f;
+  --mt-hiver: #92c9e0;
+  --mt-max: 1120px;
+  --mt-tab-h: 64px;
+}
+
+.mt-tribeca { font-family: 'Tribeca', 'Jost', sans-serif; font-weight: 400; letter-spacing: .04em; }
+.mt-wrap { width: min(var(--mt-max), 100% - 32px); margin-inline: auto; }
+.mt-losange { width: 8px; height: 8px; background: var(--mt-or); transform: rotate(45deg); display: inline-block; flex: none; }
+
+/* ===== Boutons : bandeau or, forme du bandeau de nom des cartes ===== */
+.mt-btn {
+  --h: 54px;
+  position: relative; isolation: isolate;
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  height: var(--h); min-height: 44px; padding: 0 34px; border: 0; cursor: pointer;
+  font: 400 17px/1 'Tribeca', 'Jost', sans-serif; letter-spacing: .08em; white-space: nowrap; text-decoration: none;
+  clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0 50%);
+  transition: transform .15s, filter .2s, background .2s, color .2s;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.mt-btn:active { transform: scale(.96); }
+.mt-btn:focus-visible { outline: none; filter: brightness(1.15); }
+.mt-btn-or { background: var(--mt-or); color: #241805; }
+.mt-btn-or:hover { background: var(--mt-jaune); color: #241805; }
+.mt-btn-ligne { background: var(--mt-or); color: var(--mt-or); }
+.mt-btn-ligne::before {
+  content: ""; position: absolute; inset: 2px; z-index: -1; background: var(--mt-nuit);
+  clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0 50%);
+  transition: background .2s;
+}
+.mt-btn-ligne:hover, .mt-btn-ligne:active { color: var(--mt-jaune); }
+.mt-btn-ligne:hover::before, .mt-btn-ligne:active::before { background: var(--mt-surface-2); }
+.mt-btn-petit { --h: 42px; padding: 0 22px; font-size: 14px; }
+.mt-btn-large { width: 100%; }
+.mt-btn[disabled] { filter: grayscale(.6) brightness(.7); cursor: progress; }
+
+/* ===== En-tête du site ===== */
+header.mt-haut {
+  position: sticky; top: 0; z-index: 106;
+  display: flex; align-items: center; justify-content: flex-start; gap: 22px;
+  height: var(--site-header-height, 60px); max-width: none; margin: 0;
+  padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+  background: rgba(18, 16, 14, .82); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  box-shadow: 0 1px 0 var(--mt-filet);
+  font-family: 'Nunito', system-ui, sans-serif;
+}
+.mt-haut .mt-logo { display: flex; align-items: center; flex: none; color: var(--mt-or); text-decoration: none; font: 400 22px 'Tribeca', sans-serif; }
+.mt-haut .mt-logo img { height: 19px; width: auto; display: block; }
+.mt-haut .mt-logo small { margin-left: 6px; font: 800 11px 'Nunito', sans-serif; color: var(--mt-automne); }
+.mt-onglets { display: flex; gap: 4px; margin-right: auto; }
+.mt-onglets a {
+  padding: 8px 14px; border-radius: 10px; text-decoration: none;
+  font: 800 15px 'Nunito', system-ui, sans-serif; color: var(--mt-doux); transition: color .2s, background .2s;
+}
+.mt-onglets a:hover { color: var(--mt-encre); }
+.mt-onglets a.actif { color: var(--mt-encre); background: var(--mt-surface-2); }
+header.mt-haut .site-buttons { display: flex; align-items: center; gap: 4px; margin-left: auto; background: none; border-radius: 0; }
+header.mt-haut #zen-button { display: none; }
+header.mt-haut #btn-settings, header.mt-haut #btn-notify { height: 44px; border-radius: 10px; color: var(--mt-doux); }
+header.mt-haut #settings, header.mt-haut #notify-app { top: var(--site-header-height, 60px); }
+
+/* Profil / connexion */
+.mt-profil {
+  display: flex; align-items: center; gap: 10px; padding: 5px 14px 5px 5px; border-radius: 99px;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+  font: 800 14px/1.2 'Nunito', sans-serif; color: var(--mt-encre); text-decoration: none; white-space: nowrap;
+}
+.mt-profil:hover { box-shadow: inset 0 0 0 1px var(--mt-or); }
+.mt-profil .av { width: 30px; height: 30px; border-radius: 50%; background: var(--mt-surface-2); display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--mt-automne); font-size: 15px; }
+.mt-profil small { display: block; font-weight: 600; color: var(--mt-discret); font-size: 11.5px; line-height: 1.1; }
+.mt-profil .nom { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 760px) {
+  .mt-onglets { display: none; }
+  header.mt-haut { gap: 10px; }
+  header.mt-haut .mt-logo { margin-right: auto; }
+  .mt-profil small { display: none; }
+  .mt-profil .nom { max-width: 110px; }
+}
+@media (max-width: 380px) { .mt-profil .nom { display: none; } .mt-profil { padding-right: 5px; } }
+
+/* ===== Barre d'onglets mobile (style appli) ===== */
+.mt-tab { display: none; }
+@media (max-width: 760px) {
+  .mt-tab {
+    display: flex; position: fixed; z-index: 105; left: 0; right: 0; bottom: 0;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: rgba(18, 16, 14, .94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    box-shadow: 0 -1px 0 var(--mt-filet);
+  }
+  .mt-tab a {
+    flex: 1; display: grid; place-items: center; gap: 3px; padding: 6px 0; min-height: 48px;
+    font: 800 11px 'Nunito', sans-serif; color: var(--mt-discret); text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mt-tab a:active { transform: scale(.94); }
+  .mt-tab a.actif { color: var(--mt-or); }
+  .mt-tab svg { width: 24px; height: 24px; }
+  .mt-tab a.actif svg { filter: drop-shadow(0 0 8px rgba(234, 196, 90, .5)); }
+  body:has(.mt-tab) { padding-bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom)); }
+}
+
+/* ===== Apparition au défilement ===== */
+.mt-apparait { opacity: 0; transform: translateY(26px); transition: opacity .9s, transform .9s cubic-bezier(.2, .8, .2, 1); }
+.mt-apparait.vu { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .mt-apparait { opacity: 1; transform: none; transition: none; }
+}
+
+/* ===== Partie sans limite de temps : pas de pendule ===== */
+.clock-wrap.sans-limite { display: none; }
+
+/* ===== Thème sombre hérité de pychess, aligné sur la palette MATATAK =====
+ * Les pages historiques (partie, analyse, tutoriel, profil…) utilisent ces variables :
+ * les redéfinir ici harmonise tout le site sans réécrire chaque page. Pas de rouge (DA). */
+body[data-theme='dark'] {
+  --font-color: #e8d4c3;
+  --link-color: #b8a291;
+  --link-hover: #eac45a;
+  --bg-body: #12100e;
+  --bg-color0: var(--mt-surface);
+  --bg-color1: var(--mt-surface-2);
+  --bg-color2: var(--mt-surface-2);
+  --bg-seek: #12100e;
+  --bg-meta: var(--mt-surface);
+  --bg-input: #1a110e;
+  --drop-down: var(--mt-surface);
+  --modal-bg: var(--mt-surface);
+  --box-header: var(--mt-surface);
+  --green-hover: #b36a1d;
+  --blue-hover: #eac45a;
+  --blue-active: #3a2f1c;
+  --gold: #eac45a;
+  --button-new-game: var(--mt-surface-2);
+  --button-new-game-hover: var(--mt-filet);
+  --button-text: #e8d4c3;
+  --button-text-hover: #eac45a;
+  --rematch: var(--mt-surface-2);
+  --rematch-hover: #b36a1d;
+  --link-color-blue: #eac45a;
+  --border-color: var(--mt-filet);
+  --input-border: var(--mt-filet);
+  --slider-border: var(--mt-filet);
+  --chat-entry-border-top: var(--mt-filet);
+  --chat-entry-bg: var(--mt-surface);
+  --clock-running-bg: #3d3220;
+  --clock-running-color: #f6c945;
+  --clock-hurry-bg: #4a3216;
+  --checkbox-bg: #b36a1d;
+  --checkbox-border: #eac45a;
+  --toggle-bg: #1a110e;
+  --base-shadow: 0 0 0 1px var(--mt-filet);
+  --btn-shadow: none;
+  font-family: 'Nunito', system-ui, sans-serif;
+}
+
+/* ===== Plateau Mini (4×8) sur téléphone : il doit tenir en entier dans l'écran =====
+ * Il est deux fois plus haut que large : à pleine largeur, il dépasse et cache les pièces du bas.
+ * --mt-reserve = hauteur prise par l'en-tête, les bandeaux des joueurs ou la consigne. */
+@media (max-width: 799px) and (orientation: portrait) {
+  body { --mt-reserve: 250px; }
+  body[data-view="tutorial"] { --mt-reserve: 330px; }
+  body[data-view="puzzle"] { --mt-reserve: 300px; }
+  #mainboard.matatak4x8 { width: min(100%, calc((100svh - var(--mt-reserve)) / 2)); margin-inline: auto; justify-self: center; }
+}
+
+/* ===== Analyse et éditeur de position ===== */
+body[data-view="analysis"] select, body[data-view="editor"] select {
+  -webkit-appearance: none; appearance: none; min-height: 44px; padding: 8px 38px 8px 14px; border-radius: 12px;
+  border: 0; box-shadow: inset 0 0 0 1.5px var(--mt-filet); color: var(--mt-encre); font: 700 15px 'Nunito', sans-serif; cursor: pointer;
+  background: var(--mt-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23eac45a' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center / 12px;
+}
+body[data-view="analysis"] select:focus-visible, body[data-view="editor"] select:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+body[data-view="analysis"] label[for="variant"], body[data-view="editor"] label[for="variant"] { font: 900 12px 'Jost', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--mt-encre); text-shadow: 0 1px 8px rgba(0, 0, 0, .95); }
+
+/* Moteur, variantes et coups : panneaux aux couleurs du site */
+body[data-view="analysis"] #ceval, body[data-view="analysis"] .pvbox, body[data-view="analysis"] .movelist-block {
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); border-radius: 14px; overflow: hidden;
+}
+body[data-view="analysis"] #ceval .engine { background: none; padding: 10px 14px; }
+body[data-view="analysis"] .moteur-nom { font: 800 15px 'Nunito', sans-serif; color: var(--mt-encre); }
+body[data-view="analysis"] #info { font: 600 12.5px 'Nunito', sans-serif; color: var(--mt-discret); }
+body[data-view="analysis"] .pvbox:empty { display: none; }
+body[data-view="analysis"] #movelist:empty { min-height: 0; height: auto; }
+
+/* Position (FEN) : étiquette discrète et champ copiable */
+#fentext { gap: 8px; align-items: center; margin-top: 8px; font: 800 12px 'Nunito', sans-serif; color: var(--mt-discret); }
+#fentext input, .editor-app input#fen {
+  flex: 1; min-width: 0; min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); color: var(--mt-doux);
+  font: 500 13px ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+/* Éditeur : réserves de pièces et liste d'actions */
+body[data-view="editor"] .pocket-wrapper .cg-wrap.pocket { background: var(--mt-surface); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--mt-filet); }
+body[data-view="editor"] .editor-button-container { display: grid; gap: 8px; }
+body[data-view="editor"] #turn-block { background: none; padding: 0; }
+body[data-view="editor"] #turn-block select { width: 100%; }
+body[data-view="editor"] a.i-pgn {
+  display: flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 12px; cursor: pointer;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); text-decoration: none;
+  transition: background .2s, box-shadow .2s;
+}
+body[data-view="editor"] a.i-pgn div { font: 700 14.5px 'Nunito', sans-serif; text-transform: none; color: var(--mt-encre); }
+body[data-view="editor"] a.i-pgn div::before { color: var(--mt-or); margin-right: 10px; }
+body[data-view="editor"] a.i-pgn:hover, body[data-view="editor"] a.i-pgn:active { background: var(--mt-surface-2); box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+@media (max-width: 799px) {
+  body[data-view="editor"] .editor-button-container { grid-template-columns: 1fr 1fr; padding: 10px; }
+  body[data-view="editor"] #turn-block { grid-column: 1 / -1; }
+  body[data-view="editor"] a.i-pgn div { font-size: 13.5px; }
+}
+
+/* ===== Paramètres (roue dentée de l'en-tête) ===== */
+header.mt-haut #settings {
+  right: max(8px, env(safe-area-inset-right)); max-width: calc(100vw - 16px); overflow: hidden;
+  border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 24px 60px rgba(0, 0, 0, .7);
+}
+header.mt-haut #settings button, header.mt-haut #settings label {
+  font: 800 15px 'Nunito', sans-serif; text-transform: none; letter-spacing: 0; color: var(--mt-encre);
+}
+header.mt-haut #settings > div > button { min-height: 46px; padding: 0 18px; text-align: left; background: none; border-radius: 0; }
+header.mt-haut #settings > div > button:hover { background: var(--mt-surface-2); color: var(--mt-or); }
+header.mt-haut #settings-board { max-width: calc(100vw - 16px); }
+
+/* ===== Choix de la variante en boutons (analyse, éditeur, puzzles, réglages du plateau) ===== */
+.choix-variante { display: inline-grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-width: 100%; vertical-align: middle; }
+.choix-variante .variante-cachee { display: none; }
+.choix-variante button.variante {
+  display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 14px 6px 6px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px var(--mt-filet); color: var(--mt-doux); text-align: left;
+  transition: box-shadow .2s, color .2s, background .2s; touch-action: manipulation;
+}
+.choix-variante button.variante:hover { color: var(--mt-encre); }
+.choix-variante button.variante.on { background: var(--mt-surface-2); box-shadow: inset 0 0 0 2px var(--mt-or); color: var(--mt-encre); }
+.choix-variante button.variante:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+.choix-variante button.variante[disabled] { opacity: .4; cursor: not-allowed; }
+.choix-variante img { flex: none; height: 40px; width: auto; border-radius: 4px; box-shadow: 0 3px 8px rgba(0, 0, 0, .5); }
+.choix-variante b { display: block; font: 800 14.5px/1.2 'Nunito', sans-serif; text-transform: none; letter-spacing: 0; }
+.choix-variante small { display: block; font: 600 12px 'Nunito', sans-serif; color: var(--mt-discret); }
+#settings-board .choix-variante { display: grid; margin: 4px 0 8px; }
+#settings-board .choix-variante button.variante { min-height: 46px; padding-right: 10px; }
+#settings-board .choix-variante img { height: 32px; }
+
+/* Bouton Paramètres retiré de l'en-tête (Hugo, 21/10/2026) : aucun réglage pychess n'est utile en l'état.
+   Le code reste (client/settingsView.ts) ; à revoir avec la traduction anglaise. */
+#settings-panel { display: none !important; }
+
+/* ---------- Fin de partie et de puzzle (partie.css, puzzle.css) : titre, phrase, liens discrets ---------- */
+.fin-titre { font: 400 28px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-encre); }
+.fin-raison { margin: 0; font: 600 15px/1.4 'Nunito', sans-serif; color: var(--mt-doux); }
+.fin-message { margin: 0; font: 800 15px/1.4 'Nunito', sans-serif; color: var(--mt-encre); }
+.fin-liens { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 2px; }
+/* Actions secondaires : petits boutons discrets sur une ligne, sous le bouton doré */
+.fin-lien {
+  min-height: 40px; padding: 0 16px; border: 0; border-radius: 99px; background: none; cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px var(--mt-filet); font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux);
+  transition: background .15s, color .15s;
+}
+.fin-lien:hover, .fin-lien:active { background: var(--mt-surface-2); color: var(--mt-encre); }
+.fin-lien:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; border-radius: 8px; }
+@keyframes fin-apparait { from { opacity: 0; transform: translateY(8px); } }
+
+/* Coupure de connexion : une petite pastille calme (pas le bandeau rouge et les messages anglais
+   de pychess, reconnecting.css). Elle n'apparaît qu'après 1,5 s pour ignorer les micro-coupures. */
+body #reconnecting {
+  left: 50%; bottom: calc(var(--mt-bas, 0px) + var(--mt-coups, 0px) + 14px); height: auto;
+  gap: 10px; padding: 9px 16px 9px 12px; border-radius: 99px;
+  background: var(--mt-surface); color: var(--mt-doux); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 10px 30px rgba(0, 0, 0, .5);
+  font: 700 14px 'Nunito', sans-serif; text-decoration: none; pointer-events: none;
+  transform: translate(-50%, 12px); opacity: 0; transition: opacity .3s, transform .3s;
+}
+body #reconnecting::before {
+  content: ''; width: 14px; height: 14px; margin: 0; border-radius: 50%;
+  border: 2px solid var(--mt-filet); border-top-color: var(--mt-or); animation: mt-tourne .9s linear infinite;
+}
+body #reconnecting::after { content: 'Connexion…' !important; font-size: inherit; }
+body #reconnecting info-date { display: none; }
+body.offline #reconnecting, body.offline-close #reconnecting, body.offline-ping-timeout #reconnecting,
+body.offline-creating-socket #reconnecting, body.offline-reconnecting-in #reconnecting, body.offline-socket-error #reconnecting {
+  background: var(--mt-surface); transform: translate(-50%, 0); opacity: 1; transition-delay: 1.5s;
+}
+body.online.reconnected #reconnecting { background: var(--mt-surface); animation: mt-reconnecte 2s ease-out 1s backwards; }
+body.online.reconnected #reconnecting::before {
+  content: ''; width: 8px; height: 8px; margin: 0 3px; border: 0; border-radius: 1.5px;
+  background: var(--mt-or); transform: rotate(45deg); animation: none;
+}
+body.online.reconnected #reconnecting::after { content: 'Connecté' !important; }
+@keyframes mt-tourne { to { transform: rotate(360deg); } }
+@keyframes mt-reconnecte { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 12px); } }
+@media (prefers-reduced-motion: reduce) { body #reconnecting::before { animation-duration: 3s; } }
+
+/* Fenêtre « Installer l'appli » (client/installer.ts) : ouverte depuis /jouer ou la fin de partie */
+.inst-dialog { position: fixed; inset: 0; margin: auto; height: fit-content; text-align: left; width: min(520px, calc(100vw - 24px)); max-height: calc(100svh - 32px); overflow-y: auto; padding: 22px 22px 18px; border: 0; border-radius: 20px; background: var(--mt-surface); color: var(--mt-encre); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 30px 80px rgba(0, 0, 0, .7); font: 400 15.5px/1.55 'Nunito', system-ui, sans-serif; }
+.inst-dialog::backdrop { background: rgba(10, 8, 7, .72); backdrop-filter: blur(3px); }
+.inst-fermer { position: absolute; top: 10px; right: 12px; width: 40px; height: 40px; border: 0; border-radius: 10px; background: none; color: var(--mt-doux); font-size: 26px; line-height: 1; cursor: pointer; }
+.inst-titre { margin: 0 40px 6px 0; font: 400 24px/1.2 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
+.inst-intro { margin: 0 0 16px; color: var(--mt-doux); }
+.inst-sous-titre { margin: 14px 0 8px; font: 900 13px 'Jost', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--mt-encre); }
+.inst-etapes { margin: 0; padding-left: 24px; display: grid; gap: 8px; }
+.inst-etapes li::marker { color: var(--mt-or); font-weight: 900; }
+.inst-note { margin: 8px 0 0; text-align: center; font-size: 13px; color: var(--mt-discret); }
+.inst-autres { margin-top: 18px; border-top: 1px solid var(--mt-filet); padding-top: 12px; }
+.inst-autres summary { cursor: pointer; min-height: 40px; display: flex; align-items: center; font-weight: 800; color: var(--mt-or); }
+.inst-autres .inst-sous-titre { color: var(--mt-doux); }
+
+/* Conseil de la première partie (roundCtrl.renderConseil) : pastille calme, au-dessus des barres du bas */
+#conseil {
+  position: fixed; z-index: 106; left: 50%; bottom: calc(var(--mt-bas, 0px) + var(--mt-coups, 0px) + 14px); transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px; width: max-content; max-width: calc(100vw - 24px);
+  padding: 8px 6px 8px 14px; border-radius: 16px;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px rgba(234, 196, 90, .55), 0 12px 30px rgba(0, 0, 0, .55);
+  font: 700 14px/1.35 'Nunito', sans-serif; color: var(--mt-encre); animation: fin-apparait .35s cubic-bezier(.16, 1, .3, 1);
+}
+#conseil .losange { flex: none; width: 8px; height: 8px; border-radius: 1.5px; background: var(--mt-or); transform: rotate(45deg); }
+#conseil a { flex: none; color: var(--mt-or); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+#conseil button { flex: none; width: 36px; height: 36px; border: 0; border-radius: 10px; background: none; cursor: pointer; font-size: 20px; line-height: 1; color: var(--mt-doux); }
+#conseil button:hover { background: var(--mt-surface-2); color: var(--mt-encre); }
+/* Téléphone : en haut, sur le bandeau adverse (en bas, il cacherait vos Personnages) */
+@media (max-width: 799px) { #conseil { top: 4px; bottom: auto; } }
+@media (min-width: 800px) { #conseil { bottom: 28px; } }
+
+
+/* ---------- Cartes animées (client/carteAnimee.ts), réutilisables partout ----------
+ * .carte-flotte > .carte-3d.tourne : la carte flotte et se retourne de temps en temps (face claire au dos).
+ * .duo-echange > .carte-3d.joueur-a / .joueur-b : deux cartes qui échangent leurs places.
+ * Taille : --carte (largeur d'une carte). Coupé si « réduire les animations ». */
+.carte-flotte { display: inline-block; width: var(--carte, 300px); perspective: 900px; animation: carte-flotte 3.2s ease-in-out infinite; }
+@keyframes carte-flotte {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50% { transform: rotate(3deg) translateY(-18px); }
+}
+.carte-3d { position: relative; display: block; width: var(--carte, 300px); aspect-ratio: 1; transform-style: preserve-3d; }
+.carte-3d .face {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 6%;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  box-shadow: 0 26px 50px rgba(0, 0, 0, .55), 0 0 0 1px rgba(234, 196, 90, .22);
+}
+.carte-3d .face.dos { transform: rotateY(180deg); }
+/* Bond, tour complet (on voit la face claire au dos), atterrissage écrasé : toutes les 5 s */
+.carte-3d.tourne { animation: carte-tourne 5s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+@keyframes carte-tourne {
+  0%, 46% { transform: translateY(0) rotateY(0) scale(1); }
+  54% { transform: translateY(-34px) rotateY(0) scale(1.08); }
+  66% { transform: translateY(-46px) rotateY(180deg) scale(1.1); }
+  78% { transform: translateY(-20px) rotateY(360deg) scale(1.05); }
+  84% { transform: translateY(4px) rotateY(360deg) scale(1.06, .92); }
+  90% { transform: translateY(-6px) rotateY(360deg) scale(.98, 1.03); }
+  96%, 100% { transform: translateY(0) rotateY(360deg) scale(1); }
+}
+.duo-echange {
+  position: relative; display: block; margin: 0 auto; perspective: 1000px;
+  width: calc(var(--carte, 200px) * 2.15); height: calc(var(--carte, 200px) * 1.75);
+}
+/* Trajet : au repos côte à côte (sans se chevaucher) ; A passe par-dessus en arc, B par-dessous,
+   puis retour en sens inverse. Le premier plan change au repos, quand elles ne se touchent pas. */
+.duo-place { position: absolute; top: 22%; left: 0; width: var(--carte, 200px); animation: 7s cubic-bezier(.55, 0, .45, 1) infinite; }
+.duo-place.a { animation-name: duo-trajet-a; }
+.duo-place.b { animation-name: duo-trajet-b; }
+@keyframes duo-trajet-a {
+  0%, 28% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; }
+  39% { transform: translate(57%, -40%) rotate(4deg) scale(.82); z-index: 2; }
+  50%, 78% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; }
+  89% { transform: translate(57%, 30%) rotate(-4deg) scale(.82); z-index: 1; }
+  100% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; }
+}
+@keyframes duo-trajet-b {
+  0%, 28% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; }
+  39% { transform: translate(57%, 30%) rotate(-4deg) scale(.82); z-index: 1; }
+  50%, 78% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; }
+  89% { transform: translate(57%, -40%) rotate(4deg) scale(.82); z-index: 2; }
+  100% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; }
+}
+/* B part et arrive un peu après A : les deux cartes ne bougent jamais tout à fait ensemble.
+   fill-mode backwards : pendant le retard, B est déjà à sa place de départ. */
+.duo-place.b, .duo-place.b .duo-tour { animation-delay: .35s; animation-fill-mode: backwards; }
+/* Flottement comme la carte seule, à des rythmes différents (3,2 s et 3,9 s, sans multiple commun
+   avec les 7 s du trajet) : les deux cartes ne se retrouvent jamais dans la même pose. */
+.duo-flotte { display: block; animation: duo-flotte-a 3.2s ease-in-out infinite; }
+.duo-place.b .duo-flotte { animation: duo-flotte-b 3.9s ease-in-out -1.7s infinite; }
+@keyframes duo-flotte-a { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-16px) rotate(3deg); } }
+@keyframes duo-flotte-b { 0%, 100% { transform: translateY(-4px) rotate(2deg); } 50% { transform: translateY(-14px) rotate(-3deg); } }
+/* Vie de la carte, inspirée de la carte seule : un tour complet pendant chaque trajet (face claire
+   au passage), atterrissage écrasé, et un petit bond au repos, à un moment différent pour chacune
+   (A pendant le premier repos, B pendant le second). Le cycle commence sur l'atterrissage du trajet
+   précédent (720° = 0°). */
+.duo-tour { animation: duo-tour-a 7s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+.duo-place.b .duo-tour { animation-name: duo-tour-b; }
+@keyframes duo-tour-a {
+  0% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1.06, 0.92); }
+  3% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(0.98, 1.03); }
+  6%, 12% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
+  15% { transform: translateY(-22px) rotate(-4deg) rotateY(0deg) scale(1.06, 1.06); }
+  18% { transform: translateY(3px) rotate(0deg) rotateY(0deg) scale(1.06, 0.93); }
+  21%, 28% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
+  39% { transform: translateY(-10px) rotate(0deg) rotateY(180deg) scale(1.08, 1.08); }
+  47% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1.02, 1.02); }
+  50% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1.06, 0.92); }
+  53% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(0.98, 1.03); }
+  56%, 78% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1, 1); }
+  89% { transform: translateY(-10px) rotate(0deg) rotateY(540deg) scale(1.08, 1.08); }
+  97% { transform: translateY(0px) rotate(0deg) rotateY(720deg) scale(1.02, 1.02); }
+  100% { transform: translateY(0px) rotate(0deg) rotateY(720deg) scale(1.06, 0.92); }
+}
+@keyframes duo-tour-b {
+  0% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1.06, 0.92); }
+  3% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(0.98, 1.03); }
+  6%, 28% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
+  39% { transform: translateY(-10px) rotate(0deg) rotateY(-180deg) scale(1.08, 1.08); }
+  47% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1.02, 1.02); }
+  50% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1.06, 0.92); }
+  53% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(0.98, 1.03); }
+  56%, 62% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1, 1); }
+  65% { transform: translateY(-22px) rotate(4deg) rotateY(-360deg) scale(1.06, 1.06); }
+  68% { transform: translateY(3px) rotate(0deg) rotateY(-360deg) scale(1.06, 0.93); }
+  71%, 78% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1, 1); }
+  89% { transform: translateY(-10px) rotate(0deg) rotateY(-540deg) scale(1.08, 1.08); }
+  97% { transform: translateY(0px) rotate(0deg) rotateY(-720deg) scale(1.02, 1.02); }
+  100% { transform: translateY(0px) rotate(0deg) rotateY(-720deg) scale(1.06, 0.92); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .carte-flotte, .carte-3d.tourne, .duo-place, .duo-flotte, .duo-tour { animation: none; }
+  .duo-place.b { transform: translate(115%, 0) rotate(6deg); }
+}
+
+/* ---------- Invitation entre amis (client/invite.ts pageInvitation) ---------- */
+body[data-view="invite"] #main-wrap { display: block; }
+.mt-invite {
+  box-sizing: border-box; width: min(520px, 100% - 24px); margin: 24px auto 40px; padding: 26px 22px 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+  border-radius: 20px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+  font: 400 15.5px/1.5 'Nunito', system-ui, sans-serif; color: var(--mt-encre);
+}
+.mt-invite h1 { margin: 0; font: 400 clamp(26px, 6vw, 34px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
+.mt-invite .invite-partie { margin: 0; font-weight: 700; color: var(--mt-doux); }
+.mt-invite .invite-cartes { margin: 8px 0 4px; }
+.mt-invite .mt-btn { width: min(100%, 340px); }
+.mt-invite .invite-form { display: contents; }
+.mt-invite .invite-lien {
+  box-sizing: border-box; width: min(100%, 340px); min-height: 40px; padding: 0 12px; border: 0; border-radius: 10px;
+  background: var(--mt-nuit); box-shadow: inset 0 0 0 1px var(--mt-filet); color: var(--mt-doux); font: 600 13px ui-monospace, monospace; text-align: center;
+}
+.mt-invite .invite-attente { display: flex; align-items: center; gap: 10px; margin: 2px 0 0; font-size: 14px; color: var(--mt-doux); text-align: left; }
+.mt-invite .pouls { flex: none; width: 10px; height: 10px; border-radius: 2px; transform: rotate(45deg); background: var(--mt-or); animation: pouls 1.4s ease-in-out infinite; }
+@keyframes pouls { 50% { opacity: .3; transform: rotate(45deg) scale(.7); } }
+.mt-invite .invite-annuler, .mt-invite .invite-regles {
+  min-height: 40px; padding: 0 12px; border: 0; background: none; cursor: pointer;
+  font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); text-decoration: none;
+}
+.mt-invite .invite-annuler:hover, .mt-invite .invite-regles:hover { color: var(--mt-encre); text-decoration: underline; text-underline-offset: 3px; }
+.mt-invite .invite-regles { display: inline-flex; align-items: center; color: var(--mt-or); }
+@media (prefers-reduced-motion: reduce) { .mt-invite .pouls { animation: none; } }

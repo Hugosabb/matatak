@@ -41,6 +41,25 @@ async def get_user(session: aiohttp_session.Session, request: web.Request) -> Us
     return user
 
 
+def origine_autorisee(request: web.Request) -> bool:
+    """Refuse une WebSocket ouverte par un autre site avec le cookie du visiteur.
+
+    Les navigateurs envoient toujours Origin ; un client sans navigateur n'en a pas besoin.
+    Autorisé : la même adresse que la page (serveur local, téléphone sur le Wi-Fi) ou celle du
+    site (URI), avec ou sans www (PWA installées depuis www.matatak.org). URI couvre la prod
+    derrière nginx, même si nginx ne transmet pas l'en-tête Host.
+    """
+    from urllib.parse import urlsplit
+    from settings import URI
+
+    origine = request.headers.get("Origin")
+    if origine is None:
+        return True
+    hote = urlsplit(origine).netloc.lower()
+    site = urlsplit(URI).netloc.lower()
+    return hote in (request.host.lower(), site, "www." + site)
+
+
 async def process_ws(
     session: aiohttp_session.Session,
     request: web.Request,
@@ -58,7 +77,11 @@ async def process_ws(
         session.invalidate()
         return None
 
-    ws = WebSocketResponse(heartbeat=3.0, receive_timeout=30.0)
+    if not origine_autorisee(request):
+        log.warning("WebSocket refusée : origine %s", request.headers.get("Origin"))
+        return None
+
+    ws = WebSocketResponse(heartbeat=3.0, receive_timeout=30.0, max_msg_size=64 * 1024)
     ws_ready = ws.can_prepare(request)
     if not ws_ready.ok:
         log.error("ws_ready not ok: %r", ws_ready)

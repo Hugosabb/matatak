@@ -656,7 +656,7 @@ export abstract class GameController extends ChessgroundController implements Ch
 
     private onMsgGameNotFound = (msg: MsgGameNotFound) => {
         alert(_("Requested game %1 not found!", msg['gameId']));
-        window.location.assign(this.home);
+        window.location.assign(this.home + '/jouer');
     }
 
     private onMsgShutdown = (msg: MsgShutdown) => {

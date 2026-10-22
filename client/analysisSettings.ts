@@ -46,11 +46,8 @@ class AnalysisSettings {
 
         settingsList.push(this.settings["hash"].view());
 
-        settingsList.push(this.settings["nnue"].view());
-
-        settingsList.push(this.getSettings(variantName as string).view());
-
-        settingsList.push(this.settings["fsfDebug"].view());
+        // NNUE et débogage du moteur retirés du menu : pas de réseau NNUE pour Matatak, et des
+        // réglages de développeur (loi de Hick). Les réglages existent toujours (valeurs gardées).
 
         settingsList.push();
 
@@ -77,7 +74,7 @@ class ArrowSettings extends BooleanSettings {
             toggleSwitch(
                 this,
                 'arrow-enabled',
-                _("Best move arrow"),
+                'Flèche du meilleur coup',
                 false,
             )
         );
@@ -106,7 +103,7 @@ class InfiniteAnalysisSettings extends BooleanSettings {
             toggleSwitch(
                 this,
                 'infiniteAnalysis-enabled',
-                _("Infinite analysis"),
+                'Analyse sans fin',
                 false,
             )
         );
@@ -134,7 +131,7 @@ class MultiPVSettings extends NumberSettings {
     }
 
     view(): VNode {
-        const els = slider(this, 'multipv', 0, 5, 1, _('Multiple lines'));
+        const els = slider(this, 'multipv', 0, 5, 1, 'Lignes proposées');
         els.push(h('div.multipv_range_value', `${this.value} / 5`));
         return h('div.labelled', els);
     }
@@ -161,7 +158,7 @@ class ThreadsSettings extends NumberSettings {
     }
 
     view(): VNode {
-        const els = slider(this, 'threads', 1, this.maxThreads, 1, _('CPUs'));
+        const els = slider(this, 'threads', 1, this.maxThreads, 1, 'Processeurs');
         els.push(h('div.threads_range_value', `${this.value} / ${this.maxThreads}`));
         return h('div.labelled', els);
     }
@@ -208,7 +205,7 @@ class HashSettings extends NumberSettings {
 
     view(): VNode {
         const hashList = [...Array(10).keys()].map(i => 2 ** i).filter(n => n >= 16 && n <= this.maxHash);
-        const els = sliderFromList(this, 'hash', _('Memory'), "hashList", hashList);
+        const els = sliderFromList(this, 'hash', 'Mémoire', "hashList", hashList);
         els.push(h('div.hash_range_value', `${this.value}MB`));
         return h('div.labelled', els);
     }

@@ -1,0 +1,364 @@
+/* Écran de partie (vue round) : mise en page MATATAK, pensée d'abord pour le téléphone.
+ * Chargé après round.css (extra_css de server/views/round_view.py). */
+
+/* ---------- Panneaux ---------- */
+.round .game-info,
+.round #roundchat,
+.round .movelist-block,
+.round round-player0,
+.round round-player1 {
+  border-radius: 14px;
+}
+.round .game-info { background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); }
+
+/* Boutons de la partie (nulle, abandon, revanche…) */
+.round div.btn-controls button {
+  min-height: 44px;
+  border-radius: 12px;
+  background: var(--mt-surface-2);
+  color: var(--mt-encre);
+  box-shadow: inset 0 0 0 1px var(--mt-filet);
+}
+.round div.btn-controls button:not([disabled]):hover,
+.round div.btn-controls button:not([disabled]):active { background: var(--mt-or-fonce); color: #fff; }
+
+/* ---------- Bandeaux des joueurs : nom + pendule sur un même fond ---------- */
+.round round-player0, .round round-player1 { font-family: 'Nunito', system-ui, sans-serif; letter-spacing: 0; }
+.round .player-data { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.round .player-data player { display: flex; align-items: center; min-width: 0; }
+.round .player-data .user-link {
+  display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 400 14px 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-encre); text-decoration: none;
+  /* Métriques de Tribeca fausses : ses lettres tombent 0,12 em sous le centre de la ligne (mesuré) */
+  position: relative; top: -.12em;
+}
+.round .player-data player-title {
+  flex: none; padding: 1px 6px; border-radius: 6px; background: rgba(234, 196, 90, .16);
+  font: 900 11px/1.4 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or);
+  position: relative; top: .12em; /* compense le décalage du nom en Tribeca */
+}
+.round .player-data rating { font: 700 13px 'Nunito', sans-serif; color: var(--mt-discret); }
+/* Connexion : un petit losange (motif des cartes) à la place du rond vert de pychess */
+.round i-side.online { flex: none; width: 8px; height: 8px; margin: 0 2px; transform: rotate(45deg); border-radius: 1.5px; box-shadow: inset 0 0 0 1.5px var(--mt-discret); }
+.round i-side.online::before { content: none !important; }
+.round i-side.online.icon-online { background: var(--mt-or); box-shadow: none; }
+/* Pendule : chiffres à largeur fixe, or quand elle tourne, orange quand le temps presse */
+.round .clock {
+  font: 800 34px/1 'Nunito', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .02em;
+  padding: 6px 14px; border-radius: 10px;
+  background: var(--mt-surface); color: var(--mt-doux); box-shadow: inset 0 0 0 1px var(--mt-filet); align-items: center;
+}
+.round .clock .clock-time, .round .clock .clock-sep { font-family: inherit; }
+.round .clock.running { background: var(--mt-or); color: #241805; }
+.round .clock.hurry { background: var(--mt-automne) !important; color: #241805; }
+.round .clock.running > .clock-sep.low { color: inherit; opacity: .5; }
+
+/* Interrupteur « coups » : une légende pour qu'on sache à quoi il sert */
+.moves-toggle-wrap::after { content: 'Coups'; margin-left: 8px; font: 800 13px 'Nunito', sans-serif; color: var(--mt-doux); }
+
+/* Discussion : inutile pour un invité, qui ne peut pas écrire */
+body[data-anon="True"] .round #roundchat { display: none; }
+
+/* ---------- Téléphone (portrait) ---------- */
+@media (max-width: 799px) and (orientation: portrait) {
+  /* Plateau le plus grand possible : bandeaux joueur de 36 px, et le plateau Mini (limité par la
+     hauteur) ne réserve que 2 bandeaux + la rangée de boutons (matatak-ui.css, --mt-reserve).
+     Même réserve après la fin, quand l'en-tête revient : pas de saut de mise en page. */
+  body[data-view="round"] {
+    --mt-barre: 32px; --mt-coups: 32px; --mt-bas: 46px;
+    --mt-reserve: calc(var(--mt-coups) + 2 * var(--mt-barre) + var(--mt-bas) + 6px);
+    padding-bottom: calc(var(--mt-bas) + var(--mt-coups));
+    margin-bottom: 0; /* site.css ajoute une marge sous le body : 8 px de défilement pour rien */
+  }
+
+  /* Le plateau d'abord, les infos de partie ensuite. Pas d'écart ni de bloc vide sous le jeu
+     (under-board sert aux tournois pychess) : la page ne défile pas pour rien */
+  .round { grid-template-areas: 'app' 'side' 'uboard' 'uside'; row-gap: 0; }
+  .round under-board { display: none; }
+  /* Infos de partie (cadence, joueurs) et spectateurs : rien d'utile pendant le jeu sur téléphone */
+  .round .game-info, .round under-left#spectators { display: none; }
+
+  .round-app {
+    column-gap: 0; /* round.css met 2vmin : il coupait le bandeau entre le nom et la pendule */
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    grid-template-areas:
+      'mat-top mat-top'
+      'pocket-top pocket-top'
+      'expi-top expi-top'
+      'user-top clock-top'
+      'board board'
+      'user-bot clock-bot'
+      'expi-bot expi-bot'
+      'pocket-bot pocket-bot'
+      'mat-bot mat-bot'
+      'game-controls game-controls';
+    row-gap: 0;
+  }
+  [data-zen="on"] .round-app { grid-template-rows: none; }
+
+  /* Bandeau joueur : nom à gauche, pendule à droite, sur une seule ligne */
+  .round-app .info-wrap0 { grid-area: clock-top; justify-self: end; align-self: center; }
+  .round-app .info-wrap1 { grid-area: clock-bot; justify-self: end; align-self: center; }
+  .round-app round-player0, .round-app round-player1 {
+    min-width: 0; padding: 0 12px; line-height: var(--mt-barre); font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .round-app round-player0, .round-app round-player1 { height: var(--mt-barre); }
+  .round-app round-player0 .player-data, .round-app round-player1 .player-data { height: 100%; padding-block: 0; display: flex; align-items: center; }
+  .round-app .info-wrap0, .round-app .info-wrap1, .round-app round-player0, .round-app round-player1 { background: var(--mt-surface); }
+  /* Nom et pendule forment un seul bandeau arrondi, sans couture */
+  .round-app round-player0, .round-app round-player1 { margin-left: 6px; border-radius: 10px 0 0 10px; padding: 0 10px; }
+  .round-app .info-wrap0, .round-app .info-wrap1 { margin-right: 6px; border-radius: 0 10px 10px 0; height: var(--mt-barre); display: flex; align-items: center; }
+  .round-app .info-wrap0 { align-self: start; } .round-app .info-wrap1 { align-self: end; }
+  /* Sans limite : pas de pendule, le bandeau du nom est arrondi des deux côtés */
+  .round-app .info-wrap0:has(.sans-limite), .round-app .info-wrap1:has(.sans-limite) { display: none; }
+  .round-app:has(.info-wrap0 .sans-limite) round-player0, .round-app:has(.info-wrap1 .sans-limite) round-player1 { border-radius: 10px; margin-right: 6px; }
+  .round-app .player-data .user-link { font-size: 13px; }
+  .round-app round-player0, .round-app .info-wrap0 { margin-bottom: 0; }
+  .round-app .clock-wrap { padding: 3px 8px 3px 0; }
+  .round-app .clock-wrap .clock { font-size: 18px; height: calc(var(--mt-barre) - 6px); padding: 0 8px; border-radius: 7px; background: transparent; box-shadow: none; }
+  .round-app .clock-wrap .clock.running { background: var(--mt-or); }
+  .round-app .clock-wrap .clock.hurry { background: var(--mt-automne) !important; }
+  .round-app .clock .clock-time.min { padding-left: 0; } .round-app .clock .clock-time.sec { padding-right: 0; }
+
+  /* Boutons juste sous sa propre pendule, pas tout en bas de la page */
+  .round-app div.btn-controls { gap: 8px; padding: 6px 10px; }
+  .round-app div.btn-controls.after { gap: 8px; padding: 10px; background: none; box-shadow: none; }
+  .round-app div.btn-controls.after button { min-height: 48px; font-size: 15px; }
+
+  /* Ligne des coups tout en bas, juste au-dessus de la barre */
+  .round-app .movelist-block {
+    position: fixed; left: 0; right: 0; z-index: 104; bottom: calc(var(--mt-bas) + env(safe-area-inset-bottom));
+    border-radius: 0; background: rgb(18, 16, 14); box-shadow: 0 -1px 0 var(--mt-filet);
+  }
+  /* Barre du bas, fixe */
+  #barre-partie {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 105;
+    height: calc(var(--mt-bas) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom);
+    /* pas de backdrop-filter : il ferait de la barre le cadre du fond .barre-fond (position: fixed) */
+    background: rgb(18, 16, 14); box-shadow: 0 -1px 0 var(--mt-filet);
+  }
+  .barre-fond { background: rgba(10, 8, 7, .5); }
+  .barre-menu { left: 10px; bottom: calc(100% + 8px); }
+  .round #roundchat { margin: 0 10px; }
+}
+
+/* Téléphone : pendant sa partie, le joueur n'a pas besoin de naviguer. L'en-tête revient à la fin
+   (classe posée par roundCtrl.ts) : une PWA installée sur iPhone n'a pas d'autre bouton retour. */
+@media (max-width: 799px) {
+  body.en-partie header.mt-haut { display: none; }
+  /* Plateau carré (8×8) : moins haut que l'écran, il est centré verticalement entre le haut et les
+     barres du bas, et les feuilles du fond se voient au-dessus et en dessous */
+  body.en-partie .round-app { min-height: calc(100svh - var(--mt-bas, 0px) - var(--mt-coups, 0px) - 4px); align-content: center; }
+  body.en-partie .round { padding-top: 4px; }
+}
+
+/* Liste des coups repliée : le cadre ne garde que sa hauteur utile (résultat de fin de partie) */
+body:has(#toggle-moves:not(:checked)) .round #movelist { height: auto; min-height: 0; background: none; }
+
+/* ---------- Fin de partie : un cadre sous le plateau, une seule action principale ---------- */
+.fin-partie {
+  grid-area: game-controls;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  margin: 10px 0 0; padding: 18px 16px 14px;
+  border-radius: 16px; text-align: center;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+  animation: fin-apparait .35s cubic-bezier(.16, 1, .3, 1);
+}
+.fin-partie.gagne { box-shadow: inset 0 0 0 1.5px var(--mt-or), 0 10px 30px rgba(234, 196, 90, .12); }
+.fin-partie.gagne .fin-titre { color: var(--mt-or); }
+.fin-partie .mt-btn { width: min(100%, 320px); margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { .fin-partie { animation: none; } }
+@media (max-width: 799px) and (orientation: portrait) {
+  .fin-partie { margin: 10px 10px 0; scroll-margin-bottom: calc(var(--mt-bas) + var(--mt-coups) + 10px); }
+}
+
+/* ---------- Coups, barre ⋯ ‹ › et menu : téléphone (portrait) et ordinateur ----------
+ * Plus d'interrupteur « Coups » ni de boutons ✕ ½ drapeau : une ligne de coups qui défile
+ * (toucher un coup y revient), deux flèches, et un menu pour annuler / match nul / abandon. */
+@media (max-width: 799px) and (orientation: landscape) { #barre-partie { display: none; } }
+@media (min-width: 800px), (orientation: portrait) {
+  .round-app div.btn-controls.game { display: none !important; }
+  .round-app .movelist-block { margin: 0; padding: 0; box-shadow: none; min-width: 0; }
+  .round-app .moves-toggle-wrap, .round-app #move-controls { display: none !important; }
+  body[data-view="round"] .round-app #movelist {
+    display: flex; flex-wrap: nowrap; align-items: center; gap: 2px;
+    height: var(--mt-coups, 40px); min-height: 0; padding: 0 10px; overflow-x: auto; overflow-y: hidden;
+    scrollbar-width: none; background: none; white-space: nowrap;
+  }
+  body[data-view="round"] .round-app #movelist::-webkit-scrollbar { display: none; }
+  body[data-view="round"] .round-app #movelist > move { display: flex !important; }
+  /* Le résultat est dans le cadre de fin : la ligne reste sur le dernier coup */
+  body[data-view="round"] .round-app #movelist > .result, body[data-view="round"] .round-app #movelist > .status,
+  body[data-view="round"] .round-app #movelist eval { display: none !important; }
+  body[data-view="round"] .round-app #movelist move {
+    flex: none; align-items: center; height: 26px; padding: 0 8px; border: 0; border-radius: 8px;
+    background: none; font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); cursor: pointer;
+  }
+  body[data-view="round"] .round-app #movelist move:not(.counter):hover { color: var(--mt-encre); }
+  body[data-view="round"] .round-app #movelist move.counter { padding: 0 2px 0 8px; font-weight: 600; font-size: 13px; color: var(--mt-discret); cursor: default; }
+  body[data-view="round"] .round-app #movelist move.active { background: var(--mt-surface-2); color: var(--mt-encre); }
+
+  #barre-partie { display: grid; grid-template-columns: repeat(3, 1fr); }
+  #barre-partie.sans-options { grid-template-columns: repeat(2, 1fr); }
+  .barre-btn { display: flex; align-items: center; justify-content: center; border: 0; background: none; cursor: pointer; color: var(--mt-doux); }
+  .barre-btn svg { width: 26px; height: 26px; }
+  .barre-btn:hover, .barre-btn:active { color: var(--mt-encre); }
+  .barre-btn:focus-visible { outline: 2px solid var(--mt-or); outline-offset: -4px; border-radius: 10px; }
+  #barre-partie.ouvert .barre-btn[aria-expanded="true"] { color: var(--mt-or); }
+  .barre-fond { position: fixed; inset: 0; z-index: -1; }
+  .barre-menu {
+    position: absolute; min-width: 230px; display: grid; padding: 6px; border-radius: 16px;
+    background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 18px 40px rgba(0, 0, 0, .55);
+    animation: fin-apparait .2s cubic-bezier(.16, 1, .3, 1);
+  }
+  .barre-action {
+    min-height: 48px; padding: 0 14px; border: 0; border-radius: 10px; background: none; cursor: pointer;
+    text-align: left; font: 700 15.5px 'Nunito', sans-serif; color: var(--mt-encre);
+  }
+  .barre-action:active, .barre-action:hover { background: var(--mt-surface-2); }
+  .barre-action.attention { color: var(--mt-automne); }
+}
+
+/* ---------- Ordinateur : plus de panneau de gauche, plateau + colonne de droite centrés ---------- */
+@media (min-width: 800px) {
+  .round .sidebar-first, .round under-left#spectators { display: none; }
+  /* Le plateau au centre de la page : à gauche, une colonne vide aussi large que celle de droite */
+  /* Plateau à sa taille maximale (toute la hauteur disponible). La colonne de droite fait 240 à
+     360 px ; la colonne vide de gauche prend la même largeur si la place le permet, sinon ce qui
+     reste (jusqu'à 0) : le plateau est centré dès que l'écran est assez large, sans rapetisser. */
+  .round {
+    --plateau: calc(100vh * var(--board-scale) - calc(var(--site-header-height) + var(--site-header-margin)) - 3rem);
+    --cote: clamp(240px, calc((100vw - var(--plateau) - 48px) / 2), 360px);
+    --gauche: max(0px, min(var(--cote), calc(100vw - var(--plateau) - var(--cote) - 48px)));
+    grid-template-columns: var(--gauche) var(--plateau) var(--cote);
+  }
+  /* Mini (4×8) : pychess lui applique un zoom de 50 % ; sa colonne fait la moitié de la hauteur dispo */
+  .round:has(#mainboard.matatak4x8) {
+    --plateau: calc((100vh - calc(var(--site-header-height) + var(--site-header-margin)) - 3rem) / 2);
+    grid-template-areas: '. app app' '. uboard .';
+    justify-content: center; column-gap: 0;
+  }
+  .round-app #mainboard.matatak4x8 { width: var(--plateau); }
+  /* Colonne de droite en sous-colonnes : nom et pendule sur la même ligne, en un seul bandeau */
+  .round-app {
+    column-gap: 0;
+    grid-template-columns: var(--plateau) 2vmin minmax(0, 1fr) auto;
+    grid-template-rows: 1fr repeat(11, auto) 1fr;
+    grid-template-areas:
+      'board . . .' 'board . mat-top mat-top' 'board . pocket-top pocket-top' 'board . expi-top expi-top'
+      'board . user-top clock-top' 'board . moves moves' 'board . barre barre' 'board . game-controls game-controls'
+      'board . user-bot clock-bot' 'board . expi-bot expi-bot' 'board . pocket-bot pocket-bot' 'board . mat-bot mat-bot' 'board . . .';
+  }
+  .round-app round-player0, .round-app round-player1 {
+    display: flex; align-items: center; height: 52px; margin: 0; padding: 0 14px; min-width: 0;
+    border-radius: 12px 0 0 12px; background: var(--mt-surface);
+  }
+  .round-app .info-wrap0, .round-app .info-wrap1 {
+    display: flex; align-items: center; height: 52px; margin: 0; padding-right: 6px;
+    border-radius: 0 12px 12px 0; background: var(--mt-surface);
+  }
+  .round-app .info-wrap0:has(.sans-limite), .round-app .info-wrap1:has(.sans-limite) { display: none; }
+  .round-app:has(.info-wrap0 .sans-limite) round-player0, .round-app:has(.info-wrap1 .sans-limite) round-player1 { border-radius: 12px; }
+  .round-app .clock-wrap { padding: 0; }
+  .round-app .clock-wrap .clock { font-size: 26px; height: 40px; padding: 0 12px; border-radius: 9px; background: transparent; box-shadow: none; }
+  .round-app .clock-wrap .clock.running { background: var(--mt-or); }
+  .round-app .clock-wrap .clock.hurry { background: var(--mt-automne) !important; }
+  .round-app .clock .clock-time.min { padding-left: 0; } .round-app .clock .clock-time.sec { padding-right: 0; }
+  .round-app .movelist-block { grid-area: moves; margin: 8px 0 0; border-radius: 12px 12px 0 0; background: var(--mt-surface); }
+  #barre-partie {
+    grid-area: barre; position: relative; height: 46px; margin-bottom: 8px;
+    border-radius: 0 0 12px 12px; background: var(--mt-surface); box-shadow: 0 -1px 0 var(--mt-filet);
+  }
+  .barre-menu { left: 0; top: calc(100% + 6px); }
+  .round-app .fin-partie { margin: 0 0 8px; }
+}
+
+/* ---------- Draft (client/draft.ts) : écran à part, avant le plateau ----------
+ * Étapes du livret : Pions, Champions et Roi, Placement. Cartes en grand, étoiles de Force aux
+ * couleurs du livret (Commune, Rare, Épique, Légendaire). */
+body.en-draft .round > :not(#draft-ecran),
+body.en-draft #conseil, body.en-draft #barre-partie { display: none !important; }
+#draft-ecran { grid-column: 1 / -1; min-width: 0; }
+.draft {
+  --dr-carte: clamp(64px, 24vw, 104px);
+  box-sizing: border-box; width: min(760px, 100%); margin: 0 auto; padding: 18px 16px 28px;
+  display: grid; gap: 14px; font-family: 'Nunito', system-ui, sans-serif; color: var(--mt-encre);
+}
+.dr-etapes { display: flex; justify-content: center; gap: 18px; margin: 0; padding: 0; list-style: none; }
+.dr-etapes li { display: flex; align-items: center; gap: 7px; font: 800 12.5px 'Nunito', sans-serif; color: var(--mt-discret); }
+.dr-etapes i { width: 9px; height: 9px; transform: rotate(45deg); box-shadow: inset 0 0 0 1.5px currentColor; border-radius: 2px; }
+.dr-etapes li.actif { color: var(--mt-or); }
+.dr-etapes li.actif i, .dr-etapes li.fait i { background: currentColor; }
+.dr-etapes li.fait { color: var(--mt-doux); }
+.dr-titre { margin: 4px 0 0; text-align: center; font: 400 clamp(22px, 5.5vw, 30px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or); }
+.dr-texte { margin: 0 auto; max-width: 52ch; text-align: center; font-size: 15px; line-height: 1.45; color: var(--mt-doux); }
+.dr-texte:empty { display: none; }
+
+/* Zones (groupes) et cartes */
+.dr-zones { display: grid; gap: 10px; }
+.dr-zone {
+  display: grid; gap: 8px; padding: 10px 12px 12px; border: 0; border-radius: 16px; text-align: left;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); color: inherit; font: inherit;
+}
+.dr-zone.cote { background: none; box-shadow: inset 0 0 0 1px var(--mt-filet); opacity: .85; }
+.dr-zone.ok:not(.cote) { box-shadow: inset 0 0 0 1.5px rgba(234, 196, 90, .55); }
+.dr-zone.choix { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: box-shadow .15s, background .15s; }
+.dr-zone.choix:hover { background: var(--mt-surface-2); }
+.dr-zone.choisi { background: var(--mt-surface-2); box-shadow: inset 0 0 0 2.5px var(--mt-or), 0 0 24px rgba(234, 196, 90, .25); }
+.dr-zone.autre { opacity: .55; }
+.dr-zone:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+.dr-zone-titre { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.dr-zone-titre span { font: 900 12px 'Jost', sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.dr-zone-titre small { font: 800 13px 'Nunito', sans-serif; color: var(--mt-discret); }
+.dr-zone.choisi .dr-zone-titre small, .dr-zone.ok .dr-zone-titre small { color: var(--mt-or); }
+.dr-cartes { display: flex; flex-wrap: wrap; gap: 8px; min-height: calc(var(--dr-carte) + 22px); }
+.dr-zone.cote .dr-cartes { min-height: 0; }
+.dr-carte {
+  display: grid; justify-items: center; gap: 3px; width: var(--dr-carte); padding: 0; border: 0; background: none;
+  color: inherit; font: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+button.dr-carte { cursor: pointer; transition: transform .15s; }
+button.dr-carte:hover { transform: translateY(-2px); }
+button.dr-carte:active { transform: scale(.96); }
+button.dr-carte:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; border-radius: 10px; }
+.dr-carte .matatak, .dr-carte .dr-roi { width: 100%; aspect-ratio: 1; }
+.dr-carte piece { display: block; width: 100%; aspect-ratio: 1; }
+.dr-roi { display: block; border-radius: 8%; object-fit: cover; box-shadow: 0 0 0 1.5px var(--mt-or); }
+.dr-carte.selection .matatak { border-radius: 10%; box-shadow: 0 0 0 3px var(--mt-or), 0 0 18px rgba(234, 196, 90, .45); }
+.dr-carte.fixe { opacity: .95; }
+.dr-etoiles { min-height: 16px; font-size: 13px; line-height: 16px; letter-spacing: 1px; }
+.dr-etoiles.e1 { color: #9a9690; } .dr-etoiles.e2 { color: #4a8fd6; } .dr-etoiles.e3 { color: #9b5bc4; } .dr-etoiles.e4 { color: #ee8a1f; }
+.dr-nom { font: 400 12px/16px 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); }
+.dr-reserve { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+
+/* Placement : la rangée de devant (Pions) au-dessus, celle du Roi dessous, comme sur le plateau */
+.dr-placement { display: grid; justify-content: center; gap: 10px; padding: 14px; border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); }
+.dr-rangee { display: flex; gap: 10px; justify-content: center; }
+
+.dr-valider { justify-self: center; min-width: min(320px, 100%); }
+.dr-valider[disabled] { opacity: .45; cursor: default; }
+
+/* Attente : trois losanges qui pulsent */
+.dr-attente { display: flex; justify-content: center; gap: 10px; padding: 6px; }
+.dr-attente i { width: 9px; height: 9px; border-radius: 2px; background: var(--mt-or); transform: rotate(45deg); animation: dr-pouls 1.2s ease-in-out infinite; }
+.dr-attente i:nth-child(2) { animation-delay: .2s; } .dr-attente i:nth-child(3) { animation-delay: .4s; }
+@keyframes dr-pouls { 50% { opacity: .25; transform: rotate(45deg) scale(.7); } }
+
+/* Ce que chacun a déjà pris */
+.dr-resume { display: grid; gap: 6px; }
+.dr-resume:empty { display: none; }
+.dr-resume-ligne { display: flex; align-items: center; gap: 10px; font: 800 13px 'Nunito', sans-serif; color: var(--mt-discret); }
+.dr-resume-ligne > span { min-width: 64px; }
+.dr-cartes.petites { --dr-carte: 40px; min-height: 0; gap: 4px; }
+.dr-cartes.petites .dr-etoiles { display: none; }
+
+@media (min-width: 760px) {
+  .draft { padding-top: 28px; }
+  .dr-zones { grid-template-columns: 1fr 1fr; }
+  .dr-zones > .cote { grid-column: 1 / -1; }
+  .draft { --dr-carte: 96px; }
+}
+@media (prefers-reduced-motion: reduce) { .dr-attente i { animation: none; } }

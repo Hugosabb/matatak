@@ -2,6 +2,9 @@ def time_control_str(base, inc, byo, day=0):
     if day > 0:
         return f"{day} day" if day == 1 else f"{day} days"
 
+    if base == 0 and inc == 0 and byo == 0:
+        return "Sans limite"
+
     if base == 1 / 4:
         base = "¼"
     elif base == 1 / 2:

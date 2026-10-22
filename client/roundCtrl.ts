@@ -1,4 +1,11 @@
 import { h, VNode } from 'snabbdom';
+import { memoriserEquipe } from './equipe';
+import { EcranDraft, EtatDraft } from './draft';
+import { appliquerRois, roiDuNiveau, saisonDuCamp, saisonDuNiveau, Saison } from './rois';
+
+function stockage(cle: string): string | null {
+    try { return localStorage.getItem(cle); } catch { return null; }
+}
 
 import { premove } from './premoveCgOverride';
 import { predrop } from 'chessgroundx/predrop';
@@ -28,7 +35,6 @@ import { GameController } from './gameCtrl';
 import { handleOngoingGameEvents, Game, gameViewPlaying, compareGames } from './nowPlaying';
 import { createWebsocket } from "@/socket/webSocketUtils";
 import { variantsIni } from './variantsIni';
-import { showBannerOverlay } from './bannerOverlay';
 import { loadEngine } from './engineLoader';
 import { setPocketRowCssVars } from './pocketRow';
 
@@ -64,6 +70,16 @@ export class RoundController extends GameController {
     handicap: boolean;
     focus: boolean;
     finishedGame: boolean;
+    // Fin de partie : résultat affiché et état de la revanche contre un humain
+    fin: { status: number, result: string } | undefined;
+    revanche: '' | 'envoyee' | 'recue' | 'refusee' = '';
+    revancheId = '';
+    // Téléphone : barre du bas (Options, Précédent, Suivant) et son menu
+    vbarre: VNode | HTMLElement | undefined;
+    menuOuvert = false;
+    // Première partie sur l'appareil : conseils discrets (0 = aucun, 1 = toucher, 2 = gagner, 3 = fini)
+    etapeConseil = 0;
+    vconseil: VNode | HTMLElement | undefined;
     lastMaybeSentMsgMove: MsgMove | undefined; // Always store the last "move" message that was passed for sending via websocket.
     // In case of bad connection, we are never sure if it was sent (thus the name)
     isEngineReady: boolean;
@@ -72,6 +88,10 @@ export class RoundController extends GameController {
     isSearching: boolean;
     mate1: boolean;
     draftPhase: string;
+    // Draft (client/draft.ts) : écran avant le plateau ; Rois tirés au Draft ou gardés en revanche
+    draftEcran?: EcranDraft;
+    enDraft = false;
+    rois: { white: Saison, black: Saison } | null = null;
 
     // until a "board" message from server is received from server that confirms it.
     // So if at any moment connection drops, after reconnect we always resend it.
@@ -114,7 +134,7 @@ export class RoundController extends GameController {
             console.log('Reconnecting in round...');
 
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
+            patch(container, h('i-side#player1.online', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
         };
 
         this.sock = createWebsocket('wsr/' + this.gameId, onOpen, onReconnect, () => { }, (e: MessageEvent) => this.onMessage(e));
@@ -123,6 +143,8 @@ export class RoundController extends GameController {
         this.byoyomiPeriod = Number(model["byo"]);
         this.byoyomi = this.variant.rules.defaultTimeControl === 'byoyomi';
         this.finishedGame = this.status >= 0;
+        // Téléphone : l'en-tête du site est masqué pendant la partie d'un joueur (partie.css), rendu à la fin
+        document.body.classList.toggle('en-partie', !this.spectator && !this.finishedGame);
         this.tv = model["tv"];
         this.profileid = model["profileid"];
         this.level = model["level"];
@@ -130,6 +152,8 @@ export class RoundController extends GameController {
 
         this.initialFen = model["initialFen"];
         console.log("initialFen : ", this.initialFen);
+        if (!this.spectator) memoriserEquipe(this.variant.name, this.initialFen, this.mycolor);
+        this.appliquerLesRois();
 
         this.settings = true;
         this.autoPromote = localStorage.autoPromote === undefined ? false : localStorage.autoPromote === "true";
@@ -305,7 +329,7 @@ export class RoundController extends GameController {
                 chatMessage('', oppName + _(' +15 seconds'), "roundchat");
             }
 
-            if (!this.spectator && this.rated === CASUAL && this.wtitle !== 'BOT' && this.btitle !== 'BOT') {
+            if (!this.spectator && !this.unlimited && this.rated === CASUAL && ![this.wtitle, this.btitle].some(t => t === 'BOT' || t === 'LIA')) {
                 const container = document.getElementById('more-time') as HTMLElement;
                 patch(container, h('div#more-time', [
                     h('button.icon.icon-plus-square', {
@@ -354,6 +378,7 @@ export class RoundController extends GameController {
         }
 
         const flagCallback = () => {
+            if (this.unlimited) return;
             if (this.turnColor === this.mycolor) {
                 this.chessground.stop();
                 // console.log("Flag");
@@ -413,6 +438,9 @@ export class RoundController extends GameController {
 
         createMovelistButtons(this);
         this.vmovelist = document.getElementById('movelist') as HTMLElement;
+        this.vbarre = document.getElementById('barre-partie') as HTMLElement;
+        if (!this.spectator && this.status < 0 && !stockage('matatak_conseils')) this.etapeConseil = 1;
+        this.renderBarre();
 
         this.vdialog = patch(document.getElementById('offer-dialog')!, h('div#offer-dialog', ""));
 
@@ -441,6 +469,69 @@ export class RoundController extends GameController {
     }
 
     toggleSettings() {
+    }
+
+    /** Pastille de conseil de la première partie (même style que « Connexion… »), jamais bloquante. */
+    private renderConseil() {
+        if (this.etapeConseil === 0 || this.etapeConseil >= 3) {
+            document.getElementById('conseil')?.remove();
+            this.vconseil = undefined;
+            return;
+        }
+        if (!this.vconseil) {
+            this.vconseil = document.createElement('div');
+            document.body.appendChild(this.vconseil);
+        }
+        const regles = this.etapeConseil === 1 && !['fini', 'connu'].includes(stockage('matatak_tutoriel') ?? '');
+        this.vconseil = patch(this.vconseil, h('div#conseil', { attrs: { role: 'status' } }, [
+            h('span.losange'),
+            h('span', this.etapeConseil === 1
+                ? 'Touchez un Personnage pour voir où il peut aller.'
+                : 'Pour gagner : votre Roi sur la Colline, ou échec et mat.'),
+            regles ? h('a', { attrs: { href: '/tutorial/1', target: '_blank', rel: 'noopener' } }, 'Les règles en 2 min') : '',
+            h('button', { attrs: { type: 'button', 'aria-label': 'Fermer' }, on: { click: () => this.finConseils() } }, '×'),
+        ]));
+    }
+
+    private finConseils() {
+        this.etapeConseil = 3;
+        try { localStorage.setItem('matatak_conseils', 'vus'); } catch { /* navigation privée */ }
+        this.renderConseil();
+    }
+
+    /** Barre du bas sur téléphone (partie.css), comme les applis d'échecs : les actions rares
+     *  (annuler, match nul, abandon) sont dans un menu, pas sous le pouce. */
+    private renderBarre = () => {
+        if (!this.vbarre) return;
+        const enCours = !this.spectator && this.status < 0;
+        const coupsJoues = this.steps.length - 1;
+        // Conseils de la première partie : « toucher » jusqu'au premier coup, puis « gagner » quelques coups
+        if (this.etapeConseil === 1 && coupsJoues >= 1) this.etapeConseil = 2;
+        if (this.etapeConseil === 2 && (coupsJoues >= 5 || !enCours)) this.finConseils();
+        else this.renderConseil();
+        const fermer = () => { this.menuOuvert = false; this.renderBarre(); };
+        const action = (texte: string, faire: () => void, attention = false) =>
+            h('button.barre-action', { class: { attention }, attrs: { type: 'button', role: 'menuitem' }, on: { click: () => { fermer(); faire(); } } }, texte);
+        const actions: VNode[] = [];
+        if (enCours) {
+            if (coupsJoues < 2 && !this.tournamentGame) actions.push(action('Annuler la partie', () => this.abort()));
+            else if (!this.variant.rules.noDrawOffer) actions.push(action('Proposer match nul', () => this.draw()));
+            if (coupsJoues >= 2 || this.tournamentGame) actions.push(action('Abandonner', () => this.resign(), true));
+        }
+        // Icônes seules (barre plus basse, plateau plus grand) ; le nom reste pour les lecteurs d'écran
+        const icone = (d: string, epaisseur = '2.4') => h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': epaisseur, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } }, [h('path', { attrs: { d } })]);
+        const bouton = (texte: string, svg: VNode, onClick: () => void, attrs: Record<string, string> = {}) =>
+            h('button.barre-btn', { attrs: { type: 'button', 'aria-label': texte, title: texte, ...attrs }, on: { click: onClick } }, [svg]);
+        // Rien à proposer (partie finie, spectateur) : pas de bouton Options
+        if (!actions.length) this.menuOuvert = false;
+        this.vbarre = patch(this.vbarre, h('div#barre-partie', { class: { ouvert: this.menuOuvert, 'sans-options': !actions.length } }, [
+            this.menuOuvert ? h('div.barre-fond', { on: { click: fermer } }) : '',
+            this.menuOuvert ? h('div.barre-menu', { attrs: { role: 'menu' } }, actions) : '',
+            actions.length ? bouton('Menu de la partie', icone('M5 12h.01M12 12h.01M19 12h.01', '4'), () => { this.menuOuvert = !this.menuOuvert; this.renderBarre(); },
+                { 'aria-expanded': String(this.menuOuvert), 'aria-haspopup': 'menu' }) : '',
+            bouton('Coup précédent', icone('M15 5l-7 7 7 7'), () => selectMove(this, this.ply - 1)),
+            bouton('Coup suivant', icone('M9 5l7 7-7 7'), () => selectMove(this, this.ply + 1)),
+        ]));
     }
 
     buttonAbort() {
@@ -490,7 +581,7 @@ export class RoundController extends GameController {
         const tmp_clock_time = tmp_clock.duration;
         this.clocks[0].setTime(this.clocks[1].duration);
         this.clocks[1].setTime(tmp_clock_time);
-        if (this.status < 0) new_running_clck.start();
+        if (this.status < 0 && !this.unlimited) new_running_clck.start();
 
         this.vplayer0 = patch(this.vplayer0, player('player0', this.titles[this.flipped() ? 1 : 0], this.players[this.flipped() ? 1 : 0], this.ratings[this.flipped() ? 1 : 0], this.level));
         this.vplayer1 = patch(this.vplayer1, player('player1', this.titles[this.flipped() ? 0 : 1], this.players[this.flipped() ? 0 : 1], this.ratings[this.flipped() ? 0 : 1], this.level));
@@ -610,83 +701,7 @@ export class RoundController extends GameController {
 
     // Janggi second player (Red) setup
     private onMsgSetup = (msg: MsgSetup) => {
-        if (this.variant.name.startsWith('matatak')) {
-            // TODO display Msgsetup in console :
-            console.log("onMsgSetup for Matatak:", msg);
-
-            this.setupFen = msg.fen;
-            this.chessground.set({ fen: this.setupFen });
-
-            const side = (msg.color === 'white') ? _(this.wplayer) : _(this.bplayer);
-            const message = _('Waiting for %1 to choose...', side);
-
-            this.expiStart = 0;
-            this.renderExpiration();
-            this.turnColor = msg.color;
-            this.expiStart = Date.now();
-            setTimeout(this.showExpiration, 350);
-
-            if (this.spectator || msg.color !== this.mycolor) {
-                chatMessage('', message, "roundchat");
-                return;
-            }
-
-            chatMessage('_server', message, "roundchat");
-
-            let phase = msg.phase;
-            if (phase === "CHOOSE_CHAMPIONS" || phase === "CHOOSE_PAWNS") {
-                const chooseWhat = phase === "CHOOSE_CHAMPIONS" ? "champions" : "pawns";
-                const message1 = _('You can exchange the %1, then click on the check mark to finalize your decision.', chooseWhat);
-                chatMessage('_server', message1, "roundchat");
-            }
-
-            const switchTeams = () => {
-                const fenParts = this.setupFen.split(' ');
-                const ranks = fenParts[0].split('/');
-
-                const changeRankTeam = (rank: string) => {
-                    return rank.split('').reverse().map(char => {
-                        if (char >= 'a' && char <= 'z') return char.toUpperCase();
-                        if (char >= 'A' && char <= 'Z') return char.toLowerCase();
-                        return char;
-                    }).join('');
-                }
-                const ranks1Max = this.variant.name === 'matatakmini' ? 4 : 6;
-                const ranks2Max = this.variant.name === 'matatakmini' ? 5 : 7;
-                if (this.mycolor === 'white') {
-                    [ranks[1], ranks[ranks1Max]] = [changeRankTeam(ranks[ranks1Max]), changeRankTeam(ranks[1])];
-                } else {
-                    [ranks[0], ranks[ranks2Max]] = [changeRankTeam(ranks[ranks2Max]), changeRankTeam(ranks[0])];
-                }
-
-                fenParts[0] = ranks.join('/');
-                this.setupFen = fenParts.join(' ');
-                this.chessground.set({ fen: this.setupFen });
-            };
-
-            const sendSetup = () => {
-                // On ne supprime plus le conteneur, on désactive juste les boutons en attendant la réponse.
-                // patch(document.getElementById('janggi-setup-buttons') as HTMLElement, h('div#empty'));
-                this.doSend({ type: "setup", gameId: this.gameId, color: this.mycolor, fen: this.setupFen, phase: phase });
-                const setupContainer = document.getElementById('janggi-setup-buttons') as HTMLElement;
-                if (setupContainer) setupContainer.innerHTML = '';
-            }
-
-            const buttons: VNode[] = [];
-            if (phase === "CHOOSE_CHAMPIONS" || phase === "CHOOSE_PAWNS") {
-                buttons.push(h('button#flipLeft', { on: { click: () => switchTeams() } }, [h('i', { props: { title: _('Switch pieces') }, class: { "icon": true, "icon-exchange": true } }),]));
-            }
-
-            // Bouton pour valider
-            buttons.push(h('button', { on: { click: () => sendSetup() } }, [h('i', { props: { title: _('Ready') }, class: { "icon": true, "icon-check": true } }),]));
-
-            const setupContainer = document.getElementById('janggi-setup-buttons') as HTMLElement;
-            if (setupContainer) {
-                setupContainer.innerHTML = ''; // Vider le conteneur
-                patch(setupContainer, h('div#janggi-setup-buttons', buttons));
-            }
-
-        } else if (this.variant.name === 'janggi') {
+        if (this.variant.name === 'janggi') {
             const buttonEl = document.getElementById('flipLeft') as HTMLElement;
             if (buttonEl !== null) return;
 
@@ -760,6 +775,9 @@ export class RoundController extends GameController {
         // C'est l'étape la plus critique pour que le moteur et l'affichage soient synchronisés.
         this.initialFen = msg.fen;
         this.fullfen = msg.fen;
+        // Fin du Draft : l'équipe composée devient celle qu'on peut garder
+        if (!this.spectator) memoriserEquipe(this.variant.name, this.initialFen, this.mycolor);
+        this.appliquerLesRois();
 
         // 3. Réinitialiser l'historique des coups (steps)
         this.steps = [{
@@ -803,12 +821,6 @@ export class RoundController extends GameController {
         this.clearDialog(); // Cacher les dialogues d'offre (nulle, etc.)
     }
 
-    private onMsgDraftWait = (msg: any) => {
-        chatMessage('_server', _(msg.message), "roundchat");
-        const setupContainer = document.getElementById('janggi-setup-buttons') as HTMLElement;
-        if (setupContainer) setupContainer.innerHTML = '';
-    }
-
     private notifyMsg = (msg: string) => {
         if (this.status >= 0) return;
 
@@ -836,36 +848,28 @@ export class RoundController extends GameController {
     }
 
     private onMsgViewRematch = (msg: MsgViewRematch) => {
-        const btns_after = document.querySelector('.btn-controls.after') as HTMLElement;
-        let rematch_button = h('button.newopp', { on: { click: () => window.location.assign(this.home + '/' + msg["gameId"]) } }, _("VIEW REMATCH"));
-        let rematch_button_location = btns_after!.insertBefore(document.createElement('div'), btns_after!.firstChild);
-        patch(rematch_button_location, rematch_button);
+        this.revancheId = msg["gameId"];
+        this.renderFin();
     }
 
-    private rematch = (level?: number) => {
-        this.doSend({ type: "rematch", gameId: this.gameId, handicap: this.handicap, level: level ?? this.level });
-        this.setDialog(_("Rematch offer sent"));
+    private rematch = (level?: number, nouveauDraft = false) => {
+        this.doSend({ type: "rematch", gameId: this.gameId, handicap: this.handicap, level: level ?? this.level, nouveau_draft: nouveauDraft });
+        // Contre l'IA, la nouvelle partie s'ouvre aussitôt (message new_game) : rien à attendre.
+        if (!this.contreIA()) {
+            this.revanche = 'envoyee';
+            this.renderFin();
+        }
     }
 
     private rejectRematchOffer = () => {
         this.doSend({ type: "reject_rematch", gameId: this.gameId });
-        this.clearDialog();
+        this.revanche = '';
+        this.renderFin();
     }
 
     private renderRematchOffer = () => {
-        (document.querySelector('.btn-controls.after') as HTMLElement).style.display = "none";
-        this.vdialog = patch(this.vdialog, h('div#offer-dialog', [
-            h('div.dcontrols', [
-                h('div', { class: { reject: true }, on: { click: () => this.rejectRematchOffer() } }, h('i.icon.icon-abort.reject')),
-                h('div.text', _("Your opponent offers a rematch")),
-                h('div', { class: { accept: true }, on: { click: () => this.rematch() } }, h('i.icon.icon-check')),
-            ])
-        ]));
-    }
-
-    private newOpponent = (home: string) => {
-        this.doSend({ "type": "leave", "gameId": this.gameId });
-        window.location.assign(home);
+        this.revanche = 'recue';
+        this.renderFin();
     }
 
     private analysis = (home: string) => {
@@ -888,29 +892,146 @@ export class RoundController extends GameController {
         container = document.getElementById('brdiff') as HTMLElement;
         if (container) patch(container, renderRdiff(rdiffs["brdiff"]));
 
-        // console.log(rdiffs)
-        this.gameControls = patch(this.gameControls, h('div'));
-        let buttons: VNode[] = [];
-        if (!this.spectator) {
-            if (this.tournamentGame) {
-                // TODO: isOver = ?
-                const isOver = false;
-                if (isOver) {
-                    buttons.push(h('button.newopp', { on: { click: () => this.joinTournament() } },
-                        [h('div', { class: { "icon": true, 'icon-play3': true } }, _("VIEW TOURNAMENT"))]));
-                } else {
-                    buttons.push(h('button.newopp', { on: { click: () => this.joinTournament() } },
-                        [h('div', { class: { "icon": true, 'icon-play3': true } }, _("BACK TO TOURNAMENT"))]));
-                    buttons.push(h('button.newopp', { on: { click: () => this.pauseTournament() } },
-                        [h('div', { class: { "icon": true, 'icon-pause2': true } }, _("PAUSE"))]));
-                }
-            } else if (!this.corr) {
-                buttons.push(h('button.rematch', { on: { click: () => this.rematch() } }, _("REMATCH")));
-                buttons.push(h('button.newopp', { on: { click: () => this.newOpponent(this.home) } }, _("NEW OPPONENT")));
+    }
+
+    /** Roi de chaque camp assorti à son équipe ; en Solo, l'ordinateur a le Roi de son palier. */
+    private appliquerLesRois() {
+        if (!this.variant.name.startsWith('matatak')) return;
+        if (this.rois) {
+            appliquerRois(this.assetURL, this.rois.white, this.rois.black);
+            return;
+        }
+        const saison = (couleur: 'white' | 'black') =>
+            ((couleur === 'white' ? this.wtitle : this.btitle) === 'LIA' && this.level > 0)
+                ? saisonDuNiveau(this.level)
+                : saisonDuCamp(this.initialFen, couleur, this.gameId);
+        appliquerRois(this.assetURL, saison('white'), saison('black'));
+    }
+
+    /** Nom affiché d'un joueur : l'ordinateur prend le nom du Roi de son palier (Solo). */
+    private nomJoueur(couleur: 'white' | 'black'): string {
+        const titre = couleur === 'white' ? this.wtitle : this.btitle;
+        if (titre === 'LIA' && this.level > 0) return roiDuNiveau(this.level);
+        return (couleur === 'white' ? this.wplayer : this.bplayer).split('#')[0];
+    }
+
+    private onMsgDraft(msg: { gameId: string, etat: EtatDraft }) {
+        if (msg.gameId !== this.gameId) return;
+        if (!this.draftEcran) {
+            if (msg.etat.phase === 'FINI') return; // Draft déjà fini : la partie est là
+            this.enDraft = true;
+            this.draftEcran = new EcranDraft(document.getElementById('draft-ecran') as HTMLElement, {
+                mycolor: this.mycolor,
+                spectateur: this.spectator,
+                nom: (c) => this.nomJoueur(c),
+                assetURL: this.assetURL,
+                envoyer: (m) => this.doSend({ type: 'draft', gameId: this.gameId, ...m }),
+                fini: (etat) => this.finDuDraft(etat),
+            });
+        }
+        this.draftEcran.recevoir(msg.etat);
+    }
+
+    private finDuDraft(etat: EtatDraft) {
+        this.enDraft = false;
+        this.rois = { white: etat.equipes.white!.roi, black: etat.equipes.black!.roi };
+        this.resetForNewPhase({ fen: etat.fen!, status: -2 });
+        // Le plateau était caché : chessground doit remesurer ses cases
+        this.chessground.state.dom.bounds.clear();
+        this.chessground.redrawAll();
+        // Contre l'ordinateur, s'il a les Blancs, il joue maintenant
+        if (this.contreIA()) this.searchBestMove();
+    }
+
+    private contreIA() {
+        return Boolean(this.level && this.level > 0) && [this.wtitle, this.btitle].includes('LIA');
+    }
+
+    /** Phrase de fin, vue par le joueur (ou neutre pour un spectateur). */
+    private raisonFin(status: number, res: string, gagne: boolean, perdu: boolean): string {
+        switch (status) {
+            case 0: return 'La partie a été annulée.';
+            case 1: return gagne ? 'Échec et mat !' : perdu ? 'Votre Roi est échec et mat.' : 'Échec et mat.';
+            case 2: return gagne ? 'Votre adversaire abandonne.' : perdu ? 'Vous avez abandonné.' : 'Abandon.';
+            case 3: return gagne ? 'Patatrak ! Vous ne pouviez plus bouger : vous gagnez.'
+                : perdu ? 'Patatrak ! Votre adversaire ne pouvait plus bouger : il gagne.' : 'Patatrak : le joueur bloqué gagne.';
+            case 4:
+            case 6: return gagne ? "Votre adversaire n'a plus de temps." : perdu ? 'Temps écoulé.' : 'Temps écoulé.';
+            case 5: return 'Partie nulle.';
+            case 7: return gagne ? 'Votre adversaire a quitté la partie.' : perdu ? 'Vous avez quitté la partie.' : 'Un joueur a quitté la partie.';
+            case 12: return gagne ? 'Votre Roi a atteint la Colline !' : perdu ? 'Le Roi adverse a atteint la Colline.' : 'Un Roi a atteint la Colline.';
+            case 13: return 'Position répétée : partie nulle.';
+            default: return result(this.variant, status, res);
+        }
+    }
+
+    /** Cadre de fin de partie, à la place des boutons de jeu : un résultat, une action principale, le reste en liens. */
+    private renderFin = () => {
+        const fin = this.fin;
+        if (!fin) return;
+        const gagne = (fin.result === '1-0' && this.mycolor === 'white') || (fin.result === '0-1' && this.mycolor === 'black');
+        const perdu = (fin.result === '1-0' && this.mycolor === 'black') || (fin.result === '0-1' && this.mycolor === 'white');
+        const nul = fin.result === '1/2-1/2';
+        const joueur = !this.spectator;
+        // Une première partie terminée : /jouer peut proposer d'installer l'appli (lobby.ts)
+        if (joueur && fin.status !== 0) {
+            try { localStorage.setItem('matatak_partie_finie', '1'); } catch { /* navigation privée */ }
+        }
+
+        let titre: string;
+        if (fin.status === 0) titre = 'Partie annulée';
+        else if (joueur) titre = gagne ? 'Victoire !' : perdu ? 'Défaite' : nul ? 'Égalité' : 'Partie terminée';
+        else titre = fin.result === '1-0' ? 'Les Blancs gagnent' : fin.result === '0-1' ? 'Les Noirs gagnent' : nul ? 'Égalité' : 'Partie terminée';
+
+        const lien = (texte: string, onClick: () => void) => h('button.fin-lien', { attrs: { type: 'button' }, on: { click: onClick } }, texte);
+        let principal: VNode | null = null;
+        let message: string | null = null;
+        const liens: VNode[] = [];
+
+        if (joueur && this.tournamentGame) {
+            principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.joinTournament() } }, 'Retour au tournoi');
+            liens.push(lien('Pause', () => this.pauseTournament()));
+        } else if (joueur && !this.corr && this.contreIA()) {
+            const lvl = this.level;
+            if (gagne && lvl < 20) {
+                const nouveauRoi = roiDuNiveau(lvl + 1) !== roiDuNiveau(lvl) ? ` · ${roiDuNiveau(lvl + 1)}` : '';
+                principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch(lvl + 1) } }, `Niveau ${lvl + 1}${nouveauRoi}`);
+                liens.push(lien('Rejouer', () => this.rematch(lvl)));
+            } else {
+                principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch(lvl) } }, 'Rejouer');
+                if (perdu && lvl > 1) liens.push(lien(`Niveau ${lvl - 1}`, () => this.rematch(lvl - 1)));
+            }
+        } else if (joueur && !this.corr) {
+            const adv = this.username === this.wplayer ? this.bplayer : this.wplayer;
+            if (this.revanche === 'recue') {
+                message = `${adv.split('#')[0]} propose une revanche.`;
+                principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch() } }, 'Accepter');
+                liens.push(lien('Refuser', () => this.rejectRematchOffer()));
+            } else if (this.revanche === 'envoyee') {
+                message = 'Revanche proposée, en attente de réponse…';
+            } else if (this.revanche === 'refusee') {
+                message = 'Revanche refusée.';
+            } else {
+                principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch() } }, 'Revanche');
             }
         }
-        buttons.push(h('button.analysis', { on: { click: () => this.analysis(this.home) } }, _("ANALYSIS BOARD")));
-        patch(this.gameControls, h('div.btn-controls.after', buttons));
+        // Draft : « Rejouer » et « Revanche » gardent les équipes (livret) ; un nouveau tirage au choix
+        if (joueur && !this.corr && !this.tournamentGame && this.rois && !this.revancheId && this.revanche !== 'envoyee')
+            liens.push(lien('Nouveau Draft', () => this.rematch(undefined, true)));
+        if (this.revancheId) liens.unshift(lien('Voir la revanche', () => window.location.assign(this.home + '/' + this.revancheId)));
+        if (fin.status !== 0) liens.push(lien('Analyser', () => this.analysis(this.home)));
+        // Pas de bouton « Menu » : le logo MATATAK de l'en-tête (revenu à la fin) mène déjà à /jouer
+
+        this.gameControls = patch(this.gameControls, h('div.fin-partie', {
+            class: { gagne: joueur && gagne, perdu: joueur && perdu },
+            attrs: { role: 'status', 'aria-live': 'polite' },
+        }, [
+            h('div.fin-titre', titre),
+            h('p.fin-raison', this.raisonFin(fin.status, fin.result, joueur && gagne, joueur && perdu)),
+            message ? h('p.fin-message', message) : '',
+            principal ?? '',
+            liens.length ? h('div.fin-liens', liens) : '',
+        ]));
     }
 
     private checkStatus = (msg: MsgBoard | MsgGameEnd) => {
@@ -933,78 +1054,20 @@ export class RoundController extends GameController {
                 this.ctableContainer = patch(this.ctableContainer, crosstableView(msg.ct, this.gameId));
             }
 
-            // Add visual indication on the board (Overlay Banner)
-            const reasonText = result(this.variant, msg.status, msg.result);
-            const isWin = (msg.result === "1-0" && this.mycolor === "white") || (msg.result === "0-1" && this.mycolor === "black");
-            const isLoss = (msg.result === "1-0" && this.mycolor === "black") || (msg.result === "0-1" && this.mycolor === "white");
-
-            let bannerTitle = _("Partie terminée");
-            if (isWin) bannerTitle = _("Victoire ! 🎉");
-            else if (isLoss) bannerTitle = _("Défaite");
-            else if (msg.result === "1/2-1/2") bannerTitle = _("Égalité");
-
-            const isAi = this.wtitle === 'BOT' || this.btitle === 'BOT' || Boolean(this.level && this.level > 0);
-            const buttons = [];
-            if (!this.spectator) {
-                if (this.tournamentGame) {
-                    buttons.push({
-                        text: _("TOURNOI"),
-                        style: 'primary' as const,
-                        onClick: () => this.joinTournament()
-                    });
-                } else if (!this.corr) {
-                    if (isAi && this.level && this.level > 0) {
-                        // Match contre l'IA (niveaux 1 à 20)
-                        if (this.level < 20) {
-                            const nextLvl = this.level + 1;
-                            buttons.push({
-                                text: `Niveau ${nextLvl} ➔`,
-                                style: 'primary' as const,
-                                onClick: () => this.rematch(nextLvl)
-                            });
-                            buttons.push({
-                                text: `Rejouer (Niv. ${this.level})`,
-                                style: 'secondary' as const,
-                                onClick: () => this.rematch(this.level)
-                            });
-                        } else {
-                            buttons.push({
-                                text: `Rejouer (Niv. ${this.level}) ➔`,
-                                style: 'primary' as const,
-                                onClick: () => this.rematch(this.level)
-                            });
-                        }
-                        buttons.push({
-                            text: _("Nouvel Adversaire"),
-                            style: 'outline' as const,
-                            onClick: () => this.newOpponent(this.home)
-                        });
-                    } else {
-                        // Match contre un humain
-                        buttons.push({
-                            text: _("Revanche ➔"),
-                            style: 'primary' as const,
-                            onClick: () => this.rematch()
-                        });
-                        buttons.push({
-                            text: _("Nouvel Adversaire"),
-                            style: 'secondary' as const,
-                            onClick: () => this.newOpponent(this.home)
-                        });
-                    }
-                }
+            // Cadre de fin sous le plateau (remplace l'ancienne fenêtre posée sur le plateau)
+            const vientDeFinir = !this.fin && !this.finishedGame;
+            document.body.classList.remove('en-partie');
+            this.menuOuvert = false;
+            this.renderBarre();
+            this.fin = { status: msg.status, result: msg.result };
+            // Le panneau d'infos disait encore « En cours »
+            const statut = document.querySelector('.info-statut');
+            if (statut && vientDeFinir) statut.textContent = msg.status === 0 ? 'Annulée' : 'Terminée';
+            this.renderFin();
+            if (vientDeFinir) {
+                const el = document.querySelector('.fin-partie');
+                if (el) setTimeout(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 300);
             }
-            buttons.push({
-                text: _("Analyse"),
-                style: 'outline' as const,
-                onClick: () => this.analysis(this.home)
-            });
-
-            showBannerOverlay({
-                title: bannerTitle,
-                subtitle: reasonText,
-                buttons: buttons
-            });
 
             // clean up gating/promotion widget left over the ground while game ended by time out
             const container = document.getElementById('extension_choice') as HTMLElement;
@@ -1092,6 +1155,10 @@ export class RoundController extends GameController {
         this.result = msg.result;
         this.status = msg.status;
         this.draftPhase = msg.phase;
+        if (msg.rois && !this.rois) {
+            this.rois = msg.rois;
+            this.appliquerLesRois();
+        }
 
         if (msg.steps.length > 1) {
             this.steps = [];
@@ -1127,6 +1194,7 @@ export class RoundController extends GameController {
         // }
 
         this.clockOn = (Number(msg.ply) >= 2);
+        this.renderBarre();
         if ((!this.spectator && this.clockOn) || this.tournamentGame) {
             const container = document.getElementById('abort') as HTMLElement;
             if (container) {
@@ -1211,7 +1279,7 @@ export class RoundController extends GameController {
                     movable: { color: undefined },
                 });
             }
-            if (this.clockOn && msg.status < 0) {
+            if (this.clockOn && !this.unlimited && msg.status < 0) {
                 if (this.turnColor === this.mycolor) {
                     this.clocks[myclock].start();
                 } else {
@@ -1255,7 +1323,7 @@ export class RoundController extends GameController {
                     // TODO Handle premove with Local Ai moves
                     // if (this.premove) this.performPremove();
                 }
-                if (this.clockOn && msg.status < 0) {
+                if (this.clockOn && !this.unlimited && msg.status < 0) {
                     this.clocks[myclock].start();
                     // console.log('MY CLOCK STARTED');
                 }
@@ -1276,7 +1344,7 @@ export class RoundController extends GameController {
                     this.setDests();
                 }
 
-                if (this.clockOn && msg.status < 0) {
+                if (this.clockOn && !this.unlimited && msg.status < 0) {
                     this.clocks[oppclock].start();
                     // console.log('OPP CLOCK  STARTED');
                 }
@@ -1319,6 +1387,11 @@ export class RoundController extends GameController {
         if (this.variant.material.showDiff) {
             this.updateMaterial();
         }
+    }
+
+    // Cadence 0+0 (hors correspondance) : partie sans limite de temps, pendules masquées et arrêtées.
+    get unlimited(): boolean {
+        return this.base === 0 && this.inc === 0 && !this.corr && this.byoyomiPeriod === 0;
     }
 
     doSendMove(move: string) {
@@ -1368,7 +1441,7 @@ export class RoundController extends GameController {
             // fixes https://github.com/gbtami/pychess-variants/issues/1588
             this.turnColor = this.turnColor === "white" ? "black" : "white";
 
-            if (this.clockOn) this.clocks[inactiveclock].start();
+            if (this.clockOn && !this.unlimited) this.clocks[inactiveclock].start();
         }
 
         const confirmCorrMove = localStorage.confirmCorrMove === undefined ? true : localStorage.getItem("confirmCorrMove") === "true";
@@ -1477,7 +1550,7 @@ export class RoundController extends GameController {
             this.doSend({ type: "is_user_present", username: opp_name, gameId: this.gameId });
 
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
+            patch(container, h('i-side#player1.online', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
 
             // prevent sending gameStart message when user just reconnecting
             if (msg.ply === 0) {
@@ -1496,10 +1569,10 @@ export class RoundController extends GameController {
         // console.log(msg);
         if (msg.username === this.players[0]) {
             const container = document.getElementById('player0') as HTMLElement;
-            patch(container, h('i-side.online#player0', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
+            patch(container, h('i-side#player0.online', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
         } else {
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
+            patch(container, h('i-side#player1.online', { class: { "icon": true, "icon-online": true, "icon-offline": false } }));
         }
     }
 
@@ -1509,10 +1582,10 @@ export class RoundController extends GameController {
 
         if (msg.username === this.players[0]) {
             const container = document.getElementById('player0') as HTMLElement;
-            patch(container, h('i-side.online#player0', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
+            patch(container, h('i-side#player0.online', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
         } else {
             const container = document.getElementById('player1') as HTMLElement;
-            patch(container, h('i-side.online#player1', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
+            patch(container, h('i-side#player1.online', { class: { "icon": true, "icon-online": false, "icon-offline": true } }));
         }
     }
 
@@ -1546,7 +1619,10 @@ export class RoundController extends GameController {
 
     private onMsgRematchRejected = (msg: MsgRematchRejected) => {
         chatMessage("", msg.message, "roundchat");
-        this.clearDialog();
+        if (this.revanche === 'envoyee') {
+            this.revanche = 'refusee';
+            this.renderFin();
+        }
     }
 
     private onMsgCount = (msg: MsgCount) => {
@@ -1586,25 +1662,8 @@ export class RoundController extends GameController {
     }
 
     private async searchBestMove(): Promise<void> {
-        if (this.isSearching || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor || (this.wtitle != 'LIA' && this.btitle != 'LIA')) {
+        if (this.enDraft || this.isSearching || this.status >= 0 || !this.uciOk || !this.isEngineReady || this.turnColor === this.mycolor || (this.wtitle != 'LIA' && this.btitle != 'LIA')) {
             return;
-        } else if (this.draftPhase == "CUT") {
-            const legalMoves = this.ffishBoard.legalMoves().split(' ').filter(o => o);
-            const kingDrops = this.variant.name === 'matatakmini' ? ['K@c1', 'K@c2'] : ['K@e1', 'K@e3'];
-            if (this.turnColor === "white") {
-                if (legalMoves.includes(kingDrops[0])) {
-                    this.doSendMove(kingDrops[0]);
-                    return;
-                } else if (legalMoves.includes(kingDrops[1])) {
-                    this.doSendMove(kingDrops[1]);
-                    return;
-                }
-            }
-            if (legalMoves.length > 0) {
-                const randomMove = legalMoves[Math.floor(Math.random() * legalMoves.length)];
-                this.doSendMove(randomMove);
-                return;
-            }
         }
         this.isSearching = true;
         await this.isReady();
@@ -1705,14 +1764,8 @@ export class RoundController extends GameController {
             case "berserk":
                 this.onMsgBerserk(msg);
                 break;
-            case "draft_wait":
-                this.onMsgDraftWait(msg);
-                break;
-            case "resetForNewPhase":
-                this.resetForNewPhase({
-                    fen: msg.drop_fen,
-                    status: -2,
-                });
+            case "draft":
+                this.onMsgDraft(msg);
                 break;
         }
     }

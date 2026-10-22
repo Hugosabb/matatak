@@ -38,6 +38,7 @@ class Seek:
         reused_fen=False,
         isDraft=False,
         boost=0,
+        rois=None,
     ):
         self.id = seek_id
         self.creator = creator
@@ -70,7 +71,11 @@ class Seek:
         # True if this is 960 variant 1st, 3rd etc. rematch seek
         self.reused_fen = reused_fen
         self.isDraft = isDraft
-        self.boost = boost
+        self.rois = rois  # Rois d'une revanche de Draft (mêmes équipes), voir Game.rois
+        try:
+            self.boost = min(4, max(-4, int(boost)))
+        except (TypeError, ValueError):
+            self.boost = 0
 
         # Seek is pending when it is not corr, and user has no live lobby websocket
         self.pending = False
@@ -192,7 +197,8 @@ async def create_seek(db, invites, seeks, user, data, empty=False, engine=None):
         player1=None if empty else user,
         player2=engine if target == "BOT_challenge" else None,
         game_id=game_id,
-        isDraft=data.get("isDraft", False),
+        # Le navigateur envoie « draft » (lobby.ts) : sans ça, le Draft entre amis était ignoré
+        isDraft=bool(data.get("isDraft", data.get("draft", False))),
         boost=data.get("boost", 0),
     )
 

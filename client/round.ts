@@ -15,6 +15,8 @@ function runGround(vnode: VNode, model: PyChessModel) {
 
 export function roundView(model: PyChessModel): VNode[] {
     const variant = VARIANTS[model.variant];
+    // Cadence 0+0 hors correspondance : pas de pendule à afficher
+    const sansLimite = Number(model.base) === 0 && Number(model.inc) === 0 && Number(model.byo) === 0 && model.corr !== 'True';
 
     renderTimeago();
 
@@ -28,6 +30,8 @@ export function roundView(model: PyChessModel): VNode[] {
                 display: flex; 
             }
         `),
+        // Écran du Draft (client/draft.ts), à la place du plateau tant que les équipes se composent
+        h('div#draft-ecran'),
         h('aside.sidebar-first', [
             gameInfo(model),
             h('div#roundchat'),
@@ -49,7 +53,7 @@ export function roundView(model: PyChessModel): VNode[] {
                 ]),
             ]),
             h('div.info-wrap0', [
-                h('div.clock-wrap', [
+                h('div.clock-wrap', { class: { 'sans-limite': sansLimite } }, [
                     h('div#clock0'),
                     h('div#more-time'),
                     h('div#berserk0'),
@@ -73,7 +77,7 @@ export function roundView(model: PyChessModel): VNode[] {
             h('round-player1#rplayer1'),
             h('div#expiration-bottom'),
             h('div.info-wrap1', [
-                h('div.clock-wrap', [
+                h('div.clock-wrap', { class: { 'sans-limite': sansLimite } }, [
                     h('div#clock1'),
                     h('div#berserk1'),
                 ]),
@@ -87,6 +91,7 @@ export function roundView(model: PyChessModel): VNode[] {
                 ]),
             ]),
             h('div.material.material-bottom.' + variant.pieceFamily + '.disabled'),
+            h('div#barre-partie'),
         ]),
         h('under-left#spectators'),
         h('under-board', [

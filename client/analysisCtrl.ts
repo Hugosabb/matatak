@@ -670,6 +670,8 @@ export class AnalysisController extends GameController {
                     else {
                         blackEl.style.height = '50%';
                     }
+                    // Part des Noirs aussi en variable : sur téléphone, la jauge est horizontale (largeur)
+                    gaugeEl.style.setProperty('--noirs', blackEl.style.height);
                 }
             }
 
@@ -685,14 +687,14 @@ export class AnalysisController extends GameController {
                             })
                         );
                     } else if (ceval.d !== 99) {
-                        info.push(h('span', ', ' + Math.round(ceval.k) + ' knodes/s'));
+                        info.push(h('span', ', ' + Math.round(ceval.k) + ' k nœuds/s'));
                     }
                 }
                 this.vinfo = patch(this.vinfo, h('info#info', ''));
                 this.vinfo = patch(this.vinfo, h('info#info', info));
             } else {
                 this.vscore = patch(this.vscore, h('score#score', ''));
-                this.vinfo = patch(this.vinfo, h('info#info', _('in local browser')));
+                this.vinfo = patch(this.vinfo, h('info#info', 'Fairy-Stockfish, dans votre navigateur'));
             }
         }
 

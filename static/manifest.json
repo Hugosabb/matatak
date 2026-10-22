@@ -39,10 +39,10 @@
             "density": "4.0"
         }
     ],
-    "start_url": "/",
+    "start_url": "/jouer",
     "id": "/",
     "scope": "/",
     "display": "fullscreen",
-    "theme_color": "#dbd7d1",
-    "background_color": "#dbd7d1"
+    "theme_color": "#12100e",
+    "background_color": "#12100e"
 }

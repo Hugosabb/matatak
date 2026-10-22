@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncio
+import random
 from datetime import datetime, timezone
 
 import aiohttp_session
@@ -18,6 +19,7 @@ from admin import (
     silence,
     stream,
 )
+from broadcast import round_broadcast
 from auto_pair import (
     auto_pair,
     add_to_auto_pairings,
@@ -40,6 +42,17 @@ from utils import join_seek, load_game, remove_seek
 from websocket_utils import get_user, process_ws, ws_send_json
 from logger import log
 from variants import get_server_variant
+from fairy import FairyBoard
+
+
+def saison_du_niveau(level):
+    """Saison du Roi adverse en Solo : AZAR (Été) aux niveaux 1-5, SHANS (Automne) 6-10,
+    KARMA (Hiver) 11-15, MOJO (Printemps) 16-20."""
+    if level <= 5:
+        return "ete"
+    if level <= 10:
+        return "automne"
+    return "hiver" if level <= 15 else "printemps"
 
 
 async def lobby_socket_handler(request):
@@ -119,7 +132,11 @@ async def send_get_seeks(app_state, ws, user):
         try:
             await app_state.users.get(seek.creator.username)
         except NotInDbUsers:
-            log.warning("send_get_seeks() removing seek %s because creator %s not in db", seek.id, seek.creator.username)
+            log.warning(
+                "send_get_seeks() removing seek %s because creator %s not in db",
+                seek.id,
+                seek.creator.username,
+            )
             if seek.id in app_state.seeks:
                 del app_state.seeks[seek.id]
 
@@ -131,7 +148,20 @@ async def handle_create_ai_challenge(app_state: PychessGlobalAppState, ws, user,
     no = await send_game_in_progress_if_any(app_state, user, ws)
     if no:
         return
+    response = await creer_partie_solo(app_state, user, data)
+    await ws_send_json(ws, response)
 
+
+async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
+    """Crée une partie contre l'IA (Solo) et renvoie la réponse de join_seek (« new_game »…).
+    Partagée par la WebSocket du salon et par /jouer/solo (views/solo.py)."""
+    # Le niveau vient du navigateur et nomme un utilisateur fantôme « Level N », gardé en
+    # mémoire : sans borne, on pouvait en créer à volonté (AUDIT P2-3).
+    try:
+        level = min(20, max(1, int(data.get("level", 1))))
+    except (TypeError, ValueError):
+        level = 1
+    data = {**data, "level": level}
     variant = data["variant"]
 
     if variant in ("alice", "fogofwar") or data["rm"]:
@@ -141,13 +171,27 @@ async def handle_create_ai_challenge(app_state: PychessGlobalAppState, ws, user,
         app_state.users[ghost.username] = ghost
         engine = ghost
 
+    fen, color = data["fen"], data["color"]
+    # Solo sur le Mini : l'ordinateur joue l'équipe de la Saison du Roi de son palier de niveaux
+    # (AZAR / Été pour les niveaux 1 à 5…). Le joueur garde une équipe au hasard. Avec une position
+    # imposée, un Draft ou un Boost, rien ne change.
+    if variant == "matatakmini" and not fen and not data["draft"] and not data["rm"] and not data["boost"]:
+        if color not in ("w", "b"):
+            color = random.choice(("w", "b"))
+        saison = saison_du_niveau(int(data["level"]))
+        fen = (
+            FairyBoard.matatak_mini_start(bseason=saison)
+            if color == "w"
+            else FairyBoard.matatak_mini_start(wseason=saison)
+        )
+
     seek_id = await new_id(None if app_state.db is None else app_state.db.seek)
     seek = Seek(
         seek_id,
         user,
         variant,
-        fen=data["fen"],
-        color=data["color"],
+        fen=fen,
+        color=color,
         base=data["minutes"],
         inc=data["increment"],
         byoyomi_period=data["byoyomiPeriod"],
@@ -156,20 +200,21 @@ async def handle_create_ai_challenge(app_state: PychessGlobalAppState, ws, user,
         rated=False,
         chess960=data["chess960"],
         isDraft=data["draft"],
-        boost=data["boost"]
+        boost=data["boost"],
+        rois=data.get("rois"),
     )
     log.debug("adding seek: %s" % seek)
 
     response = await join_seek(app_state, engine, seek)
-    await ws_send_json(ws, response)
 
-    if response["type"] != "error" and data['rm']:
+    if response["type"] != "error" and data["rm"]:
         gameId = response["gameId"]
         engine.game_queues[gameId] = asyncio.Queue()
         await engine.event_queue.put(challenge(seek))
         if engine.username not in ("Random-Mover", "Fairy-Stockfish"):
             game = app_state.games[gameId]
             await engine.event_queue.put(game.game_start)
+    return response
 
 
 async def handle_create_seek(app_state, ws, user, data):
@@ -381,6 +426,7 @@ async def handle_lobbychat(app_state: PychessGlobalAppState, ws, user, data):
     if user.anon:
         return
 
+    data = {**data, "message": data["message"][:140]}  # comme la zone de saisie du client
     message = data["message"]
     response = None
     admin_command = False
@@ -467,6 +513,24 @@ async def handle_create_auto_pairing(app_state, ws, user, data):
     #     print(key, [user.username for user in app_state.auto_pairings[key]])
 
 
+async def abort_if_not_started(game, user):
+    """Annule une partie quittée avant d'avoir commencé (moins de 2 coups joués).
+
+    Arrive quand on lance une partie par erreur puis qu'on revient en arrière : sans cela, le joueur
+    est renvoyé de force vers cette partie à chaque visite de /jouer. Même règle que le bouton
+    « Annuler » de la partie ; jamais en tournoi ni en correspondance.
+    """
+    if game.board.ply >= 2 or game.corr or game.tournamentId is not None:
+        return False
+    async with game.move_lock:
+        response = await game.game_ended(user, "abort")
+    await round_broadcast(game, response, full=True)
+    for player in (game.wplayer, game.bplayer):
+        if player.game_in_progress == game.id:
+            player.game_in_progress = None
+    return True
+
+
 async def send_game_in_progress_if_any(app_state: PychessGlobalAppState, user, ws):
     # Prevent None user to handle seeks
     if user is None:
@@ -476,6 +540,8 @@ async def send_game_in_progress_if_any(app_state: PychessGlobalAppState, user, w
         game = await load_game(app_state, user.game_in_progress)
         if (game is None) or game.status > STARTED:
             user.game_in_progress = None
+            return False
+        if await abort_if_not_started(game, user):
             return False
         response = {"type": "game_in_progress", "gameId": user.game_in_progress}
         await ws_send_json(ws, response)

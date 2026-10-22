@@ -1,0 +1,72 @@
+/* Tutoriel : consigne et progression aux couleurs MATATAK (surcharge les styles de client/tutorial.ts). */
+body .tutorial-app .tutorial-info,
+body .tutorial-info {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: linear-gradient(170deg, var(--mt-surface-2), var(--mt-surface));
+  box-shadow: inset 0 0 0 1px var(--mt-filet);
+  color: var(--mt-encre);
+}
+body .tutorial-title { margin: 0 0 8px; font: 400 20px/1.2 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or); }
+body .tutorial-instruction { margin: 0 0 14px; font: 600 16px/1.5 'Nunito', sans-serif; }
+body .tutorial-progress { height: 6px; border-radius: 3px; background: var(--mt-nuit); }
+body .tutorial-progress-bar { background: var(--mt-or); border-radius: 3px; }
+body .tutorial-step-label { display: block; margin-top: 6px; font: 800 12px 'Nunito', sans-serif; letter-spacing: .06em; color: var(--mt-discret); opacity: 1; }
+body .tutorial-success-msg { color: var(--mt-ete); }
+
+@media (max-width: 799px) and (orientation: portrait) {
+  body .tutorial-info { margin: 8px 10px; padding: 12px 14px; }
+  body .tutorial-title { font-size: 17px; margin-bottom: 4px; }
+  body .tutorial-instruction { font-size: 15px; margin-bottom: 10px; }
+}
+
+/* Étape suivante chargée sur place : les nouvelles pièces apparaissent en fondu sur le plateau resté affiché */
+.tutorial-app .cg-wrap.changement piece { animation: tuto-apparition .45s cubic-bezier(.2, .8, .3, 1); }
+@keyframes tuto-apparition { from { opacity: 0; } } /* opacité seule : le plateau place les pièces avec transform */
+@media (prefers-reduced-motion: reduce) { .tutorial-app .cg-wrap.changement piece { animation: none; } }
+
+/* Réussite d'une étape : message et boutons dans le cadre du haut (plus de bandeau sur le plateau) */
+body .tutorial-success { text-align: left; }
+body .tutorial-success .tutorial-title { color: var(--mt-ete); }
+body .tutorial-success-msg { margin: 0 0 12px; font: 600 15.5px/1.5 'Nunito', sans-serif; color: var(--mt-encre); }
+body .tutorial-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+body .tutorial-actions .mt-btn { --h: 46px; font-size: 15px; }
+body .tutorial-actions .suivante { animation: tuto-pulse 1.6s ease-in-out 2; }
+@keyframes tuto-pulse { 50% { filter: brightness(1.18) drop-shadow(0 0 10px rgba(246, 201, 69, .55)); } }
+@media (max-width: 799px) and (orientation: portrait) { body .tutorial-actions .mt-btn { flex: 1; } }
+
+/* Chapitre, vignette du Personnage à reconnaître sur le plateau, lien secondaire de fin */
+body .tutorial-chapitre { display: block; margin-bottom: 4px; font: 900 11.5px 'Jost', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mt-discret); }
+body .tutorial-consigne { display: flex; align-items: flex-start; gap: 12px; }
+body .tutorial-carte { flex: none; width: 56px; height: 56px; border-radius: 6%; box-shadow: 0 4px 12px rgba(0, 0, 0, .45); }
+body .tutorial-lien { align-self: center; min-height: 44px; display: inline-flex; align-items: center; padding: 0 6px; font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); text-decoration: none; }
+body .tutorial-lien:hover { color: var(--mt-encre); text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 799px) and (orientation: portrait) { body .tutorial-carte { width: 46px; height: 46px; } }
+
+/* Présentation d'une équipe : une ligne par Personnage (vignette, nom, rang, déplacement) */
+body .tutorial-equipe { display: grid; gap: 8px; margin: 0 0 14px; padding: 0; list-style: none; }
+body .tutorial-equipe li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; }
+body .tutorial-equipe img { width: 44px; height: 44px; border-radius: 6%; box-shadow: 0 3px 8px rgba(0, 0, 0, .4); }
+body .tutorial-equipe b { font: 400 14px 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-encre); position: relative; top: -.12em; }
+body .tutorial-equipe small { margin-left: 6px; font: 800 11px 'Nunito', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: var(--mt-discret); }
+body .tutorial-equipe span { display: block; font: 600 13.5px/1.35 'Nunito', sans-serif; color: var(--mt-doux); }
+@media (max-width: 799px) and (orientation: portrait) {
+  body .tutorial-equipe { gap: 5px; margin-bottom: 10px; }
+  body .tutorial-equipe li { grid-template-columns: 34px minmax(0, 1fr); gap: 8px; }
+  body .tutorial-equipe img { width: 34px; height: 34px; }
+  body .tutorial-equipe span { font-size: 12.5px; }
+}
+body .tutorial-equipe li { border-radius: 10px; padding: 2px 4px; margin: -2px -4px; transition: background .15s; }
+body .tutorial-equipe li.actif { background: rgba(234, 196, 90, .12); }
+body .tutorial-deplacement { display: none; }
+@media (max-width: 799px) and (orientation: portrait) {
+  /* Téléphone : pastilles en ligne, sans texte ; le déplacement du Personnage touché en dessous */
+  body .tutorial-equipe { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+  body .tutorial-equipe li { grid-template-columns: 30px minmax(0, 1fr); gap: 6px; margin: 0; padding: 4px; box-shadow: inset 0 0 0 1px var(--mt-filet); }
+  body .tutorial-equipe li.actif { box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+  body .tutorial-equipe img { width: 30px; height: 30px; }
+  body .tutorial-equipe small, body .tutorial-equipe span { display: none; }
+  body .tutorial-equipe b { font-size: 12px; }
+  body .tutorial-deplacement { display: block; min-height: 2.7em; margin: 0 0 10px; font: 600 13.5px/1.35 'Nunito', sans-serif; color: var(--mt-doux); }
+  body .tutorial-deplacement b { font-weight: 800; color: var(--mt-encre); }
+}

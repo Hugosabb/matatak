@@ -1,0 +1,233 @@
+/* Page /jouer (lancer une partie). Couleurs et boutons : matatak-ui.css. Pensée d'abord pour le téléphone. */
+
+main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nunito', system-ui, sans-serif; color: var(--mt-encre); }
+.jouer-page { width: min(var(--mt-max), 100% - 32px); margin: 0 auto; padding: 30px 0 40px; }
+.jouer-page button:not(.mt-btn) { font-family: 'Nunito', system-ui, sans-serif; color: inherit; }
+.jouer-page button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.jouer-page .mt-btn { font-family: 'Tribeca', 'Jost', sans-serif; }
+.jouer-page a { text-decoration: none; color: inherit; }
+
+.bonjour { text-shadow: 0 2px 14px rgba(0, 0, 0, .95), 0 0 2px rgba(0, 0, 0, .8); margin: 0 0 20px; font: 900 clamp(24px, 3vw, 30px)/1.2 'Jost', sans-serif; color: var(--mt-encre); }
+.bonjour span { display: block; margin-top: 4px; color: var(--mt-encre); opacity: .85; font: 600 16px 'Nunito', sans-serif; }
+
+.grille { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 40px; align-items: center; }
+/* Ordinateur : panneau et adversaire centrés dans la hauteur de l'écran */
+@media (min-width: 901px) {
+  body[data-view="jouer"] { margin-bottom: 0; } /* marge de site.css : défilement pour rien */
+  .jouer-page { box-sizing: border-box; min-height: calc(100svh - var(--site-header-height, 60px) - var(--site-header-margin, 0px)); display: flex; flex-direction: column; justify-content: center; }
+}
+
+/* ---------- L'adversaire en grand, à côté du panneau (ordinateur) ---------- */
+.scene { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; animation: scene-entre .45s cubic-bezier(.16, 1, .3, 1); }
+.scene-cartes { display: flex; justify-content: center; width: 100%; }
+.scene-cartes { --carte: min(320px, 78vw); }
+.duo .scene-cartes { --carte: min(200px, 36vw); }
+.scene-txt { display: grid; gap: 6px; max-width: 360px; text-shadow: 0 2px 12px rgba(0, 0, 0, .9); }
+.scene-txt b { font: 400 34px/1 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); }
+.scene-txt span { font-size: 14px; font-weight: 700; color: var(--mt-doux); }
+.scene-txt q { quotes: none; font: italic 600 18px/1.4 'Nunito', sans-serif; color: var(--mt-encre); }
+@keyframes scene-entre { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .scene { animation: none; } }
+.panneau { background: linear-gradient(170deg, var(--mt-surface-2), var(--mt-surface)); border-radius: 22px; box-shadow: inset 0 0 0 1px var(--mt-filet), 0 30px 60px -30px rgba(0, 0, 0, .8); }
+
+/* ---------- Nouvelle partie ---------- */
+.partie { padding: 22px; }
+.choix-adv { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--mt-nuit); padding: 5px; border-radius: 14px; margin-bottom: 22px; }
+.choix-adv button { border: 0; background: none; cursor: pointer; min-height: 48px; padding: 8px 10px; border-radius: 10px; font-weight: 800; font-size: 16px; color: var(--mt-doux); display: flex; gap: 10px; justify-content: center; align-items: center; transition: background .2s, color .2s; }
+.choix-adv button img { width: 26px; border-radius: 5px; transition: transform .3s; }
+.choix-adv button.on { background: var(--mt-surface-2); color: var(--mt-encre); box-shadow: 0 4px 14px rgba(0, 0, 0, .4); }
+.choix-adv button.on img { transform: rotate(-6deg) scale(1.1); }
+
+.etiq { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 10px; font: 900 12px 'Jost', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--mt-discret); }
+.etiq label { cursor: inherit; }
+.etiq label, label.etiq, label.interrupteur { padding: 0; } /* site.css décale tous les label de 12 px */
+.etiq b { color: var(--mt-or); letter-spacing: .02em; font: 800 15px 'Nunito', sans-serif; text-transform: none; }
+
+.plateaux { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.plat { position: relative; cursor: pointer; border: 0; text-align: left; padding: 16px; border-radius: 16px; background: var(--mt-nuit); box-shadow: inset 0 0 0 1.5px var(--mt-filet); display: flex; gap: 14px; align-items: center; transition: box-shadow .2s, background .2s, transform .15s; }
+.plat:active { transform: scale(.98); }
+.plat.on { box-shadow: inset 0 0 0 2px var(--mt-or); background: var(--mt-surface); }
+.plat b { display: block; font-size: 16px; }
+.plat small { color: var(--mt-doux); font-size: 13px; }
+.damier { display: block; flex: none; height: 56px; width: auto; border-radius: 5px; box-shadow: 0 4px 10px rgba(0, 0, 0, .5); }
+.damier.d8 { width: 56px; }
+.damier.d4 { width: 28px; }
+
+.niveau { margin-bottom: 22px; }
+.curseur { display: flex; align-items: center; gap: 18px; }
+.curseur .pas { flex: none; width: 40px; height: 40px; border: 0; border-radius: 12px; cursor: pointer; background: var(--mt-nuit); box-shadow: inset 0 0 0 1.5px var(--mt-filet); font: 800 20px/1 'Nunito', sans-serif; color: var(--mt-or); }
+.curseur .pas:active { transform: scale(.92); }
+/* padding et border à 0 : site.css en met sur tous les input, le curseur ne parcourait plus toute la jauge.
+   La jauge s'arrête au centre du curseur (26 px), qui va de 13 px à 100 % − 13 px. */
+.niveau input[type=range] { --fin: calc(13px + (100% - 26px) * var(--f, 0)); -webkit-appearance: none; appearance: none; flex: 1; min-width: 0; height: 6px; margin: 0; padding: 0; border: 0; border-radius: 3px; background: linear-gradient(90deg, var(--mt-or) var(--fin), var(--mt-filet) var(--fin)); outline: none; }
+.niveau input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; background: var(--mt-or); transform: rotate(45deg); border-radius: 4px; cursor: pointer; box-shadow: 0 0 0 6px rgba(234, 196, 90, .15); }
+.niveau input[type=range]::-moz-range-thumb { width: 26px; height: 26px; background: var(--mt-or); border: 0; border-radius: 4px; transform: rotate(45deg); }
+.reperes { display: flex; justify-content: space-around; margin: 10px 58px 0; font: 400 12px 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-discret); }
+.reperes .actif { color: var(--mt-or); }
+.ami-info { margin: 0 0 22px; padding: 12px 14px; border-radius: 12px; background: var(--mt-nuit); color: var(--mt-doux); font-size: 14.5px; }
+
+.cadences { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+.cadence { border: 0; cursor: pointer; min-height: 44px; padding: 10px 16px; border-radius: 12px; background: var(--mt-nuit); box-shadow: inset 0 0 0 1.5px var(--mt-filet); font-weight: 800; font-size: 15px; color: var(--mt-doux); transition: box-shadow .2s, color .2s; }
+.cadence small { margin-left: 4px; font-weight: 600; color: var(--mt-discret); }
+.cadence.on { box-shadow: inset 0 0 0 2px var(--mt-or); color: var(--mt-encre); }
+
+.camp { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.camp button { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 12px; cursor: pointer; background: var(--mt-nuit); box-shadow: inset 0 0 0 1.5px var(--mt-filet); font-weight: 800; font-size: 13.5px; color: var(--mt-doux); }
+.camp button.on { box-shadow: inset 0 0 0 2px var(--mt-or); color: var(--mt-encre); }
+.camp i { width: 14px; height: 14px; border-radius: 3px; transform: rotate(45deg); flex: none; }
+.camp i.clair { background: var(--mt-encre); }
+.camp i.sombre { background: #3a302a; box-shadow: inset 0 0 0 1.5px var(--mt-doux); }
+.camp i.hasard { background: linear-gradient(135deg, var(--mt-encre) 50%, #3a302a 50%); }
+.camp button { justify-content: center; line-height: 1.15; text-align: center; }
+/* « Plus d'options » : lien discret sous le réglage principal, avec le rappel de ce qui sera joué */
+.jouer-page .partie > .plus { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: -6px auto 18px; border: 0; background: none; cursor: pointer; min-height: 44px; padding: 4px 12px; font-weight: 800; font-size: 14px; color: var(--mt-or); }
+.jouer-page .partie > .plus small { font-weight: 600; font-size: 12.5px; color: var(--mt-discret); }
+.jouer-page .partie > .plus:hover span { text-decoration: underline; text-underline-offset: 3px; }
+.jouer-page .partie > .plus:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; border-radius: 8px; }
+.lancer { font-size: 18px; --h: 58px; max-width: 100%; }
+/* Pychess calcule la largeur à partir de la hauteur d'écran sous 800 px (téléphone en paysage : page écrasée) */
+#main-wrap { --main-max-width: 100%; }
+
+/* ---------- Colonne de droite ---------- */
+.cote { display: grid; gap: 14px; }
+.carte-lien { position: relative; display: flex; gap: 16px; align-items: center; padding: 16px; border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.carte-lien:active { transform: scale(.98); }
+.carte-lien img.perso { width: 64px; border-radius: 9px; flex: none; transform: rotate(-4deg); transition: transform .3s; }
+.carte-lien .txt { flex: 1; min-width: 0; }
+.carte-lien b { display: block; font: 900 17px 'Jost', sans-serif; }
+.carte-lien span { color: var(--mt-doux); font-size: 14px; }
+.carte-lien .fl { margin-left: auto; color: var(--c); font-size: 20px; }
+@media (hover: hover) {
+  .carte-lien:hover { transform: translateY(-3px); box-shadow: inset 0 0 0 1px var(--c), 0 18px 40px -20px color-mix(in srgb, var(--c) 60%, transparent); }
+  .carte-lien:hover img.perso { transform: rotate(0) scale(1.08); }
+}
+.barre-prog { height: 6px; margin-top: 8px; border-radius: 3px; background: var(--mt-nuit); overflow: hidden; }
+.barre-prog i { display: block; height: 100%; border-radius: 3px; background: var(--c); }
+.jour { padding: 18px; }
+.jour .tete { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.jour .tete b { font: 900 18px 'Jost', sans-serif; }
+.jour .tete span { font-size: 13px; font-weight: 800; color: var(--mt-ete); }
+.jour .mini-cg { width: min(260px, 100%); margin: 0 auto 14px; }
+.promo { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 18px; background: linear-gradient(100deg, var(--mt-surface), var(--mt-surface-2)); box-shadow: inset 0 0 0 1px rgba(234, 196, 90, .35); }
+.promo img { width: 58px; flex: none; border-radius: 4px; transform: rotate(-6deg); box-shadow: 0 8px 16px rgba(0, 0, 0, .6); }
+.promo b { display: block; font-size: 15px; }
+.promo span { font-size: 13px; color: var(--mt-doux); }
+
+/* ---------- Bas de page ---------- */
+.parties { margin-top: 28px; }
+.vide { display: flex; flex-wrap: wrap; gap: 14px 18px; align-items: center; justify-content: space-between; padding: 20px 22px; border-radius: 18px; border: 1.5px dashed var(--mt-filet); color: var(--mt-doux); }
+.autres { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 20px; margin-top: 26px; font-size: 14px; font-weight: 700; }
+.autres a, .jouer-page .autres button { padding: 8px 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--mt-discret); }
+.autres a:hover, .jouer-page .autres button:hover { color: var(--mt-or); }
+
+/* ---------- Tablette et téléphone ---------- */
+@media (max-width: 900px) {
+  .grille { grid-template-columns: minmax(0, 1fr); }
+  /* Téléphone et tablette : l'adversaire sous le panneau, plus petit */
+  .scene { margin-top: 8px; gap: 14px; }
+  .scene-cartes { --carte: min(220px, 56vw); }
+  .duo .scene-cartes { --carte: min(150px, 38vw); }
+  .scene-txt b { font-size: 28px; }
+  .scene-txt q { font-size: 16px; }
+}
+@media (max-width: 760px) {
+  .jouer-page { width: calc(100% - 24px); padding: 18px 0 24px; }
+  .bonjour { font-size: 23px; margin-bottom: 14px; }
+  .bonjour span { font-size: 15px; }
+  .partie { padding: 14px; border-radius: 20px; }
+  .choix-adv { margin-bottom: 18px; }
+  .choix-adv button { gap: 8px; font-size: 15px; padding: 8px 6px; white-space: nowrap; }
+  .plateaux { gap: 8px; margin-bottom: 18px; }
+  .plat { padding: 12px; gap: 10px; flex-direction: column; align-items: flex-start; }
+  .cadences { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 18px; }
+  .cadence { padding: 8px 4px; font-size: 14px; line-height: 1.15; }
+  .cadence small { display: block; margin: 0; }
+  .camp button { padding: 0 6px; font-size: 13px; }
+  .reperes { margin: 8px 52px 0; }
+  .vide { padding: 16px; }
+  .vide .mt-btn { width: 100%; }
+}
+@media (max-width: 360px) {
+  .camp button span { display: none; }
+  .camp button { min-height: 44px; }
+}
+
+/* Équipes : nouvelles à chaque partie ou garder les mêmes */
+.equipes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 22px; }
+.equipes .cadence[disabled] { opacity: .45; cursor: not-allowed; }
+@media (max-width: 760px) { .equipes { gap: 6px; margin-bottom: 18px; } .equipes .cadence { font-size: 13.5px; } }
+
+/* ---------- Installer l'appli ---------- */
+.carte-lien.installer { width: 100%; border: 0; cursor: pointer; text-align: left; font: inherit; color: inherit; background: linear-gradient(100deg, var(--mt-surface), var(--mt-surface-2)); box-shadow: inset 0 0 0 1px rgba(234, 196, 90, .35); }
+.icone-appli { width: 52px; height: 52px; flex: none; border-radius: 13px; background: var(--mt-nuit) url('images/background/vitrine/etoile.png') center / 62% no-repeat; box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+
+/* « Plus d'options » dépliées dans le panneau : cadence, qui commence, équipes, Draft, Boost, position de départ */
+.plus-options { display: grid; gap: 18px; margin: -4px 0 22px; padding: 16px; border-radius: 14px; background: var(--mt-nuit); box-shadow: inset 0 0 0 1px var(--mt-filet); animation: deplie .25s ease-out; }
+@keyframes deplie { from { opacity: 0; transform: translateY(-6px); } }
+.plus-options .etiq { margin-bottom: 8px; }
+.plus-options .aide { display: block; margin-top: 8px; font-size: 13px; line-height: 1.4; color: var(--mt-discret); }
+.plus-options .bloc.inactif { opacity: .45; }
+/* Le panneau est en --mt-nuit : les choix passent sur la surface pour rester lisibles */
+.plus-options .cadences, .plus-options .equipes { margin-bottom: 0; }
+.plus-options .cadence, .plus-options .camp button { background: var(--mt-surface); }
+.interrupteur { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start; cursor: pointer; }
+.interrupteur input { position: absolute; opacity: 0; pointer-events: none; }
+.interrupteur .glissiere { position: relative; width: 46px; height: 26px; margin-top: 1px; border-radius: 99px; background: var(--mt-surface-2); box-shadow: inset 0 0 0 1.5px var(--mt-filet); transition: background .2s; }
+.interrupteur .glissiere::after { content: ''; position: absolute; top: 4px; left: 4px; width: 18px; height: 18px; border-radius: 50%; background: var(--mt-doux); transition: transform .2s, background .2s; }
+.interrupteur input:checked + .glissiere { background: var(--mt-or); }
+.interrupteur input:checked + .glissiere::after { transform: translateX(20px); background: #241805; }
+.interrupteur input:focus-visible + .glissiere { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+.interrupteur b { display: block; font-weight: 800; color: var(--mt-encre); }
+.interrupteur small { display: block; font-size: 13px; line-height: 1.4; color: var(--mt-discret); }
+/* Coup de pouce : curseur centré, la jauge part du milieu vers le côté aidé */
+#jouer-pouce {
+  --c: calc(13px + (100% - 26px) * var(--f, .5)); --m: 50%;
+  -webkit-appearance: none; appearance: none; width: 100%; height: 6px; margin: 10px 0 0; padding: 0; border: 0; border-radius: 3px; outline: none;
+  background: linear-gradient(90deg, var(--mt-filet) min(var(--m), var(--c)), var(--mt-or) min(var(--m), var(--c)), var(--mt-or) max(var(--m), var(--c)), var(--mt-filet) max(var(--m), var(--c)));
+}
+#jouer-pouce::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: var(--mt-or); transform: rotate(45deg); border-radius: 4px; cursor: pointer; }
+#jouer-pouce::-moz-range-thumb { width: 24px; height: 24px; background: var(--mt-or); border: 0; border-radius: 4px; transform: rotate(45deg); }
+#jouer-pouce:focus-visible { box-shadow: 0 0 0 3px rgba(234, 196, 90, .35); }
+.reperes-pouce { display: flex; justify-content: space-between; margin-top: 12px; font: 700 12.5px 'Nunito', sans-serif; color: var(--mt-discret); }
+#jouer-fen { box-sizing: border-box; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px var(--mt-filet); color: var(--mt-encre); font: 600 14px ui-monospace, monospace; }
+#jouer-fen:focus { outline: none; box-shadow: inset 0 0 0 2px var(--mt-or); }
+#jouer-fen::placeholder { font-family: 'Nunito', sans-serif; color: var(--mt-discret); }
+@media (max-width: 760px) { .plus-options { padding: 14px 12px; margin-bottom: 18px; } }
+
+/* Nouveau joueur : « Je connais déjà les règles » sous le bouton doré */
+.jouer-page .deja { display: block; margin: 10px auto 0; min-height: 40px; padding: 0 12px; border: 0; background: none; cursor: pointer; font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); }
+.jouer-page .deja:hover { color: var(--mt-encre); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Bouton doré en lien (« Apprendre à jouer ») : .jouer-page a impose color: inherit */
+.jouer-page a.mt-btn-or { color: #241805; }
+
+/* Bandeau « Installer l'appli » (lobby.ts bandeauInstallation) : sous le panneau, dans le fil de la
+   page et discret, pour ne jamais cacher le bouton doré (une seule action principale par écran). */
+.bandeau-installer {
+  width: min(440px, 100%); box-sizing: border-box; margin: 18px auto 0;
+  display: flex; align-items: center; gap: 4px; padding: 6px 6px 6px 8px;
+  border-radius: 16px; background: var(--mt-surface);
+  box-shadow: inset 0 0 0 1px var(--mt-filet);
+  animation: bandeau-apparait .5s cubic-bezier(.2, .8, .2, 1) both .4s;
+}
+@keyframes bandeau-apparait { from { opacity: 0; transform: translateY(10px); } }
+.bandeau-installer .installer {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px;
+  padding: 4px 6px; border: 0; border-radius: 12px; background: none; cursor: pointer; text-align: left;
+}
+.bandeau-installer .installer:hover b { text-decoration: underline; text-underline-offset: 3px; }
+.bandeau-installer .icone {
+  flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  background: var(--mt-or); color: var(--mt-nuit);
+}
+.bandeau-installer .icone svg { width: 22px; height: 22px; }
+.bandeau-installer .txt { display: flex; flex-direction: column; min-width: 0; }
+.bandeau-installer b { font-weight: 800; font-size: 15px; color: var(--mt-encre); }
+.bandeau-installer small { font-weight: 600; font-size: 12.5px; color: var(--mt-doux); }
+.bandeau-installer .fermer {
+  flex: none; width: 44px; height: 44px; border: 0; border-radius: 12px; background: none; cursor: pointer;
+  font-size: 24px; line-height: 1; color: var(--mt-discret);
+}
+.bandeau-installer .fermer:hover { color: var(--mt-encre); }
+.bandeau-installer button:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .bandeau-installer { animation: none; } }

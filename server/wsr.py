@@ -12,6 +12,7 @@ from broadcast import round_broadcast
 from chat import chat_response
 from const import ANALYSIS, STARTED, CREATED
 from draw import draw, reject_draw
+from draft import DraftErreur, FINI, PLACEMENT, tourner
 from fairy import WHITE, BLACK, FairyBoard
 from const import TYPE_CHECKING
 from newid import new_id
@@ -30,6 +31,7 @@ from utils import (
 )
 from bug.utils_bug import play_move as play_move_bug
 from websocket_utils import process_ws, get_user, ws_send_json
+from users import NotInDbUsers
 from logger import log
 from wsl import handle_create_ai_challenge
 
@@ -67,13 +69,80 @@ async def init_ws(app_state, ws, user, game: game.Game):
     await handle_board(ws, user, game)
 
 
+# Messages réservés aux joueurs de la partie. Avant, un spectateur (les identifiants de partie
+# sont publics : TV, parties en cours) pouvait abandonner, jouer ou accepter la nulle à leur place
+# (AUDIT P1-2).
+RESERVES_AUX_JOUEURS = {
+    "move",
+    "berserk",
+    "ready",
+    "setup",
+    "rematch",
+    "reject_rematch",
+    "draw",
+    "reject_draw",
+    "byoyomi",
+    "takeback",
+    "abort",
+    "resign",
+    "abandon",
+    "flag",
+    "moretime",
+    "leave",
+    "count",
+    "draft",
+}
+
+
+def est_joueur(user, game) -> bool:
+    return user.username in (game.wplayer.username, game.bplayer.username)
+
+
+def peut_jouer(user, game) -> bool:
+    """Le joueur au trait, ou le joueur humain qui joue contre l'ordinateur de son navigateur
+    (titre LIA) : c'est lui qui envoie les coups de l'IA, Draft compris."""
+    au_trait = game.bplayer if game.board.color == BLACK else game.wplayer
+    if user.username == au_trait.username:
+        return True
+    return au_trait.title == "LIA" and est_joueur(user, game)
+
+
+def message_autorise(user, data, game) -> bool:
+    if game.server_variant.two_boards:
+        # Bughouse (absent du site) : ses joueurs ne sont pas wplayer / bplayer.
+        return True
+    if data.get("gameId", game.id) != game.id:
+        return False
+    if data["type"] in RESERVES_AUX_JOUEURS and not est_joueur(user, game):
+        return False
+    if data["type"] == "move" and not peut_jouer(user, game):
+        return False
+    if data["type"] == "move" and game.draft is not None and game.draft.phase != FINI:
+        return False  # pas de coup avant la fin du Draft
+    if data["type"] == "takeback":
+        # Seulement contre un ordinateur, comme le client.
+        adversaire = game.bplayer if user.username == game.wplayer.username else game.wplayer
+        return adversaire.bot or adversaire.title == "LIA"
+    return True
+
+
 async def process_message(app_state, user, ws, data, game):
+    if not message_autorise(user, data, game):
+        log.warning(
+            "Message %s refusé : %s n'a pas le droit de l'envoyer dans %s",
+            data.get("type"),
+            user.username,
+            game.id,
+        )
+        return
+
     if data["type"] == "move":
         await handle_move(app_state, user, data, game)
     elif data["type"] == "reconnect":
         await handle_reconnect_bughouse(app_state, user, data, game)
     elif data["type"] == "berserk":
-        await handle_berserk(data, game)
+        color = "white" if user.username == game.wplayer.username else "black"
+        await handle_berserk({**data, "color": color}, game)
     elif data["type"] == "analysis_move":
         await handle_analysis_move(user, data, game)
     elif data["type"] == "ready":
@@ -117,8 +186,11 @@ async def process_message(app_state, user, ws, data, game):
         await handle_updateTV(app_state, ws, data)
     elif data["type"] == "count":
         await handle_count(ws, user, data, game)
+    elif data["type"] == "draft":
+        await handle_draft(ws, user, data, game)
     elif data["type"] == "delete":
-        await handle_delete(app_state.db, ws, data)
+        if game.imported_by and game.imported_by == user.username:
+            await handle_delete(app_state.db, ws, {"gameId": game.id})
 
 
 async def finally_logic(app_state: PychessGlobalAppState, ws, user, game):
@@ -168,16 +240,6 @@ async def handle_move(app_state: PychessGlobalAppState, user, data, game):
         else:
             try:
                 await play_move(app_state, user, game, data["move"], data["clocks"], data["ply"])
-                if game.variant.startswith("matatak") and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE"):
-                    is_bot = await handle_bot_setup(app_state.users, game, game.wplayer, "white", "CHOOSE_PAWNS", game.board.initial_fen)
-                    if not is_bot:
-                        await game.wplayer.send_game_message(game.id, {
-                            "type": "setup",
-                            "color": "white",
-                            "fen": game.board.initial_fen,
-                            "phase": "CHOOSE_PAWNS",
-                            "message": "Choose your pawns" # Message pour le client
-                        })
             except Exception:
                 log.exception(
                     "ERROR: Exception in play_move() in %s by %s ",
@@ -225,31 +287,6 @@ async def handle_ready(ws, users, user, data, game):
 async def handle_board(ws, user, game):
     if game.variant == "janggi" or game.variant.startswith("matatak"):
         # print("JANGGI", ws, game.bsetup, game.wsetup, game.status)
-        if game.variant.startswith("matatak") and game.draft_phase is not None and game.draft_phase.startswith("CHOOSE") and game.status <= CREATED:
-            if game.draft_phase == "CHOOSE_PAWNS" and user.username == game.wplayer.username:
-                await ws_send_json(
-                    ws,
-                    {
-                        "type": "setup",
-                        "color": "white",
-                        "fen": game.board.fen,
-                        "phase": "CHOOSE_PAWNS",
-                    },
-                )
-            elif game.draft_phase == "CHOOSE_CHAMPIONS" and user.username == game.bplayer.username:
-                await ws_send_json(
-                    ws,
-                    {
-                        "type": "setup",
-                        "color": "black",
-                        "fen": game.board.fen,
-                        "phase": "CHOOSE_CHAMPIONS",
-                    },
-                )
-            else:
-                await ws_send_json(ws, {"type": "draft_wait", "message": "Waiting for opponent..."})
-            return
-
         if game.variant == "janggi" and (game.bsetup or game.wsetup) and game.status <= STARTED:
             if game.bsetup:
                 await ws_send_json(
@@ -264,6 +301,10 @@ async def handle_board(ws, user, game):
         else:
             board_response = game.get_board(full=True)
             await ws_send_json(ws, board_response)
+            if game.draft is not None and game.draft.phase != FINI:
+                # L'ordinateur commence peut-être (il a les Blancs) : il forme ses groupes ici
+                await avancer_draft(game)
+                await ws_send_json(ws, message_draft(game))
     else:
         user_color = WHITE if user == game.wplayer else BLACK if user == game.bplayer else None
         board_response = game.get_board(full=True, persp_color=user_color)
@@ -275,71 +316,62 @@ async def handle_board(ws, user, game):
         await ws_send_json(ws, response)
 
 
-async def handle_bot_setup(users, game, player, color, phase, fen):
-    """Si le joueur est un bot, il valide immédiatement son tour de draft."""
-    if player.bot or player.title == "LIA":
-        await asyncio.sleep(0.1)  # Petit délai pour un effet plus naturel
-        await handle_setup(None, users, player, {
-            "phase": phase,
-            "color": color,
-            "fen": fen,
-            "gameId": game.id
-        }, game)
-        return True
-    return False
+def message_draft(game):
+    return {"type": "draft", "gameId": game.id, "etat": game.draft.etat()}
+
+
+async def handle_draft(ws, user, data, game):
+    """Une étape du Draft (server/draft.py) : former, choisir ou placer. Le navigateur n'envoie que
+    des indices et un ordre, vérifiés ici ; il ne peut plus imposer de position (AUDIT P1-6)."""
+    if game.draft is None or game.draft.phase == FINI or game.status > STARTED:
+        return
+    couleur = "white" if user.username == game.wplayer.username else "black"
+    try:
+        action = data.get("action")
+        if action == "former":
+            game.draft.former(couleur, data.get("groupes"))
+        elif action == "choisir":
+            game.draft.choisir(couleur, data.get("groupe"))
+        elif action == "placer":
+            game.draft.placer(couleur, data.get("pions"), data.get("arriere"))
+        else:
+            raise DraftErreur("Action inconnue")
+    except DraftErreur as erreur:
+        log.info("Draft %s refusé pour %s : %s", game.id, user.username, erreur)
+        await ws_send_json(ws, message_draft(game))
+        return
+    if game.draft.phase != FINI:
+        await round_broadcast(game, message_draft(game), full=True)
+    await avancer_draft(game)
+
+
+async def avancer_draft(game):
+    """En Solo, l'ordinateur (titre LIA) joue ses étapes tout de suite. Chaque étape est envoyée à
+    part : le navigateur montre le choix de l'adversaire avec une pause (client/draft.ts)."""
+    ordinateur = [c for c, p in (("white", game.wplayer), ("black", game.bplayer)) if p.title == "LIA"]
+    while game.draft.phase != FINI:
+        if game.draft.phase == PLACEMENT:
+            joue = [c for c in ordinateur if not game.draft.pret[c]]
+        else:
+            joue = [c for c in ordinateur if c == game.draft.acteur()]
+        if not joue:
+            break
+        for couleur in joue:
+            game.draft.jouer_ordinateur(couleur)
+        if game.draft.phase != FINI:
+            await round_broadcast(game, message_draft(game), full=True)
+    game.draft_phase = game.draft.phase
+    if game.draft.phase == FINI:
+        # Appelé une seule fois : toutes les entrées vérifient d'abord que le Draft n'est pas fini
+        await game.terminer_draft()
+        await round_broadcast(game, game.get_board(full=True), full=True)
+        await round_broadcast(game, message_draft(game), full=True)
 
 
 async def handle_setup(ws, users, user, data, game):
     # Janggi game starts with a prelude phase to set up horses and elephants
     # First the second player (Red) chooses his setup! Then the first player (Blue)
-    if game.variant.startswith("matatak"):
-        phase = data.get("phase")
-        fen = data["fen"]
-
-        if phase == "CHOOSE_PAWNS" and user.username == game.wplayer.username:
-            game.board.initial_fen = fen # On sauvegarde le FEN choisi par le joueur noir.
-            game.draft_phase = "CHOOSE_CHAMPIONS"
-            # game.wsetup = False
-            is_bot = await handle_bot_setup(users, game, game.bplayer, "black", "CHOOSE_CHAMPIONS", game.board.initial_fen)
-            if not is_bot:
-                await game.bplayer.send_game_message(game.id, {
-                    "type": "setup",
-                    "color": "black",
-                    "fen": game.board.initial_fen,
-                    "phase": "CHOOSE_CHAMPIONS",
-                    "message": "Choose your champions" # Message pour le client
-                })
-            return
-
-        elif phase == "CHOOSE_CHAMPIONS" and user.username == game.bplayer.username:
-            game.draft_phase = "COMPLETE"
-            game.status = STARTED
-            game.initial_fen = fen # Mettre à jour game.initial_fen avec le FEN final de la draft
-            game.board.initial_fen = fen
-            game.board.fen = fen
-            # game.bsetup = False
-            
-            await game.save_setup()
-            
-            # On envoie le plateau final à tout le monde
-            board_response = game.get_board(full=True)
-            await round_broadcast(game, board_response, full=True)
-
-            # Notifier les joueurs que la nouvelle phase commence
-            await round_broadcast(game, {
-                "type": "resetForNewPhase",
-                "drop_fen": game.board.initial_fen, # C'est le FEN que le client doit afficher
-                # "final_drop_fen": final_fen # On pourrait aussi envoyer le FEN du drop si nécessaire
-            }, full=True)
-
-            # # Si l'un des joueurs est un bot, on lui envoie le signal de démarrage
-            # if game.wplayer.bot:
-            #     await game.wplayer.event_queue.put(game.game_start)
-            # if game.bplayer.bot:
-            #     await game.bplayer.event_queue.put(game.game_start)
-
-    # Logique existante pour Janggi
-    elif game.variant == "janggi":
+    if game.variant == "janggi":
         game.board.initial_fen = data["fen"]
         game.initial_fen = game.board.initial_fen
         game.board.fen = game.board.initial_fen
@@ -448,7 +480,11 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
     opp_name = (
         game.wplayer.username if user.username == game.bplayer.username else game.bplayer.username
     )
-    opp_player = app_state.users[opp_name]
+    # L'adversaire est lu dans la partie : le fantôme « Level N » (IA du navigateur) n'est jamais
+    # connecté et User.remove() le purge de app_state.users, qui renverrait alors NONE_USER.
+    opp_player = game.wplayer if game.wplayer.username == opp_name else game.bplayer
+    if opp_player.title != "LIA":
+        opp_player = app_state.users[opp_name]
     handicap = data["handicap"]
     fen = "" if (game.variant == "janggi" or game.variant.startswith("matatak")) else game.initial_fen
 
@@ -458,6 +494,17 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
         reused_fen = False
 
     target_level = data.get("level", game.level)
+
+    # Draft : on garde les équipes (« Gardez vos équipes et enchaînez ! », livret), vues de l'autre
+    # côté puisque les couleurs s'échangent ; « Nouveau Draft » relance un tirage.
+    rois = None
+    is_draft = game.isDraft
+    # Entre humains, celui qui accepte reprend la demande de celui qui a proposé
+    if data.get("nouveau_draft") or game.nouveau_draft_demande:
+        fen, is_draft = "", True
+    elif game.rois:
+        fen, is_draft = tourner(game.initial_fen), False
+        rois = {"white": game.rois["black"], "black": game.rois["white"]}
 
     if opp_player.title == "LIA":
         color = "w" if game.wplayer.username == opp_name else "b"
@@ -475,8 +522,9 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             "chess960": game.chess960,
             "rated": False,
             "profileid": "Fairy-Stockfish",
-            "draft": game.isDraft,
-            "boost": game.boost*10
+            "draft": is_draft,
+            "boost": game.boost*10,
+            "rois": rois,
         }
         await handle_create_ai_challenge(app_state, ws, user, rematch_data)
         return
@@ -510,8 +558,9 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             player1=user,
             chess960=game.chess960,
             reused_fen=reused_fen,
-            isDraft=game.isDraft,
+            isDraft=is_draft,
             boost=game.boost*10,
+            rois=rois,
         )
         app_state.seeks[seek.id] = seek
 
@@ -543,8 +592,9 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
                 player1=user,
                 chess960=game.chess960,
                 reused_fen=reused_fen,
-                isDraft=game.isDraft,
+                isDraft=is_draft,
                 boost=game.boost*10,
+                rois=rois,
             )
             app_state.seeks[seek.id] = seek
 
@@ -554,6 +604,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             await app_state.users[opp_name].send_game_message(data["gameId"], response)
         else:
             game.rematch_offers.add(user.username)
+            game.nouveau_draft_demande = bool(data.get("nouveau_draft"))
             response = {
                 "type": "rematch_offer",
                 "username": user.username,
@@ -637,6 +688,10 @@ async def handle_abort_resign_abandon_flag(ws, users, user, data, game):
     if data["type"] == "abort" and (game is not None) and game.board.ply > 2:
         return
 
+    if data["type"] == "flag" and getattr(game, "unlimited", False):
+        # Pas de pendule, donc pas de perte au temps.
+        return
+
     if game.status > STARTED:
         # game was already finished!
         # see  https://github.com/gbtami/pychess-variants/issues/675
@@ -713,12 +768,19 @@ async def handle_game_user_connected(app_state: PychessGlobalAppState, ws, user,
 
 
 async def handle_is_user_present(ws, users, player_name, game):
-    player = await users.get(player_name)
-    if (
-        player is not None and (game.id in player.game_queues)
-        if player.bot
-        else player.is_user_active_in_game(game.id)
-    ):
+    try:
+        player = await users.get(player_name)
+    except NotInDbUsers:
+        # Invité (ou « Level N ») qui n'est plus en mémoire : parti depuis longtemps, ou serveur
+        # redémarré. Sans ce cas, l'exception coupait la WebSocket de la partie à chaque reconnexion.
+        player = None
+    if player is None:
+        present = False
+    elif player.bot:
+        present = game.id in player.game_queues
+    else:
+        present = player.is_user_active_in_game(game.id)
+    if present:
         response = {"type": "user_present", "username": player_name}
     else:
         response = {
@@ -790,8 +852,8 @@ async def handle_roundchat(app_state: PychessGlobalAppState, ws, user, data, gam
         return
 
     gameId = data["gameId"]
-    message = data["message"]
-    room = data["room"]
+    message = data["message"][:140]  # comme la zone de saisie du client
+    room = data["room"] if est_joueur(user, game) else "spectator"
 
     # Users running a fishnet worker can ask server side analysis with chat message: !analysis
     if data["message"] == "!analysis" and user.username in app_state.fishnet_versions:

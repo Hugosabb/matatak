@@ -17,6 +17,8 @@ import { analysisView, embedView } from './analysis';
 import { puzzleView } from './puzzle';
 import { campaignView } from './campaign';
 import { tutorialView } from './tutorial';
+import { collectionView } from './collection';
+import { apprendreView } from './apprendre';
 import { profileView } from './profile';
 import { tournamentView } from './tournament';
 import { calendarView } from './calendar';
@@ -165,6 +167,12 @@ export function view(el: HTMLElement, model: PyChessModel): VNode {
             return h('div#main-wrap', pasteView(model));
         case 'stats':
             return h('div#stats', statsView());
+        case 'apprendre':
+            return h('div#main-wrap', [h('main.apprendre', apprendreView(model))]);
+        case 'collection':
+            return h('div#main-wrap', [h('main.collection', collectionView(model))]);
+        case 'jouer':
+            return h('div#main-wrap', [h('main.jouer', lobbyView(model))]);
         case 'thanks':
             return h('div#main-wrap', h('h2', _('Thank you for your support!')));
         default:
@@ -211,7 +219,7 @@ function start() {
 
     if (model["embed"]) return;
 
-    (document.querySelector('.hamburger') as HTMLElement).addEventListener('click', (e) => {
+    document.querySelector('.hamburger')?.addEventListener('click', () => {
         const topnav = document.querySelector('.topnav');
         const hamburger = document.querySelector('.hamburger');
         if (topnav && hamburger) {

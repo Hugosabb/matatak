@@ -5,6 +5,11 @@ import { AnalysisController } from './analysisCtrl';
 import { patch } from './document';
 
 export function renderClocks(ctrl: AnalysisController) {
+    // Partie sans pendule (Sans limite) : pas de 00:00.0 sur le plateau
+    if (ctrl.base === 0 && ctrl.inc === 0) {
+        document.querySelectorAll<HTMLElement>('.anal-clock, #anal-clock-top, #anal-clock-bottom').forEach(e => e.style.display = 'none');
+        return;
+    }
     const isWhiteTurn = ctrl.turnColor === "white";
     const whitePov = (ctrl.mycolor === "white" && !ctrl.flipped()) || ( ctrl.mycolor === "black" && ctrl.flipped());
 

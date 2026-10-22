@@ -7,6 +7,7 @@ import { timeago, } from './datetime';
 import { alternateStartName, timeControlStr, displayName } from "./view";
 import { PyChessModel } from "./types";
 import { VARIANTS } from "./variants";
+import { roiDuNiveau } from "./rois";
 
 
 export function gameInfo(model: PyChessModel): VNode {
@@ -32,7 +33,7 @@ export function gameInfo(model: PyChessModel): VNode {
                             variant.displayName(chess960)),
                     ]),
                     h('div', (altStartName) ? altStartName : ''),
-                    h('div', Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now")),
+                    h('div.info-statut', Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now")),
                 ]),
             ]),
             h('div.player-data', [
@@ -80,6 +81,11 @@ function playerInfo(model: PyChessModel, color: string) {
     const rdiff = model[color === "w" ? "wrdiff" : "brdiff"];
     const berserk = model[color === "w" ? "wberserk" : "bberserk"];
 
+    // L'ordinateur (Solo) : le Roi de son palier, comme dans les bandeaux de la partie
+    if (title === 'LIA') {
+        const niveau = Number(String(username).replace('Level ', '')) || level;
+        return h('span.user-link.joueur-ia', [roiDuNiveau(niveau), h('small', ` · Niveau ${niveau}`)]);
+    }
     return h('a.user-link', { attrs: { href: '/@/' + username } }, [
         (title !== '') ? h('player-title', title + ' ') : '',
         displayName(username) + aiLevel(title, level) + ((!['BOT', 'LIA'].includes(title) && rating !== '1500?') ? (" (" + rating + ") ") : ''),

@@ -1,85 +1,100 @@
 @import 'switch.css';
+/* Éditeur de position (client/editor/editor.ts, pieceRow.ts).
+ * Ordinateur : bac des Personnages à gauche, plateau au centre à sa taille maximale (comme en
+ * partie), outils à droite. Téléphone : plateau, bac en une ligne qui défile, outils. */
 #main-wrap {
   --main-max-width: auto;
 }
 .editor-app {
-    grid-area: main;
-    display: grid;
-    grid-gap: 0.5rem;
+  grid-area: main;
+  display: grid;
+  gap: 16px;
+  grid-template-areas: 'board' 'gauche' 'droite';
+  padding: 0 16px 24px;
 }
-.sidebar-first {
-    box-shadow: none;
-}
+.ed-gauche { grid-area: gauche; min-width: 0; }
+.editor-app #mainboard { grid-area: board; justify-self: center; width: 100%; }
+.ed-droite { grid-area: droite; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.ed-reserves { display: none; }
 
+/* Téléphone : le Mini est deux fois plus haut que large ; on garde la place de l'en-tête, du bac
+   (collé en bas de l'écran) pour voir tout le plateau */
+.editor-app #mainboard.matatak4x8 { width: min(100%, calc((100svh - 280px) / 2)); }
+
+/* ---------- Bac des Personnages ---------- */
+#ed-bac {
+  display: grid; gap: 10px; padding: 12px;
+  border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+}
+.ed-camps { display: flex; gap: 6px; }
+.ed-camps button {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+  padding: 0 10px; border: 0; border-radius: 12px; background: var(--mt-noir); cursor: pointer;
+  font: 800 14.5px 'Nunito', sans-serif; color: var(--mt-doux);
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.ed-camps button.on { background: var(--mt-surface-2); color: var(--mt-encre); box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+.ed-camps button:focus-visible, .ed-carte:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+.ed-camps i { width: 14px; height: 14px; border-radius: 4px; transform: rotate(45deg); }
+.ed-camps i.white { background: var(--mt-encre); }
+.ed-camps i.black { background: var(--mt-noir); box-shadow: inset 0 0 0 1.5px var(--mt-doux); }
+.ed-camps .gomme { flex: 0 0 auto; }
+.ed-camps .gomme svg { width: 20px; height: 20px; }
+.ed-camps .gomme.on { color: var(--mt-or); }
+
+.ed-cartes { display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x proximity; padding: 3px; margin: -3px; scrollbar-width: thin; }
+.ed-carte {
+  flex: 0 0 64px; padding: 0; border: 0; border-radius: 10px; background: none; cursor: pointer;
+  scroll-snap-align: start; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: transform .15s;
+}
+.ed-carte piece { display: block; width: 100%; aspect-ratio: 1; }
+.ed-carte:hover { transform: translateY(-2px); }
+.ed-carte.on { box-shadow: 0 0 0 3px var(--mt-or), 0 0 18px rgba(234, 196, 90, .45); transform: scale(1.04); }
+.ed-aide { margin: 0; font: 600 13px/1.4 'Nunito', sans-serif; color: var(--mt-discret); }
+/* Une carte ou la gomme est choisie : le plateau reçoit au toucher */
+.cg-wrap.ed-pose cg-board { cursor: copy; }
+
+/* Téléphone : bac compact sur une ligne (camps et gomme, puis les cartes qui défilent), collé en
+   bas de l'écran (au-dessus de la barre d'onglets si elle est là) : il reste sous le doigt quand la page défile. */
 @media (max-width: 799px) {
-    #main-wrap {
-        --main-max-width: 100%;
-    }
-    .editor-app {
-        grid-template-rows: auto;
-        grid-template-areas: 'side' 'poc-top' 'pocket-top' 'board' 'pocket-bot' 'poc-bot' 'uboard' 'tools';
-    }
-    input#fen {
-        padding: 4px 0 4px 0;
-    }
+  #ed-bac {
+    position: sticky; z-index: 5; bottom: 8px; padding: 8px; gap: 6px 8px;
+    grid-template-columns: auto minmax(0, 1fr); align-items: center;
+    box-shadow: inset 0 0 0 1px var(--mt-filet), 0 10px 30px rgba(0, 0, 0, .6);
+  }
+  .ed-camps { display: grid; grid-template: 'w g' 27px 'b g' 27px / auto 44px; gap: 2px 6px; }
+  .ed-camps button { min-height: 0; padding: 0 10px; font-size: 13px; justify-content: flex-start; border-radius: 8px; }
+  .ed-camps i { width: 10px; height: 10px; border-radius: 3px; }
+  .ed-camps .gomme { grid-area: g; justify-content: center; padding: 0; }
+  .ed-camps .gomme span { display: none; }
+  .ed-carte { flex-basis: 56px; }
+  .ed-aide { grid-column: 1 / -1; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+@media (max-width: 760px) {
+  body:has(.mt-tab) #ed-bac { bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom) + 8px); }
 }
 
-@media (min-width: 800px) and (min-height: 500px) {
-    .editor-app {
-        --board-scale: calc((var(--zoom) / 100));
-    }
-}
+/* ---------- Outils ---------- */
+.ed-variante, .ed-fen { display: grid; gap: 8px; }
+.ed-variante label, .ed-fen label { font: 900 12px 'Jost', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--mt-encre); }
+.editor-button-container { display: flex; flex-flow: column; }
+.editor-button-container .icon:before { font-size: 18px; padding-right: 4px; }
+#turn-block { display: flex; flex-flow: column; width: max-content; }
 
+/* ---------- Ordinateur ---------- */
 @media (min-width: 800px) {
-    .editor-app {
-        grid-template-columns: minmax(230px, 20vw) 2vmin minmax(calc(70vmin * var(--board-scale)), calc(100vh * var(--board-scale) - calc(var(--site-header-height) + var(--site-header-margin)) - 3rem)) var(--gauge-gap) minmax(240px, 400px);
-        grid-template-rows: auto;
-        grid-template-areas: 'side . poc-top . hint' 'side . board . pocket-top' 'side . board . tools' 'side . poc-bot . pocket-bot' 'uleft . uboard . .';
-    }
-}
-boardeditor {
-    display: grid;
-    grid-template-rows: auto auto auto;
-    justify-content: center;
-}
-.pocket-wrapper {
-    justify-content: right;
-}
-.pocket-wrapper .editor {
-    width: var(--cg-width);
-    height: calc(var(--piecerows) * var(--cg-height) / var(--ranks));
-    display: flex;
-    flex-wrap: wrap;
-}
-.pocket-wrapper.top {
-    grid-area: poc-top;
-}
-.pocket-wrapper.bot {
-    grid-area: poc-bot;
-}
-
-.editor-button-container {
-    grid-area: tools;
-    display: flex;
-    flex-flow: column;
-}
-.editor-button-container .icon:before{
-    font-size: 18px;
-    padding-right: 4px;
-}
-
-#turn-block {
-    display: flex;
-    flex-flow: column;
-    background: var(--bg-color1);
-    padding: 10px;
-    box-shadow: var(--base-shadow);
-    width: max-content;
-}
-/* castling labels */
-.OO {
-    padding-left: 0;
-}
-.OOO {
-    padding-left: 28px;
+  .editor-app {
+    --haut: calc(100vh - var(--site-header-height) - var(--site-header-margin) - 3rem);
+    --cote: clamp(240px, 22vw, 320px);
+    --plateau: min(var(--haut), calc(100vw - 2 * var(--cote) - 96px));
+    grid-template-columns: var(--cote) var(--plateau) var(--cote);
+    grid-template-areas: 'gauche board droite';
+    justify-content: center; align-items: start; gap: 24px; padding-top: 12px;
+  }
+  .editor-app:has(#mainboard.matatak4x8) { --plateau: calc(var(--haut) / 2); }
+  .editor-app #mainboard, .editor-app #mainboard.matatak4x8 { width: var(--plateau); }
+  /* Bac : grille de 4 cartes de large, qui défile si l'écran est bas */
+  #ed-bac { max-height: var(--haut); grid-template-rows: auto minmax(0, 1fr) auto; box-sizing: border-box; }
+  .ed-cartes { display: grid; grid-template-columns: repeat(4, 1fr); overflow-x: hidden; overflow-y: auto; align-content: start; }
 }

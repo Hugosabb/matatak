@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ title }}</title>
+<meta name="description" content="MATATAK!, la stratégie des échecs accessible à tous : un jeu de société de 2 à 4 joueurs dans la jungle. Essayez-le gratuitement en ligne.">
+<meta name="theme-color" content="#12100e">
+<meta property="og:title" content="MATATAK! · Le jeu de société">
+<meta property="og:description" content="La stratégie des échecs, accessible à tous. Jouez gratuitement en ligne.">
+<meta property="og:image" content="{{ static('favicon/og-image.png') }}">
+<script>
+  // PWA installée : on ouvre directement la page de jeu.
+  if (matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone) location.replace('/jouer');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Jost:wght@700;900&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="/static/images/background/vitrine/leaves.webp">
+<link rel="stylesheet" href="{{ static('matatak-ui.css') }}">
+<link rel="stylesheet" href="{{ static('vitrine.css') }}">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="{{ static('favicon/apple-icon-180x180.png') }}">
+<link rel="icon" href="{{ static('favicon/favicon.ico') }}" type="image/x-icon">
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="mt-wrap">
+    <a class="logo" href="/"><img src="/static/images/background/vitrine/logo.png" alt="MATATAK"></a>
+    <ul>
+      <li><a href="#film">Le jeu</a></li>
+      <li><a href="#saisons">Personnages</a></li>
+      <li><a href="#boite">La boîte</a></li>
+      <li><a href="#questions">Questions</a></li>
+    </ul>
+    <a class="mt-btn mt-btn-petit mt-btn-ligne" href="/jouer">Jouer en ligne</a>
+  </div>
+</nav>
+
+<!-- 1. Héros -->
+<header class="heros" id="heros">
+  <div class="fond" id="fond"></div>
+  <div class="voile"></div>
+  <div class="contenu">
+    <h1 class="logo-grand"><img src="/static/images/background/vitrine/logo.png" alt="MATATAK!"></h1>
+    <div class="yeux-bloc" aria-hidden="true">
+      <img class="etoile" src="/static/images/background/vitrine/etoile.png" alt="">
+      <img class="yeux" src="/static/images/background/vitrine/yeux.png" alt="">
+    </div>
+    <p class="accroche">Le jeu de société qui réinvente les échecs, dans la jungle.</p>
+    <div class="infos"><span><i class="mt-losange"></i>2 à 4 joueurs</span><span><i class="mt-losange"></i>30 minutes</span><span><i class="mt-losange"></i>Dès 7 ans</span></div>
+    <div class="actions">
+      <a class="mt-btn mt-btn-or" href="/jouer">Essayer en ligne</a>
+      <a class="mt-btn mt-btn-ligne" href="#film">Découvrir le jeu</a>
+    </div>
+  </div>
+  <a class="defiler" href="#film" aria-label="Défiler"><span></span></a>
+</header>
+
+<!-- 2. Le jeu en 3 étapes (section collante) -->
+<section class="film" id="film">
+  <div class="collant">
+    <div class="scene">
+      <img id="scene-affiche" src="/static/images/background/vitrine/partie/p720-00.webp" alt="Une partie de MATATAK à 4 joueurs, la Colline au centre du plateau" loading="lazy">
+      <canvas id="scene" width="1100" height="1100" aria-hidden="true"></canvas>
+    </div>
+    <div class="texte">
+      <div class="etapes">
+        <div class="etape active" style="--c:var(--mt-printemps)">
+          <div class="num"><i></i>01</div>
+          <h2 class="mt-tribeca">Formez votre équipe</h2>
+          <p>Un Roi, ses Champions et ses Pions. Choisissez une équipe toute prête, ou composez la vôtre en Draft.</p>
+        </div>
+        <div class="etape" style="--c:var(--mt-ete)">
+          <div class="num"><i></i>02</div>
+          <h2 class="mt-tribeca">Lisez les cartes</h2>
+          <p>Chaque Personnage a son déplacement, dessiné sur sa carte. Pas besoin de connaître les échecs.</p>
+        </div>
+        <div class="etape" style="--c:var(--mt-automne)">
+          <div class="num"><i></i>03</div>
+          <h2 class="mt-tribeca">Visez la Colline</h2>
+          <p>Menez votre Roi aux 4 cases du centre pour cueillir le Mananas… ou mettez le Roi adverse échec et mat.</p>
+        </div>
+      </div>
+      <div class="progression" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Les Saisons -->
+<section class="bloc" id="saisons">
+  <img class="coin hg" src="/static/images/background/vitrine/coin-hg.webp" alt="" loading="lazy">
+  <img class="coin bd" src="/static/images/background/vitrine/coin-hg.webp" alt="" loading="lazy">
+  <div class="mt-wrap avant">
+    <div class="surtitre mt-apparait"><i class="mt-losange"></i>24 Personnages<i class="mt-losange"></i></div>
+    <h2 class="titre mt-tribeca mt-apparait">Quatre Saisons, quatre caractères</h2>
+    <p class="sous mt-apparait">Chaque équipe a son style de jeu. Laquelle vous ressemble ?</p>
+  </div>
+  <div class="saisons" id="saisons-liste">
+    <div class="saison mt-apparait" style="--c:var(--mt-printemps)"><div class="lumiere"></div>
+      <div class="pile"><img src="/static/images/background/vitrine/19-banjo.webp" alt="BANJO" loading="lazy"><img src="/static/images/background/vitrine/13-dysko.webp" alt="DYSKO" loading="lazy"><img src="/static/images/background/vitrine/04-mojo.webp" alt="MOJO" loading="lazy"></div>
+      <h3 class="mt-tribeca">Printemps</h3><p>Charmeurs, ils attirent.</p></div>
+    <div class="saison mt-apparait" style="--c:var(--mt-ete)"><div class="lumiere"></div>
+      <div class="pile"><img src="/static/images/background/vitrine/35-tamtam.webp" alt="TAMTAM" loading="lazy"><img src="/static/images/background/vitrine/10-krak.webp" alt="KRAK" loading="lazy"><img src="/static/images/background/vitrine/01-azar.webp" alt="AZAR" loading="lazy"></div>
+      <h3 class="mt-tribeca">Été</h3><p>Combattants, prêts à tout.</p></div>
+    <div class="saison mt-apparait" style="--c:var(--mt-automne)"><div class="lumiere"></div>
+      <div class="pile"><img src="/static/images/background/vitrine/26-rokk.webp" alt="ROKK" loading="lazy"><img src="/static/images/background/vitrine/33-shasha.webp" alt="SHASHA" loading="lazy"><img src="/static/images/background/vitrine/02-shans.webp" alt="SHANS" loading="lazy"></div>
+      <h3 class="mt-tribeca">Automne</h3><p>Chill et mobiles.</p></div>
+    <div class="saison mt-apparait" style="--c:var(--mt-hiver)"><div class="lumiere"></div>
+      <div class="pile"><img src="/static/images/background/vitrine/11-frank.webp" alt="FRANK" loading="lazy"><img src="/static/images/background/vitrine/34-bongo.webp" alt="BONGO" loading="lazy"><img src="/static/images/background/vitrine/03-karma.webp" alt="KARMA" loading="lazy"></div>
+      <h3 class="mt-tribeca">Hiver</h3><p>Froids, ils paralysent.</p></div>
+  </div>
+  <div class="voir-tout mt-apparait"><a class="mt-btn mt-btn-ligne" href="/collection">Voir les 42 Personnages</a></div>
+</section>
+
+<!-- 4. La boîte -->
+<section class="bloc" id="boite">
+  <div class="mt-wrap produit">
+    <div class="boite mt-apparait"><div class="halo"></div><img src="/static/images/background/vitrine/boite.webp" alt="La boîte de MATATAK" loading="lazy"></div>
+    <div>
+      <div class="statut mt-apparait">Le jeu de société arrive</div>
+      <h2 class="mt-tribeca mt-apparait">Dans la boîte</h2>
+      <div class="pictos mt-apparait">
+        <div class="picto"><i><b>2-4</b></i>joueurs</div>
+        <div class="picto"><i><b>30'</b></i>minutes</div>
+        <div class="picto"><i><b>7+</b></i>ans</div>
+      </div>
+      <ul class="contenu mt-apparait">
+        <li><i class="mt-losange"></i><span><b>Un grand plateau</b> de 47 cm, la Colline au centre</span></li>
+        <li><i class="mt-losange"></i><span><b>84 cartes</b> Personnages recto-verso</span></li>
+        <li><i class="mt-losange"></i><span><b>Un livret illustré</b> et 4 cartes d'aide</span></li>
+      </ul>
+      <div class="suivre mt-apparait">
+        <a class="mt-btn mt-btn-or" href="https://www.instagram.com/playmatatak/" rel="noopener" target="_blank">Suivre l'aventure</a>
+        <a class="mt-btn mt-btn-ligne" href="https://discord.gg/ctGQa2WJjh" rel="noopener" target="_blank">Discord</a>
+      </div>
+      <p class="mention mt-apparait">Les nouvelles du jeu sont annoncées d'abord sur Instagram et Discord.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Confiance -->
+<section class="bloc" id="questions">
+  <div class="mt-wrap confiance">
+    <div class="mt-apparait">
+      <div class="surtitre gauche"><i class="mt-losange"></i>Qui sommes-nous</div>
+      <h2 class="mt-tribeca">Un jeu indépendant, fait avec soin</h2>
+      <p class="intro">MATATAK! est né de l'envie de partager le plaisir des échecs avec ceux qui n'y ont jamais touché.</p>
+      <div class="equipe">
+        <div class="membre" style="--c:var(--mt-printemps)"><div class="av">HS</div><div><b>Hugo Sabatier</b><span>Auteur</span></div></div>
+        <div class="membre" style="--c:var(--mt-ete)"><div class="av">SB</div><div><b>Samuel Boniface</b><span>Illustrateur</span></div></div>
+        <div class="membre" style="--c:var(--mt-automne)"><div class="av">OJ</div><div><b>Olivier Jamet</b><span>Illustrateur</span></div></div>
+      </div>
+    </div>
+    <div class="mt-apparait faq">
+      <details open><summary>Faut-il connaître les échecs ?</summary><p>Non. Chaque carte montre les déplacements de son Personnage, et une partie suffit pour apprendre.</p></details>
+      <details><summary>Peut-on jouer en ligne ?</summary><p>Oui, gratuitement et sans inscription : à 2 joueurs, en solo contre les Rois de la jungle ou contre un ami. Le site propose aussi un tutoriel, des puzzles et l'analyse de vos parties.</p></details>
+      <details><summary>Combien de joueurs ?</summary><p>De 2 à 4. À 3 ou 4, deux camps s'affrontent : les alliés se font face sur le plateau.</p></details>
+      <details><summary>Quand le jeu sera-t-il disponible ?</summary><p>La date n'est pas encore fixée. Suivez-nous sur Instagram ou Discord pour être prévenu en premier.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Final -->
+<section class="final">
+  <img class="coin hd" src="/static/images/background/vitrine/coin-hg.webp" alt="" loading="lazy">
+  <div class="mt-wrap avant">
+    <h2 class="titre mt-tribeca mt-apparait">L'heure est venue…</h2>
+    <div class="actions mt-apparait">
+      <a class="mt-btn mt-btn-or" href="/jouer">Jouer en ligne</a>
+      <a class="mt-btn mt-btn-ligne" href="/tutorial">Apprendre les règles</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="mt-wrap">
+    <span>© 2026 MATATAK · Synfaunia</span>
+    <nav>
+      <a href="https://www.instagram.com/playmatatak/" rel="noopener" target="_blank">Instagram</a>
+      <a href="https://discord.gg/ctGQa2WJjh" rel="noopener" target="_blank">Discord</a>
+      <a href="https://www.youtube.com/@matatakgame" rel="noopener" target="_blank">YouTube</a>
+      <a href="https://github.com/Hugosabb/matatak" rel="noopener" target="_blank">Code source</a>
+      <a href="https://github.com/gbtami/pychess-variants" rel="noopener" target="_blank">Merci à pychess</a>
+    </nav>
+  </div>
+</footer>
+
+<div class="collante" id="collante">
+  <a class="mt-btn mt-btn-petit mt-btn-or" href="/jouer">Jouer gratuitement</a>
+</div>
+
+<script src="{{ static('js/vitrine.js') }}" defer></script>
+<script src="{{ static('js/pwa-update.js') }}"></script>
+</body>
+</html>

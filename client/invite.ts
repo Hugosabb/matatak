@@ -8,6 +8,7 @@ import { copyTextToClipboard } from './clipboard';
 import { timeControlStr } from './view';
 import { PyChessModel } from './types';
 import { sanitizeURL } from './url';
+import { duoEchange } from './carteAnimee';
 
 export function inviteView(model: PyChessModel): VNode[] {
     const gameId = model["gameId"];
@@ -61,6 +62,10 @@ export function inviteView(model: PyChessModel): VNode[] {
             buttonClass = {join: true};
             buttonText = _('JOIN THE GAME');
     }
+
+    // Partie à 2 (cas MATATAK) : page refaite aux couleurs du site ; le cas « héberger pour deux
+    // inconnus » (seekEmpty) garde l'ancien affichage pychess plus bas.
+    if (!seekEmpty) return [pageInvitation(model, gameURL, formAction, title)];
 
     return [
         h('div.invite', [
@@ -126,4 +131,62 @@ export function inviteView(model: PyChessModel): VNode[] {
                 h('div'),
         ]),
     ];
+}
+
+function cadence(model: PyChessModel): string {
+    const base = Number(model["base"]), inc = Number(model["inc"]);
+    return base === 0 && inc === 0 ? 'Sans limite' : `${base} min${inc ? ` +${inc}` : ''}`;
+}
+
+/** Invitation entre amis : « Invitez un ami » (lien à partager, attente) ou « X vous défie ! » (rejoindre). */
+function pageInvitation(model: PyChessModel, gameURL: string, formAction: string, titreDefaut: string): VNode {
+    const variant = VARIANTS[model.variant];
+    const inviter = model["inviter"];
+    const lien = model["home"] + gameURL;
+    const resume = h('p.invite-partie', `${variant.displayName(false)} · ${cadence(model)}`);
+    const duo = h('div.invite-cartes', { style: { '--carte': 'min(160px, 38vw)' } }, [duoEchange('11-frank.webp', '10-krak.webp')]);
+    const annuler = h('form.invite-form', { props: { method: 'post', action: formAction } }, [
+        h('button.invite-annuler', { attrs: { type: 'submit' } }, "Annuler l'invitation"),
+    ]);
+
+    if (inviter === '') {
+        const peutPartager = typeof navigator.share === 'function';
+        const partager = (ev: Event) => {
+            const bouton = ev.currentTarget as HTMLElement;
+            if (peutPartager) {
+                navigator.share({ title: 'MATATAK', text: 'Je te défie à MATATAK !', url: lien }).catch(() => { /* partage annulé */ });
+            } else {
+                copyTextToClipboard(lien);
+                bouton.textContent = 'Lien copié !';
+                setTimeout(() => { bouton.textContent = 'Copier le lien'; }, 2500);
+            }
+        };
+        return h('div.invite.mt-invite', [
+            h('h1', 'Invitez un ami'),
+            resume,
+            duo,
+            h('button.mt-btn.mt-btn-or.invite-partager', { attrs: { type: 'button' }, on: { click: partager } }, peutPartager ? 'Partager le lien' : 'Copier le lien'),
+            h('input.invite-lien', { attrs: { readonly: true, spellcheck: false, value: lien, 'aria-label': "Lien de l'invitation" }, on: { focus: (e: Event) => (e.target as HTMLInputElement).select() } }),
+            h('p.invite-attente', [h('span.pouls'), "En attente de votre ami : la partie commence dès qu'il ouvre le lien."]),
+            annuler,
+        ]);
+    }
+
+    if (['wait', 'occupied', 'yourself'].includes(inviter)) {
+        return h('div.invite.mt-invite', [h('h1', titreDefaut), resume, inviter === 'wait' ? h('p.invite-attente', [h('span.pouls'), 'En attente…']) : '', annuler]);
+    }
+
+    // Côté invité : qui défie, puis un seul bouton
+    const nom = inviter.split('#')[0];
+    let reglesConnues = false;
+    try { reglesConnues = ['fini', 'connu'].includes(localStorage.getItem('matatak_tutoriel') ?? ''); } catch { /* navigation privée */ }
+    return h('div.invite.mt-invite', [
+        h('h1', `${nom} vous défie !`),
+        resume,
+        duo,
+        h('form.invite-form', { props: { method: 'post', action: formAction } }, [
+            h('button.mt-btn.mt-btn-or', { attrs: { type: 'submit' } }, 'Rejoindre la partie'),
+        ]),
+        reglesConnues ? '' : h('a.invite-regles', { attrs: { href: '/tutorial/1', target: '_blank', rel: 'noopener' } }, 'Nouveau ? Les règles en 2 minutes'),
+    ]);
 }

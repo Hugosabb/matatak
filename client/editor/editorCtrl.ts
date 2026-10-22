@@ -11,7 +11,7 @@ import { patch } from '@/document';
 import { PyChessModel } from "@/types";
 import { ChessgroundController } from '@/cgCtrl';
 import { copyTextToClipboard } from '@/clipboard';
-import { initPieceRow } from './pieceRow';
+import { initPieceRow, majBac, Selection } from './pieceRow';
 import { setPocketRowCssVars } from '@/pocketRow';
 import { AliceMirrorSettings } from './editorSettings';
 
@@ -21,8 +21,9 @@ export class EditorController extends ChessgroundController {
     startfen: string;
     parts: string[];
     castling: string;
-    vpieces0: VNode;
-    vpieces1: VNode;
+    vbac: VNode;
+    bacCouleur: cg.Color;
+    selection: Selection = null;
     vfen: VNode;
     vAnalysis: VNode;
     vChallenge: VNode;
@@ -68,12 +69,14 @@ export class EditorController extends ChessgroundController {
 
         this.chessground.state.dom.elements.board.addEventListener('touchend', this.dropOnPocket);
 
-        // initialize pieces
-        const pieces0 = document.getElementById('pieces0') as HTMLElement;
-        const pieces1 = document.getElementById('pieces1') as HTMLElement;
-        initPieceRow(this, pieces0, pieces1);
-        this.vpieces0.elm?.addEventListener('touchend', this.dropOnPocket);
-        this.vpieces1.elm?.addEventListener('touchend', this.dropOnPocket);
+        // Bac des Personnages (pieceRow.ts) : toucher une carte puis les cases du plateau
+        this.bacCouleur = this.mycolor;
+        initPieceRow(this, document.getElementById('ed-bac') as HTMLElement);
+        // Phase de capture : quand une carte (ou la gomme) est choisie, le toucher pose la carte au
+        // lieu de laisser chessground attraper la pièce de la case.
+        ['mousedown', 'touchstart'].forEach(nom =>
+            el.addEventListener(nom, (e) => this.poserSurCase(e as cg.MouchEvent), { capture: true, passive: false }));
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.choisir(null); });
 
         if (this.hasPockets) {
             setPocketRowCssVars(this);
@@ -91,7 +94,6 @@ export class EditorController extends ChessgroundController {
         //const dataIcon = VARIANTS[this.variant].icon(false);
         const dataIcon = 'icon-' + this.variant.name;
         const container = document.getElementById('editor-button-container') as HTMLElement;
-        const firstColor = _(this.variant.colors.first);
         const secondColor = _(this.variant.colors.second);
         if (container !== null) {
             const buttons = [
@@ -100,8 +102,8 @@ export class EditorController extends ChessgroundController {
                         props: { name: "turn" },
                         on: { change: (e) => this.onChangeTurn(e) },
                     }, [
-                        h('option', { props: { value: 'white' } }, _('%1 to play', firstColor)),
-                        h('option', { props: { value: 'black' } }, _('%1 to play', secondColor)),
+                        h('option', { props: { value: 'white' } }, 'Les Blancs jouent'),
+                        h('option', { props: { value: 'black' } }, 'Les Noirs jouent'),
                     ]),
                     (!hasCastling(this.variant, 'white')) ? '' :
                     h('strong', _("Castling")),
@@ -138,31 +140,31 @@ export class EditorController extends ChessgroundController {
                 ]),
 
                 h('a#flip.i-pgn', { on: { click: () => this.toggleOrientation() } }, [
-                    h('div.icon.icon-refresh', _('FLIP BOARD'))
+                    h('div.icon.icon-refresh', 'Tourner le plateau')
                 ]),
                 h('a#clear.i-pgn', { on: { click: () => this.setEmptyFen() } }, [
-                    h('div.icon.icon-trash-o', _('CLEAR BOARD'))
+                    h('div.icon.icon-trash-o', 'Vider le plateau')
                 ]),
                 this.variant.pocket?.captureToHand ? h('a#fill.i-pgn', { on: { click: () => this.fillHand() } }, [
                     h('div.icon.icon-sign-in', _("FILL %1'S HAND", secondColor.toUpperCase()))
                 ]) : '',
                 h('a#start.i-pgn', { on: { click: () => this.setStartFen() } }, [
-                    h('div.icon.' + dataIcon, _('STARTING POSITION'))
+                    h('div.icon.' + dataIcon, 'Position de départ')
                 ]),
                 h('a#analysis.i-pgn', { on: { click: () => this.setAnalysisFen() } }, [
-                    h('div.icon.icon-microscope', _('ANALYSIS BOARD'))
+                    h('div.icon.icon-microscope', 'Analyser cette position')
                 ]),
                 h('a#challengeAI.i-pgn', { on: { click: () => this.setChallengeAIFen() } }, [
-                    h('div.icon.icon-bot', _('PLAY WITH MACHINE'))
+                    h('div.icon.icon-bot', 'Jouer contre l\'IA')
                 ]),
                 h('a#createseek.i-pgn', { on: { click: () => this.setSeekFen() } }, [
-                    h('div.icon.icon-crossedswords', _('CONTINUE FROM HERE'))
+                    h('div.icon.icon-crossedswords', 'Défier quelqu\'un depuis ici')
                 ]),
                 h('a#pgn.i-pgn', { on: { click: () => copyBoardToPNG(this.parts.join(' ')) } }, [
-                    h('div.icon.icon-download', _('EXPORT TO PNG'))
+                    h('div.icon.icon-download', 'Exporter en image (PNG)')
                 ]),
                 h('a#pgn.i-pgn', { on: { click: () => copyTextToClipboard(this.parts.join(' ')) } }, [
-                    h('div.icon.icon-clipboard', _('COPY FEN TO CLIPBOARD'))
+                    h('div.icon.icon-clipboard', 'Copier la position (FEN)')
                 ]),
             ];
             if (this.variant.name === 'alice') {
@@ -173,12 +175,34 @@ export class EditorController extends ChessgroundController {
         }
     }
 
+    /** Carte (ou gomme) choisie dans le bac ; null = plus rien, le plateau redevient libre. */
+    choisir(selection: Selection) {
+        this.selection = selection;
+        this.chessground.state.dom.elements.wrap.classList.toggle('ed-pose', selection !== null);
+        majBac(this);
+    }
+
+    private poserSurCase = (e: cg.MouchEvent) => {
+        if (this.selection === null) return;
+        if (e instanceof MouseEvent && e.button !== 0) return;
+        const pos = util.eventPosition(e);
+        const key = pos ? this.chessground.getKeyAtDomPos(pos) : undefined;
+        if (!key) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const ici = this.chessground.state.boardState.pieces.get(key);
+        let piece: cg.Piece | undefined;
+        if (this.selection !== 'gomme') {
+            const { role, color } = this.selection;
+            // Toucher de nouveau la même carte la retire : on corrige une erreur sans changer d'outil
+            piece = ici && ici.role === role && ici.color === color ? undefined : { role, color, promoted: false };
+        }
+        this.chessground.setPieces(new Map([[key, piece]]));
+        this.onChangeBoard();
+    }
+
     toggleOrientation() {
         super.toggleOrientation()
-
-        if (this.vpieces0 !== undefined && this.vpieces1 !== undefined) {
-            initPieceRow(this, this.vpieces0, this.vpieces1);
-        }
 
         if (this.hasPockets) {
             setPocketRowCssVars(this);
