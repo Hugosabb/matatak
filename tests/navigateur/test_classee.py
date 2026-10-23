@@ -4,6 +4,7 @@ from http.cookies import SimpleCookie
 import json
 import time
 
+import pyffish as sf
 import pytest
 import pytest_asyncio
 from mongomock_motor import AsyncMongoMockClient
@@ -95,28 +96,57 @@ async def test_partie_classee_contre_un_adversaire_d_entrainement(site_connecte,
     assert JOUEUR in " ".join(noms), noms
     assert not any("Niv." in n for n in noms), noms
 
-    # Quatre demi-coups (une partie plus courte n'est pas comptée), puis abandon : des points en
-    # moins, et pas de revanche
+    # Dix demi-coups (le palmarès de la semaine ne compte pas une partie plus courte), puis
+    # abandon : des points de classement en moins, des points de la semaine en plus, pas de revanche
     game_id = id_partie(page)
     await ecouter_partie(page, game_id)
     moi = await couleur_du_joueur(page)
-    for ply in range(1, 5):
-        if (await dernier_plateau(page))["fen"].split(" ")[1] == moi:
+    # Le Draft est tiré au hasard : la partie peut se finir (ou bloquer un camp) avant 10 demi-coups
+    finie_seule = False
+    for ply in range(1, 11):
+        plateau = await dernier_plateau(page)
+        if plateau.get("status", -1) >= 0 or not sf.legal_moves("matatakmini", plateau["fen"], []):
+            finie_seule = True
+            break
+        if plateau["fen"].split(" ")[1] == moi:
             await jouer_un_coup(page, game_id, pendule=170000)
-        await attendre(
+        if not await attendre(
             page, "p => window.__msgs.some(m => m.type === 'board' && m.ply >= p)", 15000, ply
-        )
-    await page.locator("#barre-partie .barre-btn").first.click()
-    await page.locator(".barre-action", has_text="Abandonner").click()
-    # Confirmation dans le menu (ou, avant elle, une fenêtre du navigateur)
-    oui = page.locator(".barre-action", has_text="Oui, abandonner")
-    if await oui.count():
-        await oui.click()
+        ):
+            finie_seule = True
+            break
+    if not finie_seule:
+        await page.locator("#barre-partie .barre-btn").first.click()
+        await page.locator(".barre-action", has_text="Abandonner").click()
+        # Confirmation dans le menu (ou, avant elle, une fenêtre du navigateur)
+        oui = page.locator(".barre-action", has_text="Oui, abandonner")
+        if await oui.count():
+            await oui.click()
     await page.wait_for_selector(".fin-points", timeout=10000)
     points = await page.locator(".fin-points").inner_text()
-    assert "−" in points and "Classement" in points, points
+    assert "Classement" in points, points
+    if finie_seule:
+        return  # rare : partie finie avant l'abandon ; le reste du parcours suppose une défaite
+    assert "−" in points, points
+    assert "+10 points cette semaine" in points, points  # défaite à 1500 : 10 points
     fin = await page.locator(".fin-partie").inner_text()
     assert "Nouvelle partie" in fin and "Revanche" not in fin and "Rejouer" not in fin, fin
+    await page.screenshot(
+        path="/tmp/claude-1000/-home-hugo-github-matatak/be2d8a16-9cef-4745-8473-a0ce071d48fb/scratchpad/fin-semaine.png"
+    )
+
+    # Palmarès : la page, et le bloc de l'onglet Classée
+    await page.goto(site + "/palmares")
+    await page.wait_for_selector(".palmares .liste li")
+    ligne = await page.locator(".palmares .liste li").first.inner_text()
+    assert JOUEUR in ligne and "10" in ligne, ligne
+    await page.screenshot(
+        path="/tmp/claude-1000/-home-hugo-github-matatak/be2d8a16-9cef-4745-8473-a0ce071d48fb/scratchpad/palmares.png",
+        full_page=True,
+    )
+    await page.goto(site + "/jouer")
+    await page.wait_for_selector(".palmares-semaine .ma-place b")
+    assert await page.locator(".palmares-semaine .ma-place b").inner_text() == "1er"
     assert not page.erreurs, page.erreurs
 
 

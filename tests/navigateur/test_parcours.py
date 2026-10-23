@@ -26,6 +26,7 @@ PAGES = [
     "/jouer",
     "/apprendre",
     "/collection",
+    "/palmares",
     "/tutorial/1",
     "/puzzle/campaign/matatakmini",
     "/editor/matatakmini",

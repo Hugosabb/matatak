@@ -4,6 +4,7 @@ import { WebsocketHeartbeatJs } from './socket/socket';
 import { installeur, ouvrirInstallation } from './installer';
 import { equipeMemorisee, fenPourCouleur } from './equipe';
 import { sound } from './sound';
+import { chargerPalmares, couronne, PalmaresInfos, rangTexte } from './palmares';
 
 import { h, VNode } from 'snabbdom';
 
@@ -235,6 +236,7 @@ export class LobbyController implements ChatController {
     defiEnvoye: { id: string, a: string } | null = null;
     defisRecus: DefiRecu[] = [];
     defiMessage = '';
+    palmares: PalmaresInfos | null = null;
 
     constructor(el: HTMLElement, model: PyChessModel) {
         console.log("LobbyController constructor", el, model);
@@ -623,15 +625,17 @@ export class LobbyController implements ChatController {
 
     /** Classements du joueur pour l'onglet « Classée » (une fois par visite). */
     private chargerClassee() {
-        // Classements et joueurs en ligne : à l'ouverture de l'onglet, puis toutes les 10 s tant qu'il
-        // est ouvert (un seul minuteur pour la page)
+        // Classements, joueurs en ligne et palmarès de la semaine : à l'ouverture de l'onglet, puis
+        // toutes les 10 s tant qu'il est ouvert (un seul minuteur pour la page)
         if (this.classee) return;
         this.classee = { connecte: !this.anon };
-        if (this.anon) return;
-        const charger = () => fetch('/api/classee', { credentials: 'same-origin' })
-            .then(r => r.json())
-            .then((infos: ClasseeInfos) => { this.classee = infos; this.majJouer(); })
-            .catch(() => { /* hors ligne : on réessaiera au prochain rafraîchissement */ });
+        const charger = () => {
+            chargerPalmares().then(p => { this.palmares = p; this.majJouer(); }).catch(() => { /* hors ligne */ });
+            if (!this.anon) fetch('/api/classee', { credentials: 'same-origin' })
+                .then(r => r.json())
+                .then((infos: ClasseeInfos) => { this.classee = infos; this.majJouer(); })
+                .catch(() => { /* hors ligne : on réessaiera au prochain rafraîchissement */ });
+        };
         charger();
         this.classeeRafraichi = window.setInterval(() => { if (this.jouer.adv === 'classee') charger(); }, 10000);
     }
@@ -682,6 +686,24 @@ export class LobbyController implements ChatController {
         ]);
     }
 
+    /** Palmarès de la semaine : sa place, le podium, le lien vers la page. */
+    private renderPalmaresSemaine(): VNode | string {
+        const p = this.palmares;
+        if (!p) return '';
+        const podium = p.top.slice(0, 3);
+        return h('div.palmares-semaine', [
+            h('div.etiq', ['Palmarès de la semaine', h('a', { attrs: { href: '/palmares' } }, 'Voir tout')]),
+            p.moi
+                ? h('p.ma-place', [h('b', rangTexte(p.moi.rang)), ` sur ${p.joueurs} · ${p.moi.p} points`])
+                : h('p.ma-place', "Chaque partie classée rapporte des points, même perdue. Remise à zéro le lundi, couronne au premier."),
+            podium.length ? h('ol', podium.map((l, i) => h('li', { class: { moi: l.u === this.username } }, [
+                h('span.rang', String(i + 1)),
+                h('span.nom', [p.couronne === l.u ? couronne() : '', l.u]),
+                h('span.pts', `${l.p} pts`),
+            ]))) : '',
+        ]);
+    }
+
     /** Joueurs connectés sur /jouer, les plus proches de son classement d'abord, à défier. */
     private renderEnLigne(infos: ClasseeInfos, attente: boolean): VNode {
         const c = this.jouer;
@@ -700,7 +722,7 @@ export class LobbyController implements ChatController {
             h('div.etiq', ['Joueurs en ligne', tous.length ? h('b', String(tous.length)) : '']),
             proches.length
                 ? h('ul', proches.map(j => h('li', [
-                    h('a.nom', { attrs: { href: '/@/' + j.u } }, j.u),
+                    h('a.nom', { attrs: { href: '/@/' + j.u } }, [this.palmares?.couronne === j.u ? couronne() : '', j.u]),
                     h('span.r', texteClassement(j[c.variant])),
                     action(j),
                 ])))
@@ -734,6 +756,7 @@ export class LobbyController implements ChatController {
                 ]),
                 h('a.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { href: '/login/lichess' } }, 'Se connecter avec Lichess'),
                 h('small.classee-note', "Gratuit. D'autres façons de se connecter arriveront bientôt."),
+                this.renderPalmaresSemaine(),
             ]);
         }
         const v = infos[c.variant];
@@ -762,6 +785,7 @@ export class LobbyController implements ChatController {
                     on: { click: () => this.chercherClassee() },
                 }, 'Jouer une partie classée'),
             this.renderEnLigne(infos, attente),
+            this.renderPalmaresSemaine(),
         ]);
     }
 

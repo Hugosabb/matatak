@@ -279,3 +279,16 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 .defi-refuser { border: 0; background: none; cursor: pointer; padding: 8px 4px; font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); }
 @keyframes defi-arrive { from { opacity: 0; transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .defi-recu { animation: none; } }
+
+/* Palmarès de la semaine dans l'onglet Classée (lobby.ts renderPalmaresSemaine) */
+.palmares-semaine { margin-top: 24px; }
+.palmares-semaine .etiq a { font: 800 13px 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; color: var(--mt-or); text-decoration: none; }
+.palmares-semaine .ma-place { margin: 0 0 8px; font-size: 14px; color: var(--mt-doux); }
+.palmares-semaine .ma-place b { font: 400 20px 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or); }
+.palmares-semaine ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.palmares-semaine li { display: grid; grid-template-columns: 1.6em minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border-radius: 10px; background: var(--mt-nuit); }
+.palmares-semaine li.moi { box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+.palmares-semaine .rang { font: 400 18px 'Tribeca', 'Jost', sans-serif; color: var(--mt-or); text-align: center; }
+.palmares-semaine .nom { display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 800; }
+.palmares-semaine .pts { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--mt-doux); }
+.en-ligne .nom { display: flex; align-items: center; gap: 6px; }

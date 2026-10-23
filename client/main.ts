@@ -19,6 +19,7 @@ import { campaignView } from './campaign';
 import { tutorialView } from './tutorial';
 import { collectionView } from './collection';
 import { apprendreView } from './apprendre';
+import { palmaresView } from './palmares';
 import { profileView } from './profile';
 import { tournamentView } from './tournament';
 import { calendarView } from './calendar';
@@ -169,6 +170,8 @@ export function view(el: HTMLElement, model: PyChessModel): VNode {
             return h('div#stats', statsView());
         case 'apprendre':
             return h('div#main-wrap', [h('main.apprendre', apprendreView(model))]);
+        case 'palmares':
+            return h('div#main-wrap', [h('main.palmares', palmaresView(model))]);
         case 'collection':
             return h('div#main-wrap', [h('main.collection', collectionView(model))]);
         case 'jouer':

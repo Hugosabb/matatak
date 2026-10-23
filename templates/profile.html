@@ -20,6 +20,7 @@
         <div class="player-head">
             <h1 class="player">
                 <player-title>{{ profile_title }}</player-title> {{ profile }}
+                {% if couronne %}<svg class="couronne" viewBox="0 0 24 24" role="img" aria-label="Premier du palmarès la semaine dernière"><title>Premier du palmarès la semaine dernière</title><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" fill="currentColor"/></svg>{% endif %}
             </h1>
             <div class="trophies">
             {% for key, kind in trophies %}

@@ -84,6 +84,8 @@ export class RoundController extends GameController {
     revancheId = '';
     // Points gagnés ou perdus en fin de partie classée (message gameEnd du serveur)
     rdiffs: RDiffs | null = null;
+    // Points du palmarès de la semaine (server/palmares.py) : null pour un bot ou une partie trop courte
+    semainePts: { w: number | null, b: number | null } | null = null;
     // Téléphone : barre du bas (Options, Précédent, Suivant) et son menu
     vbarre: VNode | HTMLElement | undefined;
     menuOuvert = false;
@@ -1032,9 +1034,12 @@ export class RoundController extends GameController {
             const blanc = this.mycolor === 'white';
             const diff = blanc ? this.rdiffs.wrdiff : this.rdiffs.brdiff;
             const avant = parseInt(blanc ? this.wrating : this.brating) || 0;
+            const semaine = this.semainePts?.[blanc ? 'w' : 'b'];
             points = h('div.fin-points', { class: { gain: diff > 0, perte: diff < 0 } }, [
                 h('b', diff > 0 ? `+${diff}` : diff < 0 ? `−${-diff}` : '±0'),
                 h('small', `Classement ${avant + diff}`),
+                // Palmarès : des points même en perdant (rien sous 10 demi-coups)
+                semaine ? h('a.fin-semaine', { attrs: { href: this.home + '/palmares' } }, `+${semaine} points cette semaine`) : '',
             ]);
         }
 
@@ -1105,6 +1110,8 @@ export class RoundController extends GameController {
             if (this.result !== "*" && !this.spectator && !this.finishedGame)
                 sound.gameEndSound(msg.result, this.mycolor);
 
+            const semaine = (msg as { semaine?: { w: number | null, b: number | null } | '' }).semaine;
+            if (semaine) this.semainePts = semaine;
             if ("rdiffs" in msg) this.gameOver(msg.rdiffs);
             selectMove(this, this.ply);
 

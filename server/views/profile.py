@@ -101,6 +101,10 @@ async def profile(request):
     context["profile_title"] = (
         app_state.users[profileId].title if profileId in app_state.users else ""
     )
+    # Premier du palmarès de la semaine passée : la couronne sur son profil (palmares.py)
+    from palmares import couronne
+
+    context["couronne"] = (await couronne(app_state)) == profileId
     context["rated"] = rated
 
     context["view"] = "profile"

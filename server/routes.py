@@ -91,6 +91,8 @@ from views import (
 )
 import pwa
 import classee
+import palmares
+from views import palmares as palmares_vue
 
 
 get_routes = (
@@ -181,6 +183,8 @@ get_routes = (
     ("/api/{profileId}/win", get_user_games),
     ("/api/{profileId}/loss", get_user_games),
     ("/api/classee", classee.infos),
+    ("/api/palmares", palmares.infos),
+    ("/palmares", palmares_vue.palmares),
     ("/api/{profileId}/rated", get_user_games),
     ("/api/{profileId}/playing", get_user_games),
     ("/api/{profileId}/import", get_user_games),

@@ -126,6 +126,7 @@ class Game:
         white_rating = wplayer.get_rating(variant, chess960)
         self.wrating: int | str = "%s%s" % white_rating.rating_prov
         self.wrdiff: int | str = 0
+        self.semaine_pts: dict | None = None  # points du palmarès de la semaine (palmares.py)
         black_rating = bplayer.get_rating(variant, chess960)
         self.brating: int | str = "%s%s" % black_rating.rating_prov
         self.brdiff: int | str = 0
@@ -756,6 +757,11 @@ class Game:
                 {_id: int(round(bcurr.mu + brdiff, 0))},
             )
 
+        # Palmarès de la semaine (palmares.py) : des points même en perdant
+        from palmares import compter_partie
+
+        self.semaine_pts = await compter_partie(self)
+
     def get_player_at(self, color, board):
         return self.bplayer if color == BLACK else self.wplayer
 
@@ -1084,6 +1090,9 @@ class Game:
                 if self.status > STARTED and self.rated == RATED
                 else ""
             ),
+            # Points du palmarès de la semaine : {"w": 75, "b": 12}, None pour un bot ou une partie
+            # trop courte
+            "semaine": self.semaine_pts or "",
         }
 
     def start_manual_count(self):
@@ -1255,6 +1264,9 @@ class Game:
                 if self.status > STARTED and self.rated == RATED
                 else ""
             ),
+            # Points du palmarès de la semaine : {"w": 75, "b": 12}, None pour un bot ou une partie
+            # trop courte
+            "semaine": self.semaine_pts or "",
             "date": (
                 (datetime.now(timezone.utc) + timedelta(minutes=self.stopwatch.mins)).isoformat()
                 if self.corr

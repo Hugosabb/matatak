@@ -176,6 +176,7 @@ body:has(#toggle-moves:not(:checked)) .round #movelist { height: auto; min-heigh
 .fin-points b { font: 400 44px/1 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-doux); animation: points-tombent .6s cubic-bezier(.34, 1.56, .64, 1) .15s both; }
 .fin-points.gain b { color: var(--mt-or); text-shadow: 0 0 22px rgba(234, 196, 90, .35); }
 .fin-points small { font-weight: 800; color: var(--mt-doux); font-size: 14px; }
+.fin-points .fin-semaine { margin-top: 4px; padding: 3px 12px; border-radius: 999px; background: var(--mt-nuit); font: 800 14px 'Nunito', sans-serif; color: var(--mt-or); text-decoration: none; }
 @keyframes points-tombent { from { opacity: 0; transform: translateY(-14px) scale(1.4); } }
 @media (prefers-reduced-motion: reduce) { .fin-points b { animation: none; } }
 @media (max-width: 799px) and (orientation: portrait) {

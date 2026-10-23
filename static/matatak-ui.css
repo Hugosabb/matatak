@@ -482,3 +482,6 @@ body[data-view="invite"] #main-wrap { display: block; }
 good, bad { margin-left: 6px; font-weight: 800; }
 good { color: var(--mt-or); }
 bad { color: var(--mt-discret); }
+
+/* Couronne du premier du palmarès de la semaine passée (palmares.ts couronne) */
+svg.couronne { flex: none; width: 18px; height: 18px; color: var(--mt-or); filter: drop-shadow(0 0 6px rgba(234, 196, 90, .4)); }
