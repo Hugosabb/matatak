@@ -474,3 +474,6 @@ body.ordi-reflechit-bas round-player1 .player-data::after {
   /* !important : pychess colore chaque pseudo en style en ligne (usernameColorMap, chat.ts) */
   color: var(--mt-or) !important; font: 800 15px 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; text-decoration: none;
 }
+/* Annuler la partie pendant le Draft (draft.ts) : discret, sous l'écran */
+.dr-quitter { display: block; margin: 18px auto 8px; padding: 10px 16px; border: 0; background: none; cursor: pointer; font: 700 14px 'Nunito', sans-serif; color: var(--mt-discret); text-decoration: underline; text-underline-offset: 3px; }
+.dr-quitter:hover { color: var(--mt-doux); }

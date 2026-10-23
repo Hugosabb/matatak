@@ -175,31 +175,90 @@ class ClasseeTestCase(BaseClassee):
         self.assertLess(a.get_rating_value("matatakmini", False), 1500)
         self.assertIsNotNone(await app_state.db.game.find_one({"_id": game.id}))
 
-    async def test_draft_classe_bloque_le_serveur_joue_l_etape_puis_premier_coup_chronometre(self):
+    async def partie_entre_humains(self, delai=None):
         import classee
-        from draft import FINI
 
         app_state = get_app_state(self.app)
         a = self.joueur("alice", 1500)
         b = self.joueur("bruno", 1500)
-        with (
-            patch("game.DELAI_CLASSEE", 0.5),
-            patch("classee.ws_send_json", new=AsyncMock()) as envoi,
-        ):
-            await classee.chercher(app_state, a, {"variant": "matatakmini"})
-            await classee.chercher(app_state, b, {"variant": "matatakmini"})
-            game = app_state.games[envoi.await_args.args[1]["gameId"]]
+        with patch("classee.ws_send_json", new=AsyncMock()) as envoi:
+            if delai is not None:
+                with patch("game.DELAI_CLASSEE", delai):
+                    await classee.chercher(app_state, a, {"variant": "matatakmini"})
+                    await classee.chercher(app_state, b, {"variant": "matatakmini"})
+            else:
+                await classee.chercher(app_state, a, {"variant": "matatakmini"})
+                await classee.chercher(app_state, b, {"variant": "matatakmini"})
+        return a, b, app_state.games[envoi.await_args.args[1]["gameId"]]
+
+    async def test_draft_classe_abandonne_la_partie_est_annulee(self):
+        """Hugo : quitter un Draft annule la partie (personne ne bloque son adversaire)."""
+        from const import ABORTED
+
+        app_state = get_app_state(self.app)
+        with patch("broadcast.round_broadcast", new=AsyncMock()):
+            a, b, game = await self.partie_entre_humains(delai=0.5)
             self.assertIsNotNone(game.draft.etat()["reste"])
-            # Aucun des deux ne joue : le serveur fait les 5 étapes, la partie commence
-            for _ in range(20):
+            for _ in range(10):
                 await asyncio.sleep(0.5)
-                if game.draft.phase == FINI:
+                if game.status > 0:
                     break
-        self.assertEqual(game.draft.phase, FINI)
-        self.assertEqual(sum(c.isalpha() for c in game.board.fen.split(" ")[0]), 12)
-        # Premier coup : 30 s, pas d'annulation à la clé (clock.py)
-        self.assertTrue(game.stopwatch.running)
-        self.assertEqual(game.stopwatch.secs, 30 * 1000)
+        self.assertEqual((game.status, game.result), (ABORTED, "*"))
+        self.assertEqual(a.get_rating_value("matatakmini", False), 1500)
+        self.assertIsNone(await app_state.db.game.find_one({"_id": game.id}))
+
+    async def test_annuler_pendant_le_draft_mais_pas_apres(self):
+        from draft import FINI
+        from const import ABORTED
+        from wsr import avancer_draft, handle_abort_resign_abandon_flag
+
+        app_state = get_app_state(self.app)
+        a, b, game = await self.partie_entre_humains()
+        # Draft terminé (chacun fait ses étapes) : le premier coup est chronométré, plus d'annulation
+        with patch("wsr.round_broadcast", new=AsyncMock()):
+            while game.draft.phase != FINI:
+                for couleur in ("white", "black"):
+                    if game.draft.phase != FINI and (game.draft.acteur() in (couleur, None)):
+                        game.draft.jouer_ordinateur(couleur)
+                await avancer_draft(game)
+            self.assertTrue(game.stopwatch.running)
+            self.assertEqual(game.stopwatch.secs, 30 * 1000)
+            await handle_abort_resign_abandon_flag(
+                AsyncMock(), app_state.users, a, {"type": "abort"}, game
+            )
+        self.assertEqual(game.result, "*")
+        self.assertLess(game.status, 0)
+
+        # Une autre partie, encore en Draft : l'annulation passe
+        a2, b2, game2 = await self.partie_entre_humains()
+        with patch("wsr.round_broadcast", new=AsyncMock()):
+            await handle_abort_resign_abandon_flag(
+                AsyncMock(), app_state.users, a2, {"type": "abort"}, game2
+            )
+        self.assertEqual(game2.status, ABORTED)
+        self.assertEqual(game2.result, "*")
+
+    async def test_redefier_apres_une_partie_classee_nouveau_draft(self):
+        from wsr import handle_rematch
+
+        app_state = get_app_state(self.app)
+        a, b, game = await self.partie_entre_humains()
+        game.draft = None
+        game.rois = {"white": "ete", "black": "hiver"}  # équipes d'un Draft fini
+        await game.game_ended(a, "resign")
+        with (
+            patch("wsr.round_broadcast", new=AsyncMock()),
+            patch("wsr.ws_send_json", new=AsyncMock()) as envoi,
+        ):
+            await handle_rematch(
+                app_state, AsyncMock(), a, {"gameId": game.id, "handicap": False}, game
+            )
+            await handle_rematch(
+                app_state, AsyncMock(), b, {"gameId": game.id, "handicap": False}, game
+            )
+        nouvelle = app_state.games[envoi.await_args.args[1]["gameId"]]
+        self.assertEqual((nouvelle.rated, nouvelle.base, nouvelle.inc), (RATED, 5, 3))
+        self.assertIsNotNone(nouvelle.draft)  # pas les mêmes équipes : un nouveau Draft
 
     async def test_bot_recree_apres_redemarrage_et_pseudo_reserve(self):
         from bots_classes import BOTS

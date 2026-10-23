@@ -506,6 +506,8 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
     # Entre humains, celui qui accepte reprend la demande de celui qui a proposé
     if data.get("nouveau_draft") or game.nouveau_draft_demande:
         fen, is_draft = "", True
+    elif game.rated == RATED:
+        fen, is_draft = "", True  # « Redéfier » : une partie classée se joue toujours en Draft
     elif game.rois:
         fen, is_draft = tourner(game.initial_fen), False
         rois = {"white": game.rois["black"], "black": game.rois["white"]}
@@ -696,7 +698,10 @@ async def handle_abort_resign_abandon_flag(ws, users, user, data, game):
     if data["type"] == "abort" and (game is not None) and game.board.ply > 2:
         return
     if data["type"] == "abort" and (game is not None) and game.rated == RATED:
-        return  # une partie classée compte dès le début : on peut abandonner, pas annuler
+        # Une partie classée compte dès que le plateau apparaît ; pendant le Draft, on peut encore
+        # la quitter sans points (Hugo, 23/10/2026)
+        if game.draft is None or game.draft.phase == FINI:
+            return
 
     if data["type"] == "flag" and getattr(game, "unlimited", False):
         # Pas de pendule, donc pas de perte au temps.

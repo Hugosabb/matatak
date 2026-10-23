@@ -168,7 +168,7 @@ async def load_game(app_state: PychessGlobalAppState, game_id):
 
     elif variant in GRANDS:
         mlist = [*map(zero2grand, mlist)]
-        if variant == "janggi" : #or variant.startswith("matatak"): 
+        if variant == "janggi":  # or variant.startswith("matatak"):
             game.wsetup = doc.get("ws", False)
             game.bsetup = doc.get("bs", False)
 
@@ -449,8 +449,8 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
         game_id = await new_id(None if app_state.db is None else app_state.db.game)
 
     if abs(seek.boost) >= 10:
-        boost = seek.boost//10*-1
-    else :
+        boost = seek.boost // 10 * -1
+    else:
         boost = seek.boost if wplayer == seek.creator else seek.boost * -1
 
     # print("new_game", game_id, seek.variant, seek.fen, wplayer, bplayer, seek.base, seek.inc, seek.level, seek.rated, seek.chess960)
@@ -494,6 +494,12 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
         remove_seek(app_state.seeks, seek)
         return {"type": "error", "message": "Failed to create game"}
     app_state.games[game_id] = game
+
+    if game.draft is not None and game.draft.delai is not None:
+        # Draft classé : délai par étape (file d'attente, défi ou revanche)
+        from classee import surveiller_draft
+
+        asyncio.create_task(surveiller_draft(game), name="draft-classe-%s" % game_id)
 
     remove_seek(app_state.seeks, seek)
 
@@ -551,7 +557,7 @@ async def insert_game_to_db(game, app_state: PychessGlobalAppState):
     ):
         document["uci"] = 1
 
-    if game.variant == "janggi" : #or game.variant.startswith("matatak"): TODO
+    if game.variant == "janggi":  # or game.variant.startswith("matatak"): TODO
         document["ws"] = game.wsetup
         document["bs"] = game.bsetup
         document["if"] = game.board.initial_fen
@@ -953,13 +959,12 @@ async def get_names(request):
         return web.json_response(names)
 
     # case insensitive _id prefix search
-    cursor = app_state.db.user.find({"_id": {"$regex": "^%s" % re.escape(prefix), "$options": "i"}}, limit=12)
+    cursor = app_state.db.user.find(
+        {"_id": {"$regex": "^%s" % re.escape(prefix), "$options": "i"}}, limit=12
+    )
     async for doc in cursor:
         names.append((doc["_id"], doc["title"]))
     return web.json_response(names)
-
-
-
 
 
 async def get_notifications(request):

@@ -38,6 +38,7 @@ interface Options {
     assetURL: string;
     envoyer: (message: Record<string, unknown>) => void;
     fini: (etat: EtatDraft) => void;
+    quitter?: () => void; // annuler la partie pendant le Draft (aussi en classée)
 }
 
 const PAUSE_CHOIX = 1800; // ms : le temps de voir le groupe pris par l'adversaire
@@ -154,7 +155,11 @@ export class EcranDraft {
 
     private dessiner(pause = false) {
         const e = this.etat!;
-        this.vnode = patch(this.vnode, h('div#draft-ecran', [h('section.draft', pause ? this.vuePause(e) : this.vueEtape(e))]));
+        // Le menu de la partie est caché pendant le Draft : on peut quand même en sortir (sans points)
+        const quitter = !this.o.spectateur && this.o.quitter
+            ? h('button.dr-quitter', { attrs: { type: 'button' }, on: { click: () => this.o.quitter!() } }, 'Annuler la partie')
+            : '';
+        this.vnode = patch(this.vnode, h('div#draft-ecran', [h('section.draft', pause ? this.vuePause(e) : this.vueEtape(e)), quitter]));
     }
 
     private moi(): Couleur { return this.o.spectateur ? 'white' : this.o.mycolor; }

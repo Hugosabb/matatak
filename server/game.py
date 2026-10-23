@@ -542,13 +542,14 @@ class Game:
 
         asyncio.create_task(self.app_state.remove_from_cache(self), name="game-remove-%s" % self.id)
 
-        # Une partie de moins de 3 demi-coups n'est pas gardée, sauf en classée : elle compte dès le
-        # Draft (Hugo : on n'annule pas une partie parce que son équipe ne plaît pas)
+        # Une partie de moins de 3 demi-coups n'est pas gardée, sauf en classée : elle compte dès que
+        # le plateau apparaît (Hugo : on n'annule pas une partie parce que son équipe ne plaît pas).
+        # Une partie classée annulée pendant son Draft n'est pas gardée non plus.
         if (
             self.board.ply < 3
             and (self.app_state.db is not None)
             and (self.tournamentId is None)
-            and self.rated != RATED
+            and (self.rated != RATED or self.result == "*")
         ):
             result = await self.app_state.db.game.delete_one({"_id": self.id})
             log.debug(

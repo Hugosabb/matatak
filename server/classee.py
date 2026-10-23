@@ -85,18 +85,14 @@ async def _creer_partie(app_state, joueur, adversaire, variant, level=0):
         rated=True,
         isDraft=True,
     )
-    response = await join_seek(app_state, adversaire, seek)
-    game = app_state.games.get(response.get("gameId"))
-    if game is not None and game.draft is not None:
-        asyncio.create_task(surveiller_draft(game), name="draft-classe-%s" % game.id)
-    return response
+    return await join_seek(app_state, adversaire, seek)
 
 
 async def surveiller_draft(game):
-    """Draft classé : passé le délai d'une étape (draft.DELAI_CLASSEE), le serveur la joue à la
-    place du joueur en retard, comme l'ordinateur du Solo. Personne ne bloque la partie."""
+    """Draft classé : passé le délai d'une étape (draft.DELAI_CLASSEE), le joueur en retard a
+    quitté le Draft : la partie est annulée, sans points (Hugo : quitter un Draft annule la
+    partie). Personne ne bloque son adversaire. Lancé par utils.new_game."""
     from draft import FINI
-    from wsr import avancer_draft, message_draft
     from broadcast import round_broadcast
 
     while game.draft is not None and game.draft.phase != FINI and game.status <= STARTED:
@@ -106,12 +102,17 @@ async def surveiller_draft(game):
         retard = game.draft.en_retard()
         if not retard:
             continue
-        log.info("Draft classé %s : étape jouée par le serveur pour %s", game.id, retard)
-        for couleur in retard:
-            game.draft.jouer_ordinateur(couleur)
-        if game.draft.phase != FINI:
-            await round_broadcast(game, message_draft(game), full=True)
-        await avancer_draft(game)
+        joueur = game.wplayer if retard[0] == "white" else game.bplayer
+        log.info(
+            "Draft classé %s : %s n'a pas joué son étape, partie annulée", game.id, joueur.username
+        )
+        async with game.move_lock:
+            response = await game.game_ended(joueur, "abort")
+        await round_broadcast(game, response, full=True)
+        for player in (game.wplayer, game.bplayer):
+            if player.game_in_progress == game.id:
+                player.game_in_progress = None
+        return
 
 
 def _retirer(app_state, username):

@@ -956,6 +956,7 @@ export class RoundController extends GameController {
                 assetURL: this.assetURL,
                 envoyer: (m) => this.doSend({ type: 'draft', gameId: this.gameId, ...m }),
                 fini: (etat) => this.finDuDraft(etat),
+                quitter: () => this.abort(),
             });
         }
         this.draftEcran.recevoir(msg.etat);
@@ -1040,7 +1041,7 @@ export class RoundController extends GameController {
         if (joueur && this.tournamentGame) {
             principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.joinTournament() } }, 'Retour au tournoi');
             liens.push(lien('Pause', () => this.pauseTournament()));
-        } else if (joueur && this.rated === RATED && !this.corr) {
+        } else if (joueur && this.rated === RATED && !this.corr && [this.wtitle, this.btitle].includes('LIA')) {
             // Pas de revanche : on repasse par la file d'attente, qui choisit un adversaire de son niveau
             principal = h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?classee=1' } }, 'Nouvelle partie');
         } else if (joueur && !this.corr && this.contreIA()) {
@@ -1056,16 +1057,18 @@ export class RoundController extends GameController {
         } else if (joueur && !this.corr) {
             const adv = this.username === this.wplayer ? this.bplayer : this.wplayer;
             if (this.revanche === 'recue') {
-                message = `${adv.split('#')[0]} propose une revanche.`;
+                message = this.rated === RATED ? `${adv.split('#')[0]} vous redéfie.` : `${adv.split('#')[0]} propose une revanche.`;
                 principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch() } }, 'Accepter');
                 liens.push(lien('Refuser', () => this.rejectRematchOffer()));
             } else if (this.revanche === 'envoyee') {
-                message = 'Revanche proposée, en attente de réponse…';
+                message = this.rated === RATED ? 'Défi envoyé, en attente de réponse…' : 'Revanche proposée, en attente de réponse…';
             } else if (this.revanche === 'refusee') {
                 message = 'Revanche refusée.';
             } else {
-                principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch() } }, 'Revanche');
+                principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch() } }, this.rated === RATED ? 'Redéfier' : 'Revanche');
             }
+            // Partie classée contre un joueur : redéfier le même (nouveau Draft), ou retourner à la file
+            if (this.rated === RATED) liens.push(lien('Nouvelle partie', () => window.location.assign(this.home + '/jouer?classee=1')));
         }
         // Draft : « Rejouer » et « Revanche » gardent les équipes (livret) ; un nouveau tirage au choix
         if (joueur && !this.corr && !this.tournamentGame && this.rated !== RATED && this.rois && !this.revancheId && this.revanche !== 'envoyee')
@@ -1090,6 +1093,11 @@ export class RoundController extends GameController {
     private checkStatus = (msg: MsgBoard | MsgGameEnd) => {
         if (msg.gameId !== this.gameId) return;
         if (msg.status >= 0) {
+            // Partie annulée pendant le Draft (bouton, ou étape non jouée à temps en classée)
+            if (this.enDraft) {
+                this.draftEcran?.fermer();
+                this.enDraft = false;
+            }
             this.status = msg.status;
             this.result = msg.result;
             this.clocks[0].pause(false);

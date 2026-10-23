@@ -151,5 +151,21 @@ async def test_defier_un_joueur_en_ligne(site_connecte, chromium):
     for page in (alice, bruno):
         await page.wait_for_selector("#draft-ecran .draft", timeout=15000)
     assert alice.url == bruno.url
+
+    # Quitter pendant le Draft annule la partie (Hugo) : l'écran du Draft se ferme chez les deux
+    await alice.locator("button.dr-quitter").click()
+    for page in (alice, bruno):
+        await page.wait_for_selector(".fin-partie", timeout=10000)
+        assert "Partie annulée" in await page.locator(".fin-partie").inner_text()
+        assert not await page.evaluate("document.body.classList.contains('en-draft')")
+
+    # Redéfier le même joueur : il accepte, nouvelle partie classée avec un nouveau Draft
+    premiere = alice.url
+    await alice.locator(".fin-partie button", has_text="Redéfier").click()
+    await bruno.wait_for_selector(".fin-partie:has-text('vous redéfie')", timeout=10000)
+    await bruno.locator(".fin-partie button", has_text="Accepter").click()
+    for page in (alice, bruno):
+        await page.wait_for_function("u => location.href !== u", arg=premiere, timeout=15000)
+        await page.wait_for_selector("#draft-ecran .draft", timeout=15000)
     for page in (alice, bruno):
         assert not page.erreurs, page.erreurs
