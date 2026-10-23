@@ -255,3 +255,27 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
   .choix-adv button { flex-direction: column; gap: 3px; font-size: 14px; min-height: 58px; padding: 6px 4px; }
   .choix-adv button img { width: 22px; }
 }
+
+/* Joueurs en ligne de l'onglet Classée (lobby.ts renderEnLigne) */
+.en-ligne { margin-top: 24px; }
+.en-ligne .etiq b { font: 800 13px 'Nunito', sans-serif; color: var(--mt-discret); }
+.en-ligne ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.en-ligne li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 12px; min-height: 48px; padding: 4px 6px 4px 14px; border-radius: 12px; background: var(--mt-nuit); }
+.en-ligne .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; color: var(--mt-encre); text-decoration: none; }
+.en-ligne .r { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--mt-doux); }
+.en-ligne .defi { min-height: 38px; padding: 0 14px; border: 0; border-radius: 10px; cursor: pointer; background: var(--mt-surface-2); color: var(--mt-or); font: 800 14px 'Nunito', sans-serif; }
+.en-ligne .defi:disabled { opacity: .45; cursor: default; }
+.en-ligne .defi.envoye { color: var(--mt-doux); }
+.en-ligne .etat { padding: 0 8px; font-size: 13px; color: var(--mt-discret); }
+.en-ligne .vide, .en-ligne .defi-message { margin: 0; font-size: 14px; color: var(--mt-discret); }
+.en-ligne .defi-message { margin-top: 8px; color: var(--mt-doux); }
+
+/* Défi reçu : bandeau en haut de /jouer, quel que soit l'onglet */
+.defi-recu { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; padding: 14px 16px; border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px var(--mt-or), 0 10px 30px rgba(234, 196, 90, .12); animation: defi-arrive .35s cubic-bezier(.16, 1, .3, 1); }
+.defi-txt { display: grid; gap: 2px; min-width: 0; }
+.defi-txt b { font: 800 17px 'Nunito', sans-serif; color: var(--mt-or); }
+.defi-txt small { font-size: 13px; color: var(--mt-doux); }
+.defi-actions { display: flex; align-items: center; gap: 12px; }
+.defi-refuser { border: 0; background: none; cursor: pointer; padding: 8px 4px; font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); }
+@keyframes defi-arrive { from { opacity: 0; transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .defi-recu { animation: none; } }

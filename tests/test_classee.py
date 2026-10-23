@@ -12,7 +12,9 @@ from pychess_global_app_state_utils import get_app_state
 from server import make_app
 
 
-class ClasseeTestCase(AioHTTPTestCase):
+class BaseClassee(AioHTTPTestCase):
+    """Serveur neuf et joueurs connectés (comptes) ; pas de test ici."""
+
     async def get_application(self):
         return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
 
@@ -38,6 +40,8 @@ class ClasseeTestCase(AioHTTPTestCase):
         app_state.users[nom] = user
         return user
 
+
+class ClasseeTestCase(BaseClassee):
     def test_reserve_de_bots(self):
         from bots_classes import BOTS, est_bot_classe, niveau
         from users import INVITE
@@ -213,3 +217,84 @@ class ClasseeTestCase(AioHTTPTestCase):
         resp = await self.client.post("/api/check-username", json={"username": nom.lower()})
         if resp.status == 200:
             self.assertFalse((await resp.json())["available"])
+
+
+class DefiTestCase(BaseClassee):
+    """Liste des joueurs en ligne de l'onglet Classée et défis entre eux."""
+
+    async def test_liste_des_joueurs_en_ligne(self):
+        import classee
+
+        app_state = get_app_state(self.app)
+        a = self.joueur("alice", 1500)
+        b = self.joueur("bruno", 1620)
+        invite = self.joueur("Cool-Camel#000002", anon=True)
+        for u in (a, b, invite):
+            app_state.lobby.lobbysockets[u.username] = u.lobby_sockets
+        liste = classee.joueurs_en_ligne(app_state, a)
+        self.assertEqual([j["u"] for j in liste], ["bruno"])  # ni soi-même, ni les invités
+        self.assertEqual(liste[0]["matatakmini"]["r"], 1620)
+        self.assertFalse(liste[0]["en_partie"])
+
+    async def test_defi_accepte_puis_partie_classee_en_draft(self):
+        import classee
+
+        app_state = get_app_state(self.app)
+        a = self.joueur("alice", 1500)
+        b = self.joueur("bruno", 2100)  # écart sans importance : on se choisit
+        with patch("classee.ws_send_json", new=AsyncMock()) as envoi:
+            await classee.defier(app_state, a, {"variant": "matatak", "adversaire": "bruno"})
+            recu = next(
+                c.args[1] for c in envoi.await_args_list if c.args[1]["type"] == "classee_defi"
+            )
+            self.assertEqual((recu["de"], recu["cadence"], recu["r"]), ("alice", "5+3", 1500))
+            # Seul le joueur défié peut accepter
+            await classee.repondre(app_state, a, {"id": recu["id"], "accepte": True})
+            self.assertFalse(any(c.args[1]["type"] == "new_game" for c in envoi.await_args_list))
+            await classee.repondre(app_state, b, {"id": recu["id"], "accepte": True})
+        parties = [c.args[1] for c in envoi.await_args_list if c.args[1]["type"] == "new_game"]
+        self.assertEqual(len(parties), 2)  # envoyé aux deux joueurs
+        game = app_state.games[parties[0]["gameId"]]
+        self.assertEqual((game.rated, game.base, game.inc), (RATED, 5, 3))
+        self.assertIsNotNone(game.draft)
+        self.assertEqual({game.wplayer.username, game.bplayer.username}, {"alice", "bruno"})
+
+    async def test_defi_refuse_annule_expire(self):
+        import classee
+
+        app_state = get_app_state(self.app)
+        a = self.joueur("alice", 1500)
+        b = self.joueur("bruno", 1500)
+
+        async def defi():
+            await classee.defier(app_state, a, {"variant": "matatakmini", "adversaire": "bruno"})
+            return next(iter(classee._defis(app_state).values()))
+
+        with (
+            patch("classee.DELAI_DEFI", 0.2),
+            patch("classee.ws_send_json", new=AsyncMock()) as envoi,
+        ):
+            d = await defi()
+            await classee.repondre(app_state, b, {"id": d.id, "accepte": False})
+            d = await defi()
+            await classee.repondre(app_state, a, {"id": d.id, "annuler": True})
+            await defi()
+            await asyncio.sleep(0.5)
+        fins = [
+            c.args[1]["raison"]
+            for c in envoi.await_args_list
+            if c.args[1]["type"] == "classee_defi_fin"
+        ]
+        self.assertEqual(fins, ["refuse", "refuse", "annule", "annule", "expire", "expire"])
+        self.assertEqual(classee._defis(app_state), {})
+
+    async def test_pas_de_defi_a_un_invite_ni_a_soi_meme(self):
+        import classee
+
+        app_state = get_app_state(self.app)
+        a = self.joueur("alice", 1500)
+        self.joueur("Cool-Camel#000003", anon=True)
+        with patch("classee.ws_send_json", new=AsyncMock()):
+            for nom in ("alice", "Cool-Camel#000003", "personne"):
+                await classee.defier(app_state, a, {"variant": "matatakmini", "adversaire": nom})
+        self.assertEqual(classee._defis(app_state), {})

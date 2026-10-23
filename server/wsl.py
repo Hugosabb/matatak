@@ -90,7 +90,7 @@ async def finally_logic(app_state: PychessGlobalAppState, ws, user):
             await app_state.lobby.lobby_broadcast_u_cnt()
 
         if (user.game_in_progress is not None) or len(user.lobby_sockets) == 0:
-            await classee.annuler(app_state, user)
+            await classee.quitter(app_state, user)
             user.update_auto_pairing(ready=False)
             await user.update_seeks(pending=True)
 
@@ -130,6 +130,12 @@ async def process_message(app_state: PychessGlobalAppState, user, ws, data):
             await classee.chercher(app_state, user, data)
     elif data["type"] == "classee_annuler":
         await classee.annuler(app_state, user)
+    elif data["type"] == "classee_defier":
+        if not await send_game_in_progress_if_any(app_state, user, ws):
+            await classee.defier(app_state, user, data)
+    elif data["type"] == "classee_defi_reponse":
+        if not data.get("accepte") or not await send_game_in_progress_if_any(app_state, user, ws):
+            await classee.repondre(app_state, user, data)
 
 
 async def send_get_seeks(app_state, ws, user):

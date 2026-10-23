@@ -3,6 +3,7 @@ import { ROIS, roiDuNiveau, saisonDuNiveau, Saison } from './rois';
 import { WebsocketHeartbeatJs } from './socket/socket';
 import { installeur, ouvrirInstallation } from './installer';
 import { equipeMemorisee, fenPourCouleur } from './equipe';
+import { sound } from './sound';
 
 import { h, VNode } from 'snabbdom';
 
@@ -78,7 +79,18 @@ const IMG_ROI: Record<Saison, string> = { ete: '01-azar.webp', automne: '02-shan
 
 // Onglet « Classée » : réponse de GET /api/classee (server/classee.py)
 interface ClasseeVariante { r: number; prov: boolean; nb: number; cadence: string; }
-interface ClasseeInfos { connecte: boolean; matatak?: ClasseeVariante; matatakmini?: ClasseeVariante; }
+interface JoueurEnLigne { u: string; en_partie: boolean; matatak: ClasseeVariante; matatakmini: ClasseeVariante; }
+interface ClasseeInfos { connecte: boolean; matatak?: ClasseeVariante; matatakmini?: ClasseeVariante; en_ligne?: JoueurEnLigne[]; }
+// Défi reçu d'un joueur en ligne (server/classee.py defier)
+interface DefiRecu { id: string; de: string; r: number; prov: boolean; variant: 'matatak' | 'matatakmini'; cadence: string; }
+
+const NOM_PLATEAU = { matatak: 'Matatak', matatakmini: 'Matatak Mini' };
+// Pourquoi un défi envoyé n'a pas abouti (message classee_defi_fin)
+const FIN_DEFI: Record<string, (nom: string) => string> = {
+    refuse: nom => `${nom} a refusé le défi.`,
+    expire: nom => `Pas de réponse de ${nom}.`,
+    absent: nom => nom ? `${nom} n'est plus disponible.` : "Ce joueur n'est plus disponible.",
+};
 
 function texteClassement(v?: ClasseeVariante): string {
     return v ? `${v.r}${v.prov ? ' ?' : ''}` : '…';
@@ -218,6 +230,11 @@ export class LobbyController implements ChatController {
     classee: ClasseeInfos | null = null;
     classeeDebut = 0;
     classeeMinuteur = 0;
+    // Joueurs en ligne : liste rafraîchie toutes les 10 s pendant que l'onglet est ouvert ; défis
+    classeeRafraichi = 0; // minuteur
+    defiEnvoye: { id: string, a: string } | null = null;
+    defisRecus: DefiRecu[] = [];
+    defiMessage = '';
 
     constructor(el: HTMLElement, model: PyChessModel) {
         console.log("LobbyController constructor", el, model);
@@ -606,12 +623,90 @@ export class LobbyController implements ChatController {
 
     /** Classements du joueur pour l'onglet « Classée » (une fois par visite). */
     private chargerClassee() {
+        // Classements et joueurs en ligne : à l'ouverture de l'onglet, puis toutes les 10 s tant qu'il
+        // est ouvert (un seul minuteur pour la page)
         if (this.classee) return;
         this.classee = { connecte: !this.anon };
-        fetch('/api/classee', { credentials: 'same-origin' })
+        if (this.anon) return;
+        const charger = () => fetch('/api/classee', { credentials: 'same-origin' })
             .then(r => r.json())
             .then((infos: ClasseeInfos) => { this.classee = infos; this.majJouer(); })
-            .catch(() => { /* hors ligne : on réessaiera à la prochaine visite */ });
+            .catch(() => { /* hors ligne : on réessaiera au prochain rafraîchissement */ });
+        charger();
+        this.classeeRafraichi = window.setInterval(() => { if (this.jouer.adv === 'classee') charger(); }, 10000);
+    }
+
+    private defier(adversaire: string) {
+        this.defiMessage = '';
+        this.doSend({ type: 'classee_defier', variant: this.jouer.variant, adversaire });
+    }
+
+    private onMsgDefi(msg: Record<string, any>) {
+        if (msg.type === 'classee_defi') {
+            this.defisRecus = [...this.defisRecus.filter(d => d.de !== msg.de), msg as DefiRecu];
+            sound.genericNotify();
+        } else if (msg.type === 'classee_defi_envoye') {
+            this.defiEnvoye = { id: msg.id, a: msg.a };
+        } else if (msg.type === 'classee_defi_fin') {
+            this.defisRecus = this.defisRecus.filter(d => d.id !== msg.id);
+            const envoye = this.defiEnvoye && (this.defiEnvoye.id === msg.id || msg.id === null);
+            if (envoye || msg.id === null) {
+                const message = FIN_DEFI[msg.raison];
+                this.defiMessage = message ? message(msg.a ?? '') : '';
+                this.defiEnvoye = null;
+            }
+        }
+        this.majJouer();
+    }
+
+    private repondreDefi(defi: DefiRecu, accepte: boolean) {
+        this.doSend({ type: 'classee_defi_reponse', id: defi.id, accepte });
+        if (!accepte) this.defisRecus = this.defisRecus.filter(d => d.id !== defi.id);
+        this.majJouer();
+    }
+
+    /** Défi reçu : un bandeau en haut de /jouer, quel que soit l'onglet ouvert. */
+    private renderDefisRecus(): VNode | string {
+        const defi = this.defisRecus[0];
+        if (!defi) return '';
+        const v: ClasseeVariante = { r: defi.r, prov: defi.prov, nb: 0, cadence: defi.cadence };
+        return h('div.defi-recu', { attrs: { role: 'alertdialog', 'aria-label': `${defi.de} vous défie` } }, [
+            h('div.defi-txt', [
+                h('b', `${defi.de} vous défie`),
+                h('small', `${texteClassement(v)} · Draft ${NOM_PLATEAU[defi.variant]} · ${defi.cadence.replace('+', ' min +')} · classée`),
+            ]),
+            h('div.defi-actions', [
+                h('button.mt-btn.mt-btn-or.mt-btn-petit', { attrs: { type: 'button' }, on: { click: () => this.repondreDefi(defi, true) } }, 'Accepter'),
+                h('button.defi-refuser', { attrs: { type: 'button' }, on: { click: () => this.repondreDefi(defi, false) } }, 'Refuser'),
+            ]),
+        ]);
+    }
+
+    /** Joueurs connectés sur /jouer, les plus proches de son classement d'abord, à défier. */
+    private renderEnLigne(infos: ClasseeInfos, attente: boolean): VNode {
+        const c = this.jouer;
+        const moi = infos[c.variant]?.r ?? 1500;
+        const tous = infos.en_ligne ?? [];
+        const proches = [...tous].sort((x, y) => Math.abs(x[c.variant].r - moi) - Math.abs(y[c.variant].r - moi)).slice(0, 6);
+        const action = (j: JoueurEnLigne) => {
+            if (j.en_partie) return h('span.etat', 'En partie');
+            if (this.defiEnvoye?.a === j.u) return h('button.defi.envoye', {
+                attrs: { type: 'button', title: 'Annuler le défi' },
+                on: { click: () => this.doSend({ type: 'classee_defi_reponse', id: this.defiEnvoye!.id, annuler: true }) },
+            }, 'Défi envoyé…');
+            return h('button.defi', { attrs: { type: 'button', disabled: attente || !!this.defiEnvoye }, on: { click: () => this.defier(j.u) } }, 'Défier');
+        };
+        return h('div.en-ligne', [
+            h('div.etiq', ['Joueurs en ligne', tous.length ? h('b', String(tous.length)) : '']),
+            proches.length
+                ? h('ul', proches.map(j => h('li', [
+                    h('a.nom', { attrs: { href: '/@/' + j.u } }, j.u),
+                    h('span.r', texteClassement(j[c.variant])),
+                    action(j),
+                ])))
+                : h('p.vide', "Personne d'autre en ligne pour l'instant."),
+            this.defiMessage ? h('p.defi-message', { attrs: { role: 'status' } }, this.defiMessage) : '',
+        ]);
     }
 
     private chercherClassee() {
@@ -666,6 +761,7 @@ export class LobbyController implements ChatController {
                     attrs: { type: 'button' },
                     on: { click: () => this.chercherClassee() },
                 }, 'Jouer une partie classée'),
+            this.renderEnLigne(infos, attente),
         ]);
     }
 
@@ -806,7 +902,7 @@ export class LobbyController implements ChatController {
                     : h('div.scene-txt', [h('b', 'Classée'), h('span', 'Gagnez des points, grimpez au classement')]),
             ]);
             const installation = bandeauInstallation(maj);
-            return h('div.jouer-page', [h('div.grille', [this.renderClassee(choixAdv, plateau), scene]), installation ?? '']);
+            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, plateau), scene]), installation ?? '']);
         }
 
         const partie = h('section.panneau.partie', [
@@ -871,7 +967,7 @@ export class LobbyController implements ChatController {
         // Collection, Analyse et Éditeur sont rangés dans « Apprendre » ; « Installer l'appli » aussi,
         // et dans le bandeau du bas (bandeauInstallation)
         const installation = bandeauInstallation(maj);
-        return h('div.jouer-page', [h('div.grille', [partie, scene]), installation ?? '']);
+        return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [partie, scene]), installation ?? '']);
     }
 
     renderSeekButtons() {
@@ -1584,6 +1680,11 @@ export class LobbyController implements ChatController {
                 break;
             case "classee_annulee":
                 this.onMsgClassee(false);
+                break;
+            case "classee_defi":
+            case "classee_defi_envoye":
+            case "classee_defi_fin":
+                this.onMsgDefi(msg);
                 break;
             case "new_game":
                 this.onMsgNewGame(msg);

@@ -24,6 +24,7 @@ from test_parcours import en_draft, une_etape_de_draft
 pytestmark = pytest.mark.asyncio
 
 JOUEUR = "alice_test"
+AUTRE = "bruno_test"
 
 
 @pytest_asyncio.fixture
@@ -35,14 +36,15 @@ async def site_connecte(aiohttp_server, monkeypatch):
     monkeypatch.setattr(classee, "DELAI_BOT", 1)
     app = make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
     serveur = await aiohttp_server(app)
-    await get_app_state(app).db.user.insert_one({"_id": JOUEUR, "title": "", "enabled": True})
+    for nom in (JOUEUR, AUTRE):
+        await get_app_state(app).db.user.insert_one({"_id": nom, "title": "", "enabled": True})
     return f"http://{serveur.host}:{serveur.port}"
 
 
-async def connecter(page, site):
+async def connecter(page, site, nom=JOUEUR):
     # Valeur encodée comme la pose aiohttp (guillemets échappés), sinon le serveur l'ignore
     cookie = SimpleCookie()
-    cookie["s"] = json.dumps({"session": {"user_name": JOUEUR}, "created": int(time.time())})
+    cookie["s"] = json.dumps({"session": {"user_name": nom}, "created": int(time.time())})
     await page.context.add_cookies(
         [{"name": "AIOHTTP_SESSION", "value": cookie["s"].coded_value, "url": site}]
     )
@@ -116,3 +118,38 @@ async def test_partie_classee_contre_un_adversaire_d_entrainement(site_connecte,
     fin = await page.locator(".fin-partie").inner_text()
     assert "Nouvelle partie" in fin and "Revanche" not in fin and "Rejouer" not in fin, fin
     assert not page.erreurs, page.erreurs
+
+
+async def test_defier_un_joueur_en_ligne(site_connecte, chromium):
+    """Alice (ordinateur) voit Bruno (téléphone) dans « Joueurs en ligne », le défie ; Bruno
+    accepte depuis le bandeau : les deux arrivent sur la même partie classée, en Draft."""
+    site = site_connecte
+    pages = {}
+    for nom, telephone in ((JOUEUR, False), (AUTRE, True)):
+        page = await ouvrir(chromium, site, telephone)
+        await connecter(page, site, nom)
+        await page.evaluate(
+            "localStorage.setItem('jouer_choix', JSON.stringify({adv: 'classee', variant: 'matatakmini'}))"
+        )
+        await page.goto(site + "/jouer")
+        await page.wait_for_selector(".classee-regles")
+        pages[nom] = page
+    alice, bruno = pages[JOUEUR], pages[AUTRE]
+    # La liste se rafraîchit toutes les 10 s : Bruno est arrivé après Alice
+    await alice.wait_for_selector(".en-ligne li:has-text('bruno_test')", timeout=15000)
+    await alice.locator(".en-ligne li", has_text=AUTRE).locator("button.defi").click()
+    await alice.wait_for_selector("button.defi.envoye")
+    await bruno.wait_for_selector(".defi-recu", timeout=5000)
+    assert "alice_test vous défie" in await bruno.locator(".defi-recu").inner_text()
+    await alice.screenshot(
+        path="/tmp/claude-1000/-home-hugo-github-matatak/be2d8a16-9cef-4745-8473-a0ce071d48fb/scratchpad/en-ligne.png"
+    )
+    await bruno.screenshot(
+        path="/tmp/claude-1000/-home-hugo-github-matatak/be2d8a16-9cef-4745-8473-a0ce071d48fb/scratchpad/defi-recu.png"
+    )
+    await bruno.locator(".defi-recu button", has_text="Accepter").click()
+    for page in (alice, bruno):
+        await page.wait_for_selector("#draft-ecran .draft", timeout=15000)
+    assert alice.url == bruno.url
+    for page in (alice, bruno):
+        assert not page.erreurs, page.erreurs

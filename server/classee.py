@@ -8,6 +8,7 @@ Toujours en Draft, à cadence fixe par plateau. Inspiré de auto_pair.py (appari
 
 from __future__ import annotations
 import asyncio
+import secrets
 import time
 
 from bots_classes import choisir_bot, creer_bot, niveau_du_bot
@@ -20,6 +21,8 @@ from websocket_utils import ws_send_json
 
 # (minutes, incrément) par plateau
 CADENCES = {"matatakmini": (5, 3), "matatak": (5, 3)}  # choix d'Hugo : deux classements, 5+3
+# Un défi sans réponse expire au bout de DELAI_DEFI secondes
+DELAI_DEFI = 30
 DELAI_BOT = 5  # Hugo : 15 s, c'est trop long à attendre
 ECART_DEPART = 150
 ECART_PAR_SECONDE = 20
@@ -212,12 +215,146 @@ async def infos(request):
         return web.json_response({"connecte": False})
     reponse = {"connecte": True, "username": user.username}
     for variant, (minutes, inc) in CADENCES.items():
-        rating = user.get_rating(variant, False)
-        r, prov = rating.rating_prov
-        reponse[variant] = {
-            "r": r,
-            "prov": prov == "?",
-            "nb": user.perfs.get(variant, {}).get("nb", 0),
-            "cadence": "%d+%d" % (minutes, inc),
-        }
+        reponse[variant] = dict(classement(user, variant), cadence="%d+%d" % (minutes, inc))
+    reponse["en_ligne"] = joueurs_en_ligne(app_state, user)
     return web.json_response(reponse)
+
+
+def classement(user, variant) -> dict:
+    r, prov = user.get_rating(variant, False).rating_prov
+    return {"r": r, "prov": prov == "?", "nb": user.perfs.get(variant, {}).get("nb", 0)}
+
+
+def joueurs_en_ligne(app_state, moi) -> list[dict]:
+    """Les joueurs connectés présents sur /jouer (WebSocket du salon), à défier : jamais les
+    invités ni les adversaires d'entraînement (ils ne se connectent pas), ni soi-même."""
+    joueurs = []
+    for username in list(app_state.lobby.lobbysockets):
+        user = app_state.users.data.get(username)
+        if user is None or user is moi or user.anon or user.entrainement or not user.lobby_sockets:
+            continue
+        joueurs.append(
+            {
+                "u": username,
+                "en_partie": user.game_in_progress is not None,
+                **{v: classement(user, v) for v in CADENCES},
+            }
+        )
+    return joueurs[:50]
+
+
+# ---------- Défis entre joueurs en ligne (même plateau, même cadence, en Draft, classé) ----------
+
+
+class Defi:
+    def __init__(self, de, a, variant):
+        self.id = secrets.token_hex(4)
+        self.de, self.a, self.variant = de, a, variant
+        self.tache: asyncio.Task | None = None
+
+
+def _defis(app_state) -> dict:
+    """{id: Defi}"""
+    if not hasattr(app_state, "defis_classes"):
+        app_state.defis_classes = {}
+    return app_state.defis_classes
+
+
+async def _fin_defi(app_state, defi, raison):
+    """Retire le défi et prévient les deux joueurs (raison : refuse, annule, expire, absent)."""
+    if _defis(app_state).pop(defi.id, None) is None:
+        return
+    if defi.tache is not None and defi.tache is not asyncio.current_task():
+        defi.tache.cancel()
+    message = {"type": "classee_defi_fin", "id": defi.id, "raison": raison}
+    await _envoyer(defi.de, dict(message, a=defi.a.username))
+    await _envoyer(defi.a, dict(message, de=defi.de.username))
+
+
+async def _expirer(app_state, defi):
+    try:
+        await asyncio.sleep(DELAI_DEFI)
+        await _fin_defi(app_state, defi, "expire")
+    except asyncio.CancelledError:
+        pass
+
+
+async def defier(app_state, user, data):
+    """Message « classee_defier » {variant, adversaire} : défi à un joueur de la liste."""
+    variant = data.get("variant")
+    adversaire = app_state.users.data.get(data.get("adversaire") or "")
+    if (
+        user.anon
+        or variant not in CADENCES
+        or adversaire is None
+        or adversaire is user
+        or adversaire.anon
+        or adversaire.entrainement
+        or not adversaire.lobby_sockets
+        or adversaire.game_in_progress is not None
+    ):
+        await _envoyer(user, {"type": "classee_defi_fin", "id": None, "raison": "absent"})
+        return
+    # Un seul défi envoyé à la fois ; on quitte la file d'attente
+    for ancien in [d for d in _defis(app_state).values() if d.de is user]:
+        await _fin_defi(app_state, ancien, "annule")
+    await annuler(app_state, user)
+    defi = Defi(user, adversaire, variant)
+    _defis(app_state)[defi.id] = defi
+    defi.tache = asyncio.create_task(_expirer(app_state, defi), name="defi-%s" % defi.id)
+    await _envoyer(
+        adversaire,
+        {
+            "type": "classee_defi",
+            "id": defi.id,
+            "de": user.username,
+            "variant": variant,
+            "cadence": "%d+%d" % CADENCES[variant],
+            **classement(user, variant),
+        },
+    )
+    await _envoyer(
+        user,
+        {
+            "type": "classee_defi_envoye",
+            "id": defi.id,
+            "a": adversaire.username,
+            "variant": variant,
+        },
+    )
+
+
+async def repondre(app_state, user, data):
+    """Message « classee_defi_reponse » {id, accepte} du joueur défié, ou « classee_defi_annuler »
+    {id} de celui qui a défié (data["annuler"])."""
+    defi = _defis(app_state).get(data.get("id"))
+    if defi is None:
+        return
+    if data.get("annuler"):
+        if user is defi.de:
+            await _fin_defi(app_state, defi, "annule")
+        return
+    if user is not defi.a:
+        return
+    if not data.get("accepte"):
+        await _fin_defi(app_state, defi, "refuse")
+        return
+    if not defi.de.lobby_sockets or defi.de.game_in_progress is not None:
+        await _fin_defi(app_state, defi, "absent")
+        return
+    _defis(app_state).pop(defi.id, None)
+    if defi.tache is not None:
+        defi.tache.cancel()
+    await annuler(app_state, defi.de)
+    await annuler(app_state, defi.a)
+    response = await _creer_partie(app_state, defi.de, defi.a, defi.variant)
+    log.info("Défi classé %s contre %s", defi.de.username, defi.a.username)
+    await _envoyer(defi.de, response)
+    await _envoyer(defi.a, response)
+
+
+async def quitter(app_state, user):
+    """Le joueur a fermé toutes ses pages du salon : sa recherche et ses défis s'arrêtent."""
+    await annuler(app_state, user)
+    for defi in [d for d in _defis(app_state).values() if user in (d.de, d.a)]:
+        await _fin_defi(app_state, defi, "absent")
