@@ -74,7 +74,10 @@ async def test_partie_classee_contre_un_adversaire_d_entrainement(site_connecte,
     await page.wait_for_selector(".classee-regles")
     await page.wait_for_selector('.plat.on:has-text("Classement 1500 ?")')
     await page.locator("button.lancer").click()
-    assert "Recherche d'un adversaire" in await page.locator("button.lancer").inner_text()
+    bouton = page.locator("button.lancer")
+    assert "Recherche" in await bouton.inner_text()
+    # Le texte tient dans le bouton (il débordait avec « Recherche d'un adversaire… 0:07 »)
+    assert await bouton.evaluate("b => b.scrollWidth <= b.clientWidth")
     await page.wait_for_selector("#draft-ecran .draft", timeout=15000)
 
     # Toujours en Draft ; l'adversaire joue ses étapes tout seul

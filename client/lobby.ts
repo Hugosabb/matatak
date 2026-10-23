@@ -659,7 +659,7 @@ export class LobbyController implements ChatController {
             attente
                 ? h('div.classee-attente', [
                     h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { type: 'button', disabled: true } },
-                        `Recherche d'un adversaire… ${Math.floor(secondes / 60)}:${String(secondes % 60).padStart(2, '0')}`),
+                        `Recherche… ${Math.floor(secondes / 60)}:${String(secondes % 60).padStart(2, '0')}`),
                     h('button.deja', { attrs: { type: 'button' }, on: { click: () => this.annulerClassee() } }, 'Annuler'),
                 ])
                 : h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', {

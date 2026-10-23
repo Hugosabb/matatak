@@ -20,7 +20,7 @@ from websocket_utils import ws_send_json
 
 # (minutes, incrément) par plateau
 CADENCES = {"matatakmini": (5, 3), "matatak": (5, 3)}  # choix d'Hugo : deux classements, 5+3
-DELAI_BOT = 15
+DELAI_BOT = 5  # Hugo : 15 s, c'est trop long à attendre
 ECART_DEPART = 150
 ECART_PAR_SECONDE = 20
 
