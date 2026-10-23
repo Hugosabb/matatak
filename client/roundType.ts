@@ -42,6 +42,7 @@ export interface MsgSetup {
 
 export interface MsgGameStart {
     gameId: string;
+    draft?: boolean; // Draft en cours : le son du début attend sa fin
 }
 
 export interface MsgViewRematch {

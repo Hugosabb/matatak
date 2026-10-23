@@ -53,29 +53,54 @@ body[data-view="campaign"] #main-wrap { display: block; }
   .chapitre summary { padding: 0 14px; }
 }
 
-/* ---------- Résolution : en-tête de campagne ---------- */
+/* ---------- Résolution : en-tête de campagne (une ligne + barre) ---------- */
 .puzzle-campagne {
-  display: grid; gap: 10px; padding: 16px 18px; border-radius: 16px;
-  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 12px; padding: 14px 16px;
+  border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
 }
+.puzzle-campagne > * { grid-column: 1 / -1; }
 .puzzle-campagne .niveau-titre { white-space: nowrap; font: 400 22px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
 .puzzle-campagne .niveau-titre small { font-size: 15px; color: var(--mt-doux); }
 .puzzle-campagne .niveau-titre a { color: inherit; }
 .puzzle-campagne .puzzle-type { margin: 0; font-weight: 700; color: var(--mt-doux); }
-.puzzle-campagne .lien { justify-self: start; min-height: 32px; display: inline-flex; align-items: center; font: 800 14px 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; color: var(--mt-or); text-decoration: none; }
+.puzzle-campagne .lien { white-space: nowrap; min-height: 32px; display: inline-flex; align-items: center; font: 800 14px 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; color: var(--mt-or); text-decoration: none; }
 .puzzle-campagne .lien:hover { text-decoration: underline; text-underline-offset: 3px; }
 .puzzle-connexion { display: grid; gap: 12px; color: var(--mt-doux); font-size: 14.5px; }
 
-/* ---------- Résolution : consigne et fin ---------- */
-/* Pendant la résolution, la liste des coups est vide : la consigne prend sa place */
-body[data-view="puzzle"] .analysis-tools:has(.feedback:not(.after)) .movelist-block { display: none; }
-body[data-view="puzzle"] .analysis-tools:has(.feedback:not(.after)) .feedback { flex: 1 1 auto; }
-.feedback { background: var(--mt-surface); border-radius: 16px; box-shadow: inset 0 0 0 1px var(--mt-filet); }
-.feedback .instruction strong { font: 400 22px/1.2 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-encre); }
-.feedback .instruction em { font-style: normal; color: var(--mt-doux); }
-.feedback.good .icon { color: var(--mt-or); }
+/* ---------- Résolution : consigne ---------- */
+/* Pendant la résolution : ni liste de coups (vide), ni jauge (elle donnerait la réponse), ni barre de navigation */
+body[data-view="puzzle"] .analysis-tools:has(.feedback:not(.after)) .movelist-block,
+body[data-view="puzzle"] .analysis-app:has(.feedback:not(.after)) #gauge,
+body[data-view="puzzle"] .analysis-app:has(.feedback:not(.after)) div.btn-controls { display: none !important; }
+body[data-view="puzzle"] .feedback {
+  flex: none; padding: 16px 18px; gap: 12px; border-radius: 16px;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+}
+body[data-view="puzzle"] .feedback .player { justify-content: flex-start; gap: 14px; }
+body[data-view="puzzle"] .feedback .no-square { flex: 0 0 56px; height: 56px; margin: 0; border-radius: 8px; }
+body[data-view="puzzle"] .feedback .player .icon {
+  flex: none; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%;
+  font: 900 28px/1 'Nunito', sans-serif; background: var(--mt-surface-2);
+}
+.feedback .instruction { min-width: 0; display: grid; gap: 2px; }
+.feedback .instruction strong { font: 400 21px/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-encre); }
+.feedback .instruction em { font: 600 14.5px/1.35 'Nunito', sans-serif; font-style: normal; color: var(--mt-doux); }
+.feedback .instruction san { font: 800 15px 'Nunito', sans-serif; color: var(--mt-doux); }
+.feedback.good .icon { color: var(--mt-or); box-shadow: inset 0 0 0 1.5px var(--mt-or); }
 .feedback.fail .icon, san span.fail { color: var(--mt-doux); }
-.feedback .button.hint, .feedback .button.solution { color: var(--mt-or); font-weight: 800; }
+/* Indice et solution : deux petits boutons côte à côte, qui apparaissent après quelques secondes */
+body[data-view="puzzle"] .feedback .view-hint,
+body[data-view="puzzle"] .feedback .view-solution { display: inline-flex; margin: 0; }
+body[data-view="puzzle"] .feedback:not(.after) { display: grid; grid-template-columns: 1fr 1fr; padding: 16px 18px; }
+body[data-view="puzzle"] .feedback:not(.after) .player { grid-column: 1 / -1; }
+.feedback .button.hint, .feedback .button.solution {
+  width: 100%; min-height: 40px; display: flex; align-items: center; justify-content: center; padding: 0 10px;
+  border: 0; border-radius: 10px; background: var(--mt-surface-2); cursor: pointer;
+  font: 800 14px 'Nunito', sans-serif; text-transform: none; letter-spacing: 0; color: var(--mt-or);
+}
+.feedback .button.hint:hover, .feedback .button.solution:hover { color: var(--mt-encre); }
+
+/* ---------- Résolution : fin ---------- */
 .fin-puzzle {
   align-items: center; gap: 10px; padding: 20px 16px 14px; text-align: center; max-height: none;
   animation: fin-apparait .35s cubic-bezier(.16, 1, .3, 1);
@@ -85,6 +110,10 @@ body[data-view="puzzle"] .analysis-tools:has(.feedback:not(.after)) .feedback { 
 .fin-puzzle .mt-btn { width: min(100%, 320px); margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { .fin-puzzle { animation: none; } }
 @media (max-width: 799px) {
-  .analysis-app .puzzle-campagne { margin: 10px 10px 0; }
-  .analysis-tools .feedback { margin: 0 10px; }
+  .analysis-app .puzzle-campagne { padding: 10px 14px; }
+  .puzzle-campagne .niveau-titre { grid-column: 1; }
+  .puzzle-campagne .lien { grid-row: 1; grid-column: 2; }
+  .puzzle-campagne .niveau-titre { font-size: 17px; }
+  .puzzle-campagne .niveau-titre small { font-size: 13px; }
+  .puzzle-campagne .lien { font-size: 13px; }
 }

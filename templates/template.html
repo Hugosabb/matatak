@@ -13,9 +13,10 @@
     </nav>
     <div class="site-buttons">
         {% if anon %}
-        <a class="mt-profil" href="/login/lichess"><span class="av">🐾</span><span class="nom">{{ username.split("#")[0] }}<small>Invité · Se connecter</small></span></a>
+        {# Invité : on montre l'action (« Se connecter ») ; le nom tiré au hasard n'est qu'une précision #}
+        <a class="mt-profil" href="/login/lichess" title="Vous jouez en invité : {{ username.split('#')[0] }}"><span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><span class="nom">Se connecter<small>Invité : {{ username.split("#")[0] }}</small></span></a>
         {% else %}
-        <a class="mt-profil" href="/@/{{ username }}"><span class="av">👑</span><span class="nom">{{ username }}<small>Mon profil</small></span></a>
+        <a class="mt-profil" href="/@/{{ username }}"><span class="av">{{ username[0]|upper }}</span><span class="nom">{{ username }}<small>Mon profil</small></span></a>
         {% endif %}
         <div id="notify-panel"></div>
         <div id="settings-panel"></div>

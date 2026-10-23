@@ -845,7 +845,8 @@ export class RoundController extends GameController {
         // console.log("got gameStart msg:", msg);
         if (msg.gameId !== this.gameId) return;
         if (!this.spectator) {
-            sound.genericNotify();
+            // Pendant un Draft, le son du début attend la fin du Draft (finDuDraft)
+            if (!msg.draft && !this.enDraft) sound.genericNotify();
             if (!this.focus) this.notifyMsg('joined the game.');
         }
     }
@@ -943,6 +944,7 @@ export class RoundController extends GameController {
         this.enDraft = false;
         this.rois = { white: etat.equipes.white!.roi, black: etat.equipes.black!.roi };
         this.resetForNewPhase({ fen: etat.fen!, status: -2 });
+        if (!this.spectator) sound.genericNotify();
         // Le plateau était caché : chessground doit remesurer ses cases
         this.chessground.state.dom.bounds.clear();
         this.chessground.redrawAll();

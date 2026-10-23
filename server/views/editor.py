@@ -1,6 +1,6 @@
 import aiohttp_jinja2
 
-from fairy import FairyBoard
+from fairy import FairyBoard, sans_reserve
 from variants import VARIANTS
 from views import get_user_context
 
@@ -18,6 +18,7 @@ async def editor(request):
         fen = FairyBoard.start_fen(variant)
     else:
         fen = fen.replace(".", "+").replace("_", " ")
+        fen = sans_reserve(variant, fen)
 
     context["variant"] = variant
     context["fen"] = fen

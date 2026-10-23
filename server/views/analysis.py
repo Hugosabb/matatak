@@ -3,7 +3,7 @@ import json
 import aiohttp_jinja2
 from aiohttp import web
 
-from fairy import FairyBoard
+from fairy import FairyBoard, sans_reserve
 from utils import load_game
 from variants import VARIANTS
 from views import add_game_context, get_user_context
@@ -26,6 +26,7 @@ async def analysis(request):
             fen = FairyBoard.start_fen(variant)
         else:
             fen = fen.replace(".", "+").replace("_", " ")
+            fen = sans_reserve(variant, fen)
         context["fen"] = fen
         context["variant"] = variant if variant is not None else ""
     else:

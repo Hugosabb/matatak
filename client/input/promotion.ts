@@ -128,6 +128,10 @@ export class PromotionInput extends ExtraInput {
         const topRank = (orientation === "white") ? height - 1 - pos[1] : pos[1];
 
         const side = color === orientation ? "ally" : "enemy";
+        // Le relâchement d'un glisser-déposer (ou un double clic) ne doit ni choisir ni annuler à la
+        // place du joueur : les choix ignorent tout appui pendant 0,3 s après leur apparition.
+        const affiche = performance.now();
+        const tropTot = () => performance.now() - affiche < 300;
 
         return h("div#extension_choice", {
             hook: {
@@ -135,6 +139,7 @@ export class PromotionInput extends ExtraInput {
                     const el = vnode.elm as HTMLElement;
                     const handler = (e: Event) => {
                         e.stopPropagation();
+                        if (tropTot()) return;
                         this.cancel();
                     };
                     el.addEventListener("pointerdown", handler);
@@ -157,6 +162,7 @@ export class PromotionInput extends ExtraInput {
                             const handler = (e: Event) => {
                                 e.preventDefault();
                                 e.stopPropagation();
+                                if (tropTot()) return;
                                 this.finish(role as cg.Role);
                             };
                             el.addEventListener("pointerdown", handler);

@@ -86,7 +86,8 @@ header.mt-haut #settings, header.mt-haut #notify-app { top: var(--site-header-he
   font: 800 14px/1.2 'Nunito', sans-serif; color: var(--mt-encre); text-decoration: none; white-space: nowrap;
 }
 .mt-profil:hover { box-shadow: inset 0 0 0 1px var(--mt-or); }
-.mt-profil .av { width: 30px; height: 30px; border-radius: 50%; background: var(--mt-surface-2); display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--mt-automne); font-size: 15px; }
+.mt-profil .av { width: 30px; height: 30px; border-radius: 50%; background: var(--mt-surface-2); display: grid; place-items: center; box-shadow: inset 0 0 0 1.5px var(--mt-or); font: 900 14px 'Nunito', sans-serif; color: var(--mt-or); }
+.mt-profil .av svg { width: 17px; height: 17px; }
 .mt-profil small { display: block; font-weight: 600; color: var(--mt-discret); font-size: 11.5px; line-height: 1.1; }
 .mt-profil .nom { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
 

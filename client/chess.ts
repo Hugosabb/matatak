@@ -77,6 +77,12 @@ export function lmBeforeEp(variant: Variant, fen: string): string {
 }
 
 // TODO Will be deprecated after WASM Fairy integration
+// Lettres des espèces du bac (rôles « a-piece »…), minuscules et majuscules
+function matatakLettres(variant: Variant): string {
+    const lettres = variant.pieceRow.white.map(role => role.charAt(0)).join('');
+    return lettres + lettres.toUpperCase();
+}
+
 export function validFen(variant: Variant, fen: string): boolean {
     const as = variant.alternateStart;
     if (as !== undefined) {
@@ -100,6 +106,8 @@ export function validFen(variant: Variant, fen: string): boolean {
         ((variantName === "orda") ? "Hq" : "") +
         ((variantName === "dobutsu") ? "Hh" : "") +
         ((variantName === "duck" || variantName === "ataxx") ? "*" : "") +
+        // Matatak : la position de départ ne contient pas toutes les espèces, on autorise celles du bac
+        ((variant.pieceFamily === "matatak") ? matatakLettres(variant) : "") +
         "~+0123456789[]-";
     const alien = (element: string) => !good.includes(element);
     if (placement.split('').some(alien)) return false;

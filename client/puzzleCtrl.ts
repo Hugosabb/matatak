@@ -125,7 +125,7 @@ export class PuzzleController extends AnalysisController {
         patch(viewHintEl,
             h('a.button.hint.button-empty',
                 { on: { click: () => this.viewHint() } },
-                _('Hint')
+                'Indice'
             )
         );
 
@@ -133,7 +133,7 @@ export class PuzzleController extends AnalysisController {
         patch(viewSolutionEl,
             h('a.button.solution.button-empty',
                 { on: { click: () => this.viewSolution() } },
-                _('View the solution')
+                'Voir la solution'
             )
         );
 

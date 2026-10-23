@@ -44,9 +44,9 @@ export function apprendreView(_model: PyChessModel): VNode[] {
     const personnages = h('section.bloc.personnages', [
         h('div.illus.trio', ['34-bongo.webp', '01-azar.webp', '24-salsa.webp'].map(f => h('img', { attrs: { src: CARTES + f, alt: '' } }))),
         h('div.txt', [
-            h('h2', 'Les Personnages'),
+            h('h2', 'Collection'),
             h('p', 'Les 42 Personnages, leurs déplacements, et un mini-jeu pour les prendre en main.'),
-            bouton(false, '/collection', 'Voir les Personnages'),
+            bouton(false, '/collection', 'Voir la Collection'),
         ]),
     ]);
 

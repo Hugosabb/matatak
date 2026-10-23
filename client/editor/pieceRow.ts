@@ -55,9 +55,9 @@ function bacView(ctrl: EditorController): VNode {
             on: toucher(() => { ctrl.bacCouleur = c; majBac(ctrl); }),
         }, [h(`i.${c}`), nom]);
 
-    let aide = 'Touchez un Personnage, puis les cases du plateau.';
+    let aide = 'Touchez un Personnage, puis les cases.';
     if (sel === 'gomme') aide = 'Touchez les Personnages à retirer.';
-    else if (sel !== null) aide = 'Touchez les cases où le poser. Touchez-le encore pour le reposer.';
+    else if (sel !== null) aide = 'Touchez les cases où le poser.';
 
     return h('div#ed-bac', [
         h('div.ed-camps', { attrs: { role: 'group', 'aria-label': 'Camp' } }, [

@@ -275,13 +275,17 @@ async def handle_ready(ws, users, user, data, game):
         if (game.variant != "janggi" ) or not (game.bsetup or game.wsetup):
             await opp_player.event_queue.put(game.game_start)
 
-        response = {"type": "gameStart", "gameId": data["gameId"]}
-        await ws_send_json(ws, response)
+        await ws_send_json(ws, message_debut(game, data))
     else:
-        response = {"type": "gameStart", "gameId": data["gameId"]}
-        await ws_send_json(ws, response)
+        await ws_send_json(ws, message_debut(game, data))
 
         await round_broadcast(game, game.spectator_list, full=True)
+
+
+def message_debut(game, data):
+    """Début de partie. Pendant un Draft, le navigateur garde le son du début pour la fin du Draft."""
+    en_draft = game.draft is not None and game.draft.phase != FINI
+    return {"type": "gameStart", "gameId": data["gameId"], "draft": en_draft}
 
 
 async def handle_board(ws, user, game):

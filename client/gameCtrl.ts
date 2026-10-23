@@ -463,30 +463,13 @@ export abstract class GameController extends ChessgroundController implements Ch
                     };
                     const theoreticMoves = premove(this.variant.name, this.chess960, this.variant.board.dimensions)(emptyBoardState, key, false);
 
-                    const shapes = theoreticMoves.map(dest => {
-                        const uniqueDiamondId = `diamond_${dest}`;
-                        const uniqueShadowId = `shadow_${dest}`;
-
-                        const moveSvg = `
-                            <defs>
-                                <linearGradient id="${uniqueDiamondId}" x1="100%" y1="100%" x2="0%" y2="0%">
-                                    <stop offset="0%" stop-color="rgb(71, 57, 46)" />
-                                    <stop offset="100%" stop-color="rgb(164, 139, 114)" />
-                                </linearGradient>
-                                <radialGradient id="${uniqueShadowId}" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                                    <stop offset="0%" stop-color="black" stop-opacity="1" />
-                                    <stop offset="100%" stop-color="black" stop-opacity=".0" />
-                                </radialGradient>
-                            </defs>
-
-                            <circle cx="50" cy="50" r="18" fill="url(#${uniqueShadowId})" opacity="1"/>
-
-                            <rect x="44" y="44" width="12" height="12" 
-                                    transform="rotate(45 50 50)" 
-                                    fill="url(#${uniqueDiamondId})" 
-                                    opacity="1" />
-                            `;
-
+                    // Motif de la carte (comme si le plateau était vide), pour une carte qu'on ne peut pas
+                    // jouer maintenant (adversaire, ou pas son tour) : losange doré plein mais transparent.
+                    // Une carte jouable ne montre que ses vrais coups (losanges pleins, chessground.css).
+                    // Pas de losange creux : dans la Collection, il veut dire « déplacement seulement ».
+                    const shapes = isFriendly ? [] : theoreticMoves.map(dest => {
+                        const moveSvg = `<rect x="40.1" y="40.1" width="19.8" height="19.8" rx="1.5"
+                                    transform="rotate(45 50 50)" fill="rgb(234, 196, 90)" opacity="0.5" />`;
                         return {
                             orig: dest,
                             customSvg: moveSvg as any

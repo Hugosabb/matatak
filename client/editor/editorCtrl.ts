@@ -140,10 +140,10 @@ export class EditorController extends ChessgroundController {
                 ]),
 
                 h('a#flip.i-pgn', { on: { click: () => this.toggleOrientation() } }, [
-                    h('div.icon.icon-refresh', 'Tourner le plateau')
+                    h('div.icon.icon-refresh', 'Tourner')
                 ]),
                 h('a#clear.i-pgn', { on: { click: () => this.setEmptyFen() } }, [
-                    h('div.icon.icon-trash-o', 'Vider le plateau')
+                    h('div.icon.icon-trash-o', 'Vider')
                 ]),
                 this.variant.pocket?.captureToHand ? h('a#fill.i-pgn', { on: { click: () => this.fillHand() } }, [
                     h('div.icon.icon-sign-in', _("FILL %1'S HAND", secondColor.toUpperCase()))
@@ -152,19 +152,19 @@ export class EditorController extends ChessgroundController {
                     h('div.icon.' + dataIcon, 'Position de départ')
                 ]),
                 h('a#analysis.i-pgn', { on: { click: () => this.setAnalysisFen() } }, [
-                    h('div.icon.icon-microscope', 'Analyser cette position')
+                    h('div.icon.icon-microscope', 'Analyser')
                 ]),
                 h('a#challengeAI.i-pgn', { on: { click: () => this.setChallengeAIFen() } }, [
-                    h('div.icon.icon-bot', 'Jouer contre l\'IA')
+                    h('div.icon.icon-bot', 'Jouer en Solo')
                 ]),
                 h('a#createseek.i-pgn', { on: { click: () => this.setSeekFen() } }, [
-                    h('div.icon.icon-crossedswords', 'Défier quelqu\'un depuis ici')
+                    h('div.icon.icon-crossedswords', 'Défier un ami')
                 ]),
                 h('a#pgn.i-pgn', { on: { click: () => copyBoardToPNG(this.parts.join(' ')) } }, [
-                    h('div.icon.icon-download', 'Exporter en image (PNG)')
+                    h('div.icon.icon-download', 'Image (PNG)')
                 ]),
                 h('a#pgn.i-pgn', { on: { click: () => copyTextToClipboard(this.parts.join(' ')) } }, [
-                    h('div.icon.icon-clipboard', 'Copier la position (FEN)')
+                    h('div.icon.icon-clipboard', 'Copier la FEN')
                 ]),
             ];
             if (this.variant.name === 'alice') {

@@ -39,6 +39,7 @@ from fairy import (
     FEN_OK,
     NOTATION_SAN,
     get_san_moves,
+    sans_reserve,
     validate_fen,
 )
 from fairy.jieqi import make_initial_mapping
@@ -785,6 +786,7 @@ def pgn(doc):
 
 
 def sanitize_fen(variant, initial_fen, chess960, base=False):
+    initial_fen = sans_reserve(variant, initial_fen)
     server_variant = get_server_variant(variant, chess960)
     if server_variant.two_boards and not base:
         fens = initial_fen.split(" | ")

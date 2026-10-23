@@ -253,128 +253,95 @@ cg-board square {
   height: 11.11%;
 }
 
-/* --- Animation Keyframes (Conservés) --- */
+/* --- Cases : aux couleurs MATATAK (or, ambre ; pas de rouge, pas de contour noir) ---
+ * Losanges, comme le plateau et les cartes. Case jouable : losange doré plein. Prise : grand losange
+ * doré sur halo sombre, carte assombrie (un cadre doré se perdait sur la Colline). Carte adverse
+ * touchée : son motif en losanges transparents (gameCtrl.onSelect). Jamais de losange creux : dans la
+ * Collection, il veut dire « déplacement seulement ». Au survol, le losange grossit.
+ * Dernier coup : les deux cases teintées d'or, sans animation. MATATAK ! (échec) : halo orange vif qui
+ * déborde autour de la carte du Roi et pulse vite (à ne pas confondre avec le dernier coup). */
 
-@keyframes pulse-blood-inset {
-  0% {
-    box-shadow: inset 0 0 10px 4px rgba(205, 50, 50, 0.6);
-  }
-
-  50% {
-    box-shadow: inset 0 0 14px 7px rgba(205, 50, 50, 0.8);
-  }
-
-  100% {
-    box-shadow: inset 0 0 10px 4px rgba(205, 50, 50, 0.6);
-  }
+@keyframes matatak-pulse {
+  from { box-shadow: 0 0 0 3px #ff9a1f, 0 0 10px 4px rgba(255, 154, 31, 0.6), inset 0 0 14px 6px rgba(255, 154, 31, 0.7); }
+  to { box-shadow: 0 0 0 4px #ffb84d, 0 0 26px 12px rgba(255, 154, 31, 0.85), inset 0 0 22px 10px rgba(255, 154, 31, 0.95); }
 }
-
-@keyframes shimmer-bronze-inset {
-  0% {
-    box-shadow: inset 0 0 12px 4px rgba(200, 160, 50, 0.2);
-  }
-
-  50% {
-    box-shadow: inset 0 0 16px 8px rgba(220, 180, 70, 0.35);
-  }
-
-  100% {
-    box-shadow: inset 0 0 12px 4px rgba(200, 160, 50, 0.2);
-  }
-}
-
-
-/* --- Styles des Cases --- */
 
 cg-board square {
   background: none;
   transition: background 0.1s ease-out, box-shadow 0.1s ease-out;
 }
 
+cg-board square.last-move {
+  background-color: rgba(234, 196, 90, 0.2);
+}
+
 cg-board square.selected {
-  background-color: rgba(255, 215, 0, 0.05);
-  box-shadow: inset 0 0 15px 5px rgba(255, 200, 100, 0.4);
+  background-color: rgba(234, 196, 90, 0.3);
+  box-shadow: inset 0 0 0 3px rgba(234, 196, 90, 0.9);
+}
+
+cg-board square.move-dest,
+cg-board square.oc.move-dest {
+  transition: background-size 0.15s ease-out, background-color 0.15s ease-out;
 }
 
 cg-board square.move-dest {
-  background: radial-gradient(circle at center,
-      transparent 18%,
-      rgba(164, 139, 114, 0.7) 30%,
-      transparent 35%);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 36 64 50 50 64 36 50z' fill='%23eac45a'/%3E%3C/svg%3E") center / 100% no-repeat;
   z-index: 10;
   pointer-events: auto;
 }
 
-/* * CORRIGÉ AVEC Z-INDEX *
- * On remet le z-index pour que la case soit
- * au-dessus de la pièce et capture le :hover.
- */
+/* Au-dessus de la carte (z-index) pour capter le survol */
 cg-board square.oc.move-dest {
-  animation: none;
-  background: radial-gradient(circle at center,
-      transparent 18%,
-      rgba(155, 40, 40, 0.9) 25%,
-      rgba(155, 40, 40, 0.9) 30%,
-      transparent 35%);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 25 75 50 50 75 25 50z' fill='%23140d0a' fill-opacity='.6'/%3E%3Cpath d='M50 31 69 50 50 69 31 50z' fill='%23eac45a'/%3E%3C/svg%3E") center / 100% no-repeat, rgba(20, 13, 10, 0.3);
   z-index: 10;
   pointer-events: auto;
-}
-
-/* Le 'last-move' anime le box-shadow,
-   il peut donc se combiner avec le 'background' de .oc.move-dest */
-cg-board square.last-move {
-  will-change: box-shadow;
-  animation: shimmer-bronze-inset 2s infinite alternate;
 }
 
 cg-board square.check {
-  background: none !important;
-  will-change: box-shadow;
-  animation: pulse-blood-inset 1.2s infinite alternate;
+  z-index: 1;
+  background-color: rgba(255, 154, 31, 0.35);
+  animation: matatak-pulse 0.6s ease-in-out infinite alternate;
 }
 
-/* --- Styles Premove --- */
 cg-board square.premove-dest {
-  background: radial-gradient(circle, rgba(255, 200, 80, 0.3) 0%, transparent 30%);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 36 64 50 50 64 36 50z' fill='%23eac45a' fill-opacity='.4'/%3E%3C/svg%3E") center / 100% no-repeat;
   z-index: 10;
 }
 
 cg-board square.oc.premove-dest {
-  background: radial-gradient(transparent 80%, rgba(205, 50, 50, 0.3) 80%);
+  box-shadow: inset 0 0 0 3px rgba(234, 196, 90, 0.4);
   z-index: 10;
-  /* Ajout du z-index ici aussi */
 }
 
 cg-board square.current-premove {
-  background-color: rgba(200, 150, 50, 0.2);
+  background-color: rgba(234, 196, 90, 0.25);
 }
 
+@media (hover: hover) {
+  cg-board square.move-dest:hover {
+    background-size: 150%;
+    background-color: rgba(234, 196, 90, 0.22);
+  }
+  cg-board square.oc.move-dest:hover {
+    background-size: 125%, 100%;
+  }
+}
 
-/* --- HOVER (Fonctionne maintenant) --- */
-
-cg-board square.move-dest:hover,
 cg-board square.move-dest.drag-over {
-
-  background: radial-gradient(circle at center,
-      transparent 18%,
-      rgba(164, 139, 114, 0.9) 30%,
-      transparent 45%);
-  box-shadow: 0 0 15px 5px rgba(164, 139, 114, 0.7);
+  background-size: 150%;
+  background-color: rgba(234, 196, 90, 0.3);
 }
 
-/* Le :hover de capture n'a plus de conflit */
-cg-board square.oc.move-dest:hover,
 cg-board square.oc.move-dest.drag-over {
-
-  /* On s'assure que le fond (coins rouges) reste */
-  background: radial-gradient(circle at center,
-      transparent 18%,
-      rgba(155, 40, 40, 0.9) 25%,
-      rgba(155, 40, 40, 0.9) 30%,
-      transparent 45%);
-  /* On ajoute le halo externe */
-  box-shadow: 0 0 15px 5px rgba(155, 40, 40, 0.9);
+  background-size: 125%, 100%;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  cg-board square.check { animation: none; box-shadow: 0 0 0 4px #ff9a1f, 0 0 20px 8px rgba(255, 154, 31, 0.8), inset 0 0 18px 8px rgba(255, 154, 31, 0.9); }
+  cg-board square.move-dest, cg-board square.oc.move-dest { transition: none; }
+}
+
 
 
 

@@ -14,6 +14,7 @@ from fairy.fairy_board import (
     NOTATION_SHOGI_HODGES_NUMBER,
     get_fog_fen,
     get_san_moves,
+    sans_reserve,
     validate_fen,
 )
 
@@ -33,5 +34,6 @@ __all__ = [
     NOTATION_SHOGI_HODGES_NUMBER,
     get_fog_fen,
     get_san_moves,
+    sans_reserve,
     validate_fen,
 ]

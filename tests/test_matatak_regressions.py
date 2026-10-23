@@ -4,6 +4,7 @@
 import json
 import logging
 import time
+import unittest
 from unittest.mock import AsyncMock, patch
 
 from aiohttp.test_utils import AioHTTPTestCase
@@ -602,3 +603,24 @@ class CampagneTestCase(AioHTTPTestCase):
         for chemin in ("/variants", "/variants/matatak"):
             resp = await self.client.get(chemin, allow_redirects=False)
             self.assertEqual((resp.status, resp.headers["Location"]), (302, "/apprendre"))
+
+
+class SansDropTestCase(unittest.TestCase):
+    """Matatak n'a plus de drop (23/10/2026) : une FEN enregistrée avant, avec sa réserve « [] » ou
+    « [FFff] » (ancien Draft), doit encore se charger, sans réserve."""
+
+    def test_fen_avec_reserve(self):
+        from fairy import FairyBoard
+        from utils import sanitize_fen
+
+        for variant, fen in (
+            ("matatakmini", "1kc1/1mm1/4/4/4/4/1FF1/1XK1[] w - - 0 1"),
+            ("matatak", "3kx3/3ff3/8/8/8/8/3LL3/3WK3[FFff] w - - 0 1"),
+        ):
+            board = FairyBoard(variant, fen)
+            self.assertNotIn("[", board.initial_fen)
+            self.assertNotIn("[", board.fen)
+            self.assertTrue(board.legal_moves())
+            valide, propre = sanitize_fen(variant, fen, False)
+            self.assertTrue(valide, fen)
+            self.assertNotIn("[", propre)

@@ -5,38 +5,19 @@ import { AnalysisController } from './analysisCtrl';
 import { patch } from './document';
 
 export function renderClocks(ctrl: AnalysisController) {
-    // Partie sans pendule (Sans limite) : pas de 00:00.0 sur le plateau
-    if (ctrl.base === 0 && ctrl.inc === 0) {
-        document.querySelectorAll<HTMLElement>('.anal-clock, #anal-clock-top, #anal-clock-bottom').forEach(e => e.style.display = 'none');
-        return;
-    }
+    // Les pendules du plateau (pychess) restent cachées : le temps de chaque joueur au coup
+    // affiché s'écrit à droite de son nom, dans le panneau de la partie (gameInfo).
+    document.querySelectorAll<HTMLElement>('.anal-clock, #anal-clock-top, #anal-clock-bottom').forEach(e => e.style.display = 'none');
+    // Partie sans pendule (Sans limite) : rien à montrer
+    if (ctrl.base === 0 && ctrl.inc === 0) return;
+    const clocks = ctrl.steps[ctrl.ply]?.clocks;
     const isWhiteTurn = ctrl.turnColor === "white";
-    const whitePov = (ctrl.mycolor === "white" && !ctrl.flipped()) || ( ctrl.mycolor === "black" && ctrl.flipped());
-
-    const wclass = whitePov ? 'bottom' : 'top';
-    const wtime = ctrl.steps[ctrl.ply]?.clocks![WHITE];
-    let wel: VNode | HTMLElement = document.querySelector(`div.anal-clock.${wclass}`) as HTMLElement;
-    if (wel) {
-        wel = patch(wel, h(`div.anal-clock.${wclass}`, ''));
-        patch(wel, renderClock(wtime!, isWhiteTurn, wclass));
-    }
-    const bclass = whitePov ? 'top' : 'bottom';
-    const btime = ctrl.steps[ctrl.ply]?.clocks![BLACK];
-    let bel: VNode | HTMLElement = document.querySelector(`div.anal-clock.${bclass}`) as HTMLElement;
-    if (bel) {
-        bel = patch(bel, h(`div.anal-clock.${bclass}`, ''));
-        patch(bel, renderClock(btime!, !isWhiteTurn, bclass));
-    }
-}
-
-function renderClock(time: number, active: boolean, cls: string): VNode {
-  return h(
-    'div.anal-clock.' + cls,
-    {
-      class: { active },
-    },
-    clockContent(time)
-  );
+    ([['white', WHITE, isWhiteTurn], ['black', BLACK, !isWhiteTurn]] as const).forEach(([couleur, index, active]) => {
+        const el = document.querySelector(`.temps-${couleur}`);
+        // Vider d'abord : patcher un élément du DOM ajoute les enfants sans retirer les anciens
+        if (el) el.replaceChildren();
+        if (el) patch(el, h(`span.temps.temps-${couleur}`, { class: { active } }, clocks ? clockContent(clocks[index]) : ''));
+    });
 }
 
 function clockContent(time: number): Array<string | VNode> {

@@ -14,35 +14,27 @@ export function gameInfo(model: PyChessModel): VNode {
     // console.log("roundView model=", model);
     const variant = VARIANTS[model.variant];
     const chess960 = model.chess960 === 'True';
-    const dataIcon = variant.icon(chess960);
     const tc = timeControlStr(model["base"], model["inc"], model["byo"], model["corr"] === "True" ? model["base"] : 0);
     const altStartName = alternateStartName(variant, model.initialFen);
     const startFen = model.initialFen.replace(/\+/g, '.');
     const sections = [
         h('section', [
-            h('div.info0.icon', { attrs: { "data-icon": dataIcon } }, [
-                h('div.info2', [
-                    h('div.tc', [
-                        tc + " • " + gameType(model["rated"]) + " • ",
-                        h('a.user-link', {
-                            attrs: {
-                                target: '_blank',
-                                href: '/variants/' + model["variant"] + (chess960 ? '960' : ''),
-                            }
-                        },
-                            variant.displayName(chess960)),
-                    ]),
-                    h('div', (altStartName) ? altStartName : ''),
-                    h('div.info-statut', Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now")),
-                ]),
+            // Une ligne : cadence, partie classée, date (le plateau et la variante se voient déjà)
+            h('div.info-meta', [
+                tc + (model["rated"] === '1' ? ' · ' + gameType(model["rated"]) : '') + ' · ',
+                Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now"),
+                altStartName ? h('div', altStartName) : '',
             ]),
+            // Temps restant de chaque joueur au coup affiché : rempli par analysisClock.renderClocks
             h('div.player-data', [
                 h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.first)]: true } }),
                 h('player', playerInfo(model, 'w')),
+                h('span.temps.temps-white'),
             ]),
             h('div.player-data', [
                 h('i-side.icon', { class: { [colorIcon(model.variant, variant.colors.second)]: true } }),
                 h('player', playerInfo(model, 'b')),
+                h('span.temps.temps-black'),
             ]),
         ]),
     ];

@@ -34,7 +34,7 @@
     <link rel="stylesheet" href={{ static("bughouse.css") }}>
     <link rel="stylesheet" href={{ static("piece/mono/mono.css") }}>
     <link rel="stylesheet" href={{ static(view_css) }}>
-    {% if extra_css %}<link rel="stylesheet" href={{ static(extra_css) }}>{% endif %}
+    {% if extra_css %}{% for css in ([extra_css] if extra_css is string else extra_css) %}<link rel="stylesheet" href={{ static(css) }}>{% endfor %}{% endif %}
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href={{ static("favicon/apple-icon-180x180.png") }}>
     <link rel="icon" href={{ static("favicon/favicon.ico") }} type="image/x-icon" />

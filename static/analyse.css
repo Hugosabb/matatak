@@ -1,163 +1,175 @@
-/* Page Analyse (vue analysis : /analysis/{variante} et /{partie}?ply=…) aux couleurs MATATAK.
+/* Pages Analyse (vue analysis : /analysis/{variante} et /{partie}?ply=…) et Puzzle (vue puzzle) aux couleurs MATATAK.
  * Chargée après analysis.css (extra_css de server/views/analysis.py).
  * Ordinateur : infos à gauche, plateau au centre à sa taille maximale (comme en partie), jauge
  * « qui mène » collée au plateau, moteur + coups + barre à droite. Téléphone : infos, plateau,
  * jauge horizontale, barre, moteur, coups. */
 
-body[data-view="analysis"] .analysis-app { gap: 12px; padding: 0 16px 24px; }
-body[data-view="analysis"] under-left#spectators,
-body[data-view="analysis"] #roundchat,
-body[data-view="analysis"] .pocket-top,
-body[data-view="analysis"] .pocket-bot { display: none !important; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app { gap: 12px; padding: 0 16px 24px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) under-left#spectators,
+body:is([data-view="analysis"], [data-view="puzzle"]) #roundchat,
+body:is([data-view="analysis"], [data-view="puzzle"]) .pocket-top,
+body:is([data-view="analysis"], [data-view="puzzle"]) .pocket-bot,
+body:is([data-view="analysis"], [data-view="puzzle"]) .anal-clock { display: none !important; }
 
 /* ---------- Infos de la partie (ou choix du plateau en analyse libre) ---------- */
-body[data-view="analysis"] .game-info,
-body[data-view="analysis"] .sidebar-first > .container {
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info,
+body:is([data-view="analysis"], [data-view="puzzle"]) .sidebar-first > .container {
   padding: 14px 16px; border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
 }
-body[data-view="analysis"] .sidebar-first > .container { background: none; box-shadow: none; padding: 0; }
-body[data-view="analysis"] .game-info .user-link { font: 800 15px 'Nunito', sans-serif; color: var(--mt-encre); }
-body[data-view="analysis"] .joueur-ia small { font-weight: 600; color: var(--mt-discret); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .sidebar-first > .container { background: none; box-shadow: none; padding: 0; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .user-link { font: 800 15px 'Nunito', sans-serif; color: var(--mt-encre); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info section { display: grid; gap: 6px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .info-meta { font: 600 13px/1.4 'Nunito', sans-serif; color: var(--mt-discret); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .player-data { display: flex; align-items: center; gap: 8px; min-height: 30px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .player-data player { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Temps restant au coup affiché, à droite du nom ; celui qui a le trait en or */
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .temps { flex: none; font: 800 15px 'Nunito', sans-serif; font-variant-numeric: tabular-nums; color: var(--mt-doux); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .temps:empty { display: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .temps.active { color: var(--mt-or); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .temps tenths { font-size: 80%; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .joueur-ia small { font-weight: 600; color: var(--mt-discret); }
 
 /* ---------- Jauge « qui mène » : blanc en bas, noir en haut ---------- */
-body[data-view="analysis"] #gauge {
+body:is([data-view="analysis"], [data-view="puzzle"]) #gauge {
   width: 12px; border-radius: 6px; background: var(--mt-encre);
   box-shadow: inset 0 0 0 1px var(--mt-filet);
 }
-body[data-view="analysis"] #gauge::after { box-shadow: none; }
-body[data-view="analysis"] #gauge .black { background: var(--mt-noir); }
-body[data-view="analysis"] #gauge .tick { border-bottom: 1px solid rgba(138, 118, 102, .35); opacity: 1; }
-body[data-view="analysis"] #gauge .tick.zero { border-bottom: 2px solid var(--mt-or); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #gauge::after { box-shadow: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #gauge .black { background: var(--mt-noir); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #gauge .tick { border-bottom: 1px solid rgba(138, 118, 102, .35); opacity: 1; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #gauge .tick.zero { border-bottom: 2px solid var(--mt-or); }
 
 /* ---------- Moteur ---------- */
-body[data-view="analysis"] .analysis-tools { display: flex; flex-direction: column; gap: 10px; min-width: 0; box-shadow: none; }
-body[data-view="analysis"] #ceval .engine { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
-body[data-view="analysis"] #ceval score {
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-tools { display: flex; flex-direction: column; gap: 10px; min-width: 0; box-shadow: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval .engine { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval score {
   min-width: 2.6em; font: 900 22px 'Nunito', sans-serif; color: var(--mt-or); text-align: center; font-variant-numeric: tabular-nums;
 }
-body[data-view="analysis"] #ceval score:empty { display: none; }
-body[data-view="analysis"] #ceval .info { flex: 1; min-width: 0; line-height: 1.3; }
-body[data-view="analysis"] #ceval .info br { display: none; }
-body[data-view="analysis"] #ceval .info info { display: block; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval score:empty { display: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval .info { flex: 1; min-width: 0; line-height: 1.3; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval .info br { display: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval .info info { display: block; }
 /* Interrupteurs : or au lieu du vert pychess */
-body[data-view="analysis"] .sw-slider { border: 0; background: var(--mt-noir); box-shadow: inset 0 0 0 1.5px var(--mt-filet); }
-body[data-view="analysis"] .sw-slider:before { background: var(--mt-doux); box-shadow: none; left: 2px; bottom: 2px; height: 20px; width: 20px; }
-body[data-view="analysis"] input:checked + .sw-slider { background: var(--mt-or); box-shadow: none; }
-body[data-view="analysis"] input:checked + .sw-slider:before { background: var(--mt-nuit); }
-body[data-view="analysis"] .sw-slider:hover, body[data-view="analysis"] input:focus + .sw-slider { box-shadow: inset 0 0 0 1.5px var(--mt-or); }
-body[data-view="analysis"] input:focus-visible + .sw-slider { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .sw-slider { border: 0; background: var(--mt-noir); box-shadow: inset 0 0 0 1.5px var(--mt-filet); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .sw-slider:before { background: var(--mt-doux); box-shadow: none; left: 2px; bottom: 2px; height: 20px; width: 20px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) input:checked + .sw-slider { background: var(--mt-or); box-shadow: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) input:checked + .sw-slider:before { background: var(--mt-nuit); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .sw-slider:hover, body:is([data-view="analysis"], [data-view="puzzle"]) input:focus + .sw-slider { box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+body:is([data-view="analysis"], [data-view="puzzle"]) input:focus-visible + .sw-slider { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
 /* Lignes du moteur */
-body[data-view="analysis"] .pvbox .pv { padding: 8px 14px; font: 600 13.5px/1.45 'Nunito', sans-serif; color: var(--mt-doux); border-top: 1px solid var(--mt-filet); }
-body[data-view="analysis"] .pvbox .pv:first-child { border-top: 0; }
-body[data-view="analysis"] pv-san { cursor: pointer; }
-body[data-view="analysis"] pv-san:hover { color: var(--mt-encre); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .pvbox .pv { padding: 8px 14px; font: 600 13.5px/1.45 'Nunito', sans-serif; color: var(--mt-doux); border-top: 1px solid var(--mt-filet); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .pvbox .pv:first-child { border-top: 0; }
+body:is([data-view="analysis"], [data-view="puzzle"]) pv-san { cursor: pointer; }
+body:is([data-view="analysis"], [data-view="puzzle"]) pv-san:hover { color: var(--mt-encre); }
 
-/* ---------- Coups : pastilles qui s'enchaînent, comme la ligne de l'écran de partie ---------- */
+/* ---------- Coups : un tableau à trois colonnes (n° | Blancs | Noirs), plus lisible que des pastilles qui s'enchaînent ---------- */
 /* flex: 2 1 0 hérité écrasait la liste à zéro dans la colonne de droite */
-body[data-view="analysis"] .movelist-block { flex: none; min-height: 0; height: auto; max-height: none; border: 0; }
-body[data-view="analysis"] #movelist {
-  display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px 2px; height: auto; min-height: 0;
-  max-height: 40vh; overflow-y: auto; padding: 10px; background: none;
+body:is([data-view="analysis"], [data-view="puzzle"]) .movelist-block { flex: none; min-height: 0; height: auto; max-height: none; border: 0; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist {
+  display: grid; grid-template-columns: 2.4em 1fr 1fr; align-content: start; gap: 2px 4px; height: auto; min-height: 0;
+  max-height: 40vh; overflow-y: auto; padding: 8px; background: none;
 }
-body[data-view="analysis"] #movelist > move {
-  flex: none; display: flex; align-items: center; height: 28px; padding: 0 8px; border: 0; border-radius: 8px; background: none;
-  font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); cursor: pointer;
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > move {
+  display: flex; align-items: center; height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: none;
+  font: 700 14.5px 'Nunito', sans-serif; color: var(--mt-encre); cursor: pointer;
 }
-body[data-view="analysis"] #movelist > move:not(.counter):hover { color: var(--mt-encre); background: var(--mt-surface-2); }
-body[data-view="analysis"] #movelist > move.counter { padding: 0 2px 0 8px; font-weight: 600; font-size: 13px; color: var(--mt-discret); cursor: default; }
-body[data-view="analysis"] #movelist > move.counter:hover { background: none; }
-body[data-view="analysis"] #movelist > move.active { background: var(--mt-surface-2); color: var(--mt-or); box-shadow: inset 0 0 0 1.5px var(--mt-or); }
-body[data-view="analysis"] #movelist eval { margin-left: 4px; font-size: 11px; color: var(--mt-discret); }
-body[data-view="analysis"] #movelist > .result,
-body[data-view="analysis"] #movelist > .status { flex-basis: 100%; text-align: center; font: 700 13.5px 'Nunito', sans-serif; color: var(--mt-doux); }
-body[data-view="analysis"] #movelist > .result { margin-top: 6px; color: var(--mt-encre); }
-body[data-view="analysis"] #movelist > .status { font-style: normal; color: var(--mt-discret); }
-body[data-view="analysis"] #vari:empty, body[data-view="analysis"] #misc-info { display: none; }
-body[data-view="analysis"] #ceval, body[data-view="analysis"] #movelist > .result { border: 0; }
-body[data-view="analysis"] .pvbox .pv { border-bottom: 0; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > move:not(.counter):hover { background: var(--mt-surface-2); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > move.counter { justify-content: flex-end; padding: 0 4px 0 0; font-weight: 600; font-size: 13px; color: var(--mt-discret); cursor: default; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > vari { grid-column: 1 / -1; padding: 4px 10px; font: 600 13px 'Nunito', sans-serif; color: var(--mt-doux); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > move.counter:hover { background: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > move.active { background: var(--mt-surface-2); color: var(--mt-or); box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist eval { margin-left: auto; padding-left: 6px; font-size: 11px; color: var(--mt-discret); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > .result,
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > .status { grid-column: 1 / -1; text-align: center; font: 700 13.5px 'Nunito', sans-serif; color: var(--mt-doux); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > .result { margin-top: 6px; color: var(--mt-encre); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > .status { font-style: normal; color: var(--mt-discret); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #vari:empty, body:is([data-view="analysis"], [data-view="puzzle"]) #misc-info { display: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval, body:is([data-view="analysis"], [data-view="puzzle"]) #movelist > .result { border: 0; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .pvbox .pv { border-bottom: 0; }
 /* Rien à montrer (moteur éteint, aucun coup joué) : pas de barre vide */
-body[data-view="analysis"] .pvbox:not(:has(.pv)),
-body[data-view="analysis"] .movelist-block:has(#movelist:empty) { display: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .pvbox:not(:has(pvline:not(:empty))),
+body:is([data-view="analysis"], [data-view="puzzle"]) .movelist-block:has(#movelist:empty) { display: none; }
 
 /* ---------- Barre : tourner, début, ‹, ›, fin, réglages ---------- */
-body[data-view="analysis"] div.btn-controls {
+body:is([data-view="analysis"], [data-view="puzzle"]) div.btn-controls {
   display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px;
   border-radius: 14px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
 }
-body[data-view="analysis"] div.btn-controls button {
+body:is([data-view="analysis"], [data-view="puzzle"]) div.btn-controls button {
   min-height: 44px; border: 0; border-radius: 10px; background: none; color: var(--mt-doux); cursor: pointer;
   touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-body[data-view="analysis"] div.btn-controls button:hover { background: var(--mt-surface-2); color: var(--mt-encre); }
-body[data-view="analysis"] div.btn-controls button.active,
-body[data-view="analysis"] button#bars.active { background: var(--mt-or) !important; color: var(--mt-nuit); }
-body[data-view="analysis"] div.btn-controls button:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: -2px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) div.btn-controls button:hover { background: var(--mt-surface-2); color: var(--mt-encre); }
+body:is([data-view="analysis"], [data-view="puzzle"]) div.btn-controls button.active,
+body:is([data-view="analysis"], [data-view="puzzle"]) button#bars.active { background: var(--mt-or) !important; color: var(--mt-nuit); }
+body:is([data-view="analysis"], [data-view="puzzle"]) div.btn-controls button:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: -2px; }
 
 /* ---------- Réglages du moteur (bouton ☰) ---------- */
-body[data-view="analysis"] .analysis-settings {
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings {
   border-bottom: 0; flex-direction: column; gap: 14px; padding: 16px; border-radius: 16px;
   background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
 }
-body[data-view="analysis"] .analysis-settings > div { display: flex; align-items: center; gap: 12px; margin: 0; }
-body[data-view="analysis"] .analysis-settings label { font: 700 14.5px 'Nunito', sans-serif; color: var(--mt-encre); }
-body[data-view="analysis"] .analysis-settings .labelled { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; }
-body[data-view="analysis"] .analysis-settings .labelled input[type="range"] {
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings > div { display: flex; align-items: center; gap: 12px; margin: 0; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings label { font: 700 14.5px 'Nunito', sans-serif; color: var(--mt-encre); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings .labelled { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings .labelled input[type="range"] {
   grid-column: 1 / -1; grid-row: 2; width: 100%; height: 6px; margin: 8px 0; padding: 0; border: 0; border-radius: 3px;
   -webkit-appearance: none; appearance: none; background: var(--mt-noir); box-shadow: inset 0 0 0 1px var(--mt-filet); cursor: pointer;
 }
-body[data-view="analysis"] .analysis-settings input[type="range"]::-webkit-slider-thumb {
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--mt-or);
 }
-body[data-view="analysis"] .analysis-settings input[type="range"]::-moz-range-thumb {
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings input[type="range"]::-moz-range-thumb {
   width: 20px; height: 20px; border: 0; border-radius: 50%; background: var(--mt-or);
 }
-body[data-view="analysis"] .analysis-settings .labelled > div { font: 700 13px 'Nunito', sans-serif; color: var(--mt-or); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings .labelled > div { font: 700 13px 'Nunito', sans-serif; color: var(--mt-or); }
 
 /* Graphiques pychess (analyse serveur, temps par coup) : pas pour Matatak (loi de Hick) */
-body[data-view="analysis"] under-board { display: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) under-board { display: none; }
 
 /* ---------- Ordinateur ---------- */
 @media (min-width: 800px) {
-  body[data-view="analysis"] .analysis-app {
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app {
     --haut: calc(100vh - var(--site-header-height) - var(--site-header-margin) - 3rem);
     --cote: clamp(220px, 18vw, 340px);
     --plateau: min(var(--haut), calc(100vw - 2 * var(--cote) - 90px));
     grid-template-columns: var(--cote) var(--plateau) 12px var(--cote);
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    /* Barre ‹ › juste sous les coups (avant : collée en bas, loin de la liste) */
     grid-template-areas:
       'side board gauge tools'
-      'side board gauge tools'
-      'side board gauge move-controls';
+      'side board gauge move-controls'
+      'side board gauge .';
     justify-content: center; align-items: start; column-gap: 14px; row-gap: 12px; padding-top: 12px;
   }
-  body[data-view="analysis"] .analysis-app:has(#mainboard.matatak4x8) { --plateau: calc(var(--haut) / 2); }
-  body[data-view="analysis"] .analysis-app #mainboard,
-  body[data-view="analysis"] .analysis-app #mainboard.matatak4x8 { width: var(--plateau); }
-  body[data-view="analysis"] #gauge { height: calc(var(--plateau) * var(--ratio, 1)); align-self: start; }
-  body[data-view="analysis"] .analysis-app:has(#mainboard.matatak4x8) #gauge { --ratio: 2; }
-  body[data-view="analysis"] .analysis-tools,
-  body[data-view="analysis"] .analysis-settings { grid-area: tools; max-height: calc(var(--haut) - 70px); overflow-y: auto; }
-  body[data-view="analysis"] #movelist { max-height: none; }
-  body[data-view="analysis"] #move-controls, body[data-view="analysis"] div.btn-controls { grid-area: move-controls; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) { --plateau: calc(var(--haut) / 2); }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app #mainboard,
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app #mainboard.matatak4x8 { width: var(--plateau); }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #gauge { height: calc(var(--plateau) * var(--ratio, 1)); align-self: start; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) #gauge { --ratio: 2; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-tools,
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings { grid-area: tools; max-height: calc(var(--haut) - 70px); overflow-y: auto; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #movelist { max-height: none; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #move-controls, body:is([data-view="analysis"], [data-view="puzzle"]) div.btn-controls { grid-area: move-controls; }
   /* Les coordonnées du plateau restent à droite, comme en partie */
-  body[data-view="analysis"] .cg-wrap coords.side { right: 0; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .cg-wrap coords.side { right: 0; }
 }
 
 /* ---------- Téléphone : jauge horizontale sous le plateau (Noirs à gauche, Blancs à droite) ---------- */
 @media (max-width: 799px) {
-  body[data-view="analysis"] .analysis-app {
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'side' 'board' 'gauge' 'move-controls' 'tools';
   }
-  body[data-view="analysis"] .analysis-app #mainboard { justify-self: center; }
-  body[data-view="analysis"] .analysis-app #mainboard.matatak4x8 { width: min(100%, calc((100svh - 300px) / 2)); }
-  body[data-view="analysis"] #gauge { display: block !important; width: 100%; height: 10px; }
-  body[data-view="analysis"] .movelist-block { height: auto; max-height: none; }
-  body[data-view="analysis"] #gauge .black { width: var(--noirs, 50%); height: 100% !important; }
-  body[data-view="analysis"] #gauge .tick { display: none; }
-  body[data-view="analysis"] #gauge::before {
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app #mainboard { justify-self: center; width: 100%; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app #mainboard.matatak4x8 { width: min(100%, calc((100svh - 300px) / 2)); }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #gauge { display: block !important; width: 100%; height: 10px; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .movelist-block { height: auto; max-height: none; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #gauge .black { width: var(--noirs, 50%); height: 100% !important; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #gauge .tick { display: none; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #gauge::before {
     content: ''; position: absolute; z-index: 1; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--mt-or);
   }
-  body[data-view="analysis"] #gauge.flipped { transform: scaleX(-1); }
-  body[data-view="analysis"] #movelist { max-height: none; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #gauge.flipped { transform: scaleX(-1); }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #movelist { max-height: none; }
 }

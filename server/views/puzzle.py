@@ -86,7 +86,7 @@ async def puzzle(request):
         wrating = puzzle_rating
 
     context["view_css"] = "analysis.css"
-    context["extra_css"] = "puzzle.css"
+    context["extra_css"] = ["analyse.css", "puzzle.css"]  # même style que la page Analyse
     context["variant"] = variant
     context["fen"] = puzzle["fen"]
     context["wrating"] = wrating

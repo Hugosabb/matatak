@@ -89,6 +89,15 @@ async def une_etape_de_draft(page, choix_groupe=0):
         return titre
     if titre.startswith("Choisissez"):
         await page.locator(".dr-zone.choix").nth(choix_groupe).click()
+    elif titre.startswith("Formez"):
+        # Toucher deux cartes de groupes différents les échange (la 2e carte : jamais un Roi)
+        groupe1 = page.locator(".dr-zone").nth(0).locator("button.dr-carte").nth(1)
+        groupe2 = page.locator(".dr-zone").nth(1).locator("button.dr-carte").nth(1)
+        piece = lambda carte: carte.locator("piece").get_attribute("class")  # noqa: E731
+        avant = [await piece(groupe1), await piece(groupe2)]
+        await groupe1.click()
+        await groupe2.click()
+        assert [await piece(groupe1), await piece(groupe2)] == avant[::-1], "pas d'échange"
     elif titre.startswith("Placez"):
         rangee = page.locator(".dr-rangee").first.locator("button.dr-carte")
         await rangee.nth(0).click()

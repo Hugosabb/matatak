@@ -77,6 +77,7 @@ class FairyBoard:
     def __init__(
         self, variant: str, initial_fen="", chess960=False, count_started=0, disabled_fen="", isDraft=False, boost=0
     ):
+        initial_fen = sans_reserve(variant, initial_fen)
         self.variant = modded_variant(variant, chess960, initial_fen)
         self.sf = sf_alice if variant == "alice" else sf
         self.chess960 = chess960
@@ -607,6 +608,15 @@ def get_san_moves(variant, fen, mlist, chess960, notation):
         return sf_alice.get_san_moves(variant, fen, mlist, chess960, notation)
     else:
         return sf.get_san_moves(variant, fen, mlist, chess960, notation)
+
+
+def sans_reserve(variant, fen):
+    """Matatak n'a plus de drop (23/10/2026) : les parties et liens enregistrés avant gardent une réserve
+    « [] » (ou « [FFff] », ancien Draft) dans leur FEN, que Fairy-Stockfish refuse maintenant
+    (validate_fen). On la retire à chaque FEN Matatak qui entre."""
+    if fen and variant.startswith("matatak"):
+        return re.sub(r"\[[^\]]*\]", "", fen)
+    return fen
 
 
 def validate_fen(fen, variant, chess960):

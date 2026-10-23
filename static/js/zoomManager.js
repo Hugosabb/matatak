@@ -13,8 +13,9 @@
 
     //Attach this function to each element detected by the observer
     function attachZoomEvents(target) {
-        // Cartes du Draft (client/draft.ts) : déjà en grand, l'aperçu cacherait les groupes
-        if (target.closest && target.closest('.draft')) return;
+        // Cartes du Draft (client/draft.ts) : déjà en grand, l'aperçu cacherait les groupes.
+        // Éditeur : le clone se glissait dans le bouton du bac (taille du cadre qui change) et gênait la pose.
+        if (target.closest && target.closest('.draft, .editor-app')) return;
 
         let clone = null;
         let zoomTimer = null;
@@ -61,7 +62,7 @@
                     left: `${rect.left - boardRect.left}px`,
                     width: `${rect.width}px`,
                     height: `${rect.height}px`,
-                    pointerEvents: 'None',
+                    pointerEvents: 'none',
                     transform: 'scale(1)',
                     zIndex: '9999',
                     backgroundSize: '100%',
@@ -99,7 +100,8 @@
                                 translateX+= (boardRect.width - rect.width - (zoomedSize - rect.width) / 2) - newLeft;
                             }
                         }}
-                    // apply scale + translate
+                    // apply scale + translate (le clone a pu disparaître entre-temps : souris partie)
+                    if (!clone) return;
                     clone.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 
                 }, 20);

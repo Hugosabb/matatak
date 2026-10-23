@@ -1,7 +1,7 @@
 @import 'switch.css';
 /* Éditeur de position (client/editor/editor.ts, pieceRow.ts).
  * Ordinateur : bac des Personnages à gauche, plateau au centre à sa taille maximale (comme en
- * partie), outils à droite. Téléphone : plateau, bac en une ligne qui défile, outils. */
+ * partie), outils à droite. Téléphone : plateau, bac en grille de 8 cartes, outils. */
 #main-wrap {
   --main-max-width: auto;
 }
@@ -15,7 +15,6 @@
 .ed-gauche { grid-area: gauche; min-width: 0; }
 .editor-app #mainboard { grid-area: board; justify-self: center; width: 100%; }
 .ed-droite { grid-area: droite; display: grid; gap: 14px; align-content: start; min-width: 0; }
-.ed-reserves { display: none; }
 
 /* Téléphone : le Mini est deux fois plus haut que large ; on garde la place de l'en-tête, du bac
    (collé en bas de l'écran) pour voir tout le plateau */
@@ -55,24 +54,21 @@
 /* Une carte ou la gomme est choisie : le plateau reçoit au toucher */
 .cg-wrap.ed-pose cg-board { cursor: copy; }
 
-/* Téléphone : bac compact sur une ligne (camps et gomme, puis les cartes qui défilent), collé en
-   bas de l'écran (au-dessus de la barre d'onglets si elle est là) : il reste sous le doigt quand la page défile. */
+/* Téléphone : tous les Personnages d'un coup d'œil sous le plateau (grille de 8), sans bande à
+   faire défiler : on touche une carte, puis les cases. Camps et gomme sur une ligne au-dessus. */
 @media (max-width: 799px) {
-  #ed-bac {
-    position: sticky; z-index: 5; bottom: 8px; padding: 8px; gap: 6px 8px;
-    grid-template-columns: auto minmax(0, 1fr); align-items: center;
-    box-shadow: inset 0 0 0 1px var(--mt-filet), 0 10px 30px rgba(0, 0, 0, .6);
-  }
-  .ed-camps { display: grid; grid-template: 'w g' 27px 'b g' 27px / auto 44px; gap: 2px 6px; }
-  .ed-camps button { min-height: 0; padding: 0 10px; font-size: 13px; justify-content: flex-start; border-radius: 8px; }
-  .ed-camps i { width: 10px; height: 10px; border-radius: 3px; }
-  .ed-camps .gomme { grid-area: g; justify-content: center; padding: 0; }
+  #ed-bac { padding: 10px; gap: 8px; }
+  .ed-camps button { min-height: 38px; padding: 0 12px; font-size: 14px; border-radius: 10px; }
+  .ed-camps .camp { flex: 1; }
+  .ed-camps .gomme { width: 48px; justify-content: center; padding: 0; }
   .ed-camps .gomme span { display: none; }
-  .ed-carte { flex-basis: 56px; }
-  .ed-aide { grid-column: 1 / -1; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-}
-@media (max-width: 760px) {
-  body:has(.mt-tab) #ed-bac { bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom) + 8px); }
+  .ed-cartes { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; overflow: visible; }
+  .ed-carte { border-radius: 6px; }
+  .ed-carte:hover { transform: none; }
+  /* Une seule ligne : le cadre ne change pas de taille quand on choisit une carte */
+  .ed-aide { font-size: 12.5px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Le Mini (deux fois plus haut que large) laisse voir le bac sous lui */
+  .editor-app #mainboard.matatak4x8 { width: min(100%, calc((100svh - 330px) / 2)); }
 }
 
 /* ---------- Outils ---------- */

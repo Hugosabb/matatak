@@ -1,6 +1,10 @@
 import { h, VNode } from 'snabbdom';
 
+import * as cg from 'chessgroundx/types';
+import * as util from 'chessgroundx/util';
+
 import { patch } from './document';
+import { premove } from './premoveCgOverride';
 import { ROIS, Saison } from './rois';
 
 // Écran du Draft (livret page 8, choix d'Hugo du 22/10/2026), avant le plateau. Le serveur tient
@@ -37,6 +41,35 @@ interface Options {
 
 const PAUSE_CHOIX = 1800; // ms : le temps de voir le groupe pris par l'adversaire
 
+// Rappel des déplacements sous chaque carte (demande d'Hugo : au début, on ne les connaît pas) :
+// grille de 5 × 5 ou 7 × 7 cases, le Personnage au centre (d4), vers l'avant = vers le haut. Même calcul
+// que les losanges du plateau quand on touche une carte (premoveCgOverride, plateau vide).
+const DIMENSIONS: cg.BoardDimensions = { width: 8, height: 8 };
+const motifs = new Map<string, Set<string>>();
+function motif(lettre: string): Set<string> {
+    let m = motifs.get(lettre);
+    if (!m) {
+        const role = `${lettre}-piece` as cg.Role;
+        const etat: cg.BoardState = { pieces: new Map([['d4' as cg.Key, { role, color: 'white' }]]) };
+        m = new Set(premove('matatak', false, DIMENSIONS)(etat, 'd4' as cg.Key, false).map(k => util.key2pos(k).join(',')));
+        motifs.set(lettre, m);
+    }
+    return m;
+}
+function grilleDeplacements(lettre: string): VNode {
+    const m = motif(lettre);
+    // Portée la plus longue (2 ou 3 cases) : 5 × 5 pour un Personnage à courte portée, sinon 7 × 7
+    const r = Math.max(2, ...[...m].map(k => k.split(',').map(Number)).map(([x, y]) => Math.max(Math.abs(x - 3), Math.abs(y - 3))).filter(d => d <= 3));
+    const cases: VNode[] = [];
+    for (let y = 3 + r; y >= 3 - r; y--) {
+        for (let x = 3 - r; x <= 3 + r; x++) {
+            const centre = x === 3 && y === 3;
+            cases.push(h('i', { class: { centre, va: !centre && m.has(`${x},${y}`) } }));
+        }
+    }
+    return h('span.dr-motif', { attrs: { 'aria-hidden': 'true' }, style: { '--n': String(2 * r + 1) } }, cases);
+}
+
 export class EcranDraft {
     private vnode: VNode | HTMLElement;
     private etat: EtatDraft | null = null;
@@ -44,7 +77,8 @@ export class EcranDraft {
     private enPause = false;
     private dejaVu = '';
     // Brouillon local
-    private zones: number[] = [];      // former : 0 = groupe 1, 1 = groupe 2, 2 = de côté
+    private zones: number[][] = [];    // former : cartes du groupe 1, du groupe 2, de côté (case par case)
+    private choixFormer: { zone: number, place: number } | null = null;
     private zonesPhase = '';
     private groupeChoisi: number | null = null;
     private placement: { pions: string[], arriere: string[] } | null = null;
@@ -128,7 +162,7 @@ export class EcranDraft {
             ? h('span.dr-nom', ROIS[opts.roi].nom)
             : h(`span.dr-etoiles.e${n}`, { attrs: { 'aria-label': `${n} étoile${n > 1 ? 's' : ''}` } }, '★'.repeat(n));
         const sel = opts.on ? 'button.dr-carte' : 'div.dr-carte';
-        return h(sel, { class: opts.classes ?? {}, attrs: { ...(opts.on ? { type: 'button' } : {}), ...(opts.attrs ?? {}) }, on: opts.on ?? {} }, [visuel, pied]);
+        return h(sel, { class: opts.classes ?? {}, attrs: { ...(opts.on ? { type: 'button' } : {}), ...(opts.attrs ?? {}) }, on: opts.on ?? {} }, [visuel, pied, grilleDeplacements(lettre)]);
     }
 
     /** Cartes d'un type : Pions (indices dans e.pions) ou Champions (0-5) et Rois (6-7). */
@@ -176,45 +210,47 @@ export class EcranDraft {
         return type === 'pions' ? [0, 1, 2, 3, 4, 5, 6, 7] : [6, 0, 1, 2, 7, 3, 4, 5];
     }
 
-    // --- Former : toucher une carte la fait changer de groupe ---
+    // --- Former : les groupes sont complets dès le départ ; toucher deux cartes de groupes
+    // différents les échange (même geste que le placement). Un Roi s'échange avec l'autre Roi. ---
     private vueFormer(e: EtatDraft, type: 'pions' | 'champions', adv: string): VNode[] {
         if (this.zonesPhase !== e.phase) {
             this.zonesPhase = e.phase;
-            this.zones = type === 'pions' ? [0, 0, 0, 1, 1, 1, 2, 2] : [0, 0, 1, 1, 2, 2, 0, 1];
+            this.zones = type === 'pions' ? [[0, 1, 2], [3, 4, 5], [6, 7]] : [[6, 0, 1], [7, 2, 3], [4, 5]];
+            this.choixFormer = null;
         }
         const z = this.zones;
-        const toucher = (i: number) => {
+        const estRoi = (i: number) => type === 'champions' && i >= 6;
+        const toucher = (zone: number, place: number) => {
             if (this.envoye) return;
-            if (type === 'champions' && i >= 6) {
-                // Un Roi par groupe : toucher un Roi échange les deux Rois
-                [z[6], z[7]] = [z[7], z[6]];
+            const c = this.choixFormer;
+            if (c && c.zone !== zone && estRoi(z[c.zone][c.place]) === estRoi(z[zone][place])) {
+                [z[c.zone][c.place], z[zone][place]] = [z[zone][place], z[c.zone][c.place]];
+                this.choixFormer = null;
             } else {
-                z[i] = (z[i] + 1) % 3;
+                // Même carte : on la relâche ; sinon la sélection passe à la carte touchée
+                this.choixFormer = c && c.zone === zone && c.place === place ? null : { zone, place };
             }
             this.dessiner();
         };
-        const dans = (zone: number) => z.map((v, i) => v === zone ? i : -1).filter(i => i >= 0);
-        const juste = (g: number[]) => type === 'pions'
-            ? g.length === 3
-            : g.length === 3 && g.filter(i => i >= 6).length === 1;
-        const valide = juste(dans(0)) && juste(dans(1));
-        const zone = (n: number, titre: string) => {
-            const cartes = dans(n);
-            const attendu = n === 2 ? 2 : 3;
-            return h('div.dr-zone', { class: { cote: n === 2, ok: cartes.length === attendu } }, [
-                h('div.dr-zone-titre', [h('span', titre), h('small', `${cartes.length} / ${attendu}`)]),
-                h('div.dr-cartes', cartes.map(i => this.carteIndex(e, type, i, { on: { click: () => toucher(i) }, attrs: { 'aria-label': 'Changer de groupe' } }))),
-            ]);
-        };
+        const zone = (n: number, titre: string) => h('div.dr-zone', { class: { cote: n === 2 } }, [
+            h('div.dr-zone-titre', [h('span', titre)]),
+            h('div.dr-cartes', z[n].map((i, place) => this.carteIndex(e, type, i, {
+                on: { click: () => toucher(n, place) },
+                classes: { selection: this.choixFormer?.zone === n && this.choixFormer.place === place },
+                attrs: { 'aria-label': 'Échanger' },
+            }))),
+        ]);
+        const aide = this.choixFormer
+            ? (estRoi(z[this.choixFormer.zone][this.choixFormer.place])
+                ? 'Touchez l\'autre Roi pour les échanger.'
+                : 'Touchez une carte d\'un autre groupe pour les échanger.')
+            : `${adv} en choisira un, vous aurez l'autre. Touchez deux cartes pour les échanger.`;
         return [
-            ...this.entete(e,
-                type === 'pions' ? 'Formez 2 groupes de 3 Pions' : 'Formez 2 groupes : 2 Champions et 1 Roi',
-                `${adv} en choisira un, vous aurez l'autre. Touchez une carte pour la changer de groupe` +
-                    (type === 'champions' ? ', ou un Roi pour échanger les Rois.' : '.')),
+            ...this.entete(e, type === 'pions' ? 'Formez 2 groupes de 3 Pions' : 'Formez 2 groupes : 2 Champions et 1 Roi', aide),
             h('div.dr-zones', [zone(0, 'Groupe 1'), zone(1, 'Groupe 2'), zone(2, 'De côté')]),
             h('button.mt-btn.mt-btn-or.dr-valider', {
-                attrs: { type: 'button', disabled: !valide || this.envoye },
-                on: { click: () => { this.envoye = true; this.o.envoyer({ action: 'former', groupes: [dans(0), dans(1)] }); this.dessiner(); } },
+                attrs: { type: 'button', disabled: this.envoye },
+                on: { click: () => { this.envoye = true; this.choixFormer = null; this.o.envoyer({ action: 'former', groupes: [z[0], z[1]] }); this.dessiner(); } },
             }, this.envoye ? 'Envoyé…' : 'Valider mes groupes'),
             this.resumeEquipes(e),
         ];

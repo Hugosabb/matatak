@@ -29,7 +29,8 @@ h1, h2, h3 { font-weight: 400; }
 .yeux-bloc { position: relative; width: min(340px, 62vw); margin: 0 auto 22px; }
 .yeux-bloc img { width: 100%; }
 .yeux-bloc .etoile { animation: scintille 5s ease-in-out infinite; transform-origin: 50% 58%; }
-.yeux-bloc .yeux { margin-top: -6%; animation: cligne 6s infinite; transform-origin: 50% 42%; }
+/* yeux-2.png : 71 px de marge de chaque côté (1052 px au lieu de 910) pour ne pas couper l'ombre de l'œil gauche */
+.yeux-bloc .yeux { width: 115.6%; max-width: none; margin-left: -7.8%; margin-top: -6%; animation: cligne 6s infinite; transform-origin: 50% 42%; }
 @keyframes cligne { 0%, 93%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.06); } }
 @keyframes scintille { 0%, 100% { filter: drop-shadow(0 0 0 rgba(246, 201, 69, 0)); transform: scale(1); } 50% { filter: drop-shadow(0 0 22px rgba(246, 201, 69, .6)); transform: scale(1.06); } }
 .logo-grand { margin: 0 auto 26px; }

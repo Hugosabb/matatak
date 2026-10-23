@@ -43,11 +43,6 @@ export function editorView(model: PyChessModel): VNode[] {
                     h('input#fen'),
                 ]),
             ]),
-            // Réserves de pièces (variantes à drop) : chessground les veut, Matatak ne s'en sert pas
-            h('div.ed-reserves', [
-                h('div.' + variant.pieceFamily + '.' + model["variant"], [h('div.cg-wrap.pocket', [h('div#pocket0.pocketrow')])]),
-                h('div.' + variant.pieceFamily + '.' + model["variant"], [h('div.cg-wrap.pocket', [h('div#pocket1.pocketrow')])]),
-            ]),
         ]),
     ];
 }

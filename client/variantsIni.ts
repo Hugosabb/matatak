@@ -71,23 +71,14 @@ blackFlag = d4 e4 d5 e5
 
 stalemateValue = win
 
-pieceDrops = true
-capturesToHand = false
-mustDrop = true
-
-whiteDropRegion = d1 e1 f1 d3 e3 f3
-blackDropRegion = c8 d8 e8 c6 d6 e6
-
 # startFen = 3ckn2/3pbl2/8/8/8/8/3GFM2/3IKH2 w - - 0 1
-startFen = 3kx3/3ff3/8/8/8/8/3LL3/3WK3[FFff] w - - 0 1
+startFen = 3kx3/3ff3/8/8/8/8/3LL3/3WK3 w - - 0 1
 
 [matatakmini:matatak]
 maxFile = 4
 maxRank = 8
 whiteFlag = b4 c4 b5 c5
 blackFlag = b4 c4 b5 c5
-whiteDropRegion = b1 c1 d1 b2 c2 d2
-blackDropRegion = b8 c8 d8 b7 c7 d7
 promotionRegionWhite = *8
 promotionRegionBlack = *1
 startFen = 1kc1/1mm1/4/4/4/4/1FF1/1XK1 w - - 0 1
