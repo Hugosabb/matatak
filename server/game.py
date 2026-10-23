@@ -34,7 +34,7 @@ from convert import grand2zero, uci2usi, mirror5, mirror9
 from fairy import get_fog_fen, get_san_moves, NOTATION_SAN, FairyBoard, BLACK, WHITE
 from glicko2.glicko2 import gl2
 from draw import reject_draw
-from draft import Draft, FINI
+from draft import DELAI_CLASSEE, Draft, FINI
 import random
 from settings import URI
 from spectators import spectators
@@ -232,6 +232,9 @@ class Game:
             if self.variant.startswith("matatak") and self.isDraft and not self.initial_fen
             else None
         )
+        if self.draft is not None and rated == RATED:
+            # Personne ne peut bloquer un Draft classé : passé le délai, le serveur joue l'étape
+            self.draft.delai = DELAI_CLASSEE
         self.draft_phase = self.draft.phase if self.draft else None
 
         self.board = FairyBoard(self.variant, self.initial_fen, self.chess960, boost=self.boost)
@@ -495,6 +498,8 @@ class Game:
         ]
         self.lastmove = None
         self.check = False
+        if self.rated == RATED:
+            self.stopwatch.restart()  # temps du premier coup (clock.py)
         await self.save_setup()
 
     async def save_setup(self):
@@ -537,7 +542,14 @@ class Game:
 
         asyncio.create_task(self.app_state.remove_from_cache(self), name="game-remove-%s" % self.id)
 
-        if self.board.ply < 3 and (self.app_state.db is not None) and (self.tournamentId is None):
+        # Une partie de moins de 3 demi-coups n'est pas gardée, sauf en classée : elle compte dès le
+        # Draft (Hugo : on n'annule pas une partie parce que son équipe ne plaît pas)
+        if (
+            self.board.ply < 3
+            and (self.app_state.db is not None)
+            and (self.tournamentId is None)
+            and self.rated != RATED
+        ):
             result = await self.app_state.db.game.delete_one({"_id": self.id})
             log.debug(
                 "Removed too short game %s from db. Deleted %s game.",
@@ -714,11 +726,19 @@ class Game:
         new_white_rating = gl2.create_rating(wcurr.mu + wrdiff, wr.phi, wr.sigma, wr.ltime)
         new_black_rating = gl2.create_rating(bcurr.mu + brdiff, br.phi, br.sigma, br.ltime)
 
+        # Adversaire d'entraînement : il reste près de son ancrage (pas de dérive de l'échelle)
+        from bots_classes import borner
+
+        if self.wplayer.entrainement:
+            new_white_rating = borner(self.wplayer.username, new_white_rating)
+        if self.bplayer.entrainement:
+            new_black_rating = borner(self.bplayer.username, new_black_rating)
+
         await self.wplayer.set_rating(self.variant, self.chess960, new_white_rating)
         await self.bplayer.set_rating(self.variant, self.chess960, new_black_rating)
 
         w_nb = self.wplayer.perfs[self.variant + ("960" if self.chess960 else "")]["nb"]
-        if w_nb >= HIGHSCORE_MIN_GAMES:
+        if w_nb >= HIGHSCORE_MIN_GAMES and not self.wplayer.entrainement:
             _id = "%s|%s" % (self.wplayer.username, self.wplayer.title)
             await self.set_highscore(
                 self.variant,
@@ -727,7 +747,7 @@ class Game:
             )
 
         b_nb = self.bplayer.perfs[self.variant + ("960" if self.chess960 else "")]["nb"]
-        if b_nb >= HIGHSCORE_MIN_GAMES:
+        if b_nb >= HIGHSCORE_MIN_GAMES and not self.bplayer.entrainement:
             _id = "%s|%s" % (self.bplayer.username, self.bplayer.title)
             await self.set_highscore(
                 self.variant,
@@ -1005,6 +1025,11 @@ class Game:
 
     async def game_ended(self, user, reason):
         """Abort, resign, flag, abandon"""
+        if reason == "flag" and user.entrainement:
+            # L'adversaire d'entraînement joue dans le navigateur du joueur : s'il tombe au temps,
+            # c'est que le joueur a fermé la page au lieu de le laisser jouer. Le joueur perd.
+            user = self.bplayer if user is self.wplayer else self.wplayer
+            reason = "abandon"
         if self.result == "*":
             if reason == "abort":
                 result = "*"

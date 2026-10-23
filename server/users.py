@@ -2,6 +2,8 @@ from __future__ import annotations
 import re
 from collections import UserDict
 
+import bots_classes
+from bots_classes import creer_bot, est_bot_classe
 from const import BLOCK, MAX_USER_BLOCK, NONE_USER, TYPE_CHECKING
 from glicko2.glicko2 import DEFAULT_PERF
 from user import User
@@ -55,6 +57,8 @@ class Users(UserDict):
         try:
             return await self.get(username)
         except NotInDbUsers:
+            if est_bot_classe(username):
+                return await creer_bot(self.app_state, username)
             if ORDINATEUR.match(username or ""):
                 user = User(self.app_state, username=username, title="LIA", anon=True)
             elif INVITE.match(username or ""):
@@ -73,7 +77,11 @@ class Users(UserDict):
             return user
 
         doc = await self.app_state.db.user.find_one({"_id": username})
+        if doc is not None and est_bot_classe(username):
+            return bots_classes.utilisateur(self.app_state, doc)
         if doc is None:
+            if est_bot_classe(username):
+                raise NotInDbUsers  # adversaire d'entraînement pas encore créé (creer_bot)
             log.error("--- users.get() %s NOT IN db ---", username)
             raise NotInDbUsers
             # return self.data[NONE_USER]

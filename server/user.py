@@ -98,6 +98,8 @@ class User:
             self.title = "BOT"
 
         self.online = False
+        # Adversaire d'entraînement des parties classées (bots_classes.py)
+        self.entrainement = False
 
         if perfs is None:
             if self.anon or self.bot:

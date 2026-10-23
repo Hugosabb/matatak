@@ -16,6 +16,7 @@ Déroulement (le premier joueur = les Blancs) :
 from __future__ import annotations
 
 import random
+import time
 from itertools import combinations
 
 from fairy.fairy_board import FairyBoard
@@ -39,6 +40,10 @@ ACTEUR = {
     CHAMPIONS_CHOISIR: "white",
     PLACEMENT: None,
 }
+
+
+# Partie classée : secondes pour chaque étape du Draft
+DELAI_CLASSEE = 60
 
 
 class DraftErreur(ValueError):
@@ -71,6 +76,11 @@ class Draft:
         self.equipes: dict[str, dict | None] = {"white": None, "black": None}
         self.pret = {"white": False, "black": False}
         self.dernier: dict | None = None  # dernière action, pour l'afficher (choix de l'adversaire)
+        # Partie classée : secondes par étape (server/classee.py), puis le serveur joue à la place
+        # du joueur en retard. None : pas de limite (Solo, entre amis).
+        self.delai: float | None = None
+        self._etape = None
+        self._debut = time.monotonic()
 
     # ---------- Actions ----------
 
@@ -177,6 +187,25 @@ class Draft:
         if all(self.pret.values()):
             self.phase = FINI
 
+    # ---------- Délai par étape (parties classées) ----------
+
+    def reste(self) -> float | None:
+        """Secondes restantes pour l'étape en cours (le décompte repart à chaque étape)."""
+        if self.delai is None or self.phase == FINI:
+            return None
+        etape = (self.phase, self.pret["white"], self.pret["black"])
+        if etape != self._etape:
+            self._etape, self._debut = etape, time.monotonic()
+        return max(0.0, self.delai - (time.monotonic() - self._debut))
+
+    def en_retard(self) -> list[str]:
+        """Les camps qui n'ont pas fait leur étape à temps."""
+        if self.reste() != 0:
+            return []
+        if self.phase == PLACEMENT:
+            return [c for c in ("white", "black") if not self.pret[c]]
+        return [self.acteur()]
+
     # ---------- Ordinateur (Solo) ----------
 
     def jouer_ordinateur(self, couleur: str, rng: random.Random | None = None) -> None:
@@ -252,6 +281,7 @@ class Draft:
             "pret": self.pret,
             "dernier": self.dernier,
             "fen": self.fen() if self.phase == FINI else None,
+            "reste": None if self.reste() is None else round(self.reste()),
         }
 
 

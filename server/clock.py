@@ -2,7 +2,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from const import ABORTED
+from const import ABORTED, RATED
 from fairy import WHITE, BLACK
 from broadcast import round_broadcast
 from notify import notify
@@ -40,7 +40,12 @@ class Clock:
         else:
             # give some time to make first move
             if self.ply < 2 and not self.game.server_variant.two_boards:
-                if self.game.tournamentId is None:
+                draft = getattr(self.game, "draft", None)
+                if self.game.rated == RATED and draft is not None and draft.phase != "FINI":
+                    # Draft classé en cours : il a son propre délai par étape (draft.py)
+                    self.running = False
+                    return
+                if self.game.tournamentId is None and self.game.rated != RATED:
                     # Non tournament games are not timed for the first moves of either
                     # player. We stop the clock to prevent unnecessary clock
                     # updates and to give players unlimited time.
@@ -77,7 +82,9 @@ class Clock:
 
                         reason = (
                             "abort"
-                            if (self.ply < 2) and (self.game.tournamentId is None)
+                            if (self.ply < 2)
+                            and (self.game.tournamentId is None)
+                            and (self.game.rated != RATED)
                             else "flag"
                         )
 
@@ -99,6 +106,9 @@ class Clock:
         # Fix 45s for janggi because it has setup phase
         if self.game.variant == "janggi" or self.game.chess960:
             return 45 * 1000
+        # Partie classée : 30 s pour le premier coup, sinon le joueur perd au temps
+        if self.game.rated == RATED and self.game.tournamentId is None:
+            return 30 * 1000
 
         egt = self.estimate_game_time
         base = 0

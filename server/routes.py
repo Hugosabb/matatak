@@ -90,6 +90,7 @@ from views import (
     livret,
 )
 import pwa
+import classee
 
 
 get_routes = (
@@ -179,6 +180,7 @@ get_routes = (
     ("/api/{profileId}/all", get_user_games),
     ("/api/{profileId}/win", get_user_games),
     ("/api/{profileId}/loss", get_user_games),
+    ("/api/classee", classee.infos),
     ("/api/{profileId}/rated", get_user_games),
     ("/api/{profileId}/playing", get_user_games),
     ("/api/{profileId}/import", get_user_games),

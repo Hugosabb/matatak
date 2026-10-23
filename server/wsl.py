@@ -26,7 +26,8 @@ from auto_pair import (
     find_matching_user_for_seek,
 )
 from chat import chat_response
-from const import STARTED
+import classee
+from const import RATED, STARTED
 from newid import new_id
 from const import NONE_USER, MAX_NAMED_SPECTATORS, MAX_HIGHSCORE_ITEM_LIMIT
 from const import TYPE_CHECKING
@@ -89,6 +90,7 @@ async def finally_logic(app_state: PychessGlobalAppState, ws, user):
             await app_state.lobby.lobby_broadcast_u_cnt()
 
         if (user.game_in_progress is not None) or len(user.lobby_sockets) == 0:
+            await classee.annuler(app_state, user)
             user.update_auto_pairing(ready=False)
             await user.update_seeks(pending=True)
 
@@ -123,6 +125,11 @@ async def process_message(app_state: PychessGlobalAppState, user, ws, data):
         await handle_create_auto_pairing(app_state, ws, user, data)
     elif data["type"] == "cancel_auto_pairing":
         await handle_cancel_auto_pairing(app_state, ws, user, data)
+    elif data["type"] == "classee_chercher":
+        if not await send_game_in_progress_if_any(app_state, user, ws):
+            await classee.chercher(app_state, user, data)
+    elif data["type"] == "classee_annuler":
+        await classee.annuler(app_state, user)
 
 
 async def send_get_seeks(app_state, ws, user):
@@ -520,7 +527,7 @@ async def abort_if_not_started(game, user):
     est renvoyé de force vers cette partie à chaque visite de /jouer. Même règle que le bouton
     « Annuler » de la partie ; jamais en tournoi ni en correspondance.
     """
-    if game.board.ply >= 2 or game.corr or game.tournamentId is not None:
+    if game.board.ply >= 2 or game.corr or game.tournamentId is not None or game.rated == RATED:
         return False
     async with game.move_lock:
         response = await game.game_ended(user, "abort")

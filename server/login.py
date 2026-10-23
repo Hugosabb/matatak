@@ -8,6 +8,7 @@ import aiohttp_session
 from aiohttp import web
 
 from broadcast import round_broadcast
+from bots_classes import est_bot_classe
 from const import STARTED, reserved
 from oauth_config import oauth_config
 from settings import DEV, URI
@@ -115,7 +116,7 @@ async def login(request):
     closed = user_data.get("closed", "")
     tosViolation = user_data.get("tosViolation", "")
 
-    if reserved(username):
+    if reserved(username) or est_bot_classe(username):
         log.error("User %s tried to log in.", username)
         return web.HTTPFound("/jouer")
 
@@ -256,7 +257,7 @@ async def check_username_availability(request):
             {"available": False, "error": "Username can only contain letters, numbers, _ and -"}
         )
 
-    if reserved(username):
+    if reserved(username) or est_bot_classe(username):
         return web.json_response({"available": False, "error": "Username is reserved"})
 
     app_state = get_app_state(request.app)
@@ -297,7 +298,7 @@ async def confirm_username(request):
             {"error": "Username can only contain letters, numbers, _ and -"}, status=400
         )
 
-    if reserved(username):
+    if reserved(username) or est_bot_classe(username):
         return web.json_response({"error": "Username is reserved"}, status=400)
 
     app_state = get_app_state(request.app)

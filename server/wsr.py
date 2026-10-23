@@ -10,7 +10,7 @@ from bug.wsr_bug import handle_resign_bughouse, handle_rematch_bughouse, handle_
 import game
 from broadcast import round_broadcast
 from chat import chat_response
-from const import ANALYSIS, STARTED, CREATED
+from const import ANALYSIS, STARTED, CREATED, RATED
 from draw import draw, reject_draw
 from draft import DraftErreur, FINI, PLACEMENT, tourner
 from fairy import WHITE, BLACK, FairyBoard
@@ -122,7 +122,7 @@ def message_autorise(user, data, game) -> bool:
     if data["type"] == "takeback":
         # Seulement contre un ordinateur, comme le client.
         adversaire = game.bplayer if user.username == game.wplayer.username else game.wplayer
-        return adversaire.bot or adversaire.title == "LIA"
+        return (adversaire.bot or adversaire.title == "LIA") and game.rated != RATED
     return True
 
 
@@ -510,6 +510,10 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
         fen, is_draft = tourner(game.initial_fen), False
         rois = {"white": game.rois["black"], "black": game.rois["white"]}
 
+    if opp_player.entrainement:
+        # Partie classée : pas de revanche, on repasse par la file d'attente (classee.py)
+        return
+
     if opp_player.title == "LIA":
         color = "w" if game.wplayer.username == opp_name else "b"
         if handicap:
@@ -691,6 +695,8 @@ async def handle_takeback(ws, game):
 async def handle_abort_resign_abandon_flag(ws, users, user, data, game):
     if data["type"] == "abort" and (game is not None) and game.board.ply > 2:
         return
+    if data["type"] == "abort" and (game is not None) and game.rated == RATED:
+        return  # une partie classée compte dès le début : on peut abandonner, pas annuler
 
     if data["type"] == "flag" and getattr(game, "unlimited", False):
         # Pas de pendule, donc pas de perte au temps.
