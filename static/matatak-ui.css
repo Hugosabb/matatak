@@ -55,8 +55,10 @@
 .mt-btn[disabled] { filter: grayscale(.6) brightness(.7); cursor: progress; }
 
 /* ===== En-tête du site ===== */
+/* Appli installée en plein écran (viewport-fit=cover) : rien sous l'encoche ni la barre d'état */
+body { padding-top: env(safe-area-inset-top); }
 header.mt-haut {
-  position: sticky; top: 0; z-index: 106;
+  position: sticky; top: env(safe-area-inset-top); z-index: 106;
   display: flex; align-items: center; justify-content: flex-start; gap: 22px;
   height: var(--site-header-height, 60px); max-width: none; margin: 0;
   padding: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
@@ -119,6 +121,10 @@ header.mt-haut #settings, header.mt-haut #notify-app { top: var(--site-header-he
   .mt-tab svg { width: 24px; height: 24px; }
   .mt-tab a.actif svg { filter: drop-shadow(0 0 8px rgba(234, 196, 90, .5)); }
   body:has(.mt-tab) { padding-bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom)); }
+  /* Plus de barre du haut sur téléphone : la navigation est en bas (règle dans CLAUDE.md) */
+  header.mt-haut { display: none; }
+  /* Partie en cours (Draft compris) : rien autour du plateau, on sort par le menu ⋯ */
+  body.en-partie .mt-tab { display: none; }
 }
 
 /* ===== Apparition au défilement ===== */

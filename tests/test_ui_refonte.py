@@ -100,15 +100,16 @@ class PagesTestCase(AioHTTPTestCase):
         self.assertEqual(resp.status, 200)
         self.assertIn('data-view="lobby"', await resp.text())
 
-    async def test_barre_onglets_absente_des_ecrans_avec_plateau(self):
-        resp = await self.client.request("GET", "/tutorial")
-        self.assertEqual(resp.status, 200)
-        text = await resp.text()
-        self.assertIn('class="mt-haut"', text)
-        self.assertNotIn('class="mt-tab"', text)
-
-        resp = await self.client.request("GET", "/about")
-        self.assertIn('class="mt-tab"', await resp.text())
+    async def test_barre_onglets_partout(self):
+        """Règle du 23/10/2026 : onglets en bas sur toutes les pages, activités comprises (la partie en
+        cours les cache en CSS, body.en-partie) ; l'en-tête reste pour l'ordinateur."""
+        for adresse in ("/tutorial", "/about", "/analysis/matatakmini", "/editor/matatakmini"):
+            resp = await self.client.request("GET", adresse)
+            self.assertEqual(resp.status, 200, adresse)
+            text = await resp.text()
+            self.assertIn('class="mt-haut"', text, adresse)
+            self.assertIn('class="mt-tab"', text, adresse)
+            self.assertIn(">Connexion</a>", text, adresse)  # le compte, 4e onglet (invité)
 
     async def test_adresses_du_livret(self):
         """Les 3 QR codes du livret redirigent (302, la cible peut changer) ; l'adresse reste fixe."""

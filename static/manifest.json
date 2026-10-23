@@ -43,6 +43,7 @@
     "id": "/",
     "scope": "/",
     "display": "fullscreen",
+    "display_override": ["fullscreen", "standalone"],
     "theme_color": "#12100e",
     "background_color": "#12100e"
 }

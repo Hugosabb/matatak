@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block header %}
-{% set rubrique = "apprendre" if view in ["apprendre", "puzzle", "campaign", "tutorial", "variants", "editor", "analysis", "collection"] else "jouer" %}
+{% set rubrique = "apprendre" if view in ["apprendre", "puzzle", "campaign", "tutorial", "variants", "editor", "analysis", "collection"] else ("moi" if view == "profile" else "jouer") %}
 <header class="mt-haut">
     <a id="zen-button"></a>
     <a class="mt-logo" href="/jouer" aria-label="MATATAK, jouer">
@@ -22,11 +22,18 @@
         <div id="settings-panel"></div>
     </div>
 </header>
-{% if view not in ["round", "tv", "analysis", "editor", "embed", "puzzle", "tutorial", "invite"] %}
+{# Téléphone (Hugo, 23/10/2026) : onglets en bas partout, plus de barre du haut (le logo faisait doublon
+   avec « Jouer ») ; le compte est le 4e onglet. Seule la partie en cours les cache (body.en-partie). #}
+{% if view not in ["tv", "embed"] %}
 <nav class="mt-tab" aria-label="Navigation">
     <a href="/jouer" class="{{ 'actif' if rubrique == 'jouer' }}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>Jouer</a>
     <a href="/apprendre" class="{{ 'actif' if rubrique == 'apprendre' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h7v15H4zM13 5h7v15h-7"/></svg>Apprendre</a>
     <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>Le jeu</a>
+    {% if anon %}
+    <a href="/login/lichess" title="Vous jouez en invité : {{ username.split('#')[0] }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Connexion</a>
+    {% else %}
+    <a href="/@/{{ username }}" class="{{ 'actif' if rubrique == 'moi' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Moi</a>
+    {% endif %}
 </nav>
 {% endif %}
 {% endblock %}

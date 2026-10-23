@@ -9,8 +9,17 @@
     <meta property="og:image:height" content="310" />
     <meta name="keywords"
         content="Chess variants xiangqi janggi shogi dobutsu gorogoro kyoto tori makruk sittuyin asean makpong capablanca seirawan grand shako shogun synochess orda shinobi empire chak chennis duck spartan">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#12100e">
+    <!-- Appli installée (PWA) : sans ça, le navigateur peint en blanc les zones qu'il dessine lui-même
+         (barres système, débordements, avant le chargement des feuilles de style) -->
+    <meta name="color-scheme" content="dark">
+    <!-- Appli installée sur iPhone : barre d'état transparente (le fond sombre passe dessous, pas de bande blanche) ;
+         Apple n'autorise pas le vrai plein écran -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>html { background: #12100e; color-scheme: dark; }</style>
     <title>{{ title }}</title>
     <link rel="stylesheet" href={{ static("chessground.css") }}>
     <link rel="stylesheet" href={{ static("board.css") }} crossorigin="anonymous">
@@ -65,6 +74,7 @@
     <a id="reconnecting" class="link text" data-icon="p"><info-date id="reconnecting-ts" timestamp=""></info-date></a>
     <script src="{{ static('./js/zoomManager.js') }}"></script>
     <script src="{{ static('./js/pwa-update.js') }}"></script>
+    <script src="{{ static('./js/plein-ecran.js') }}"></script>
     <script src="{{ static('./js/installer.js') }}"></script>
 </body>
 

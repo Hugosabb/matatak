@@ -6,12 +6,22 @@
 <title>{{ title }}</title>
 <meta name="description" content="MATATAK!, la stratégie des échecs accessible à tous : un jeu de société de 2 à 4 joueurs dans la jungle. Essayez-le gratuitement en ligne.">
 <meta name="theme-color" content="#12100e">
+<meta name="color-scheme" content="dark">
+<!-- Appli installée sur iPhone : barre d'état transparente (le fond sombre passe dessous, pas de bande blanche) ;
+     Apple n'autorise pas le vrai plein écran -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>html { background: #12100e; color-scheme: dark; }</style>
 <meta property="og:title" content="MATATAK! · Le jeu de société">
 <meta property="og:description" content="La stratégie des échecs, accessible à tous. Jouez gratuitement en ligne.">
 <meta property="og:image" content="{{ static('favicon/og-image.png') }}">
 <script>
-  // PWA installée : on ouvre directement la page de jeu.
-  if (matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone) location.replace('/jouer');
+  // PWA installée : à l'ouverture de l'appli (installée avant que start_url soit /jouer), on va à la
+  // page de jeu ; mais pas quand le joueur vient d'une page du site (onglet « Le jeu »).
+  const appli = matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches || navigator.standalone;
+  const depuisLeSite = document.referrer.startsWith(location.origin + '/');
+  if (appli && !depuisLeSite) location.replace('/jouer');
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
