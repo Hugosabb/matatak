@@ -28,6 +28,7 @@ export interface EtatDraft {
     pret: { white: boolean, black: boolean };
     dernier: { action: string, type: 'pions' | 'champions', couleur: Couleur, groupe?: number } | null;
     fen: string | null;
+    reste?: number | null; // partie classée : secondes pour l'étape en cours (server/draft.py)
 }
 
 interface Options {
@@ -84,14 +85,31 @@ export class EcranDraft {
     private placement: { pions: string[], arriere: string[] } | null = null;
     private selection: { rangee: 'pions' | 'arriere', i: number } | null = null;
     private envoye = false;
+    // Partie classée : fin de l'étape en cours (heure locale), décomptée dans .dr-delai
+    private finEtape = 0;
+    private minuteur = 0;
 
     constructor(el: HTMLElement, private o: Options) {
         this.vnode = el;
         document.body.classList.add('en-draft');
+        // Le décompte change le texte seul, sans redessiner l'écran (le brouillon local reste)
+        this.minuteur = window.setInterval(() => {
+            const el = document.querySelector('#draft-ecran .dr-delai');
+            if (el) el.textContent = this.texteDelai();
+            el?.classList.toggle('presse', this.finEtape - Date.now() < 10000);
+        }, 500);
+    }
+
+    private texteDelai(): string {
+        const s = Math.max(0, Math.ceil((this.finEtape - Date.now()) / 1000));
+        return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
     }
 
     recevoir(etat: EtatDraft) {
-        const cle = JSON.stringify(etat);
+        if (etat.reste != null) this.finEtape = Date.now() + etat.reste * 1000;
+        // Le temps restant n'est pas un nouvel état : sans lui dans la clé, pas de pause rejouée
+        const { reste: _reste, ...sansDelai } = etat;
+        const cle = JSON.stringify(sansDelai);
         if (cle === this.dejaVu) return;
         this.dejaVu = cle;
         this.file.push(etat);
@@ -127,6 +145,7 @@ export class EcranDraft {
     }
 
     fermer() {
+        window.clearInterval(this.minuteur);
         document.body.classList.remove('en-draft');
         this.vnode = patch(this.vnode, h('div#draft-ecran'));
     }
@@ -149,6 +168,7 @@ export class EcranDraft {
                 h('li', { class: { fait: i + 1 < etape, actif: i + 1 === etape } }, [h('i'), h('span', n)]))),
             h('h2.dr-titre', titre),
             h('p.dr-texte', texte),
+            ...(e.reste != null && e.phase !== 'FINI' ? [h('p.dr-delai', { attrs: { 'aria-label': "Temps pour cette étape" } }, this.texteDelai())] : []),
         ];
     }
 

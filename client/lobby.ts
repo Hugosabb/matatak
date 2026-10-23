@@ -50,7 +50,7 @@ export function createModeStr(mode: CreateMode) {
 }
 
 // ----- Page /jouer : choix mémorisés sur l'appareil -----
-type JouerAdversaire = 'ia' | 'ami';
+type JouerAdversaire = 'ia' | 'ami' | 'classee';
 interface JouerChoix {
     adv: JouerAdversaire;
     variant: 'matatak' | 'matatakmini';
@@ -75,6 +75,14 @@ const CADENCES_AMI: Cadence[] = [
 ];
 const IMG_VITRINE = '/static/images/background/vitrine/';
 const IMG_ROI: Record<Saison, string> = { ete: '01-azar.webp', automne: '02-shans.webp', hiver: '03-karma.webp', printemps: '04-mojo.webp' };
+
+// Onglet « Classée » : réponse de GET /api/classee (server/classee.py)
+interface ClasseeVariante { r: number; prov: boolean; nb: number; cadence: string; }
+interface ClasseeInfos { connecte: boolean; matatak?: ClasseeVariante; matatakmini?: ClasseeVariante; }
+
+function texteClassement(v?: ClasseeVariante): string {
+    return v ? `${v.r}${v.prov ? ' ?' : ''}` : '…';
+}
 
 function lireStockage(cle: string): string | null {
     try { return localStorage.getItem(cle); } catch { return null; }
@@ -141,7 +149,7 @@ function lireJouerChoix(): JouerChoix {
     try {
         Object.assign(choix, JSON.parse(lireStockage('jouer_choix') ?? '{}'));
     } catch { /* choix par défaut */ }
-    if (!['ia', 'ami'].includes(choix.adv)) choix.adv = 'ia';
+    if (!['ia', 'ami', 'classee'].includes(choix.adv)) choix.adv = 'ia';
     if (!['matatak', 'matatakmini'].includes(choix.variant)) choix.variant = 'matatakmini';
     if (!['w', 'r', 'b'].includes(choix.color)) choix.color = 'r';
     choix.equipe = 'nouvelle'; // option retirée du menu : un ancien choix « garder » ne s'applique plus
@@ -200,11 +208,16 @@ export class LobbyController implements ChatController {
     jouerEl: VNode | HTMLElement | null = null;
     jouer: JouerChoix = lireJouerChoix();
     jouerEnvoi = false;
+    jouerModel: PyChessModel | null = null;
     // « Plus d'options » de /jouer : non mémorisées, pour ne pas garder un Draft ou une FEN par surprise
     jouerOptions = false;
     jouerDraft = false;
     jouerBoost = 0;
     jouerFen = '';
+    // Onglet « Classée » : classements du joueur, recherche d'un adversaire en cours (début, minuteur)
+    classee: ClasseeInfos | null = null;
+    classeeDebut = 0;
+    classeeMinuteur = 0;
 
     constructor(el: HTMLElement, model: PyChessModel) {
         console.log("LobbyController constructor", el, model);
@@ -250,6 +263,15 @@ export class LobbyController implements ChatController {
             this.dialogHeaderEl = document.getElementById('header-block') as HTMLElement;
 
             const jouerEl = document.querySelector('.jouer-page') as HTMLElement | null;
+            // « Nouvelle partie classée » en fin de partie : /jouer?classee=1 relance aussitôt la recherche
+            if (jouerEl && new URLSearchParams(window.location.search).has('classee')) {
+                window.history.replaceState({}, '', window.location.pathname);
+                this.jouer.adv = 'classee';
+                if (!this.anon) {
+                    this.classeeDebut = Date.now();
+                    this.doSend({ type: 'classee_chercher', variant: this.jouer.variant });
+                }
+            }
             if (jouerEl) {
                 this.jouerEl = patch(jouerEl, this.renderJouer(model));
                 // L'invitation d'installation du navigateur arrive après le chargement
@@ -576,9 +598,75 @@ export class LobbyController implements ChatController {
         this.dialogHeaderEl = patch(this.dialogHeaderEl, h('div#header-block', [h('h2', header)]));
     }
 
-    private majJouer(model: PyChessModel) {
+    private majJouer(model?: PyChessModel) {
         ecrireJouerChoix(this.jouer);
-        if (this.jouerEl) this.jouerEl = patch(this.jouerEl, this.renderJouer(model));
+        if (model) this.jouerModel = model;
+        if (this.jouerEl && this.jouerModel) this.jouerEl = patch(this.jouerEl, this.renderJouer(this.jouerModel));
+    }
+
+    /** Classements du joueur pour l'onglet « Classée » (une fois par visite). */
+    private chargerClassee() {
+        if (this.classee) return;
+        this.classee = { connecte: !this.anon };
+        fetch('/api/classee', { credentials: 'same-origin' })
+            .then(r => r.json())
+            .then((infos: ClasseeInfos) => { this.classee = infos; this.majJouer(); })
+            .catch(() => { /* hors ligne : on réessaiera à la prochaine visite */ });
+    }
+
+    private chercherClassee() {
+        if (this.classeeDebut) return;
+        this.classeeDebut = Date.now(); // tout de suite, sans attendre la réponse du serveur
+        this.doSend({ type: 'classee_chercher', variant: this.jouer.variant });
+        this.majJouer();
+    }
+
+    private annulerClassee() {
+        this.doSend({ type: 'classee_annuler' });
+        this.onMsgClassee(false);
+    }
+
+    /** Panneau de l'onglet « Classée » : connexion obligatoire, puis un plateau et un bouton. */
+    private renderClassee(choixAdv: VNode, plateau: (v: 'matatak' | 'matatakmini', infos: VNode) => VNode): VNode {
+        const c = this.jouer;
+        const infos = this.classee;
+        if (!infos || !infos.connecte) {
+            return h('section.panneau.partie.classee', [
+                choixAdv,
+                h('div.classee-accueil', [
+                    h('b', 'Montez au classement'),
+                    h('p', "Affrontez des joueurs de votre niveau : chaque victoire vous fait gagner des points, chaque défaite en coûte. Il faut un compte pour garder vos points."),
+                ]),
+                h('a.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { href: '/login/lichess' } }, 'Se connecter avec Lichess'),
+                h('small.classee-note', "Gratuit. D'autres façons de se connecter arriveront bientôt."),
+            ]);
+        }
+        const v = infos[c.variant];
+        const attente = this.classeeDebut > 0;
+        const secondes = attente ? Math.floor((Date.now() - this.classeeDebut) / 1000) : 0;
+        const ligne = (x?: ClasseeVariante) => h('small', `Classement ${texteClassement(x)}`);
+        return h('section.panneau.partie.classee', [
+            choixAdv,
+            h('div.etiq', 'Plateau'),
+            h('div.plateaux', { class: { inactif: attente } }, [
+                plateau('matatakmini', ligne(infos.matatakmini)),
+                plateau('matatak', ligne(infos.matatak)),
+            ]),
+            h('div.classee-regles', [
+                h('span', [h('b', 'Draft'), ` · ${v ? v.cadence.replace('+', ' min +') : ''}`]),
+                h('small', "Si personne de votre niveau n'est en ligne, un adversaire d'entraînement prend la place."),
+            ]),
+            attente
+                ? h('div.classee-attente', [
+                    h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { type: 'button', disabled: true } },
+                        `Recherche d'un adversaire… ${Math.floor(secondes / 60)}:${String(secondes % 60).padStart(2, '0')}`),
+                    h('button.deja', { attrs: { type: 'button' }, on: { click: () => this.annulerClassee() } }, 'Annuler'),
+                ])
+                : h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', {
+                    attrs: { type: 'button' },
+                    on: { click: () => this.chercherClassee() },
+                }, 'Jouer une partie classée'),
+        ]);
     }
 
     private lancerJouer(model: PyChessModel) {
@@ -649,11 +737,12 @@ export class LobbyController implements ChatController {
     }
 
     renderJouer(model: PyChessModel): VNode {
+        this.jouerModel = model; // pour les mises à jour venues du serveur (majJouer sans modèle)
         const c = this.jouer;
         const ia = c.adv === 'ia';
         const maj = () => this.majJouer(model);
         const cadences = ia ? CADENCES_IA : CADENCES_AMI;
-        if (!cadences.some(x => x.id === c.tc)) c.tc = ia ? '0+0' : '5+3';
+        if (c.adv !== 'classee' && !cadences.some(x => x.id === c.tc)) c.tc = ia ? '0+0' : '5+3';
 
         const bouton = (actif: boolean, sel: string, onClick: () => void, contenu: (VNode | string)[], attrs: Record<string, string> = {}) =>
             h(sel, { class: { on: actif }, attrs: { type: 'button', 'aria-pressed': String(actif), ...attrs }, on: { click: onClick } }, contenu);
@@ -682,7 +771,7 @@ export class LobbyController implements ChatController {
         ];
 
         // Options repliées : on rappelle ce qui sera joué (cadence toujours, le reste seulement s'il a changé).
-        const cadence = cadences.find(x => x.id === c.tc)!;
+        const cadence = cadences.find(x => x.id === c.tc) ?? cadences[0];
         const resume = [
             cadence.detail ? `${cadence.label} ${cadence.detail}` : cadence.label,
             c.color === 'w' ? 'vous commencez' : c.color === 'b' ? 'en second' : '',
@@ -691,19 +780,41 @@ export class LobbyController implements ChatController {
             !this.jouerDraft && this.jouerFen.trim() ? 'position choisie' : '',
         ].filter(x => x).join(' · ');
 
+        // Pendant une recherche classée, changer d'onglet annule la recherche
+        const choisirAdv = (adv: JouerAdversaire) => {
+            if (this.classeeDebut && adv !== 'classee') this.annulerClassee();
+            c.adv = adv;
+            maj();
+        };
+        const choixAdv = h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
+            bouton(c.adv === 'ia', 'button', () => choisirAdv('ia'), [h('img', { attrs: { src: IMG_VITRINE + IMG_ROI[saisonDuNiveau(c.level)], alt: '' } }), 'Solo']),
+            bouton(c.adv === 'ami', 'button', () => choisirAdv('ami'), [h('img', { attrs: { src: IMG_VITRINE + '11-frank.webp', alt: '' } }), 'Contre un ami']),
+            bouton(c.adv === 'classee', 'button', () => choisirAdv('classee'), [h('img', { attrs: { src: IMG_VITRINE + '26-rokk.webp', alt: '' } }), 'Classée']),
+        ]);
+        const plateau = (v: 'matatak' | 'matatakmini', detail: VNode) =>
+            bouton(c.variant === v, 'button.plat', () => { if (!this.classeeDebut) { c.variant = v; maj(); } }, [
+                damier(v === 'matatak' ? 8 : 4), h('span', [h('b', v === 'matatak' ? 'Matatak' : 'Matatak Mini'), detail]),
+            ]);
+
+        if (c.adv === 'classee') {
+            this.chargerClassee();
+            const v = this.classee?.[c.variant];
+            const scene = h('aside.scene', { key: 'classee' }, [
+                h('div.scene-cartes', [carteTournante('26-rokk.webp')]),
+                this.classee?.connecte
+                    ? h('div.scene-txt', [h('b', v ? String(v.r) : '…'), h('span', `${v?.prov ? 'Classement provisoire' : 'Votre classement'} · ${c.variant === 'matatak' ? 'Matatak' : 'Matatak Mini'}`)])
+                    : h('div.scene-txt', [h('b', 'Classée'), h('span', 'Gagnez des points, grimpez au classement')]),
+            ]);
+            const installation = bandeauInstallation(maj);
+            return h('div.jouer-page', [h('div.grille', [this.renderClassee(choixAdv, plateau), scene]), installation ?? '']);
+        }
+
         const partie = h('section.panneau.partie', [
-            h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
-                bouton(ia, 'button', () => { c.adv = 'ia'; maj(); }, [h('img', { attrs: { src: IMG_VITRINE + IMG_ROI[saisonDuNiveau(c.level)], alt: '' } }), 'Solo']),
-                bouton(!ia, 'button', () => { c.adv = 'ami'; maj(); }, [h('img', { attrs: { src: IMG_VITRINE + '11-frank.webp', alt: '' } }), 'Contre un ami']),
-            ]),
+            choixAdv,
             h('div.etiq', 'Plateau'),
             h('div.plateaux', [
-                bouton(c.variant === 'matatakmini', 'button.plat', () => { c.variant = 'matatakmini'; maj(); }, [
-                    damier(4), h('span', [h('b', 'Matatak Mini'), h('small', '4 × 8 · rapide et facile')]),
-                ]),
-                bouton(c.variant === 'matatak', 'button.plat', () => { c.variant = 'matatak'; maj(); }, [
-                    damier(8), h('span', [h('b', 'Matatak'), h('small', '8 × 8 · grand format')]),
-                ]),
+                plateau('matatakmini', h('small', '4 × 8 · rapide et facile')),
+                plateau('matatak', h('small', '8 × 8 · grand format')),
             ]),
             ia ? h('div.niveau', [
                 h('div.etiq', [h('label', { attrs: { for: 'jouer-niveau' } }, 'Adversaire'), h('b', `${roiDuNiveau(c.level)} · Niveau ${c.level}`)]),
@@ -1468,6 +1579,12 @@ export class LobbyController implements ChatController {
             case "get_seeks":
                 this.onMsgGetSeeks(msg);
                 break;
+            case "classee_attente":
+                this.onMsgClassee(true);
+                break;
+            case "classee_annulee":
+                this.onMsgClassee(false);
+                break;
             case "new_game":
                 this.onMsgNewGame(msg);
                 break;
@@ -1571,6 +1688,14 @@ export class LobbyController implements ChatController {
             oldSeeks.innerHTML = "";
             patch(oldSeeks, h('table.seeks', this.renderSeeks(msg.seeks.filter(seek => seek.day === 0))));
         }
+    }
+
+    private onMsgClassee(enAttente: boolean) {
+        window.clearInterval(this.classeeMinuteur);
+        this.classeeDebut = enAttente ? Date.now() : 0;
+        // Le temps d'attente s'affiche à la seconde près
+        if (enAttente) this.classeeMinuteur = window.setInterval(() => this.majJouer(), 1000);
+        this.majJouer();
     }
 
     private onMsgNewGame(msg: MsgNewGame) {

@@ -85,11 +85,13 @@ async def envoyer(page, message):
     await page.evaluate("m => window.__ws.send(JSON.stringify(m))", message)
 
 
-async def jouer_un_coup(page, game_id, variant="matatakmini"):
-    """Joue le premier coup légal du joueur au trait (lu dans le dernier message board)."""
+async def jouer_un_coup(page, game_id, variant="matatakmini", pendule=0):
+    """Joue le premier coup légal du joueur au trait (lu dans le dernier message board).
+    `pendule` : temps restant annoncé en ms (0 : sans effet sans limite de temps, mais une partie
+    avec pendule serait aussitôt perdue au temps)."""
     plateau = await dernier_plateau(page)
     coups = sf.legal_moves(variant, plateau["fen"], [])
-    await envoyer(page, {"type": "move", "gameId": game_id, "move": coups[0], "clocks": [0, 0], "ply": plateau["ply"] + 1})
+    await envoyer(page, {"type": "move", "gameId": game_id, "move": coups[0], "clocks": [pendule, pendule], "ply": plateau["ply"] + 1})
     return plateau
 
 

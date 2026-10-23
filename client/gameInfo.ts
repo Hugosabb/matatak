@@ -67,8 +67,9 @@ export function gameInfo(model: PyChessModel): VNode {
 
 function playerInfo(model: PyChessModel, color: string) {
     const username = model[color === "w" ? "wplayer" : "bplayer"];
-    const title = model[color === "w" ? "wtitle" : "btitle"];
-    const level = model.level;
+    // En partie classée, l'adversaire d'entraînement (titre LIA) s'affiche comme un joueur
+    const title = model["rated"] === '1' && model[color === "w" ? "wtitle" : "btitle"] === 'LIA' ? '' : model[color === "w" ? "wtitle" : "btitle"];
+    const level = title === '' ? 0 : model.level;
     const rating = model[color === "w" ? "wrating" : "brating"];
     const rdiff = model[color === "w" ? "wrdiff" : "brdiff"];
     const berserk = model[color === "w" ? "wberserk" : "bberserk"];

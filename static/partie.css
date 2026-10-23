@@ -171,6 +171,13 @@ body:has(#toggle-moves:not(:checked)) .round #movelist { height: auto; min-heigh
 .fin-partie.gagne .fin-titre { color: var(--mt-or); }
 .fin-partie .mt-btn { width: min(100%, 320px); margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { .fin-partie { animation: none; } }
+/* Partie classée : points gagnés (or) ou perdus (discret, pas de rouge), qui « tombent » en place */
+.fin-points { display: grid; gap: 2px; justify-items: center; }
+.fin-points b { font: 400 44px/1 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-doux); animation: points-tombent .6s cubic-bezier(.34, 1.56, .64, 1) .15s both; }
+.fin-points.gain b { color: var(--mt-or); text-shadow: 0 0 22px rgba(234, 196, 90, .35); }
+.fin-points small { font-weight: 800; color: var(--mt-doux); font-size: 14px; }
+@keyframes points-tombent { from { opacity: 0; transform: translateY(-14px) scale(1.4); } }
+@media (prefers-reduced-motion: reduce) { .fin-points b { animation: none; } }
 @media (max-width: 799px) and (orientation: portrait) {
   .fin-partie { margin: 10px 10px 0; scroll-margin-bottom: calc(var(--mt-bas) + var(--mt-coups) + 10px); }
 }
@@ -294,6 +301,8 @@ body.en-draft #conseil, body.en-draft #barre-partie { display: none !important; 
 .dr-etapes li.actif i, .dr-etapes li.fait i { background: currentColor; }
 .dr-etapes li.fait { color: var(--mt-doux); }
 .dr-titre { margin: 4px 0 0; text-align: center; font: 400 clamp(22px, 5.5vw, 30px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or); }
+.dr-delai { justify-self: center; margin: 0 auto; width: max-content; padding: 2px 12px; border-radius: 999px; background: var(--mt-nuit); font: 800 15px 'Nunito', sans-serif; font-variant-numeric: tabular-nums; color: var(--mt-doux); }
+.dr-delai.presse { color: var(--mt-or); }
 .dr-texte { margin: 0 auto; max-width: 52ch; text-align: center; font-size: 15px; line-height: 1.45; color: var(--mt-doux); }
 .dr-texte:empty { display: none; }
 
@@ -382,3 +391,12 @@ body.ordi-reflechit-bas round-player1 .player-data::after {
   body.ordi-reflechit-haut round-player0 .player-data::after,
   body.ordi-reflechit-bas round-player1 .player-data::after { animation: none; }
 }
+
+/* Temps du premier coup (tournoi, partie classée) : un texte discret sous le bandeau du joueur,
+ * pas la barre verte / rouge de pychess (pas de rouge dans la direction artistique) */
+.expiration, .expiration.emerg, .expiration.bar-glider {
+  display: block; text-align: center; background: none; animation: none;
+  color: var(--mt-doux); font: 700 14px/1.8 'Nunito', sans-serif;
+}
+.expiration strong { font-size: 15px; color: var(--mt-encre); }
+.expiration.emerg strong { color: var(--mt-or); }

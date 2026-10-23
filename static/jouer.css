@@ -231,3 +231,23 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 .bandeau-installer .fermer:hover { color: var(--mt-encre); }
 .bandeau-installer button:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .bandeau-installer { animation: none; } }
+
+/* Onglet « Classée » (lobby.ts renderClassee) */
+.choix-adv { grid-template-columns: repeat(3, 1fr); }
+.classee-accueil { display: grid; gap: 8px; margin: 4px 0 22px; }
+.classee-accueil b { font: 400 26px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or); }
+.classee-accueil p { margin: 0; color: var(--mt-doux); font-size: 15px; line-height: 1.5; }
+.classee-note { display: block; margin-top: 10px; text-align: center; color: var(--mt-discret); font-size: 13px; }
+.classee-regles { display: grid; gap: 4px; margin: -6px 0 20px; }
+.classee-regles span { font-weight: 800; color: var(--mt-encre); }
+.classee-regles b { color: var(--mt-or); }
+.classee-regles small { color: var(--mt-discret); font-size: 13px; line-height: 1.4; }
+.classee .plateaux.inactif { opacity: .55; pointer-events: none; }
+.classee-attente { display: grid; gap: 6px; }
+.classee-attente .lancer:disabled { opacity: 1; cursor: progress; animation: classee-pulse 1.6s ease-in-out infinite; }
+@keyframes classee-pulse { 50% { filter: brightness(1.15); } }
+@media (prefers-reduced-motion: reduce) { .classee-attente .lancer:disabled { animation: none; } }
+@media (max-width: 760px) {
+  .choix-adv button { flex-direction: column; gap: 3px; font-size: 14px; min-height: 58px; padding: 6px 4px; }
+  .choix-adv button img { width: 22px; }
+}

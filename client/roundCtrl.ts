@@ -40,6 +40,7 @@ import { setPocketRowCssVars } from './pocketRow';
 
 let rang = false;
 const CASUAL = '0';
+const RATED = '1';
 const LVL_SKILL = [-20, -17, -14, -11, -8, -5, -3, -1, 0, 1, 3, 4, 5, 6, 7, 10, 12, 15, 17, 20];
 // Temps de réflexion de l'ordinateur (Solo) : il calcule, puis attend d'avoir « réfléchi » le temps
 // visé (tempsVise). Jamais instantané, jamais 10 s ; avec une pendule, il ne s'autorise qu'une petite
@@ -81,6 +82,8 @@ export class RoundController extends GameController {
     fin: { status: number, result: string } | undefined;
     revanche: '' | 'envoyee' | 'recue' | 'refusee' = '';
     revancheId = '';
+    // Points gagnés ou perdus en fin de partie classée (message gameEnd du serveur)
+    rdiffs: RDiffs | null = null;
     // Téléphone : barre du bas (Options, Précédent, Suivant) et son menu
     vbarre: VNode | HTMLElement | undefined;
     menuOuvert = false;
@@ -284,8 +287,8 @@ export class RoundController extends GameController {
         // initialize users
         const player0 = document.getElementById('rplayer0') as HTMLElement;
         const player1 = document.getElementById('rplayer1') as HTMLElement;
-        this.vplayer0 = patch(player0, player('player0', this.titles[0], this.players[0], this.ratings[0], this.level));
-        this.vplayer1 = patch(player1, player('player1', this.titles[1], this.players[1], this.ratings[1], this.level));
+        this.vplayer0 = patch(player0, player('player0', this.titreAffiche(this.titles[0]), this.players[0], this.ratings[0], this.level));
+        this.vplayer1 = patch(player1, player('player1', this.titreAffiche(this.titles[1]), this.players[1], this.ratings[1], this.level));
 
         if (this.variant.material.showDiff) {
             const materialTop = document.querySelector('.material-top') as HTMLElement;
@@ -521,9 +524,11 @@ export class RoundController extends GameController {
             h('button.barre-action', { class: { attention }, attrs: { type: 'button', role: 'menuitem' }, on: { click: () => { fermer(); faire(); } } }, texte);
         const actions: VNode[] = [];
         if (enCours) {
-            if (coupsJoues < 2 && !this.tournamentGame) actions.push(action('Annuler la partie', () => this.abort()));
+            // Partie classée : elle compte dès le début, on peut abandonner mais pas annuler
+            const commeTournoi = this.tournamentGame || this.rated === RATED;
+            if (coupsJoues < 2 && !commeTournoi) actions.push(action('Annuler la partie', () => this.abort()));
             else if (!this.variant.rules.noDrawOffer) actions.push(action('Proposer match nul', () => this.draw()));
-            if (coupsJoues >= 2 || this.tournamentGame) actions.push(action('Abandonner', () => this.resign(), true));
+            if (coupsJoues >= 2 || commeTournoi) actions.push(action('Abandonner', () => this.resign(), true));
         }
         // Icônes seules (barre plus basse, plateau plus grand) ; le nom reste pour les lecteurs d'écran
         const icone = (d: string, epaisseur = '2.4') => h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': epaisseur, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } }, [h('path', { attrs: { d } })]);
@@ -590,8 +595,8 @@ export class RoundController extends GameController {
         this.clocks[1].setTime(tmp_clock_time);
         if (this.status < 0 && !this.unlimited) new_running_clck.start();
 
-        this.vplayer0 = patch(this.vplayer0, player('player0', this.titles[this.flipped() ? 1 : 0], this.players[this.flipped() ? 1 : 0], this.ratings[this.flipped() ? 1 : 0], this.level));
-        this.vplayer1 = patch(this.vplayer1, player('player1', this.titles[this.flipped() ? 0 : 1], this.players[this.flipped() ? 0 : 1], this.ratings[this.flipped() ? 0 : 1], this.level));
+        this.vplayer0 = patch(this.vplayer0, player('player0', this.titreAffiche(this.titles[this.flipped() ? 1 : 0]), this.players[this.flipped() ? 1 : 0], this.ratings[this.flipped() ? 1 : 0], this.level));
+        this.vplayer1 = patch(this.vplayer1, player('player1', this.titreAffiche(this.titles[this.flipped() ? 0 : 1]), this.players[this.flipped() ? 0 : 1], this.ratings[this.flipped() ? 0 : 1], this.level));
 
         if (this.variant.ui.counting)
             [this.vmiscInfoW, this.vmiscInfoB] = updateCount(this.fullfen, this.vmiscInfoB, this.vmiscInfoW);
@@ -893,6 +898,8 @@ export class RoundController extends GameController {
     }
 
     private gameOver = (rdiffs: RDiffs) => {
+        this.rdiffs = rdiffs;
+        if (this.fin) this.renderFin();
         let container;
         container = document.getElementById('wrdiff') as HTMLElement;
         if (container) patch(container, renderRdiff(rdiffs["wrdiff"]));
@@ -910,16 +917,22 @@ export class RoundController extends GameController {
             return;
         }
         const saison = (couleur: 'white' | 'black') =>
-            ((couleur === 'white' ? this.wtitle : this.btitle) === 'LIA' && this.level > 0)
+            ((couleur === 'white' ? this.wtitle : this.btitle) === 'LIA' && this.level > 0 && this.rated !== RATED)
                 ? saisonDuNiveau(this.level)
                 : saisonDuCamp(this.initialFen, couleur, this.gameId);
         appliquerRois(this.assetURL, saison('white'), saison('black'));
     }
 
+    /** En partie classée, l'adversaire d'entraînement (titre LIA, server/bots_classes.py) s'affiche
+     *  comme un joueur : son pseudo et son classement, sans Roi ni niveau. */
+    private titreAffiche(titre: string): string {
+        return titre === 'LIA' && this.rated === RATED ? '' : titre;
+    }
+
     /** Nom affiché d'un joueur : l'ordinateur prend le nom du Roi de son palier (Solo). */
     private nomJoueur(couleur: 'white' | 'black'): string {
         const titre = couleur === 'white' ? this.wtitle : this.btitle;
-        if (titre === 'LIA' && this.level > 0) return roiDuNiveau(this.level);
+        if (titre === 'LIA' && this.level > 0 && this.rated !== RATED) return roiDuNiveau(this.level);
         return (couleur === 'white' ? this.wplayer : this.bplayer).split('#')[0];
     }
 
@@ -945,6 +958,12 @@ export class RoundController extends GameController {
         this.rois = { white: etat.equipes.white!.roi, black: etat.equipes.black!.roi };
         this.resetForNewPhase({ fen: etat.fen!, status: -2 });
         if (!this.spectator) sound.genericNotify();
+        // Partie classée : le premier coup est chronométré (30 s, server/clock.py), on l'affiche
+        if (this.rated === RATED && !this.spectator) {
+            this.firstmovetime = 30000;
+            this.expiStart = Date.now();
+            setTimeout(this.showExpiration, 350);
+        }
         // Le plateau était caché : chessground doit remesurer ses cases
         this.chessground.state.dom.bounds.clear();
         this.chessground.redrawAll();
@@ -997,9 +1016,25 @@ export class RoundController extends GameController {
         let message: string | null = null;
         const liens: VNode[] = [];
 
+        // Partie classée : les points gagnés ou perdus, en grand
+        let points: VNode | null = null;
+        // (moins de 3 demi-coups : partie non comptée, comme sur pychess)
+        if (joueur && this.rated === RATED && this.rdiffs && fin.status !== 0 && this.ply >= 3) {
+            const blanc = this.mycolor === 'white';
+            const diff = blanc ? this.rdiffs.wrdiff : this.rdiffs.brdiff;
+            const avant = parseInt(blanc ? this.wrating : this.brating) || 0;
+            points = h('div.fin-points', { class: { gain: diff > 0, perte: diff < 0 } }, [
+                h('b', diff > 0 ? `+${diff}` : diff < 0 ? `−${-diff}` : '±0'),
+                h('small', `Classement ${avant + diff}`),
+            ]);
+        }
+
         if (joueur && this.tournamentGame) {
             principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.joinTournament() } }, 'Retour au tournoi');
             liens.push(lien('Pause', () => this.pauseTournament()));
+        } else if (joueur && this.rated === RATED && !this.corr) {
+            // Pas de revanche : on repasse par la file d'attente, qui choisit un adversaire de son niveau
+            principal = h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?classee=1' } }, 'Nouvelle partie classée');
         } else if (joueur && !this.corr && this.contreIA()) {
             const lvl = this.level;
             if (gagne && lvl < 20) {
@@ -1025,7 +1060,7 @@ export class RoundController extends GameController {
             }
         }
         // Draft : « Rejouer » et « Revanche » gardent les équipes (livret) ; un nouveau tirage au choix
-        if (joueur && !this.corr && !this.tournamentGame && this.rois && !this.revancheId && this.revanche !== 'envoyee')
+        if (joueur && !this.corr && !this.tournamentGame && this.rated !== RATED && this.rois && !this.revancheId && this.revanche !== 'envoyee')
             liens.push(lien('Nouveau Draft', () => this.rematch(undefined, true)));
         if (this.revancheId) liens.unshift(lien('Voir la revanche', () => window.location.assign(this.home + '/' + this.revancheId)));
         if (fin.status !== 0) liens.push(lien('Analyser', () => this.analysis(this.home)));
@@ -1037,6 +1072,7 @@ export class RoundController extends GameController {
         }, [
             h('div.fin-titre', titre),
             h('p.fin-raison', this.raisonFin(fin.status, fin.result, joueur && gagne, joueur && perdu)),
+            points ?? '',
             message ? h('p.fin-message', message) : '',
             principal ?? '',
             liens.length ? h('div.fin-liens', liens) : '',
@@ -1512,7 +1548,7 @@ export class RoundController extends GameController {
     private renderExpiration = () => {
         // We return sooner in case the client belongs to a spectator or the 
         // game is non tournament game.
-        if (this.spectator || !this.tournamentGame) return;
+        if (this.spectator || !(this.tournamentGame || this.rated === RATED)) return;
         let position = (this.turnColor === this.mycolor) ? "bottom" : "top";
         if (this.flipped()) position = (position === "top") ? "bottom" : "top";
         let expi = (position === 'top') ? 0 : 1;
