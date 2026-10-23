@@ -476,3 +476,9 @@ body[data-view="invite"] #main-wrap { display: block; }
 .mt-invite .invite-annuler:hover, .mt-invite .invite-regles:hover { color: var(--mt-encre); text-decoration: underline; text-underline-offset: 3px; }
 .mt-invite .invite-regles { display: inline-flex; align-items: center; color: var(--mt-or); }
 @media (prefers-reduced-motion: reduce) { .mt-invite .pouls { animation: none; } }
+
+/* Points gagnés ou perdus en partie classée (result.ts renderRdiff : <good>, <bad>) : pas de vert
+ * ni de rouge, comme le cadre de fin de partie (partie.css .fin-points) */
+good, bad { margin-left: 6px; font-weight: 800; }
+good { color: var(--mt-or); }
+bad { color: var(--mt-discret); }

@@ -1042,7 +1042,7 @@ export class RoundController extends GameController {
             liens.push(lien('Pause', () => this.pauseTournament()));
         } else if (joueur && this.rated === RATED && !this.corr) {
             // Pas de revanche : on repasse par la file d'attente, qui choisit un adversaire de son niveau
-            principal = h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?classee=1' } }, 'Nouvelle partie classée');
+            principal = h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?classee=1' } }, 'Nouvelle partie');
         } else if (joueur && !this.corr && this.contreIA()) {
             const lvl = this.level;
             if (gagne && lvl < 20) {

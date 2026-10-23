@@ -114,5 +114,5 @@ async def test_partie_classee_contre_un_adversaire_d_entrainement(site_connecte,
     points = await page.locator(".fin-points").inner_text()
     assert "−" in points and "Classement" in points, points
     fin = await page.locator(".fin-partie").inner_text()
-    assert "Nouvelle partie classée" in fin and "Revanche" not in fin and "Rejouer" not in fin, fin
+    assert "Nouvelle partie" in fin and "Revanche" not in fin and "Rejouer" not in fin, fin
     assert not page.erreurs, page.erreurs

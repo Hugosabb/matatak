@@ -149,7 +149,11 @@ body:is([data-view="analysis"], [data-view="puzzle"]) under-board { display: non
   body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) #gauge { --ratio: 2; }
   body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-tools,
   body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-settings { grid-area: tools; max-height: calc(var(--haut) - 70px); overflow-y: auto; }
-  body:is([data-view="analysis"], [data-view="puzzle"]) #movelist { max-height: none; }
+  /* Partie longue : le moteur et la ligne de jeu gardent leur taille, seule la liste des coups
+   * défile (avant, elle écrasait le panneau du moteur au-dessus d'elle) */
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-tools > * { flex: none; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-tools > .movelist-block { flex: 0 1 auto; min-height: 120px; display: flex; flex-direction: column; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) #movelist { max-height: none; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
   body:is([data-view="analysis"], [data-view="puzzle"]) #move-controls, body:is([data-view="analysis"], [data-view="puzzle"]) div.btn-controls { grid-area: move-controls; }
   /* Les coordonnées du plateau restent à droite, comme en partie */
   body:is([data-view="analysis"], [data-view="puzzle"]) .cg-wrap coords.side { right: 0; }
