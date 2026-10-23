@@ -51,10 +51,13 @@ class ClasseeTestCase(BaseClassee):
             # Comme un invité (« Silly-Goose »), sans son numéro : jamais confondu avec un invité
             self.assertRegex(nom, r"^[A-Z][A-Za-z]*-[A-Z][A-Za-z]*$")
             self.assertIsNone(INVITE.match(nom))
-            self.assertTrue(700 <= classement <= 2600)
+            self.assertTrue(700 <= classement <= 3000)
         self.assertTrue(est_bot_classe(next(iter(BOTS)).upper()))
         self.assertFalse(est_bot_classe("Level 7"))
         self.assertEqual((niveau(800), niveau(1500), niveau(3000)), (1, 8, 20))
+        self.assertEqual((niveau(1900), niveau(2450), niveau(5000)), (12, 16, 20))
+        # Les meilleurs bots jouent au niveau 20, le plus fort de Fairy-Stockfish
+        self.assertEqual(niveau(max(BOTS.values())), 20)
 
     async def test_deux_joueurs_proches_sont_apparies_en_draft(self):
         import classee

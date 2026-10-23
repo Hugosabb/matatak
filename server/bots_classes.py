@@ -24,7 +24,10 @@ from user import User
 
 # Classement d'ancrage des bots : de quoi couvrir les débutants comme les meilleurs
 CLASSEMENT_MIN = 700
-CLASSEMENT_MAX = 2600
+CLASSEMENT_MAX = 3000  # Hugo : « au moins 3000, on verra jusqu'où vont les joueurs »
+# Échelle des niveaux : un niveau tous les 100 points jusqu'à PALIER (niveau 12), puis plus espacés
+# jusqu'au niveau 20 à CLASSEMENT_MAX. Les joueurs, eux, n'ont pas de plafond.
+PALIER = 1900
 # Écart maximal entre le classement d'un bot et son ancrage
 DERIVE_MAX = 150
 # Incertitude Glicko-2 basse : classement « établi » (pas de « ? »), qui bouge peu à chaque partie
@@ -53,9 +56,13 @@ def est_bot_classe(username: str | None) -> bool:
 
 
 def niveau(classement: int) -> int:
-    """Niveau Fairy-Stockfish (1 à 20) d'un classement : 800 → 1, 1500 → 8, 2700 → 20.
-    Correspondance de départ, à recaler avec les résultats réels."""
-    return min(20, max(1, round(1 + (classement - 800) / 100)))
+    """Niveau Fairy-Stockfish (1 à 20) d'un classement : 800 → 1, 1500 → 8, 1900 → 12, 3000 → 20.
+    Correspondance de départ, à recaler avec les résultats réels (le classement des bots bouge)."""
+    if classement <= PALIER:
+        n = 1 + (classement - 800) / 100
+    else:
+        n = 12 + (classement - PALIER) * 8 / (CLASSEMENT_MAX - PALIER)
+    return min(20, max(1, round(n)))
 
 
 def niveau_du_bot(username: str) -> int:
