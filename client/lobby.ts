@@ -1380,6 +1380,8 @@ export class LobbyController implements ChatController {
         const eRange = document.querySelector('div.auto-rating-range') as Element;
         const eTimeControls = document.querySelector('div.timecontrols') as Element;
         const eVariants = document.querySelector('div.variants') as Element;
+        // Page /jouer : pas de bloc d'appariement automatique (ancien salon pychess)
+        if (!eRange || !eTimeControls || !eVariants) return;
         if (autoPairingIsOn) {
             if (this.autoPairingActions) {
                 this.autoPairingActions = patch(this.autoPairingActions,
