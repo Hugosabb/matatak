@@ -400,3 +400,41 @@ body.ordi-reflechit-bas round-player1 .player-data::after {
 }
 .expiration strong { font-size: 15px; color: var(--mt-encre); }
 .expiration.emerg strong { color: var(--mt-or); }
+
+/* ---------- Salon de discussion de la partie : aux couleurs de MATATAK (pas le style pychess) ---------- */
+.round #roundchat {
+  min-height: 11em; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+  font-family: 'Nunito', sans-serif; overflow: hidden;
+}
+.round #roundchat div.chatroom {
+  padding: 12px 14px 4px; font: 900 12px 'Jost', sans-serif; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--mt-discret);
+}
+/* La case à cocher orange devient un petit interrupteur (pastille à gauche : coupé, à droite en or : actif) */
+.round #roundchat #checkbox {
+  appearance: none; -webkit-appearance: none; flex: none; width: 36px; height: 20px; padding: 0;
+  border: 0; border-radius: 999px; cursor: pointer; transition: background .2s;
+  background: radial-gradient(circle at 10px 50%, var(--mt-doux) 6px, transparent 7px), var(--mt-nuit);
+}
+.round #roundchat #checkbox:checked {
+  background: radial-gradient(circle at 26px 50%, var(--mt-nuit) 6px, transparent 7px), var(--mt-or);
+}
+.round #roundchat #checkbox:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; }
+.round #roundchat li.message { padding: 0 14px; margin: 6px 0; font-size: 15px; line-height: 1.4; color: var(--mt-encre); }
+.round #roundchat li.message user { color: var(--mt-or); font-weight: 800; }
+.round #roundchat li.message .time { color: var(--mt-discret); font-size: 12px; }
+.round #roundchat li.message.server { color: var(--mt-doux); font-style: italic; }
+.round #roundchat li.message.offer { color: var(--mt-or); }
+.round #roundchat #chat-entry {
+  margin: 8px 10px 10px; padding: 10px 14px; border: 0; border-radius: 12px;
+  background: var(--mt-nuit); box-shadow: inset 0 0 0 1px var(--mt-filet);
+  font: 600 15px 'Nunito', sans-serif; letter-spacing: 0; color: var(--mt-encre);
+}
+.round #roundchat #chat-entry::placeholder { color: var(--mt-discret); }
+.round #roundchat #chat-entry:focus { outline: none; box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+.round #roundchat #chat-entry:disabled { opacity: .6; }
+.round #roundchat li.message user a,
+.round #roundchat li.message user player-title {
+  /* !important : pychess colore chaque pseudo en style en ligne (usernameColorMap, chat.ts) */
+  color: var(--mt-or) !important; font: 800 15px 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; text-decoration: none;
+}
