@@ -6,6 +6,7 @@ import * as cg from 'chessgroundx/types';
 import { updateMovelist } from './movelist';
 import { uci2LastMove, UCIMove } from './chess';
 import { appliquerRois, saisonDuCamp } from './rois';
+import { sound } from './sound';
 
 interface EtapeTutoriel {
     _id: string; moves: string; fen: string; instruction: string; success_msg: string; title?: string;
@@ -173,6 +174,7 @@ export class TutorialController extends PuzzleController {
 
     puzzleComplete(success: boolean) {
         this.completed = true;
+        if (success) sound.victory();
         this.chessground.setAutoShapes([]);
         const derniere = this.tutorialId >= this.total;
         noterProgression(this.tutorialId, derniere);

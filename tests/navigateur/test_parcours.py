@@ -79,6 +79,29 @@ async def test_solo_l_ordinateur_repond_et_montre_qu_il_reflechit(site, chromium
     assert not page.erreurs, page.erreurs
 
 
+async def test_abandon_confirme_dans_le_menu_sans_fenetre_du_navigateur(site, chromium):
+    """Abandonner : confirmation dans le menu ⋯ de la partie, plus de confirm() du navigateur (23/10/2026)."""
+    page, game_id = await partie_solo(chromium, site, niveau=1, telephone=True)
+    page.on("dialog", lambda d: (_ for _ in ()).throw(AssertionError("fenêtre du navigateur : " + d.message)))
+    moi = await couleur_du_joueur(page)
+    # « Abandonner » n'apparaît qu'après 2 demi-coups (avant : « Annuler la partie »)
+    for _ in range(3):
+        if len([m for m in await page.evaluate("window.__msgs") if m.get("type") == "board"]) and (
+            await dernier_plateau(page)
+        )["ply"] >= 2:
+            break
+        if (await dernier_plateau(page))["fen"].split(" ")[1] == moi:
+            await jouer_un_coup(page, game_id)
+        await attendre(page, "window.__msgs.some(m => m.type === 'board' && m.ply >= 2)", 12000)
+    await page.locator("#barre-partie .barre-btn").first.click()
+    await page.locator(".barre-action", has_text="Abandonner").click()
+    assert await page.locator(".barre-question").inner_text() == "Vraiment abandonner ?"
+    await page.locator(".barre-action", has_text="Oui, abandonner").click()
+    await page.wait_for_selector(".fin-partie", timeout=10000)
+    assert "Vous avez abandonné" in await page.locator(".fin-partie").inner_text()
+    assert not page.erreurs, page.erreurs
+
+
 async def une_etape_de_draft(page, choix_groupe=0):
     """Fait l'étape affichée à ce joueur, s'il a la main. Renvoie le titre vu."""
     if not await page.locator(".dr-titre").count():

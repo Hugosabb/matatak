@@ -453,15 +453,24 @@ class FairyBoard:
         bchampions, bpawns, wpawns, wchampions = FairyBoard.add_boost(isMini, boost, bchampions, bpawns, wpawns, wchampions)
         return FairyBoard.matatak_placement_start(bchampions, bpawns, wpawns, wchampions, isMini)
     
+    # Force totale minimale d'une équipe tirée au hasard (étoiles des 2 Champions + 3 Pions). En dessous,
+    # le Roi adverse pouvait monter sur la Colline de force : 15 parties perdues d'avance sur 1 300 tirages,
+    # toutes à 10 étoiles ou moins (étude du 23/10/2026, docs/etudes/colline/ ; règle choisie par Hugo).
+    FORCE_MIN = 11
+
     @staticmethod
     def matatak_random_teams():
         pawns = "abefgjlmpq"
         champions = "cdhinorstwxyz"
-        pawns_boost = ["b", "b", "b", "b"]
-        champions_boost = ["n", "o", "i", "d"]
+        etoiles = lambda lettres: sum(FairyBoard.FORCE[c][1] for c in lettres)
 
-        c1, c2 = random.sample(champions, 2)
-        p1, p2, p3 = random.sample(pawns, 3)
+        # On retire tant que l'équipe est trop faible (≈ 1 fois sur 5) : toutes les équipes assez fortes
+        # restent également probables, ce qu'« améliorer » l'équipe tirée ne garantirait pas
+        while True:
+            c1, c2 = random.sample(champions, 2)
+            p1, p2, p3 = random.sample(pawns, 3)
+            if etoiles(c1 + c2 + p1 + p2 + p3) >= FairyBoard.FORCE_MIN:
+                break
 
         bchampions = c1 + "k" + c2
         bpawns = p1 + p2 + p3

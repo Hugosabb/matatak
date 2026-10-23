@@ -542,6 +542,18 @@ class RedemarrageTestCase(AioHTTPTestCase):
                 user.remove_task.cancel()
         await self.client.close()
 
+    async def test_invite_et_ordinateur_jamais_cherches_en_base(self):
+        """Les invités et l'ordinateur ne sont jamais en base : pas de « NOT IN db » en ERROR dans les
+        logs (des dizaines à chaque démarrage en prod, 23/10/2026), mais toujours recréés par get_joueur."""
+        from users import NotInDbUsers
+
+        app_state = get_app_state(self.app)
+        for nom in ("Cool-Camel#165715", "Level 7"):
+            with self.assertNoLogs(level="ERROR"):
+                with self.assertRaises(NotInDbUsers):
+                    await app_state.users.get(nom)
+            self.assertEqual((await app_state.users.get_joueur(nom)).username, nom)
+
     async def test_partie_solo_rechargee_apres_redemarrage(self):
         from user import User
         from utils import load_game
@@ -624,3 +636,17 @@ class SansDropTestCase(unittest.TestCase):
             valide, propre = sanitize_fen(variant, fen, False)
             self.assertTrue(valide, fen)
             self.assertNotIn("[", propre)
+
+
+class ForceMinimaleTestCase(unittest.TestCase):
+    """8×8 au hasard : jamais d'équipe sous 11 étoiles (Colline indéfendable, docs/etudes/colline/)."""
+
+    def test_equipes_aleatoires_assez_fortes(self):
+        from fairy.fairy_board import FairyBoard
+
+        force = FairyBoard.FORCE
+        for _ in range(500):
+            bchampions, bpawns, wpawns, wchampions = FairyBoard.matatak_random_teams()
+            etoiles = sum(force[c][1] for c in bchampions + bpawns if c != "k")
+            self.assertGreaterEqual(etoiles, FairyBoard.FORCE_MIN, (bchampions, bpawns))
+            self.assertEqual(wpawns.lower(), bpawns[::-1])  # toujours en miroir

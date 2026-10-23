@@ -76,6 +76,11 @@ class Users(UserDict):
             user = self.data[NONE_USER]
             return user
 
+        # Invités et ordinateur ne sont jamais en base (noms impossibles pour un compte Lichess) :
+        # pas de requête, et pas d'erreur dans les logs (des dizaines à chaque démarrage)
+        if INVITE.match(username) or ORDINATEUR.match(username):
+            raise NotInDbUsers
+
         doc = await self.app_state.db.user.find_one({"_id": username})
         if doc is not None and est_bot_classe(username):
             return bots_classes.utilisateur(self.app_state, doc)

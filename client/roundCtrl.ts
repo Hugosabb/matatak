@@ -87,6 +87,7 @@ export class RoundController extends GameController {
     // Téléphone : barre du bas (Options, Précédent, Suivant) et son menu
     vbarre: VNode | HTMLElement | undefined;
     menuOuvert = false;
+    confirmerAbandon = false;
     // Première partie sur l'appareil : conseils discrets (0 = aucun, 1 = toucher, 2 = gagner, 3 = fini)
     etapeConseil = 0;
     vconseil: VNode | HTMLElement | undefined;
@@ -341,11 +342,13 @@ export class RoundController extends GameController {
 
             if (!this.spectator && !this.unlimited && this.rated === CASUAL && ![this.wtitle, this.btitle].some(t => t === 'BOT' || t === 'LIA')) {
                 const container = document.getElementById('more-time') as HTMLElement;
+                // Petit bouton « +15 » juste avant la pendule de l'adversaire (partie.css)
                 patch(container, h('div#more-time', [
-                    h('button.icon.icon-plus-square', {
-                        props: { type: "button", title: _("Give 15 seconds") },
+                    h('button.plus-temps', {
+                        props: { type: "button", title: "Donner 15 secondes à votre adversaire" },
+                        attrs: { 'aria-label': "Donner 15 secondes à votre adversaire" },
                         on: { click: () => onMoreTime() }
-                    })
+                    }, '+15')
                 ]));
             }
 
@@ -519,16 +522,24 @@ export class RoundController extends GameController {
         if (this.etapeConseil === 1 && coupsJoues >= 1) this.etapeConseil = 2;
         if (this.etapeConseil === 2 && (coupsJoues >= 5 || !enCours)) this.finConseils();
         else this.renderConseil();
-        const fermer = () => { this.menuOuvert = false; this.renderBarre(); };
+        const fermer = () => { this.menuOuvert = false; this.confirmerAbandon = false; this.renderBarre(); };
         const action = (texte: string, faire: () => void, attention = false) =>
             h('button.barre-action', { class: { attention }, attrs: { type: 'button', role: 'menuitem' }, on: { click: () => { fermer(); faire(); } } }, texte);
         const actions: VNode[] = [];
-        if (enCours) {
+        if (enCours && this.confirmerAbandon) {
+            // Confirmation dans le menu, pas une fenêtre du navigateur (Hugo, 23/10/2026)
+            actions.push(h('div.barre-question', 'Vraiment abandonner ?'));
+            actions.push(action('Oui, abandonner', () => this.resign(), true));
+            actions.push(action('Non, continuer', () => {}));
+        } else if (enCours) {
             // Partie classée : elle compte dès le début, on peut abandonner mais pas annuler
             const commeTournoi = this.tournamentGame || this.rated === RATED;
             if (coupsJoues < 2 && !commeTournoi) actions.push(action('Annuler la partie', () => this.abort()));
             else if (!this.variant.rules.noDrawOffer) actions.push(action('Proposer match nul', () => this.draw()));
-            if (coupsJoues >= 2 || commeTournoi) actions.push(action('Abandonner', () => this.resign(), true));
+            if (coupsJoues >= 2 || commeTournoi) actions.push(h('button.barre-action.attention', {
+                attrs: { type: 'button', role: 'menuitem' },
+                on: { click: () => { this.confirmerAbandon = true; this.renderBarre(); } },
+            }, 'Abandonner'));
         }
         // Icônes seules (barre plus basse, plateau plus grand) ; le nom reste pour les lecteurs d'écran
         const icone = (d: string, epaisseur = '2.4') => h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': epaisseur, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } }, [h('path', { attrs: { d } })]);
@@ -539,7 +550,7 @@ export class RoundController extends GameController {
         this.vbarre = patch(this.vbarre, h('div#barre-partie', { class: { ouvert: this.menuOuvert, 'sans-options': !actions.length } }, [
             this.menuOuvert ? h('div.barre-fond', { on: { click: fermer } }) : '',
             this.menuOuvert ? h('div.barre-menu', { attrs: { role: 'menu' } }, actions) : '',
-            actions.length ? bouton('Menu de la partie', icone('M5 12h.01M12 12h.01M19 12h.01', '4'), () => { this.menuOuvert = !this.menuOuvert; this.renderBarre(); },
+            actions.length ? bouton('Menu de la partie', icone('M5 12h.01M12 12h.01M19 12h.01', '4'), () => { this.menuOuvert = !this.menuOuvert; this.confirmerAbandon = false; this.renderBarre(); },
                 { 'aria-expanded': String(this.menuOuvert), 'aria-haspopup': 'menu' }) : '',
             bouton('Coup précédent', icone('M15 5l-7 7 7 7'), () => selectMove(this, this.ply - 1)),
             bouton('Coup suivant', icone('M9 5l7 7-7 7'), () => selectMove(this, this.ply + 1)),
@@ -645,11 +656,10 @@ export class RoundController extends GameController {
         this.doSend({ type: "takeback", gameId: this.gameId });
     }
 
+    // Proposer ou accepter la nulle : pas de confirmation, le bouton suffit (Hugo, 23/10/2026)
     private draw = () => {
-        if (confirm(_('Are you sure you want to draw?'))) {
-            this.doSend({ type: "draw", gameId: this.gameId });
-            this.setDialog(_("Draw offer sent"));
-        }
+        this.doSend({ type: "draw", gameId: this.gameId });
+        this.setDialog('Proposition de nulle envoyée');
     }
 
     private rejectDrawOffer = () => {
@@ -658,13 +668,17 @@ export class RoundController extends GameController {
     }
 
     private renderDrawOffer = () => {
-        (document.querySelector('.btn-controls.game') as HTMLElement).style.display = "none";
+        const controles = document.querySelector('.btn-controls.game') as HTMLElement | null;
+        if (controles) controles.style.display = "none";
+        const adversaire = this.nomJoueur(this.mycolor === 'white' ? 'black' : 'white');
         this.vdialog = patch(this.vdialog, h('div#offer-dialog', [
-            h('div.dcontrols', [
-                h('div', { class: { reject: true }, on: { click: () => this.rejectDrawOffer() } }, h('i.icon.icon-abort.reject')),
-                h('div.text', _("Your opponent offers a draw")),
-                h('div', { class: { accept: true }, on: { click: () => this.draw() } }, h('i.icon.icon-check')),
-            ])
+            h('div.offre-nulle', { attrs: { role: 'alertdialog', 'aria-label': 'Proposition de nulle' } }, [
+                h('div.offre-texte', `${adversaire} propose la nulle`),
+                h('div.offre-boutons', [
+                    h('button.mt-btn.mt-btn-petit.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.draw() } }, 'Accepter'),
+                    h('button.mt-btn.mt-btn-petit.mt-btn-ligne', { attrs: { type: 'button' }, on: { click: () => this.rejectDrawOffer() } }, 'Refuser'),
+                ]),
+            ]),
         ]));
     }
 
@@ -689,11 +703,7 @@ export class RoundController extends GameController {
         if (gameControlsEl) gameControlsEl.style.display = "none";
 
         this.vdialog = patch(this.vdialog, h('div#offer-dialog', [
-            h('div.dcontrols', [
-                h('div', { class: { reject: false } }),
-                h('div.text', message),
-                h('div', { class: { accept: false } }),
-            ])
+            h('div.offre-nulle.info', { attrs: { role: 'status' } }, [h('div.offre-texte', message)]),
         ]));
         setTimeout(() => this.clearDialog(), 2000);
     }
@@ -704,11 +714,9 @@ export class RoundController extends GameController {
         if (el) el.style.display = "flex";
     }
 
+    // La confirmation se fait dans le menu de la partie (renderBarre)
     private resign = () => {
-        const doResign = (localStorage.getItem("confirmresign") === "false") || confirm(_('Are you sure you want to resign?'))
-        if (doResign) {
-            this.doSend({ type: "resign", gameId: this.gameId });
-        }
+        this.doSend({ type: "resign", gameId: this.gameId });
     }
 
     // Janggi second player (Red) setup

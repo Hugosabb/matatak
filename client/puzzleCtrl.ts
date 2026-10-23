@@ -10,6 +10,7 @@ import { updateMovelist } from './movelist';
 import { variants } from './variants';
 import { RatedSettings, AutoNextSettings } from './puzzleSettings';
 import { updatePoint } from './info';
+import { sound } from './sound';
 
 /** Nombre de niveaux de campagne réussis sur cet appareil. */
 function niveauxResolus(variant: string): number {
@@ -283,6 +284,9 @@ export class PuzzleController extends AnalysisController {
 
         this.chessground.set(this.cgConfig(move));
         this.setDests();
+        // Sons des vraies parties : promotion (coup UCI à 5 caractères, ex. a7a8d) et MATATAK ! (échec)
+        if (/^[a-z]\d+[a-z]\d+[a-z]$/.test(move)) sound.promotion();
+        if (this.ffishBoard.isCheck()) sound.check();
 
         const step = {
             'fen': this.fullfen,
@@ -369,6 +373,7 @@ export class PuzzleController extends AnalysisController {
         // Réussi seulement sans erreur ni indice : sinon le niveau n'est pas compté
         const reussi = success && !this.failed;
         if (reussi) {
+            sound.victory();
             this.postSuccess(true);
             if (this.level !== undefined) {
                 const key = `matatak_campaign_solved_${this.variant.name}`;

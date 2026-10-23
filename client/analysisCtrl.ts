@@ -461,6 +461,8 @@ export class AnalysisController extends GameController {
         }
         if (msg.steps.length === 1 && lastMove && (this.turnColor === this.mycolor || this.spectator)) {
             sound.moveSound(this.variant, capture);
+            // Promotion (coup terminé par la pièce choisie, ex. a7a8d) : même son qu'en partie
+            if (/^[a-z]\d+[a-z]\d+[a-z]$/.test(msg.lastMove ?? '')) sound.promotion();
         }
         this.checkStatus(msg);
 

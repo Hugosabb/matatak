@@ -20,9 +20,19 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
 
 /* Grille : la carte seule, son nom dessous */
 .carte-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; padding: 0; border: 0; background: none; cursor: pointer; color: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-.carte-col img { display: block; width: 100%; height: auto; aspect-ratio: 1; border-radius: 6%; box-shadow: 0 18px 30px -16px rgba(0, 0, 0, .95); transition: transform .3s cubic-bezier(.3, .8, .3, 1), box-shadow .3s; }
-.carte-col:hover img, .carte-col:focus-visible img { transform: translateY(-4px); box-shadow: 0 26px 36px -18px rgba(0, 0, 0, .95), 0 0 0 2px var(--c); }
-.carte-col:active img { transform: scale(.97); }
+.carte-col { perspective: 900px; }
+.carte-col .carte-3d { --carte: 100%; transition: transform .3s cubic-bezier(.3, .8, .3, 1); }
+.carte-col .face { box-shadow: 0 18px 30px -16px rgba(0, 0, 0, .95); transition: box-shadow .3s; }
+.carte-col:hover .carte-3d, .carte-col:focus-visible .carte-3d { transform: translateY(-4px); }
+.carte-col:hover .face, .carte-col:focus-visible .face { box-shadow: 0 26px 36px -18px rgba(0, 0, 0, .95), 0 0 0 2px var(--c); }
+.carte-col:active .carte-3d { transform: scale(.97); }
+/* En entrant à l'écran : petit bond, tour complet (face claire au dos), atterrissage */
+.carte-col.entre .carte-3d { animation: carte-entre .95s cubic-bezier(.3, 1.3, .5, 1) var(--retard, 0ms) both; }
+@keyframes carte-entre {
+  0% { transform: translateY(14px) rotateY(0) scale(.96); }
+  55% { transform: translateY(-10px) rotateY(200deg) scale(1.05); }
+  100% { transform: translateY(0) rotateY(360deg) scale(1); }
+}
 .carte-col:focus-visible { outline: none; }
 .carte-col .nom { font: 400 clamp(15px, 1.6vw, 19px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--c); text-align: center; overflow-wrap: anywhere; }
 .carte-col .force { margin-top: -4px; font-size: 12px; }
@@ -62,7 +72,7 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
 .identite .ext { color: var(--mt-discret); font-weight: 600; }
 .detail .replique { margin: 14px 0 0; padding: 0; text-indent: 0; text-align: left; font-style: italic; font-size: 16px; color: var(--mt-encre); }
 .d-depl { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
-.t-plateau { cursor: pointer; }
+.en-jeu .t-plateau { cursor: pointer; }
 .d-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; padding-top: 14px; box-shadow: inset 0 1px 0 var(--mt-filet); }
 .d-nav button { min-height: 44px; padding: 0 12px; border: 0; border-radius: 12px; background: none; cursor: pointer; font: 800 14px 'Nunito', sans-serif; color: var(--mt-doux); }
 .d-nav button:hover { color: var(--mt-or); }
@@ -101,6 +111,7 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
 .en-jeu .t-temps { visibility: visible; }
 .t-temps i { display: block; height: 100%; background: var(--mt-or); transform-origin: left; transition: transform .1s linear; }
 .en-jeu .marque { display: none; }
+.t-barre [hidden] { display: none; }
 .t-barre { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .t-score { margin-right: auto; font-weight: 800; color: var(--mt-or); }
 .notes { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13px; color: var(--mt-doux); }
@@ -117,7 +128,7 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
   .d-depl { margin-top: 20px; }
   .t-barre .mt-btn { flex: 1; }
 }
-@media (prefers-reduced-motion: reduce) { .carte3d .face, .t-perso, .t-ennemi, .carte-col img, .detail[open] { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .carte3d .face, .t-perso, .t-ennemi, .carte-col .carte-3d, .detail[open] { transition: none; animation: none; } }
 
 /* /collection#equipes (fin du tutoriel) : les 4 équipes de départ, 3 cartes chacune */
 .equipes-depart .equipe { margin-top: 26px; }

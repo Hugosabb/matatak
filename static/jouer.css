@@ -15,6 +15,10 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 @media (min-width: 901px) {
   body[data-view="jouer"] { margin-bottom: 0; } /* marge de site.css : défilement pour rien */
   .jouer-page { box-sizing: border-box; min-height: calc(100svh - var(--site-header-height, 60px) - var(--site-header-margin, 0px)); display: flex; flex-direction: column; justify-content: center; }
+  /* Même hauteur en Solo et Contre un ami (celle du Solo) : le panneau ne bouge plus quand on change
+     d'adversaire, le sélecteur reste sous la souris ; options et bouton principal restent en bas */
+  .panneau.partie { box-sizing: border-box; min-height: 498px; display: flex; flex-direction: column; }
+  .jouer-page .panneau.partie > .plus { margin-top: auto; }
 }
 
 /* ---------- L'adversaire en grand, à côté du panneau (ordinateur) ---------- */

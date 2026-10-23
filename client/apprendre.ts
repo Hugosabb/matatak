@@ -9,6 +9,7 @@ import { installeur, ouvrirInstallation } from './installer';
 
 // Face sombre : les Personnages y rendent mieux (Hugo)
 const CARTES = '/static/images/background/collection/sombre/';
+const PLATEAUX = '/static/images/background/collection/plateaux/';
 const TOTAL_TUTORIEL = 8;
 
 function lire(cle: string): string | null {
@@ -41,37 +42,34 @@ export function apprendreView(_model: PyChessModel): VNode[] {
         ]),
     ]);
 
-    const personnages = h('section.bloc.personnages', [
-        h('div.illus.trio', ['34-bongo.webp', '01-azar.webp', '24-salsa.webp'].map(f => h('img', { attrs: { src: CARTES + f, alt: '' } }))),
-        h('div.txt', [
-            h('h2', 'Collection'),
-            h('p', 'Les 42 Personnages, leurs déplacements, et un mini-jeu pour les prendre en main.'),
-            bouton(false, '/collection', 'Voir la Collection'),
-        ]),
+    // Les autres rubriques : 4 tuiles entièrement cliquables (une seule action principale par écran :
+    // le Tutoriel ; Hugo 23/10/2026 : Analyse et Éditeur présentés comme les autres)
+    const tuile = (classe: string, href: string, illus: VNode, titre: string, texte: string, extra: VNode | string = '') =>
+        h(`a.tuile.${classe}`, { attrs: { href } }, [h('div.t-illus', [illus]), h('h2', titre), h('p', texte), extra]);
+    const carte = (f: string) => h('img', { attrs: { src: CARTES + f, alt: '', loading: 'lazy' } });
+
+    const tuiles = h('div.tuiles', [
+        tuile('collection', '/collection',
+            h('div.trio', ['34-bongo.webp', '01-azar.webp', '24-salsa.webp'].map(carte)),
+            'Collection', 'Les 42 Personnages et un mini-jeu.'),
+        tuile('puzzles', '/puzzle/campaign/matatakmini', carte('18-jazz.webp'),
+            'Puzzles', resolus > 0 ? `${resolus} niveau${resolus > 1 ? 'x' : ''} sur 200.` : '200 coups gagnants à trouver.',
+            resolus > 0 ? h('div.barre', h('i', { style: { width: `${resolus / 2}%` } })) : ''),
+        tuile('analyse', '/analysis/matatakmini', carte('09-bluff.webp'),
+            'Analyse', 'Brillant ou gaffe ? Le moteur vous le dit.'),
+        tuile('editeur', '/editor/matatakmini',
+            h('img.plateau', { attrs: { src: PLATEAUX + 'matatak8x8-720.webp', alt: '', loading: 'lazy' } }),
+            'Éditeur', 'Composez une position, puis jouez-la.'),
     ]);
 
-    const campagne = h('section.bloc.campagne', [
-        h('div.illus', [h('img', { attrs: { src: CARTES + '18-jazz.webp', alt: '' } })]),
-        h('div.txt', [
-            h('h2', 'Campagne de puzzles'),
-            h('p', resolus > 0 ? `${resolus} niveau${resolus > 1 ? 'x' : ''} réussi${resolus > 1 ? 's' : ''} sur 200. Un coup à trouver, de plus en plus rusé.` : '200 positions où trouver le coup gagnant, du plus simple au plus rusé.'),
-            resolus > 0 ? h('div.barre', h('i', { style: { width: `${resolus / 2}%` } })) : '',
-            bouton(tutorielFini, '/puzzle/campaign/matatakmini', resolus > 0 ? `Niveau ${Math.min(200, resolus + 1)}` : 'Commencer'),
-        ]),
-    ]);
+    // Installer l'appli : rangé ici plutôt qu'affiché partout (absent dans l'appli installée)
+    const installer = (() => { const i = installeur(); return i && !i.installee()
+        ? h('button.installer', { attrs: { type: 'button' }, on: { click: () => ouvrirInstallation() } }, "Installer l'appli") : ''; })();
 
     return [h('div.apprendre-page', [
         h('h1', 'Apprendre'),
         tutoriel,
-        personnages,
-        campagne,
-        h('nav.outils', { attrs: { 'aria-label': 'Outils' } }, [
-            h('span', 'Outils'),
-            lien('a', '/analysis/matatakmini', ['Analyse']),
-            lien('a', '/editor/matatakmini', ['Éditeur de position']),
-            // Installer l'appli : rangé ici plutôt qu'affiché partout (absent dans l'appli installée)
-            (() => { const i = installeur(); return i && !i.installee()
-                ? h('button', { attrs: { type: 'button' }, on: { click: () => ouvrirInstallation() } }, "Installer l'appli") : ''; })(),
-        ]),
+        tuiles,
+        installer,
     ])];
 }

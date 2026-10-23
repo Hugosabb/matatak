@@ -392,6 +392,42 @@ body.ordi-reflechit-bas round-player1 .player-data::after {
   body.ordi-reflechit-bas round-player1 .player-data::after { animation: none; }
 }
 
+/* ---------- Proposition de nulle et messages courts : carte flottante au-dessus de la barre ---------- */
+.offre-nulle {
+  position: fixed; z-index: 120; left: 50%; bottom: calc(var(--mt-bas, 0px) + var(--mt-coups, 0px) + 16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%); width: min(360px, calc(100vw - 32px)); display: grid; gap: 12px; padding: 16px;
+  border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px var(--mt-or), 0 18px 40px rgba(0, 0, 0, .6);
+  text-align: center; animation: fin-apparait .25s cubic-bezier(.16, 1, .3, 1);
+}
+.offre-nulle.info { box-shadow: inset 0 0 0 1px var(--mt-filet), 0 18px 40px rgba(0, 0, 0, .6); padding: 12px 16px; }
+.offre-texte { font: 800 16px 'Nunito', sans-serif; color: var(--mt-encre); }
+.offre-boutons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.barre-question { padding: 10px 14px 4px; font: 800 14px 'Nunito', sans-serif; color: var(--mt-doux); }
+@media (prefers-reduced-motion: reduce) { .offre-nulle { animation: none; } }
+
+/* ---------- « +15 » : donner du temps à l'adversaire, juste avant sa pendule, centré dans le bandeau ---------- */
+.round-app .clock-wrap { display: flex; flex-direction: row; align-items: center; gap: 6px; } /* bughouse.css (pychess, chargé ici) l'inversait sur téléphone */
+.round-app .clock-wrap #more-time { order: -1; display: flex; align-items: center; }
+.round-app .clock-wrap #more-time:empty { display: none; }
+.plus-temps {
+  height: 26px; min-width: 40px; padding: 0 8px; border: 0; border-radius: 99px; cursor: pointer;
+  background: none; box-shadow: inset 0 0 0 1.5px var(--mt-or); color: var(--mt-or);
+  font: 800 13px 'Nunito', sans-serif; font-variant-numeric: tabular-nums;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.plus-temps:hover { background: var(--mt-or); color: var(--mt-nuit); }
+.plus-temps:active { transform: scale(.94); }
+.plus-temps:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+@media (max-width: 760px) { .plus-temps { height: 22px; min-width: 36px; font-size: 12px; } }
+
+/* ---------- Partie finie ou regardée sur téléphone : les onglets reviennent en bas, la ligne des coups et la
+   barre ‹ › se posent juste au-dessus ---------- */
+@media (max-width: 760px) {
+  body[data-view="round"]:not(.en-partie):has(.mt-tab) { padding-bottom: calc(var(--mt-bas) + var(--mt-coups) + var(--mt-tab-h) + env(safe-area-inset-bottom)); }
+  body:not(.en-partie):has(.mt-tab) #barre-partie { bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom)); height: var(--mt-bas); padding-bottom: 0; }
+  body:not(.en-partie):has(.mt-tab) .round-app .movelist-block { bottom: calc(var(--mt-bas) + var(--mt-tab-h) + env(safe-area-inset-bottom)); }
+}
+
 /* Temps du premier coup (tournoi, partie classée) : un texte discret sous le bandeau du joueur,
  * pas la barre verte / rouge de pychess (pas de rouge dans la direction artistique) */
 .expiration, .expiration.emerg, .expiration.bar-glider {

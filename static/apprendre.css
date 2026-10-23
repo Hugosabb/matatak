@@ -22,10 +22,44 @@ main.apprendre { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1.
 .bloc .barre { width: min(100%, 320px); height: 6px; border-radius: 99px; background: var(--mt-nuit); overflow: hidden; }
 .bloc .barre i { display: block; height: 100%; min-width: 4px; background: var(--mt-or); border-radius: inherit; }
 
-.outils { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; padding: 4px 6px; font-size: 14.5px; font-weight: 700; }
-.outils span { font: 900 12px 'Jost', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mt-discret); }
-.outils a, .outils button { min-height: 40px; display: inline-flex; align-items: center; padding: 0; border: 0; background: none; cursor: pointer; font: inherit; color: var(--mt-doux); text-decoration: none; }
-.outils a:hover, .outils button:hover { color: var(--mt-or); }
+/* Tuiles : Collection, Puzzles, Analyse, Éditeur (4 en ligne sur ordinateur, 2 × 2 sur téléphone) */
+.tuiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tuile {
+  display: grid; align-content: start; gap: 6px; padding: 16px 16px 18px; border-radius: 18px; text-align: center;
+  background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet);
+  color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: transform .2s cubic-bezier(.3, .8, .3, 1), box-shadow .2s;
+}
+.tuile:hover, .tuile:focus-visible { transform: translateY(-3px); box-shadow: inset 0 0 0 1.5px var(--mt-or); outline: none; }
+.tuile:active { transform: scale(.98); }
+.tuile .t-illus { height: 104px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+.tuile .t-illus > img { width: 92px; aspect-ratio: 1; border-radius: 6%; box-shadow: 0 10px 24px rgba(0, 0, 0, .5); transform: rotate(-4deg); }
+.tuile .t-illus > img.plateau { width: 96px; border-radius: 4px; transform: rotate(3deg); }
+.tuile .trio { display: flex; align-items: center; }
+.tuile .trio img { width: 62px; aspect-ratio: 1; margin: 0 -12px; border-radius: 6%; box-shadow: 0 10px 24px rgba(0, 0, 0, .5); }
+.tuile .trio img:nth-child(1) { transform: rotate(-10deg) translateY(6px); }
+.tuile .trio img:nth-child(2) { width: 74px; transform: translateY(-6px); z-index: 1; position: relative; }
+.tuile .trio img:nth-child(3) { transform: rotate(9deg) translateY(6px); }
+.tuile h2 { margin: 0; font: 400 20px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-encre); }
+.tuile p { margin: 0; font-size: 14px; line-height: 1.4; color: var(--mt-doux); }
+.tuile .barre { height: 5px; margin-top: 4px; border-radius: 99px; background: var(--mt-nuit); overflow: hidden; }
+.tuile .barre i { display: block; height: 100%; min-width: 4px; background: var(--mt-or); border-radius: inherit; }
+
+.installer { justify-self: start; min-height: 40px; padding: 0 6px; border: 0; background: none; cursor: pointer; font: 700 14.5px 'Nunito', sans-serif; color: var(--mt-doux); }
+.installer:hover { color: var(--mt-or); }
+
+@media (max-width: 760px) {
+  .tuiles { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .tuile { padding: 12px 12px 14px; }
+  .tuile .t-illus { height: 84px; }
+  .tuile .t-illus > img { width: 72px; }
+  .tuile .t-illus > img.plateau { width: 76px; }
+  .tuile .trio img { width: 48px; margin: 0 -9px; }
+  .tuile .trio img:nth-child(2) { width: 58px; }
+  .tuile h2 { font-size: 17px; }
+  .tuile p { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { .tuile { transition: none; } }
 
 @media (max-width: 600px) {
   .apprendre-page { width: calc(100% - 24px); padding-top: 18px; gap: 12px; }

@@ -258,13 +258,14 @@ cg-board square {
  * doré sur halo sombre, carte assombrie (un cadre doré se perdait sur la Colline). Carte adverse
  * touchée : son motif en losanges transparents (gameCtrl.onSelect). Jamais de losange creux : dans la
  * Collection, il veut dire « déplacement seulement ». Au survol, le losange grossit.
- * Dernier coup : les deux cases teintées d'or, sans animation. MATATAK ! (échec) : halo orange vif qui
- * déborde autour de la carte du Roi et pulse vite (à ne pas confondre avec le dernier coup). */
+ * Dernier coup : les deux cases teintées d'or, sans animation. MATATAK ! (échec) : cadre orange vif
+ * arrondi qui pulse vite, dans la case du Roi (à ne pas confondre avec le dernier coup). */
 
 @keyframes matatak-pulse {
-  from { box-shadow: 0 0 0 3px #ff9a1f, 0 0 10px 4px rgba(255, 154, 31, 0.6), inset 0 0 14px 6px rgba(255, 154, 31, 0.7); }
-  to { box-shadow: 0 0 0 4px #ffb84d, 0 0 26px 12px rgba(255, 154, 31, 0.85), inset 0 0 22px 10px rgba(255, 154, 31, 0.95); }
+  from { box-shadow: inset 0 0 0 3px #ff9a1f, inset 0 0 14px 5px rgba(255, 154, 31, 0.65); }
+  to { box-shadow: inset 0 0 0 4px #ffb84d, inset 0 0 24px 10px rgba(255, 154, 31, 0.95); }
 }
+
 
 cg-board square {
   background: none;
@@ -298,9 +299,10 @@ cg-board square.oc.move-dest {
   pointer-events: auto;
 }
 
+/* Dans sa case, coins arrondis comme les cartes (Hugo : « trop carré », « ne doit pas dépasser ») */
 cg-board square.check {
-  z-index: 1;
-  background-color: rgba(255, 154, 31, 0.35);
+  border-radius: 14%;
+  background-color: rgba(255, 154, 31, 0.3);
   animation: matatak-pulse 0.6s ease-in-out infinite alternate;
 }
 
@@ -338,7 +340,7 @@ cg-board square.oc.move-dest.drag-over {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  cg-board square.check { animation: none; box-shadow: 0 0 0 4px #ff9a1f, 0 0 20px 8px rgba(255, 154, 31, 0.8), inset 0 0 18px 8px rgba(255, 154, 31, 0.9); }
+  cg-board square.check { animation: none; box-shadow: inset 0 0 0 4px #ff9a1f, inset 0 0 20px 8px rgba(255, 154, 31, 0.9); }
   cg-board square.move-dest, cg-board square.oc.move-dest { transition: none; }
 }
 

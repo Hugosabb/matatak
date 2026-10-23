@@ -169,8 +169,11 @@ function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
     const score = el('span', 't-score');
     score.setAttribute('role', 'status');
     const jouer = bouton('mt-btn mt-btn-petit mt-btn-or t-jouer', `Jouer : ${DUREE} s`, () => demarrer());
+    // Pour sortir d'une manche lancée par erreur (aucun record enregistré)
+    const stop = bouton('mt-btn mt-btn-petit mt-btn-ligne t-stop', 'Arrêter', () => abandonner());
+    stop.hidden = true;
     const barre = el('div', 't-barre');
-    barre.append(score, jouer);
+    barre.append(score, jouer, stop);
     const DEPART = depart(p);
     // Légende seulement si le Personnage a des cases « seulement » (Suricates…), et seulement celles-là
     const sortes = new Set(destinations(p.cases, DEPART).values());
@@ -204,7 +207,7 @@ function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
         });
         placer(perso, DEPART.x, DEPART.y);
         const r = record();
-        score.textContent = r ? `Record : ${r}` : 'Touchez le plateau : capturez le plus d\'adversaires possible !';
+        score.textContent = r ? `Record : ${r}` : `Capturez le plus d'adversaires possible en ${DUREE} s !`;
     }
 
     function cibles() {
@@ -299,11 +302,8 @@ function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
         afficherScore();
     }
 
-    let termine = false;
-
     function demarrer() {
         arreter();
-        termine = false;
         pos = { ...DEPART };
         points = 0;
         finPartie = performance.now() + DUREE * 1000;
@@ -312,6 +312,7 @@ function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
         sound.genericNotify(); // même son qu'au début d'une partie
         zone.classList.add('en-jeu');
         jouer.hidden = true;
+        stop.hidden = false;
         apparaitre(); // deux adversaires d'emblée
         tic();
         horloge = window.setInterval(tic, 100);
@@ -324,10 +325,20 @@ function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
         ennemis = new Map();
     }
 
+    function abandonner() {
+        arreter();
+        zone.classList.remove('en-jeu');
+        stop.hidden = true;
+        jauge.style.transform = 'scaleX(0)';
+        theorie();
+        jouer.hidden = false;
+        jouer.focus();
+    }
+
     function terminer() {
         arreter();
-        termine = true; // après une manche, seul « Recommencer » relance (on peut encore toucher le plateau)
         zone.classList.remove('en-jeu');
+        stop.hidden = true;
         jauge.style.transform = 'scaleX(0)';
         const ancien = record();
         if (points > ancien) ecrireRecord(p.nom, points);
@@ -340,15 +351,12 @@ function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
         jouer.focus();
     }
 
-    // Hors jeu, toucher le plateau lance le mini-jeu ; en jeu, toucher une case atteignable y déplace le Personnage
+    // Seul le bouton lance le mini-jeu (toucher le plateau pour faire défiler la page le lançait par
+    // erreur, Hugo 23/10/2026) ; en jeu, toucher une case atteignable y déplace le Personnage
     plateau.addEventListener('pointerdown', (e) => {
-        if (e.button > 0) return;
+        if (e.button > 0 || !horloge) return;
         const r = plateau.getBoundingClientRect();
         const x = Math.floor((e.clientX - r.left) / r.width * N), y = N - 1 - Math.floor((e.clientY - r.top) / r.height * N);
-        if (!horloge) {
-            if (termine) return; // le score et le son de fin restent visibles
-            demarrer();
-        }
         if (surPlateau(x, y) && coupsJouables(p, pos, new Map([...ennemis].map(([k, v]) => [k, v.q]))).has(cle(x, y))) {
             e.preventDefault(); // pas de clic fantôme ni de sélection
             aller(x, y);
@@ -425,10 +433,17 @@ function carteGrille(p: Personnage, liste: Personnage[]): VNode {
         attrs: { type: 'button', 'aria-label': `${p.nom} : voir la fiche` },
         on: { click: () => ouvrirFiche(p, liste) },
     }, [
-        h('img', { attrs: {
-            srcset: srcset('sombre', p.image), sizes: '(max-width: 760px) 50vw, (max-width: 1150px) 25vw, 320px',
-            src: `${IMG}sombre/${p.image}`, alt: '', loading: 'lazy', width: 360, height: 360,
-        } }),
+        // Recto-verso : la carte tourne sur elle-même quand elle arrive à l'écran (observerLesCartes)
+        h('span.carte-3d', [
+            h('img.face.avant', { attrs: {
+                srcset: srcset('sombre', p.image), sizes: TAILLES,
+                src: `${IMG}sombre/${p.image}`, alt: '', loading: 'lazy', width: 360, height: 360,
+            } }),
+            h('img.face.dos', { attrs: {
+                srcset: srcset('clair', p.image), sizes: TAILLES,
+                src: `${IMG}clair/${p.image}`, alt: '', loading: 'lazy', width: 360, height: 360,
+            } }),
+        ]),
         h('span.nom', p.nom),
         p.etoiles > 0 ? h(`span.force.f${p.etoiles}`, h('span.etoiles', '✦'.repeat(p.etoiles))) : h('span.force.roi', 'Roi'),
     ]);
@@ -498,8 +513,27 @@ function vue(): VNode {
     ]);
 }
 
+const TAILLES = '(max-width: 760px) 50vw, (max-width: 1150px) 25vw, 320px';
+
+// Défilement « satisfaisant » (Hugo, 23/10/2026) : chaque carte fait un tour sur elle-même en entrant à
+// l'écran, à chaque passage, avec un petit décalage par colonne (effet de vague)
+let observateur: IntersectionObserver | null = null;
+function observerLesCartes() {
+    if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    observateur ??= new IntersectionObserver(entrees => entrees.forEach(e => {
+        const carte = e.target as HTMLElement;
+        if (!e.isIntersecting) { carte.classList.remove('entre'); return; }
+        const freres = [...(carte.parentElement?.children ?? [])];
+        const colonnes = getComputedStyle(carte.parentElement!).gridTemplateColumns.split(' ').length || 1;
+        carte.style.setProperty('--retard', `${(freres.indexOf(carte) % colonnes) * 90}ms`);
+        carte.classList.add('entre');
+    }), { threshold: 0.35 });
+    document.querySelectorAll('.carte-col').forEach(c => observateur!.observe(c));
+}
+
 function rendre() {
     racine = patch(racine, vue());
+    observerLesCartes();
 }
 
 export function collectionView(_model: PyChessModel): VNode[] {
