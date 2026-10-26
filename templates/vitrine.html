@@ -23,9 +23,7 @@
   const depuisLeSite = document.referrer.startsWith(location.origin + '/');
   if (appli && !depuisLeSite) location.replace('/jouer');
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Jost:wght@700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ static('fonts/polices.css') }}">
 <link rel="preload" as="image" href="/static/images/background/vitrine/leaves.webp">
 <link rel="stylesheet" href="{{ static('matatak-ui.css') }}">
 <link rel="stylesheet" href="{{ static('vitrine.css') }}">
@@ -193,6 +191,7 @@
       <a href="https://www.youtube.com/@matatakgame" rel="noopener" target="_blank">YouTube</a>
       <a href="https://github.com/Hugosabb/matatak" rel="noopener" target="_blank">Code source</a>
       <a href="https://github.com/gbtami/pychess-variants" rel="noopener" target="_blank">Merci à pychess</a>
+      <a href="/confidentialite">Confidentialité</a>
     </nav>
   </div>
 </footer>

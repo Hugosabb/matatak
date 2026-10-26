@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 from aiohttp import web
 from aiohttp.log import access_logger
 from aiohttp.web_app import Application
+from aiohttp.web_fileresponse import CONTENT_TYPES
 from aiohttp_session import SimpleCookieStorage
 from aiohttp_session.cookie_storage import EncryptedCookieStorage
 import aiohttp_cors
@@ -40,6 +41,9 @@ from users import NotInDbUsers
 from views import page404
 from lang import LOCALE, detect_locale
 from logger import log
+
+# Polices hébergées sur le site (static/fonts) : sans ça, servies en application/octet-stream
+CONTENT_TYPES.add_type("font/woff2", ".woff2")
 
 
 @web.middleware

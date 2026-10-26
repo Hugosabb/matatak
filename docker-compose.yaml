@@ -38,9 +38,18 @@ services:
       - PROD=true
       - FERNET_KEY
       - CLIENT_SECRET
+      - GOOGLE_CLIENT_ID
+      - GOOGLE_CLIENT_SECRET
       - ADMINS
     depends_on:
       - "mongodb"
+    # Journaux du serveur (requêtes, pseudos) : 5 × 10 Mo au plus, les plus anciens sont effacés
+    # (promesse de la page /confidentialite ; sans ça, Docker les garde indéfiniment)
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
 
 volumes:
   mongodb_data:

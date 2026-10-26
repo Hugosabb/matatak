@@ -93,6 +93,8 @@ import pwa
 import classee
 import palmares
 from views import palmares as palmares_vue
+from views import connexion as connexion_vue
+from views import confidentialite as confidentialite_vue
 
 
 get_routes = (
@@ -100,6 +102,8 @@ get_routes = (
     ("/oauth/{provider}", oauth),
     ("/logout", logout),
     ("/select-username", select_username),
+    ("/connexion", connexion_vue.connexion),
+    ("/confidentialite", confidentialite_vue.confidentialite),
     ("/", vitrine.vitrine),
     ("/jouer", lobby.lobby),
     ("/collection", collection.collection),

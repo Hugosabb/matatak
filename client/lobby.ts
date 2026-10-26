@@ -754,7 +754,7 @@ export class LobbyController implements ChatController {
                     h('b', 'Montez au classement'),
                     h('p', "Affrontez des joueurs de votre niveau : chaque victoire vous fait gagner des points, chaque défaite en coûte. Il faut un compte pour garder vos points."),
                 ]),
-                h('a.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { href: '/login/lichess' } }, 'Se connecter avec Lichess'),
+                h('a.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { href: '/connexion' } }, 'Se connecter'),
                 h('small.classee-note', "Gratuit. D'autres façons de se connecter arriveront bientôt."),
                 this.renderPalmaresSemaine(),
             ]);

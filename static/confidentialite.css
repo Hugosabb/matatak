@@ -1,0 +1,13 @@
+/* Page « Confidentialité » (templates/confidentialite.html). Couleurs : matatak-ui.css. */
+#main-wrap { --main-max-width: 100%; }
+main.confidentialite { width: 100%; font: 400 15.5px/1.6 'Nunito', system-ui, sans-serif; color: var(--mt-encre); }
+.conf-page { width: min(680px, 100% - 32px); margin: 0 auto; padding: 32px 0 48px; display: grid; gap: 14px; }
+.conf-page h1 { margin: 0; font: 400 clamp(30px, 4vw, 40px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); text-shadow: 0 2px 14px rgba(0, 0, 0, .9); }
+.conf-resume { margin: 0; font-size: 17px; color: var(--mt-doux); }
+.conf-page section { padding: 18px; border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); }
+.conf-page h2 { margin: 0 0 8px; font: 900 17px 'Nunito', sans-serif; color: var(--mt-or); }
+.conf-page p, .conf-page ul { margin: 0; color: var(--mt-doux); }
+.conf-page ul { padding-left: 18px; display: grid; gap: 8px; }
+.conf-page b { color: var(--mt-encre); }
+.conf-page a { color: var(--mt-or); }
+.conf-date { font-size: 13.5px; color: var(--mt-discret) !important; text-align: center; }

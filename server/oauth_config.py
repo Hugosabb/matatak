@@ -22,13 +22,9 @@ oauth_config = {
         "client_secret": os.getenv("GOOGLE_CLIENT_SECRET", "secret"),
         "oauth_authorize_url": "https://accounts.google.com/o/oauth2/v2/auth",
         "oauth_token_url": "https://oauth2.googleapis.com/token",
-        "scope": " ".join(
-            [
-                "https://www.googleapis.com/auth/userinfo.profile",
-                "openid",
-            ]
-        ),
-        "account_api_url": "https://www.googleapis.com/oauth2/v2/userinfo",
+        # « openid » seul : Google ne donne qu'un identifiant (sub), ni nom ni e-mail (docs/RGPD.md)
+        "scope": "openid",
+        "account_api_url": "https://openidconnect.googleapis.com/v1/userinfo",
     },
     "microsoft": {
         "client_id": os.getenv("MICROSOFT_CLIENT_ID", "pychess"),
@@ -55,3 +51,13 @@ oauth_config = {
         "account_api_url": "https://discordapp.com/api/users/@me",
     },
 }
+
+
+def fournisseurs_actifs():
+    """Connexions proposées sur /connexion : Lichess toujours (sans secret, grâce à PKCE), Google
+    seulement si GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET sont définis (.env du VPS)."""
+    actifs = ["lichess"]
+    google = oauth_config["google"]
+    if google["client_id"] != "pychess" and google["client_secret"] != "secret":
+        actifs.append("google")
+    return actifs

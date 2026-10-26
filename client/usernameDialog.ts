@@ -1,6 +1,5 @@
 import { h, VNode } from 'snabbdom';
 import { patch } from './document';
-import { _ } from './i18n';
 
 interface UsernameDialogState {
     username: string;
@@ -46,12 +45,12 @@ async function checkUsernameAvailability(username: string): Promise<void> {
             dialogState.error = null;
         } else {
             dialogState.isAvailable = false;
-            dialogState.error = data.error || 'Username not available';
+            dialogState.error = data.error || 'Ce pseudo n\'est pas disponible';
             console.log('Username availability check failed:', data);
         }
     } catch (error) {
         dialogState.isAvailable = false;
-        dialogState.error = 'Failed to check username availability';
+        dialogState.error = 'Vérification impossible, réessayez';
     }
 
     dialogState.isChecking = false;
@@ -97,12 +96,12 @@ async function confirmUsername(): Promise<void> {
             // Reload the page to refresh the session
             window.location.reload();
         } else {
-            dialogState.error = data.error || 'Failed to create account';
+            dialogState.error = data.error || 'Création du compte impossible';
             dialogState.isSubmitting = false;
             console.error('Username confirmation failed:', data);
         }
     } catch (error) {
-        dialogState.error = 'Failed to create account';
+        dialogState.error = 'Création du compte impossible';
         dialogState.isSubmitting = false;
     }
 
@@ -130,13 +129,13 @@ function renderUsernameDialog(): void {
     const statusIcon = getUsernameStatusIcon();
 
     const vnode = h('div.username-dialog-content', [
-        h('h2', _('Choose your username')),
-        h('p', _('Please choose a username for your account.')),
+        h('h2', 'Choisissez votre pseudo'),
+        h('p', 'C\'est le nom que verront les autres joueurs.'),
         h('div.username-input-container', [
             h('input#username-input', {
                 attrs: {
                     type: 'text',
-                    placeholder: _('Username'),
+                    placeholder: 'Pseudo',
                     value: dialogState.username,
                     maxlength: '20',
                     minlength: '3'
@@ -155,20 +154,20 @@ function renderUsernameDialog(): void {
         dialogState.error ? h('div.error-message', dialogState.error) : null,
         h('div.username-requirements', [
             h('ul', [
-                h('li', _('3-20 characters')),
-                h('li', _('Letters, numbers, underscore and dash only')),
-                h('li', _('Must be unique'))
+                h('li', 'De 3 à 20 caractères'),
+                h('li', 'Lettres sans accent, chiffres, _ et -'),
+                h('li', 'Pas déjà pris')
             ])
         ]),
         h('div.dialog-buttons', [
-            h('button.confirm-btn', {
+            h('button.confirm-btn.mt-btn.mt-btn-or.mt-btn-large', {
                 attrs: {
                     disabled: !canSubmit
                 },
                 on: {
                     click: confirmUsername
                 }
-            }, dialogState.isSubmitting ? _('Creating account...') : _('Confirm'))
+            }, dialogState.isSubmitting ? 'Création…' : 'Valider')
         ])
     ].filter((item): item is VNode => item !== null));
 

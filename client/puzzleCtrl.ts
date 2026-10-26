@@ -100,7 +100,7 @@ export class PuzzleController extends AnalysisController {
         } else if (this.anon) {
             patch(rt, h('div.puzzle-connexion', [
                 h('span', 'Connectez-vous pour avoir un classement de puzzles.'),
-                h('a.mt-btn.mt-btn-petit.mt-btn-ligne', { attrs: { href: '/login/lichess' } }, 'Se connecter avec Lichess'),
+                h('a.mt-btn.mt-btn-petit.mt-btn-ligne', { attrs: { href: '/connexion' } }, 'Se connecter'),
             ]));
         } else {
             const ratedSettings = new RatedSettings(this);

@@ -1,0 +1,19 @@
+/* Page « Se connecter » (templates/connexion.html). Couleurs et boutons : matatak-ui.css. */
+#main-wrap { --main-max-width: 100%; }
+main.connexion { width: 100%; min-height: calc(100dvh - var(--site-header-height, 60px)); display: grid; place-items: center; font: 400 15.5px/1.5 'Nunito', system-ui, sans-serif; color: var(--mt-encre); }
+.connexion-page { width: min(420px, 100% - 32px); padding: 32px 0 40px; display: grid; gap: 18px; justify-items: center; text-align: center; }
+.connexion-page h1 { margin: 0; font: 400 clamp(30px, 4vw, 40px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); text-shadow: 0 2px 14px rgba(0, 0, 0, .9); }
+.connexion-pourquoi { margin: 0; color: var(--mt-doux); }
+.connexion-choix { width: 100%; display: grid; gap: 12px; padding: 22px 18px; border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); }
+.connexion-choix .mt-btn { padding: 0 26px; gap: 10px; letter-spacing: .05em; }
+@media (max-width: 420px) { .connexion-choix .mt-btn { font-size: 15px; } }
+/* Logo Google sur une pastille blanche, comme le demande Google, dans le bandeau or */
+.logo-google { width: 30px; height: 30px; flex: none; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+.logo-google svg { width: 18px; height: 18px; }
+.connexion-note { margin: 0; font-size: 13.5px; color: var(--mt-discret); }
+.connexion-invite { min-height: 44px; display: inline-flex; align-items: center; font-weight: 800; color: var(--mt-doux); text-decoration: none; }
+.connexion-invite:hover { color: var(--mt-encre); }
+@media (max-width: 760px) {
+  main.connexion { min-height: calc(100dvh - var(--mt-tab-h) - env(safe-area-inset-bottom)); }
+}
+.connexion-note a { color: var(--mt-doux); }

@@ -59,8 +59,8 @@ async def test_un_invite_doit_se_connecter(site, chromium, telephone):
     await page.wait_for_selector(".classee-accueil")
     assert await page.locator(".choix-adv button").count() == 3
     lien = page.locator("a.lancer")
-    assert await lien.inner_text() == "Se connecter avec Lichess"
-    assert await lien.get_attribute("href") == "/login/lichess"
+    assert await lien.inner_text() == "Se connecter"
+    assert await lien.get_attribute("href") == "/connexion"
     assert await page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     assert not page.erreurs, page.erreurs
 

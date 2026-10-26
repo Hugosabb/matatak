@@ -10,7 +10,7 @@ from aiohttp import web
 from broadcast import round_broadcast
 from bots_classes import est_bot_classe
 from const import STARTED, reserved
-from oauth_config import oauth_config
+from oauth_config import fournisseurs_actifs, oauth_config
 from settings import DEV, URI
 from pychess_global_app_state_utils import get_app_state
 from websocket_utils import ws_send_json
@@ -21,9 +21,11 @@ async def oauth(request):
     """Get oauth token with PKCE"""
 
     provider = request.match_info.get("provider")
+    if provider not in fournisseurs_actifs():
+        return web.HTTPFound("/connexion")
     redirect_uri = URI + "/oauth/%s" % provider
 
-    config = oauth_config.get(provider, oauth_config["lichess"])
+    config = oauth_config[provider]
 
     client_id = config["client_id"]
     client_secret = config["client_secret"]
@@ -39,26 +41,27 @@ async def oauth(request):
         code_verifier = secrets.token_urlsafe(64)
         session["oauth_code_verifier"] = code_verifier
         code_challenge = get_code_challenge(code_verifier)
+        # state tiré au hasard et gardé en session (avant : le client_secret, visible dans l'adresse)
+        state = secrets.token_urlsafe(24)
+        session["oauth_state"] = state
 
-        authorize_url = (
-            oauth_authorize_url
-            + "?"
-            + urlencode(
-                {
-                    "state": client_secret,
-                    "client_id": client_id,
-                    "response_type": "code",
-                    "redirect_uri": redirect_uri,
-                    "code_challenge": code_challenge,
-                    "code_challenge_method": "S256",
-                    "scope": scope,
-                }
-            )
-        )
-        return web.HTTPFound(authorize_url)
+        params = {
+            "state": state,
+            "client_id": client_id,
+            "response_type": "code",
+            "redirect_uri": redirect_uri,
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
+            "scope": scope,
+        }
+        if provider == "google":
+            # Appareil partagé en famille : toujours demander quel compte utiliser
+            params["prompt"] = "select_account"
+        return web.HTTPFound(oauth_authorize_url + "?" + urlencode(params))
     else:
         state = request.rel_url.query.get("state")
-        if state != client_secret:
+        attendu = session.pop("oauth_state", None)
+        if attendu is None or state is None or not secrets.compare_digest(state, attendu):
             log.error("OAuth state value mismatch for provider '%s'", provider)
             return web.HTTPFound("/jouer")
 
@@ -100,18 +103,26 @@ async def login(request):
     provider = request.match_info.get("provider")
     redirect_path = "/oauth/%s" % provider
 
+    if provider not in fournisseurs_actifs():
+        return web.HTTPFound("/connexion")
+
     if "token" not in session:
         return web.HTTPFound(redirect_path)
 
-    config = oauth_config.get(provider, oauth_config["lichess"])
+    config = oauth_config[provider]
     account_api_url = config["account_api_url"]
 
     user_data = await get_user_data(account_api_url, session["token"])
 
     del session["token"]
 
-    _id = user_data.get("id")
-    username = user_data.get("username", _id)
+    # Google (OpenID) : identifiant dans « sub », pas de pseudo ; on ne propose pas le vrai prénom
+    # comme pseudo (public jeune, docs/RGPD.md)
+    _id = user_data.get("id") or user_data.get("sub")
+    if not _id:
+        log.error("No account id from provider '%s'", provider)
+        return web.HTTPFound("/connexion")
+    username = user_data.get("username", "" if provider == "google" else _id)
     title = user_data.get("title", "")
     closed = user_data.get("closed", "")
     tosViolation = user_data.get("tosViolation", "")
@@ -237,16 +248,16 @@ async def check_username_availability(request):
     username = data.get("username", "").strip()
 
     if not username:
-        return web.json_response({"available": False, "error": "Username cannot be empty"})
+        return web.json_response({"available": False, "error": "Choisissez un pseudo"})
 
     if len(username) < 3:
         return web.json_response(
-            {"available": False, "error": "Username must be at least 3 characters"}
+            {"available": False, "error": "Au moins 3 caractères"}
         )
 
     if len(username) > 20:
         return web.json_response(
-            {"available": False, "error": "Username must be at most 20 characters"}
+            {"available": False, "error": "20 caractères au plus"}
         )
 
     # Check for invalid characters
@@ -254,17 +265,17 @@ async def check_username_availability(request):
 
     if not re.match(r"^[a-zA-Z0-9_-]+$", username):
         return web.json_response(
-            {"available": False, "error": "Username can only contain letters, numbers, _ and -"}
+            {"available": False, "error": "Lettres sans accent, chiffres, _ et - seulement"}
         )
 
     if reserved(username) or est_bot_classe(username):
-        return web.json_response({"available": False, "error": "Username is reserved"})
+        return web.json_response({"available": False, "error": "Ce pseudo est réservé"})
 
     app_state = get_app_state(request.app)
     existing_user = await app_state.db.user.find_one({"_id": username})
 
     if existing_user:
-        return web.json_response({"available": False, "error": "Username is already taken"})
+        return web.json_response({"available": False, "error": "Ce pseudo est déjà pris"})
 
     return web.json_response({"available": True})
 
@@ -282,30 +293,30 @@ async def confirm_username(request):
 
     # Validate username again by calling the validation logic directly
     if not username:
-        return web.json_response({"error": "Username cannot be empty"}, status=400)
+        return web.json_response({"error": "Choisissez un pseudo"}, status=400)
 
     if len(username) < 3:
-        return web.json_response({"error": "Username must be at least 3 characters"}, status=400)
+        return web.json_response({"error": "Au moins 3 caractères"}, status=400)
 
     if len(username) > 20:
-        return web.json_response({"error": "Username must be at most 20 characters"}, status=400)
+        return web.json_response({"error": "20 caractères au plus"}, status=400)
 
     # Check for invalid characters
     import re
 
     if not re.match(r"^[a-zA-Z0-9_-]+$", username):
         return web.json_response(
-            {"error": "Username can only contain letters, numbers, _ and -"}, status=400
+            {"error": "Lettres sans accent, chiffres, _ et - seulement"}, status=400
         )
 
     if reserved(username) or est_bot_classe(username):
-        return web.json_response({"error": "Username is reserved"}, status=400)
+        return web.json_response({"error": "Ce pseudo est réservé"}, status=400)
 
     app_state = get_app_state(request.app)
     existing_user = await app_state.db.user.find_one({"_id": username})
 
     if existing_user:
-        return web.json_response({"error": "Username is already taken"}, status=400)
+        return web.json_response({"error": "Ce pseudo est déjà pris"}, status=400)
 
     # Create new user with OAuth information
     oauth_id = session["oauth_id"]
@@ -338,7 +349,7 @@ async def confirm_username(request):
 
     except Exception as e:
         log.error("Failed to create user %s: %s", username, e)
-        return web.json_response({"error": "Failed to create user"}, status=500)
+        return web.json_response({"error": "Création du compte impossible"}, status=500)
 
 
 def get_code_challenge(code_verifier):

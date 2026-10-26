@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block header %}
-{% set rubrique = "apprendre" if view in ["apprendre", "puzzle", "campaign", "tutorial", "variants", "editor", "analysis", "collection"] else ("moi" if view == "profile" else "jouer") %}
+{% set rubrique = "apprendre" if view in ["apprendre", "puzzle", "campaign", "tutorial", "variants", "editor", "analysis", "collection"] else ("moi" if view in ["profile", "connexion"] else "jouer") %}
 <header class="mt-haut">
     <a id="zen-button"></a>
     <a class="mt-logo" href="/jouer" aria-label="MATATAK, jouer">
@@ -14,7 +14,7 @@
     <div class="site-buttons">
         {% if anon %}
         {# Invité : on montre l'action (« Se connecter ») ; le nom tiré au hasard n'est qu'une précision #}
-        <a class="mt-profil" href="/login/lichess" title="Vous jouez en invité : {{ username.split('#')[0] }}"><span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><span class="nom">Se connecter<small>Invité : {{ username.split("#")[0] }}</small></span></a>
+        <a class="mt-profil" href="/connexion" title="Vous jouez en invité : {{ username.split('#')[0] }}"><span class="av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span><span class="nom">Se connecter<small>Invité : {{ username.split("#")[0] }}</small></span></a>
         {% else %}
         <a class="mt-profil" href="/@/{{ username }}"><span class="av">{{ username[0]|upper }}</span><span class="nom">{{ username }}<small>Mon profil</small></span></a>
         {% endif %}
@@ -30,7 +30,7 @@
     <a href="/apprendre" class="{{ 'actif' if rubrique == 'apprendre' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h7v15H4zM13 5h7v15h-7"/></svg>Apprendre</a>
     <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>Le jeu</a>
     {% if anon %}
-    <a href="/login/lichess" title="Vous jouez en invité : {{ username.split('#')[0] }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Connexion</a>
+    <a href="/connexion" class="{{ 'actif' if view == 'connexion' }}" title="Vous jouez en invité : {{ username.split('#')[0] }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Connexion</a>
     {% else %}
     <a href="/@/{{ username }}" class="{{ 'actif' if rubrique == 'moi' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Moi</a>
     {% endif %}
