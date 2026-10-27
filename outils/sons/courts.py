@@ -195,6 +195,8 @@ def sons(j):
             0.5,
             -1,
         ),
+        # message du Roi dans le tutoriel : un seul toc de bois, doux, qui ne ressemble pas à un coup
+        "message-bois": (jouer(c("bois_haut", 0, 64)), 0.35, -9),
         # échec (« MATATAK ! ») : une alerte nette, qui se distingue d'un coup
         "echec-a-ta-ka-TA": (
             jouer(

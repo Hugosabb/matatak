@@ -13,6 +13,7 @@ import sys
 ICI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, ICI)
 import courts  # noqa: E402
+import intro  # noqa: E402
 import vsco  # noqa: E402
 from catalogue import instruments, perc  # noqa: E402
 from final import Jeu, debut, defaite, nulle, victoire_tresillo  # noqa: E402
@@ -38,6 +39,8 @@ COURTS = {
     "Check": ("echec-a-ta-ka-TA", 0.5, RESONANCE),
     "LowTime": ("temps-b-maracas-qui-monte", 0.5, RESONANCE),
     "Promotion": ("promotion-a-lente", 0.5, RESONANCE),
+    # chaque message du Roi dans le tutoriel (Hugo, 27/10/2026)
+    "Message": ("message-bois", 0.25, {"salle": (0.7, 0.1), "part_fondu": 0.3}),
 }
 
 if __name__ == "__main__":
@@ -63,9 +66,13 @@ if __name__ == "__main__":
         courts.exporter(nom, mix, longueur + rallonge, crete, **options)
         print(os.path.join(DEST, nom + ".ogg"))
 
+    # Musique de l'intro de l'Aventure (client/aventure/intro.ts), lue directement, pas par sound.ts
+    intro.SORTIE = DEST
+    intro.exporter("Intro", intro.intro(j), intro.LONGUEUR, formats=("ogg", "mp3"))
+
     with open(os.path.join(DEST, "license.txt"), "w") as fichier:
         fichier.write(
-            f"{' '.join(list(LONGS) + list(COURTS))} : composés avec VSCO 2 Community "
+            f"{' '.join(list(LONGS) + list(COURTS) + ['Intro'])} : composés avec VSCO 2 Community "
             "Edition (CC0), https://versilian-studios.com/vsco-community/ ; scripts dans "
             "outils/sons/\n"
         )

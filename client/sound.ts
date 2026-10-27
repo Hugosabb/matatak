@@ -8,7 +8,7 @@ import { StringSettings, NumberSettings } from './settings';
 import { radioList, slider } from './view';
 
 const MATATAK_TRACKS = new Set([
-    'GenericNotify', 'Victory', 'Defeat', 'Draw', 'Capture', 'Check', 'LowTime', 'Promotion',
+    'GenericNotify', 'Victory', 'Defeat', 'Draw', 'Capture', 'Check', 'LowTime', 'Promotion', 'Message',
 ]);
 
 class Sounds {
@@ -31,6 +31,7 @@ class Sounds {
         Explosion: 'Explosion',
         Berserk: 'Berserk',
         Promotion: 'Promotion',
+        Message: 'Message',
     };
 
     private static readonly bugTrackNames = {
@@ -97,7 +98,7 @@ class Sounds {
         // le thème Matatak ne contient que ses propres sons (outils/sons/construire.py) : le reste
         // vient du thème standard ; la promotion n'existe que dans Matatak, les autres l'empruntent
         if (soundTheme === 'matatak' && !MATATAK_TRACKS.has(trackName)) soundTheme = 'standard';
-        else if (trackName === 'Promotion' && soundTheme !== 'silent') soundTheme = 'matatak';
+        else if ((trackName === 'Promotion' || trackName === 'Message') && soundTheme !== 'silent') soundTheme = 'matatak';
         const sound = new Howl({
             src: [
                 assetURL + '/sound/' + soundTheme + '/' + soundTrack + '.ogg',
@@ -120,6 +121,8 @@ class Sounds {
     genericNotify() { if (this.audio()) this.tracks.GenericNotify.play(); }
     socialNotify()  { if (this.audio()) this.tracks.SocialNotify.play(); }
     move()          { if (this.audio()) this.tracks.Move.play(); }
+    // Coup discret (35 % du volume) : la promenade des Personnages dans l'enclos de l'Aventure
+    moveDiscret()   { if (this.audio()) { const id = this.tracks.Move.play(); this.tracks.Move.volume(volumeSettings.value * 0.35, id); } }
     capture()       { if (this.audio()) this.tracks.Capture.play(); }
     check()         { if (this.audio()) this.tracks.Check.play(); }
     draw()          { if (this.audio()) this.tracks.Draw.play(); }
@@ -134,6 +137,7 @@ class Sounds {
     explosion()     { if (this.audio()) this.tracks.Explosion.play(); }
     berserk()       { if (this.audio()) this.tracks.Berserk.play(); }
     promotion()     { if (this.audio()) this.tracks.Promotion.play(); }
+    message()       { if (this.audio()) this.tracks.Message.play(); } // un message du Roi dans le tutoriel
 
     bugchat(msg:string) { if (this.audio()) this.tracks[msg].play(); }
 
