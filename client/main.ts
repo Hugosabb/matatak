@@ -75,6 +75,7 @@ function initModel(el: HTMLElement) {
         tournamentId: el.getAttribute("data-tournamentid") ?? "",
         tournamentname: el.getAttribute("data-tournamentname") ?? "",
         inviter: el.getAttribute("data-inviter") ?? "",
+        choixequipe: el.getAttribute("data-choixequipe") ?? "",
         ply: parseInt("" + el.getAttribute("data-ply")),
         initialFen: el.getAttribute("data-initialfen") ?? "",
         ct: ct,

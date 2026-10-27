@@ -25,6 +25,7 @@ export type PyChessModel = {
     tournamentId: string;
     tournamentname: string;
     inviter: string;
+    choixequipe: string; // invitation entre amis : Saison de l'hôte (« au hasard »), vide si pas de choix
     ply: number;
     ct: CrossTable | string;
     board: MsgBoard | string;

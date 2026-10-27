@@ -2,13 +2,15 @@ import { h, VNode } from 'snabbdom';
 
 import { patch } from './document';
 import { sound } from './sound';
+import { lire as lireAventure, roisDebloques, terminee } from './aventure/progression';
+import { route } from './aventure/route';
 import { PyChessModel } from './types';
 
 // Collection : tous les Personnages en grandes cartes ; une carte touchée ouvre sa fiche (carte qui se
 // retourne, infos, déplacements sur le vrai plateau, mini-jeu chronométré de captures).
 // Données : static/data/collection.json (généré par server/build_collection_json.py).
 
-interface Case { dx: number; dy: number; genre: 'libre' | 'deplace' | 'capture'; saut: boolean; repete: boolean; illimite: boolean }
+export interface Case { dx: number; dy: number; genre: 'libre' | 'deplace' | 'capture'; saut: boolean; repete: boolean; illimite: boolean }
 interface Personnage {
     nom: string; espece: string; rang: 'roi' | 'champion' | 'pion'; saison: string;
     boite: 'base' | 'extension'; etoiles: number; replique: string; image: string; cases: Case[];
@@ -29,6 +31,33 @@ const N = 8;
 let donnees: Donnees | null = null;
 let filtreSaison = 'toutes';
 let filtreBoite = 'toutes';
+// « Tout débloqué » : l'affichage seul, comme si l'Aventure était finie (pour qui vient du livret et ne joue
+// pas en ligne, Hugo 26/10/2026) ; la progression n'est pas touchée. Gardé sur l'appareil.
+type FiltreAventure = 'tout' | 'debloques' | 'comme-debloque';
+const CLE_FILTRE = 'matatak_collection_filtre';
+let filtreAventure: FiltreAventure = (() => {
+    try { return localStorage.getItem(CLE_FILTRE) === 'comme-debloque' ? 'comme-debloque' : 'tout'; } catch { return 'tout'; }
+})();
+function choisirFiltreAventure(f: FiltreAventure) {
+    filtreAventure = f;
+    try { localStorage.setItem(CLE_FILTRE, f); } catch { /* navigation privée */ }
+    rendre();
+}
+
+/** Aventure (client/aventure) : Personnages recrutés, et pour les autres, où ils arrivent sur la route.
+ *  null si le joueur n'a pas commencé l'Aventure sur cet appareil. */
+function etatAventure(): { debloques: Set<string>, arrivee: Map<string, string> } | null {
+    const p = lireAventure();
+    if (!p) return null;
+    const debloques = new Set<string>([...p.recrues, p.roi]);
+    if (roisDebloques(p)) ['AZAR', 'SHANS', 'KARMA', 'MOJO'].forEach(r => debloques.add(r));
+    const arrivee = new Map<string, string>();
+    route(p.roi).forEach((e, i) => arrivee.set(e.recrue, `Niveau ${i + 1}`));
+    ['AZAR', 'SHANS', 'KARMA', 'MOJO'].forEach(r => { if (!debloques.has(r)) arrivee.set(r, 'Après la phase 1'); });
+    // Variantes de Saison (et les autres Suricates) : récompense de fin d'Aventure
+    if (terminee(p)) donnees?.personnages.forEach(x => debloques.add(x.nom));
+    return { debloques, arrivee };
+}
 // Fin du tutoriel : /collection#equipes ne montre que les 4 équipes de départ, puis « Première partie »
 let modeEquipes = false;
 
@@ -53,9 +82,12 @@ const pgcd = (a: number, b: number): number => (b === 0 ? a : pgcd(b, a % b));
  *   (les cases « capture seule » comprises) ;
  * - avec `ennemis` : coups réellement jouables, 'deplace' (case vide) ou 'capture' ;
  * - avec `attaque` : cases que le Personnage menace (vides ou occupées), `ennemis` = cases occupées.
+ * `taille` : plateau de `l` colonnes sur `h` rangées (8 × 8 par défaut ; l'enclos de l'Aventure est plus étroit).
  */
-export function destinations(cases: Case[], de: { x: number; y: number }, ennemis?: Set<string>, attaque = false): Map<string, Marque> {
+export function destinations(cases: Case[], de: { x: number; y: number }, ennemis?: Set<string>, attaque = false,
+    taille = { l: N, h: N }): Map<string, Marque> {
     const res = new Map<string, Marque>();
+    const surPlateau = (x: number, y: number) => x >= 0 && x < taille.l && y >= 0 && y < taille.h;
     const theorique = ennemis === undefined;
     const ajouter = (x: number, y: number, m: Marque) => {
         const k = cle(x, y), avant = res.get(k);
@@ -81,7 +113,7 @@ export function destinations(cases: Case[], de: { x: number; y: number }, ennemi
         const n = pgcd(Math.abs(c.dx), Math.abs(c.dy));
         const ux = c.dx / n, uy = c.dy / n;
         const k = `${ux},${uy},${c.repete}`;
-        const max = c.illimite ? N : n;
+        const max = c.illimite ? Math.max(taille.l, taille.h) : n;
         const d = directions.get(k);
         if (!d) directions.set(k, { ux, uy, max, genre: c.genre });
         else d.max = Math.max(d.max, max);
@@ -426,9 +458,11 @@ function ouvrirFiche(p: Personnage, liste: Personnage[]) {
 }
 
 // ---------- Grille : les cartes seules, comme un classeur ----------
-function carteGrille(p: Personnage, liste: Personnage[]): VNode {
+function carteGrille(p: Personnage, liste: Personnage[], aventure: ReturnType<typeof etatAventure> = null): VNode {
+    const verrou = aventure !== null && !aventure.debloques.has(p.nom);
     return h('button.carte-col', {
         key: p.nom,
+        class: { verrou },
         style: { '--c': `var(--mt-${p.saison})` },
         attrs: { type: 'button', 'aria-label': `${p.nom} : voir la fiche` },
         on: { click: () => ouvrirFiche(p, liste) },
@@ -445,7 +479,8 @@ function carteGrille(p: Personnage, liste: Personnage[]): VNode {
             } }),
         ]),
         h('span.nom', p.nom),
-        p.etoiles > 0 ? h(`span.force.f${p.etoiles}`, h('span.etoiles', '✦'.repeat(p.etoiles))) : h('span.force.roi', 'Roi'),
+        verrou ? h('span.arrivee', aventure!.arrivee.get(p.nom) ?? 'Fin de l\'Aventure')
+            : p.etoiles > 0 ? h(`span.force.f${p.etoiles}`, h('span.etoiles', '✦'.repeat(p.etoiles))) : h('span.force.roi', 'Roi'),
     ]);
 }
 
@@ -484,12 +519,15 @@ function vue(): VNode {
     if (!donnees) return h('div.collection-page', h('p.chargement', 'Chargement de la collection…'));
     const d = donnees;
     if (modeEquipes) return vueEquipes(d);
+    const avancement = etatAventure();
+    const aventure = filtreAventure === 'comme-debloque' ? null : avancement;
     const visibles = d.personnages.filter(p =>
-        (filtreSaison === 'toutes' || p.saison === filtreSaison) && (filtreBoite === 'toutes' || p.boite === filtreBoite));
+        (filtreSaison === 'toutes' || p.saison === filtreSaison) && (filtreBoite === 'toutes' || p.boite === filtreBoite)
+        && (filtreAventure === 'tout' || !aventure || aventure.debloques.has(p.nom)));
     const ordre = (['roi', 'champion', 'pion'] as const).flatMap(rang => visibles.filter(p => p.rang === rang));
     const sections = (['roi', 'champion', 'pion'] as const).map(rang => {
         const liste = visibles.filter(p => p.rang === rang);
-        return liste.length ? h('section.rang', [h('h2', `${RANGS_PLURIEL[rang]} · ${liste.length}`), h('div.fiches', liste.map(p => carteGrille(p, ordre)))]) : '';
+        return liste.length ? h('section.rang', [h('h2', `${RANGS_PLURIEL[rang]} · ${liste.length}`), h('div.fiches', liste.map(p => carteGrille(p, ordre, aventure)))]) : '';
     });
     const nbBase = d.personnages.filter(p => p.boite === 'base').length;
     return h('div.collection-page', [
@@ -508,6 +546,11 @@ function vue(): VNode {
                 puce(filtreBoite === 'base', 'Jeu de base', () => { filtreBoite = 'base'; rendre(); }),
                 puce(filtreBoite === 'extension', 'Extensions', () => { filtreBoite = 'extension'; rendre(); }),
             ]),
+            avancement ? h('div.groupe', { attrs: { role: 'group', 'aria-label': 'Aventure' } }, [
+                puce(filtreAventure === 'tout', 'Tous', () => choisirFiltreAventure('tout')),
+                puce(filtreAventure === 'debloques', `Débloqués · ${d.personnages.filter(p => avancement.debloques.has(p.nom)).length}`, () => choisirFiltreAventure('debloques')),
+                puce(filtreAventure === 'comme-debloque', 'Tout débloqué', () => choisirFiltreAventure('comme-debloque')),
+            ]) : '',
         ]),
         ...sections,
     ]);

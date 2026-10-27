@@ -1,7 +1,9 @@
 import { h, VNode } from 'snabbdom';
 import { memoriserEquipe } from './equipe';
 import { EcranDraft, EtatDraft } from './draft';
-import { appliquerRois, roiDuNiveau, saisonDuCamp, saisonDuNiveau, Saison } from './rois';
+import { appliquerRois, ROIS, roiDuNiveau, saisonDuCamp, saisonDuNiveau, Saison } from './rois';
+import { compterPartie, estPartieAventure, etapeEnCours, estPartieEnCours, estPartieRejouee, lierPartie, lire as lireAventure, noterPartieDemandee, prochainePartie } from './aventure/progression';
+import { IMAGE } from './aventure/personnages';
 
 function stockage(cle: string): string | null {
     try { return localStorage.getItem(cle); } catch { return null; }
@@ -81,6 +83,7 @@ export class RoundController extends GameController {
     // Fin de partie : résultat affiché et état de la revanche contre un humain
     fin: { status: number, result: string } | undefined;
     revanche: '' | 'envoyee' | 'recue' | 'refusee' = '';
+    revancheAvecPouce = false; // la revanche proposée ajoute un Coup de pouce au perdant
     revancheId = '';
     // Points gagnés ou perdus en fin de partie classée (message gameEnd du serveur)
     rdiffs: RDiffs | null = null;
@@ -161,6 +164,9 @@ export class RoundController extends GameController {
         this.tv = model["tv"];
         this.profileid = model["profileid"];
         this.level = model["level"];
+        // Partie de l'Aventure lancée par /jouer/solo (« Partie suivante ») : elle reçoit son id ici, une fois
+        // le niveau connu (contreIA en a besoin : appelé plus haut, la partie n'était jamais reconnue)
+        if (this.contreIA()) lierPartie(this.gameId);
         this.berserked = { wberserk: model["wberserk"] === "True", bberserk: model["bberserk"] === "True" };
 
         this.initialFen = model["initialFen"];
@@ -290,8 +296,8 @@ export class RoundController extends GameController {
         // initialize users
         const player0 = document.getElementById('rplayer0') as HTMLElement;
         const player1 = document.getElementById('rplayer1') as HTMLElement;
-        this.vplayer0 = patch(player0, player('player0', this.titreAffiche(this.titles[0]), this.players[0], this.ratings[0], this.level));
-        this.vplayer1 = patch(player1, player('player1', this.titreAffiche(this.titles[1]), this.players[1], this.ratings[1], this.level));
+        this.vplayer0 = patch(player0, player('player0', this.titreAffiche(this.titles[0]), this.players[0], this.ratings[0], this.level, this.nomRoiOrdi()));
+        this.vplayer1 = patch(player1, player('player1', this.titreAffiche(this.titles[1]), this.players[1], this.ratings[1], this.level, this.nomRoiOrdi()));
 
         if (this.variant.material.showDiff) {
             const materialTop = document.querySelector('.material-top') as HTMLElement;
@@ -608,8 +614,7 @@ export class RoundController extends GameController {
         this.clocks[1].setTime(tmp_clock_time);
         if (this.status < 0 && !this.unlimited) new_running_clck.start();
 
-        this.vplayer0 = patch(this.vplayer0, player('player0', this.titreAffiche(this.titles[this.flipped() ? 1 : 0]), this.players[this.flipped() ? 1 : 0], this.ratings[this.flipped() ? 1 : 0], this.level));
-        this.vplayer1 = patch(this.vplayer1, player('player1', this.titreAffiche(this.titles[this.flipped() ? 0 : 1]), this.players[this.flipped() ? 0 : 1], this.ratings[this.flipped() ? 0 : 1], this.level));
+        this.majJoueurs();
 
         if (this.variant.ui.counting)
             [this.vmiscInfoW, this.vmiscInfoB] = updateCount(this.fullfen, this.vmiscInfoB, this.vmiscInfoW);
@@ -875,8 +880,9 @@ export class RoundController extends GameController {
         this.renderFin();
     }
 
-    private rematch = (level?: number, nouveauDraft = false) => {
-        this.doSend({ type: "rematch", gameId: this.gameId, handicap: this.handicap, level: level ?? this.level, nouveau_draft: nouveauDraft });
+    private rematch = (level?: number, nouveauDraft = false, coupDePouce = false) => {
+        this.doSend({ type: "rematch", gameId: this.gameId, handicap: this.handicap, level: level ?? this.level, nouveau_draft: nouveauDraft, coup_de_pouce: coupDePouce });
+        if (coupDePouce) this.revancheAvecPouce = true;
         // Contre l'IA, la nouvelle partie s'ouvre aussitôt (message new_game) : rien à attendre.
         if (!this.contreIA()) {
             this.revanche = 'envoyee';
@@ -933,6 +939,19 @@ export class RoundController extends GameController {
         appliquerRois(this.assetURL, saison('white'), saison('black'));
     }
 
+    /** Bandeaux des deux joueurs (après un demi-tour du plateau, ou quand les Rois arrivent). */
+    private majJoueurs() {
+        const i = this.flipped() ? 1 : 0, j = 1 - i;
+        this.vplayer0 = patch(this.vplayer0, player('player0', this.titreAffiche(this.titles[i]), this.players[i], this.ratings[i], this.level, this.nomRoiOrdi()));
+        this.vplayer1 = patch(this.vplayer1, player('player1', this.titreAffiche(this.titles[j]), this.players[j], this.ratings[j], this.level, this.nomRoiOrdi()));
+    }
+
+    /** Aventure : l'ordinateur porte le nom du Roi rival (Roi imposé par la partie), pas celui du palier. */
+    private nomRoiOrdi(): string | undefined {
+        if (!this.rois || !this.contreIA() || !estPartieAventure(this.gameId)) return undefined;
+        return ROIS[this.rois[this.wtitle === 'LIA' ? 'white' : 'black']].nom;
+    }
+
     /** En partie classée, l'adversaire d'entraînement (titre LIA, server/bots_classes.py) s'affiche
      *  comme un joueur : son pseudo et son classement, sans Roi ni niveau. */
     private titreAffiche(titre: string): string {
@@ -980,6 +999,22 @@ export class RoundController extends GameController {
         this.chessground.redrawAll();
         // Contre l'ordinateur, s'il a les Blancs, il joue maintenant
         if (this.contreIA()) this.searchBestMove();
+    }
+
+    /** Aventure : lance la prochaine partie (position, couleur, niveau et Rois de la progression) par
+     *  /jouer/solo, qui la crée et y mène directement. null si l'Aventure est finie. */
+    private partieSuivante(): (() => void) | null {
+        const p = lireAventure();
+        const partie = p ? prochainePartie(p) : null;
+        if (!p || !partie) return null;
+        const q = new URLSearchParams({
+            variant: partie.variant, level: String(partie.niveau), fen: partie.fen, color: partie.couleur,
+            rw: partie.rois.white, rb: partie.rois.black,
+        });
+        return () => {
+            noterPartieDemandee(p, partie);
+            window.location.assign(`${this.home}/jouer/solo?${q}`);
+        };
     }
 
     private contreIA() {
@@ -1049,6 +1084,44 @@ export class RoundController extends GameController {
         } else if (joueur && this.rated === RATED && !this.corr && [this.wtitle, this.btitle].includes('LIA')) {
             // Pas de revanche : on repasse par la file d'attente, qui choisit un adversaire de son niveau
             principal = h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?classee=1' } }, 'Nouvelle partie');
+        } else if (joueur && !this.corr && this.contreIA() && estPartieAventure(this.gameId) && !estPartieEnCours(this.gameId)) {
+            // Ancienne partie de l'Aventure rouverte (sa suite a déjà été jouée) : on retourne à l'Aventure
+            principal = h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?aventure=1' } }, "Continuer l'Aventure");
+            liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=equipe' } }, 'Équipe'));
+        } else if (joueur && !this.corr && this.contreIA() && estPartieRejouee(this.gameId)) {
+            // Partie déjà gagnée, rejouée : elle ne change rien à l'Aventure (pas de recrue en double)
+            message = "Partie rejouée : elle ne compte pas pour l'Aventure.";
+            const suite = this.partieSuivante();
+            principal = suite
+                ? h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: suite } }, "Reprendre l'Aventure")
+                : h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?aventure=1' } }, "Voir l'Aventure");
+            if (suite) liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=1' } }, "Voir l'Aventure"));
+            liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=equipe' } }, 'Équipe'));
+        } else if (joueur && !this.corr && this.contreIA() && estPartieAventure(this.gameId)) {
+            const bilan = fin.status !== 0 ? compterPartie(this.gameId, gagne ? 'victoire' : perdu ? 'defaite' : 'nulle') : null;
+            if (bilan?.recrue) {
+                points = h('div.fin-recrue', [
+                    h('img', { attrs: { src: `/static/images/background/collection/sombre/${IMAGE[bilan.recrue]}`, alt: '' } }),
+                    h('b', `${bilan.recrue} rejoint votre équipe !`),
+                    bilan.placesEnPlus ? h('small', 'Votre équipe s\'agrandit : une place de plus.') : '',
+                ]);
+            } else if (gagne && bilan) {
+                // Nommer la recrue (Hugo : « dire direct KRAK au lieu de votre adversaire »)
+                const etape = etapeEnCours(bilan.progression);
+                const reste = etape ? etape.equipes.length - bilan.progression.victoires : 0;
+                if (etape && reste > 0) message = `Encore ${reste > 1 ? `${reste} victoires` : 'une victoire'} et ${etape.recrue} rejoint votre équipe.`;
+            }
+            if (bilan?.debloque === 'classee') message = "Arène débloquée ! Affrontez des joueurs de votre niveau dans l'onglet Arène.";
+            if (bilan?.debloque === 'draft') message = "Draft débloqué ! Composez votre équipe face à un ami, ou dans l'Arène.";
+            if (bilan?.finie) message = 'Vous avez recruté tout le monde : toutes les variantes de Saison rejoignent votre Collection.';
+            const fini = bilan?.finie;
+            // La partie suivante est créée tout de suite par /jouer/solo, sans repasser par le menu
+            const suite = this.partieSuivante();
+            principal = fini || !suite
+                ? h('a.mt-btn.mt-btn-or', { attrs: { href: this.home + '/jouer?aventure=1' } }, "Voir l'Aventure")
+                : h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: suite } }, gagne ? 'Partie suivante' : 'Rejouer');
+            if (!fini) liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=1' } }, "Voir l'Aventure"));
+            liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=equipe' } }, 'Équipe'));
         } else if (joueur && !this.corr && this.contreIA()) {
             const lvl = this.level;
             if (gagne && lvl < 20) {
@@ -1061,22 +1134,29 @@ export class RoundController extends GameController {
             }
         } else if (joueur && !this.corr) {
             const adv = this.username === this.wplayer ? this.bplayer : this.wplayer;
+            // Coup de pouce (livret) : le perdant en reçoit un de plus à la revanche, entre amis, hors Draft
+            const pourQui = perdu ? 'vous' : adv.split('#')[0];
             if (this.revanche === 'recue') {
-                message = this.rated === RATED ? `${adv.split('#')[0]} vous redéfie.` : `${adv.split('#')[0]} propose une revanche.`;
+                message = this.rated === RATED ? `${adv.split('#')[0]} vous redéfie.`
+                    : this.revancheAvecPouce ? (perdu ? `${adv.split('#')[0]} vous offre un Coup de pouce pour la revanche.` : `${adv.split('#')[0]} demande un Coup de pouce pour la revanche.`)
+                    : `${adv.split('#')[0]} propose une revanche.`;
                 principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch() } }, 'Accepter');
                 liens.push(lien('Refuser', () => this.rejectRematchOffer()));
             } else if (this.revanche === 'envoyee') {
-                message = this.rated === RATED ? 'Défi envoyé, en attente de réponse…' : 'Revanche proposée, en attente de réponse…';
+                message = this.rated === RATED ? 'Défi envoyé, en attente de réponse…'
+                    : `Revanche${this.revancheAvecPouce ? ' avec un Coup de pouce' : ''} proposée, en attente de réponse…`;
             } else if (this.revanche === 'refusee') {
                 message = 'Revanche refusée.';
             } else {
                 principal = h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => this.rematch() } }, this.rated === RATED ? 'Redéfier' : 'Revanche');
+                if (this.rated !== RATED && !this.rois && (gagne || perdu))
+                    liens.push(lien(`Revanche avec un Coup de pouce pour ${pourQui}`, () => this.rematch(undefined, false, true)));
             }
             // Partie classée contre un joueur : redéfier le même (nouveau Draft), ou retourner à la file
             if (this.rated === RATED) liens.push(lien('Nouvelle partie', () => window.location.assign(this.home + '/jouer?classee=1')));
         }
         // Draft : « Rejouer » et « Revanche » gardent les équipes (livret) ; un nouveau tirage au choix
-        if (joueur && !this.corr && !this.tournamentGame && this.rated !== RATED && this.rois && !this.revancheId && this.revanche !== 'envoyee')
+        if (joueur && !this.corr && !this.tournamentGame && this.rated !== RATED && this.rois && !this.revancheId && this.revanche !== 'envoyee' && !estPartieAventure(this.gameId))
             liens.push(lien('Nouveau Draft', () => this.rematch(undefined, true)));
         if (this.revancheId) liens.unshift(lien('Voir la revanche', () => window.location.assign(this.home + '/' + this.revancheId)));
         if (fin.status !== 0) liens.push(lien('Analyser', () => this.analysis(this.home)));
@@ -1226,6 +1306,7 @@ export class RoundController extends GameController {
         if (msg.rois && !this.rois) {
             this.rois = msg.rois;
             this.appliquerLesRois();
+            if (this.nomRoiOrdi()) this.majJoueurs();
         }
 
         if (msg.steps.length > 1) {
@@ -1682,6 +1763,7 @@ export class RoundController extends GameController {
 
     private onMsgRematchOffer = (msg: MsgRematchOffer) => {
         chatMessage("", msg.message, "roundchat");
+        this.revancheAvecPouce = Boolean(msg.coup_de_pouce);
         if (!this.spectator && msg.username !== this.username) this.renderRematchOffer();
     }
 

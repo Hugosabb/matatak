@@ -35,7 +35,7 @@ from const import TYPE_CHECKING
 if TYPE_CHECKING:
     from pychess_global_app_state import PychessGlobalAppState
 from pychess_global_app_state_utils import get_app_state
-from seek import challenge, create_seek, get_seeks, Seek
+from seek import challenge, create_seek, get_seeks, Seek, SAISONS
 from settings import ADMINS, TOURNAMENT_DIRECTORS
 from tournament.tournament_spotlights import tournament_spotlights
 from bug.utils_bug import handle_accept_seek_bughouse, handle_leave_seek_bughouse
@@ -198,6 +198,13 @@ async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
             else FairyBoard.matatak_mini_start(wseason=saison)
         )
 
+    # Aventure (client/aventure) : le Roi de chaque camp est imposé. Une valeur inattendue est ignorée.
+    rois = data.get("rois")
+    if not (isinstance(rois, dict) and rois.get("white") in SAISONS and rois.get("black") in SAISONS):
+        rois = None
+    else:
+        rois = {"white": rois["white"], "black": rois["black"]}
+
     seek_id = await new_id(None if app_state.db is None else app_state.db.seek)
     seek = Seek(
         seek_id,
@@ -214,7 +221,7 @@ async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
         chess960=data["chess960"],
         isDraft=data["draft"],
         boost=data["boost"],
-        rois=data.get("rois"),
+        rois=rois,
     )
     log.debug("adding seek: %s" % seek)
 

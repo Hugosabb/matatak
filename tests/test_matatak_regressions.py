@@ -650,3 +650,46 @@ class ForceMinimaleTestCase(unittest.TestCase):
             etoiles = sum(force[c][1] for c in bchampions + bpawns if c != "k")
             self.assertGreaterEqual(etoiles, FairyBoard.FORCE_MIN, (bchampions, bpawns))
             self.assertEqual(wpawns.lower(), bpawns[::-1])  # toujours en miroir
+
+
+class CoupDePouceRevancheTestCase(unittest.TestCase):
+    """Revanche entre amis : le Coup de pouce reste au même joueur, et « Revanche avec un Coup de
+    pouce » en ajoute un cran au perdant (avant : boost × 10 ramené à ±4, valeur faussée)."""
+
+    def test_le_coup_de_pouce_reste_au_meme_joueur(self):
+        from wsr import boost_du_seek, pouce_de_revanche
+
+        # Partie finie : Alice (Blancs) avait 2 crans ; revanche demandée par Bruno, qui prend les Blancs
+        pouce = pouce_de_revanche(2, "1-0", ajouter=False)
+        boost = boost_du_seek(pouce, "alice", "bruno", "w")
+        self.assertEqual(boost, -2)  # vu par Bruno (Blancs) : les 2 crans vont aux Noirs, Alice
+
+    def test_un_cran_de_plus_pour_le_perdant(self):
+        from wsr import boost_du_seek, pouce_de_revanche
+
+        self.assertEqual(pouce_de_revanche(0, "0-1", ajouter=True), 1)  # les Blancs ont perdu
+        self.assertEqual(pouce_de_revanche(0, "1-0", ajouter=True), -1)
+        self.assertEqual(pouce_de_revanche(4, "0-1", ajouter=True), 4)  # 4 crans au plus
+        self.assertEqual(pouce_de_revanche(1, "1/2-1/2", ajouter=True), 1)  # nulle : rien de plus
+        # Alice (Blancs) a perdu ; Bruno demande la revanche et prend les Noirs (handicap) : vu par lui, −1
+        self.assertEqual(boost_du_seek(1, "alice", "alice", "b"), -1)
+
+
+class EquipesChoisiesTestCase(unittest.TestCase):
+    """Entre amis, chacun choisit l'équipe de départ d'une Saison (FairyBoard.matatak_saisons_start)."""
+
+    def test_equipes_de_depart_sur_les_deux_plateaux(self):
+        import pyffish as sf
+        from fairy import FairyBoard
+
+        sf.load_variant_config(open("variants.ini").read())
+        # Été (KRAK x, TAMTAM f) aux Blancs, Hiver (FRANK w, BONGO l) aux Noirs
+        fen = FairyBoard.matatak_saisons_start(False, "ete", "hiver")
+        self.assertEqual(fen.split()[0], "3kw3/3ll3/8/8/8/8/3FF3/3XK3")
+        mini = FairyBoard.matatak_saisons_start(True, "printemps", "automne")
+        self.assertEqual(mini.split()[0], "1ki1/1bb1/4/4/4/4/1MM1/1CK1")
+        for variante, f in (("matatak", fen), ("matatakmini", mini)):
+            self.assertEqual(sf.validate_fen(f, variante), 1)
+        # Coup de pouce pour les Blancs : leur Champion gagne une étoile (KRAK a déjà 4 : il reste)
+        aide = FairyBoard.matatak_saisons_start(False, "hiver", "ete", boost=1)
+        self.assertNotEqual(aide.split()[0].split("/")[7], "3WK3")

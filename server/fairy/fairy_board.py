@@ -494,6 +494,14 @@ class FairyBoard:
         return FairyBoard.matatak_placement_start(*teams, True)
 
     @staticmethod
+    def matatak_saisons_start(isMini, wseason=None, bseason=None, boost=0):
+        """Entre amis, chacun choisit l'équipe de départ d'une Saison (None = au hasard), sur le Mini comme
+        sur le 8×8 (4 Personnages, cases du livret), avec le Coup de pouce de la partie."""
+        teams = FairyBoard.matatak_seasons_teams(wseason, bseason)
+        teams = FairyBoard.add_boost(isMini, boost, *teams)
+        return FairyBoard.matatak_placement_start(*teams, isMini)
+
+    @staticmethod
     def matatak_seasons_teams(wseason=None, bseason=None):
         saisons = FairyBoard.MINI_SAISONS
         wteam = saisons[wseason] if wseason else random.choice(list(saisons.values()))

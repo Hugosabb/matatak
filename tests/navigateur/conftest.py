@@ -57,7 +57,8 @@ async def ouvrir(chromium, site, telephone=False, premiere_page="/apprendre"):
     page.on("pageerror", lambda e: page.erreurs.append(str(e)))
     await page.goto(site + premiere_page)
     await page.evaluate(
-        "localStorage.setItem('matatak_tutoriel', 'connu'); localStorage.setItem('matatak_conseils', 'vus')"
+        "localStorage.setItem('matatak_tutoriel', 'connu'); localStorage.setItem('matatak_conseils', 'vus');"
+        " localStorage.setItem('matatak_intro_vue', '1')"
     )
     return page
 

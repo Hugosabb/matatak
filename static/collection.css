@@ -152,3 +152,8 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
 /* Ordinateur : page des équipes resserrée et centrée (cartes et difficulté alignées) */
 .collection-page.equipes-depart { width: min(760px, 100% - 32px); }
 .equipes-depart .fiches.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Aventure : Personnages pas encore recrutés (client/collection.ts, etatAventure) */
+.carte-col.verrou .face { filter: grayscale(1) brightness(.4); }
+.carte-col.verrou .nom { color: var(--mt-doux); }
+.carte-col .arrivee { font: 800 12px 'Nunito', sans-serif; color: var(--mt-discret); }

@@ -4,6 +4,7 @@ import aiohttp_jinja2
 from aiohttp import web
 
 from logger import log
+from seek import SAISONS
 from utils import join_seek, load_game
 from views import add_game_context, get_user_context
 from pychess_global_app_state_utils import get_app_state
@@ -23,6 +24,11 @@ async def invite(request):
         seek = app_state.seeks[seek_id]
         if request.path.startswith("/invite/accept/"):
             player = request.match_info.get("player")
+            # Entre amis : l'invité choisit l'équipe de départ d'une Saison (client/invite.ts)
+            if request.method == "POST":
+                equipe = (await request.post()).get("equipe")
+                if equipe in SAISONS and user.username != seek.creator.username:
+                    seek.equipes[user.username] = equipe
             seek_status = await join_seek(app_state, user, seek, gameId, join_as=player)
 
             if seek_status["type"] == "seek_joined":
@@ -54,6 +60,9 @@ async def invite(request):
         context["byo"] = seek.byoyomi_period
         context["inviter"] = inviter
         context["seekempty"] = seek.player1 is None and seek.player2 is None
+        # Entre amis : l'invité peut choisir l'équipe de départ d'une Saison (pas en Draft ni avec une position)
+        choix = seek.variant.startswith("matatak") and not seek.isDraft and not seek.fen
+        context["choixequipe"] = seek.equipes.get(seek.creator.username, "au hasard") if choix else ""
     else:
         # The new invite game started
         game = await load_game(app_state, gameId)

@@ -138,6 +138,29 @@ function cadence(model: PyChessModel): string {
     return base === 0 && inc === 0 ? 'Sans limite' : `${base} min${inc ? ` +${inc}` : ''}`;
 }
 
+// Saison de l'équipe de départ de l'invité (champ « equipe » du formulaire, server/views/invite.py)
+const SAISONS_EQUIPE: [string, string, string][] = [
+    ['ete', 'AZAR', '01-azar.webp'], ['automne', 'SHANS', '02-shans.webp'],
+    ['hiver', 'KARMA', '03-karma.webp'], ['printemps', 'MOJO', '04-mojo.webp'],
+];
+
+function choixEquipe(hote: string, saisonHote: string): VNode {
+    const roiHote = SAISONS_EQUIPE.find(([s]) => s === saisonHote)?.[1];
+    const choix = (valeur: string, id: string, contenu: VNode[]) => [
+        h('input', { attrs: { type: 'radio', name: 'equipe', value: valeur, id, checked: valeur === '' } }),
+        h('label.choix-eq', { attrs: { for: id } }, contenu),
+    ];
+    return h('div.invite-equipe', [
+        h('div.etiq', 'Votre équipe'),
+        h('div.choix-equipe', { attrs: { role: 'radiogroup', 'aria-label': 'Votre équipe' } }, [
+            ...choix('', 'equipe-hasard', [h('span.hasard'), h('small', 'Hasard')]),
+            ...SAISONS_EQUIPE.flatMap(([s, roi, image]) =>
+                choix(s, `equipe-${s}`, [h('img', { attrs: { src: `/static/images/background/collection/sombre/${image}`, alt: '' } }), h('small', roi)])),
+        ]),
+        h('small.aide', roiHote ? `${hote} joue l'équipe de ${roiHote}.` : `${hote} joue une équipe au hasard.`),
+    ]);
+}
+
 /** Invitation entre amis : « Invitez un ami » (lien à partager, attente) ou « X vous défie ! » (rejoindre). */
 function pageInvitation(model: PyChessModel, gameURL: string, formAction: string, titreDefaut: string): VNode {
     const variant = VARIANTS[model.variant];
@@ -185,6 +208,7 @@ function pageInvitation(model: PyChessModel, gameURL: string, formAction: string
         resume,
         duo,
         h('form.invite-form', { props: { method: 'post', action: formAction } }, [
+            model.choixequipe ? choixEquipe(nom, model.choixequipe) : '',
             h('button.mt-btn.mt-btn-or', { attrs: { type: 'submit' } }, 'Rejoindre la partie'),
         ]),
         reglesConnues ? '' : h('a.invite-regles', { attrs: { href: '/tutorial/1', target: '_blank', rel: 'noopener' } }, 'Nouveau ? Les règles en 2 minutes'),

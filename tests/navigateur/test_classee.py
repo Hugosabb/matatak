@@ -57,7 +57,8 @@ async def test_un_invite_doit_se_connecter(site, chromium, telephone):
     await page.evaluate("localStorage.setItem('jouer_choix', JSON.stringify({adv: 'classee'}))")
     await page.goto(site + "/jouer")
     await page.wait_for_selector(".classee-accueil")
-    assert await page.locator(".choix-adv button").count() == 3
+    # Un seul jeu d'onglets visible : en haut du panneau sur ordinateur, fixé en bas sur téléphone
+    assert await page.locator(".choix-adv button:visible").count() == 3
     lien = page.locator("a.lancer")
     assert await lien.inner_text() == "Se connecter"
     assert await lien.get_attribute("href") == "/connexion"

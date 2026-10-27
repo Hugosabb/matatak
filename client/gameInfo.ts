@@ -8,6 +8,7 @@ import { alternateStartName, timeControlStr, displayName } from "./view";
 import { PyChessModel } from "./types";
 import { VARIANTS } from "./variants";
 import { roiDuNiveau } from "./rois";
+import { rivalDeLaPartie } from "./aventure/progression";
 
 
 export function gameInfo(model: PyChessModel): VNode {
@@ -77,7 +78,9 @@ function playerInfo(model: PyChessModel, color: string) {
     // L'ordinateur (Solo) : le Roi de son palier, comme dans les bandeaux de la partie
     if (title === 'LIA') {
         const niveau = Number(String(username).replace('Level ', '')) || level;
-        return h('span.user-link.joueur-ia', [roiDuNiveau(niveau), h('small', ` · Niveau ${niveau}`)]);
+        // Aventure : le Roi rival de la partie, sans le niveau (caché)
+        const rival = rivalDeLaPartie(model["gameId"]);
+        return h('span.user-link.joueur-ia', rival ? [rival] : [roiDuNiveau(niveau), h('small', ` · Niveau ${niveau}`)]);
     }
     return h('a.user-link', { attrs: { href: '/@/' + username } }, [
         (title !== '') ? h('player-title', title + ' ') : '',

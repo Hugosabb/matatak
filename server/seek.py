@@ -10,6 +10,9 @@ from variants import get_server_variant
 
 MAX_USER_SEEKS = 10
 
+# Saisons des équipes de départ (Entre amis : chacun choisit la sienne)
+SAISONS = ("printemps", "ete", "automne", "hiver")
+
 
 class Seek:
     def __init__(
@@ -72,6 +75,8 @@ class Seek:
         self.reused_fen = reused_fen
         self.isDraft = isDraft
         self.rois = rois  # Rois d'une revanche de Draft (mêmes équipes), voir Game.rois
+        # Entre amis : Saison de l'équipe de départ choisie par chaque joueur (nom → Saison), voir new_game
+        self.equipes = {}
         try:
             self.boost = min(4, max(-4, int(boost)))
         except (TypeError, ValueError):
@@ -201,6 +206,9 @@ async def create_seek(db, invites, seeks, user, data, empty=False, engine=None):
         isDraft=bool(data.get("isDraft", data.get("draft", False))),
         boost=data.get("boost", 0),
     )
+
+    if data.get("equipe") in SAISONS and not empty:
+        seek.equipes[user.username] = data["equipe"]
 
     log.debug("adding seek: %s" % seek)
     seeks[seek.id] = seek

@@ -1,5 +1,7 @@
 import { carteTournante, duoEchange } from './carteAnimee';
 import { ROIS, roiDuNiveau, saisonDuNiveau, Saison } from './rois';
+import { montrerEquipe, renderAventure } from './aventure/vue';
+import { classeeDebloquee, classeeForcee, draftDebloque, forcerClassee, lierPartie, lire as lireAventure, noterPartieDemandee, Partie as PartieAventure, prochainePartie } from './aventure/progression';
 import { WebsocketHeartbeatJs } from './socket/socket';
 import { installeur, ouvrirInstallation } from './installer';
 import { equipeMemorisee, fenPourCouleur } from './equipe';
@@ -75,7 +77,8 @@ const CADENCES_AMI: Cadence[] = [
     { id: '10+5', label: '10 min', detail: '+5', min: 10, inc: 5 },
     { id: '15+10', label: '15 min', detail: '+10', min: 15, inc: 10 },
 ];
-const IMG_VITRINE = '/static/images/background/vitrine/';
+// Cartes des menus : toujours en face sombre (règle d'Hugo, 26/10/2026)
+const IMG_SOMBRE = '/static/images/background/collection/sombre/';
 const IMG_ROI: Record<Saison, string> = { ete: '01-azar.webp', automne: '02-shans.webp', hiver: '03-karma.webp', printemps: '04-mojo.webp' };
 
 // Onglet « Classée » : réponse de GET /api/classee (server/classee.py)
@@ -110,7 +113,7 @@ function noterReglesConnues() {
     try { localStorage.setItem('matatak_tutoriel', 'connu'); } catch { /* navigation privée */ }
 }
 function etapeTutoriel(): number {
-    return Math.min(7, Number(lireStockage('matatak_tutoriel_etape')) || 0);
+    return Math.min(12, Number(lireStockage('matatak_tutoriel_etape')) || 0); // 13 étapes (tutorial_data.py)
 }
 
 // Bandeau « Installer l'appli » sous le panneau de /jouer : seulement si l'installation est possible sur cet
@@ -222,10 +225,15 @@ export class LobbyController implements ChatController {
     jouer: JouerChoix = lireJouerChoix();
     jouerEnvoi = false;
     jouerModel: PyChessModel | null = null;
+    // Onglet Solo : l'Aventure, ou la partie libre (niveau au choix) quand le joueur la demande
+    soloLibre = false;
+    aventureDemande = false;
     // « Plus d'options » de /jouer : non mémorisées, pour ne pas garder un Draft ou une FEN par surprise
     jouerOptions = false;
     jouerDraft = false;
     jouerBoost = 0;
+    // Contre un ami : Saison de l'équipe de départ de l'hôte ('' = au hasard) ; l'ami choisit la sienne sur l'invitation
+    jouerEquipe: Saison | '' = '';
     jouerFen = '';
     // Onglet « Classée » : classements du joueur, recherche d'un adversaire en cours (début, minuteur)
     classee: ClasseeInfos | null = null;
@@ -290,6 +298,16 @@ export class LobbyController implements ChatController {
                     this.classeeDebut = Date.now();
                     this.doSend({ type: 'classee_chercher', variant: this.jouer.variant });
                 }
+            }
+            const aventure = new URLSearchParams(window.location.search).get('aventure');
+            if (jouerEl && aventure) {
+                window.history.replaceState({}, '', window.location.pathname);
+                this.jouer.adv = 'ia';
+                this.soloLibre = false;
+                const p = lireAventure();
+                const partie = p ? prochainePartie({ ...p, plateau: this.jouer.variant }) : null;
+                if (aventure === 'jouer' && p && partie) this.lancerAventure(model, partie);
+                if (aventure === 'equipe' && p) montrerEquipe();
             }
             if (jouerEl) {
                 this.jouerEl = patch(jouerEl, this.renderJouer(model));
@@ -412,8 +430,9 @@ export class LobbyController implements ChatController {
         });
     }
 
-    createInviteFriendMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, day: number, chess960: boolean, rated: boolean, draft: boolean, boost: number) {
+    createInviteFriendMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, day: number, chess960: boolean, rated: boolean, draft: boolean, boost: number, equipe = '') {
         this.doSend({
+            equipe: equipe,
             type: "create_invite",
             user: this.username,
             target: 'Invite-friend',
@@ -450,8 +469,9 @@ export class LobbyController implements ChatController {
         });
     }
 
-    createAIChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, level: number, rm: boolean, chess960: boolean, rated: boolean, draft: boolean, boost: number) {
+    createAIChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, level: number, rm: boolean, chess960: boolean, rated: boolean, draft: boolean, boost: number, rois?: { white: Saison, black: Saison }) {
         this.doSend({
+            rois: rois ? { white: rois.white, black: rois.black } : null,
             type: "create_ai_challenge",
             rm: rm,
             user: this.username,
@@ -677,7 +697,7 @@ export class LobbyController implements ChatController {
         return h('div.defi-recu', { attrs: { role: 'alertdialog', 'aria-label': `${defi.de} vous défie` } }, [
             h('div.defi-txt', [
                 h('b', `${defi.de} vous défie`),
-                h('small', `${texteClassement(v)} · Draft ${NOM_PLATEAU[defi.variant]} · ${defi.cadence.replace('+', ' min +')} · classée`),
+                h('small', `${texteClassement(v)} · Draft ${NOM_PLATEAU[defi.variant]} · ${defi.cadence.replace('+', ' min +')} · Arène`),
             ]),
             h('div.defi-actions', [
                 h('button.mt-btn.mt-btn-or.mt-btn-petit', { attrs: { type: 'button' }, on: { click: () => this.repondreDefi(defi, true) } }, 'Accepter'),
@@ -695,7 +715,7 @@ export class LobbyController implements ChatController {
             h('div.etiq', ['Palmarès de la semaine', h('a', { attrs: { href: '/palmares' } }, 'Voir tout')]),
             p.moi
                 ? h('p.ma-place', [h('b', rangTexte(p.moi.rang)), ` sur ${p.joueurs} · ${p.moi.p} points`])
-                : h('p.ma-place', "Chaque partie classée rapporte des points, même perdue. Remise à zéro le lundi, couronne au premier."),
+                : h('p.ma-place', "Chaque partie de l'Arène rapporte des points, même perdue. Remise à zéro le lundi, couronne au premier."),
             podium.length ? h('ol', podium.map((l, i) => h('li', { class: { moi: l.u === this.username } }, [
                 h('span.rang', String(i + 1)),
                 h('span.nom', [p.couronne === l.u ? couronne() : '', l.u]),
@@ -747,6 +767,20 @@ export class LobbyController implements ChatController {
     private renderClassee(choixAdv: VNode, plateau: (v: 'matatak' | 'matatakmini', infos: VNode) => VNode): VNode {
         const c = this.jouer;
         const infos = this.classee;
+        // Aventure commencée sur cet appareil : le Classé se débloque à la fin de la phase 1
+        const aventure = lireAventure();
+        if (aventure && !classeeDebloquee(aventure) && !classeeForcee()) {
+            const maj = () => this.majJouer();
+            return h('section.panneau.partie.classee', [
+                choixAdv,
+                h('div.classee-accueil.verrou', [
+                    h('b', 'Bientôt débloquée'),
+                    h('p', "L'Arène s'ouvre à la fin du chapitre 1 de l'Aventure. Vous y affronterez des joueurs de votre niveau."),
+                ]),
+                h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', { attrs: { type: 'button' }, on: { click: () => { c.adv = 'ia'; this.soloLibre = false; maj(); } } }, "Continuer l'Aventure"),
+                h('button.deja', { attrs: { type: 'button' }, on: { click: () => { forcerClassee(); maj(); } } }, 'Jouer quand même'),
+            ]);
+        }
         if (!infos || !infos.connecte) {
             return h('section.panneau.partie.classee', [
                 choixAdv,
@@ -783,10 +817,24 @@ export class LobbyController implements ChatController {
                 : h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', {
                     attrs: { type: 'button' },
                     on: { click: () => this.chercherClassee() },
-                }, 'Jouer une partie classée'),
+                }, "Jouer dans l'Arène"),
             this.renderEnLigne(infos, attente),
             this.renderPalmaresSemaine(),
         ]);
+    }
+
+    /** Partie de l'Aventure : position, couleur, niveau et Rois viennent de la progression (client/aventure). */
+    private lancerAventure(model: PyChessModel, partie: PartieAventure) {
+        const p = lireAventure();
+        if (this.jouerEnvoi || !p) return;
+        this.jouerEnvoi = true;
+        this.majJouer(model);
+        this.profileid = '';
+        this.createMode = 'playAI';
+        this.aventureDemande = true;
+        noterPartieDemandee(p, partie);
+        this.createAIChallengeMsg(partie.variant, partie.couleur, partie.fen, 0, 0, 0, partie.niveau, false, false, false, false, 0, partie.rois);
+        setTimeout(() => { this.jouerEnvoi = false; this.majJouer(model); }, 8000);
     }
 
     private lancerJouer(model: PyChessModel) {
@@ -813,7 +861,7 @@ export class LobbyController implements ChatController {
             this.createAIChallengeMsg(c.variant, color, fen, tc.min, tc.inc, 0, c.level, false, false, false, this.jouerDraft, 0);
         } else {
             this.createMode = 'playFriend';
-            this.createInviteFriendMsg(c.variant, color, fen, tc.min, tc.inc, 0, 0, false, false, this.jouerDraft, boost);
+            this.createInviteFriendMsg(c.variant, color, fen, tc.min, tc.inc, 0, 0, false, false, this.jouerDraft, boost, fen ? '' : this.jouerEquipe);
         }
         // Si le serveur ne répond pas (connexion coupée), on peut réessayer.
         setTimeout(() => { this.jouerEnvoi = false; this.majJouer(model); }, 8000);
@@ -831,7 +879,8 @@ export class LobbyController implements ChatController {
                     on: { change: (e: Event) => { this.jouerDraft = (e.target as HTMLInputElement).checked; maj(); } },
                 }),
                 h('span.glissiere'),
-                h('span', [h('b', 'Draft'), h('small', "Les Personnages sont tirés au hasard. L'un forme deux groupes, l'autre choisit le sien, puis chacun place son équipe.")]),
+                h('span', [h('b', 'Draft'), h('small', "Les Personnages sont tirés au hasard. L'un forme deux groupes, l'autre choisit le sien, puis chacun place son équipe."
+                    + (lireAventure() && !draftDebloque(lireAventure()!) ? " Dans l'Aventure, il se débloque à la fin de la phase 3." : ''))]),
             ]),
             // Coup de pouce (règle du livret) : entre amis seulement ; en Solo, on choisit un niveau plus facile
             ia ? '' : h('div.bloc.pouce', { class: { inactif: this.jouerDraft } }, [
@@ -906,11 +955,15 @@ export class LobbyController implements ChatController {
             c.adv = adv;
             maj();
         };
-        const choixAdv = h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
-            bouton(c.adv === 'ia', 'button', () => choisirAdv('ia'), [h('img', { attrs: { src: IMG_VITRINE + IMG_ROI[saisonDuNiveau(c.level)], alt: '' } }), 'Solo']),
-            bouton(c.adv === 'ami', 'button', () => choisirAdv('ami'), [h('img', { attrs: { src: IMG_VITRINE + '11-frank.webp', alt: '' } }), 'Contre un ami']),
-            bouton(c.adv === 'classee', 'button', () => choisirAdv('classee'), [h('img', { attrs: { src: IMG_VITRINE + '26-rokk.webp', alt: '' } }), 'Classée']),
+        const onglets = () => h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
+            bouton(c.adv === 'ia', 'button', () => choisirAdv('ia'), [h('img', { attrs: { src: IMG_SOMBRE + IMG_ROI[saisonDuNiveau(c.level)], alt: '' } }), 'Aventure']), // noms des onglets : Hugo, 27/10/2026
+            bouton(c.adv === 'ami', 'button', () => choisirAdv('ami'), [h('img', { attrs: { src: IMG_SOMBRE + '11-frank.webp', alt: '' } }), 'Défier un ami']),
+            bouton(c.adv === 'classee', 'button', () => choisirAdv('classee'), [h('img', { attrs: { src: IMG_SOMBRE + '26-rokk.webp', alt: '' } }), 'Arène']),
         ]);
+        const choixAdv = onglets();
+        // Téléphone : les mêmes onglets, fixés en bas au-dessus de la navigation (le pouce y est) ;
+        // ceux du haut du panneau sont alors masqués (jouer.css)
+        const ongletsDuBas = h('nav.choix-adv-bas', [onglets()]);
         const plateau = (v: 'matatak' | 'matatakmini', detail: VNode) =>
             bouton(c.variant === v, 'button.plat', () => { if (!this.classeeDebut) { c.variant = v; maj(); } }, [
                 damier(v === 'matatak' ? 8 : 4), h('span', [h('b', v === 'matatak' ? 'Matatak' : 'Matatak Mini'), detail]),
@@ -923,10 +976,32 @@ export class LobbyController implements ChatController {
                 h('div.scene-cartes', [carteTournante('26-rokk.webp')]),
                 this.classee?.connecte
                     ? h('div.scene-txt', [h('b', v ? String(v.r) : '…'), h('span', `${v?.prov ? 'Classement provisoire' : 'Votre classement'} · ${c.variant === 'matatak' ? 'Matatak' : 'Matatak Mini'}`)])
-                    : h('div.scene-txt', [h('b', 'Classée'), h('span', 'Gagnez des points, grimpez au classement')]),
+                    : h('div.scene-txt', [h('b', 'Arène'), h('span', 'Gagnez des points, grimpez au classement')]),
             ]);
             const installation = bandeauInstallation(maj);
-            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, plateau), scene]), installation ?? '']);
+            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, plateau), scene]), installation ?? '', ongletsDuBas]);
+        }
+
+        // Solo = l'Aventure ; son niveau 0 est le tutoriel (Hugo, 26/10/2026)
+        if (ia && !this.soloLibre) {
+            const ctx = {
+                choixAdv,
+                plateau: c.variant,
+                choisirPlateau: (v: 'matatak' | 'matatakmini') => { c.variant = v; maj(); },
+                envoi: this.jouerEnvoi,
+                lancer: (partie: PartieAventure) => this.lancerAventure(model, partie),
+                partieLibre: () => { this.soloLibre = true; maj(); },
+                maj,
+                tutoriel: {
+                    fait: reglesConnues(),
+                    // Fait : on le rejoue depuis le début ; sinon on reprend où on s'était arrêté
+                    lien: reglesConnues() ? '/tutorial/1' : `/tutorial/${etapeTutoriel() + 1}`,
+                    commence: etapeTutoriel() > 0,
+                    passer: () => { noterReglesConnues(); maj(); },
+                },
+            };
+            const installation = bandeauInstallation(maj);
+            return h('div.jouer-page.aventure-page', [this.renderDefisRecus(), renderAventure(ctx), installation ?? '', ongletsDuBas]);
         }
 
         const partie = h('section.panneau.partie', [
@@ -936,6 +1011,16 @@ export class LobbyController implements ChatController {
                 plateau('matatakmini', h('small', '4 × 8 · rapide et facile')),
                 plateau('matatak', h('small', '8 × 8 · grand format')),
             ]),
+            !ia && !this.jouerDraft ? h('div.bloc.equipe-ami', [
+                h('div.etiq', [h('span', 'Votre équipe'), h('b', this.jouerEquipe ? ROIS[this.jouerEquipe].nom : 'Au hasard')]),
+                h('div.choix-equipe', { attrs: { role: 'group', 'aria-label': 'Votre équipe' } }, [
+                    bouton(this.jouerEquipe === '', 'button.choix-eq', () => { this.jouerEquipe = ''; maj(); }, [h('span.hasard'), h('small', 'Hasard')]),
+                    ...(['ete', 'automne', 'hiver', 'printemps'] as Saison[]).map(sa =>
+                        bouton(this.jouerEquipe === sa, 'button.choix-eq', () => { this.jouerEquipe = sa; maj(); },
+                            [h('img', { attrs: { src: '/static/images/background/collection/sombre/' + IMG_ROI[sa], alt: '' } }), h('small', ROIS[sa].nom)])),
+                ]),
+                h('small.aide', "Votre ami choisit la sienne en ouvrant l'invitation."),
+            ]) : '',
             ia ? h('div.niveau', [
                 h('div.etiq', [h('label', { attrs: { for: 'jouer-niveau' } }, 'Adversaire'), h('b', `${roiDuNiveau(c.level)} · Niveau ${c.level}`)]),
                 h('div.curseur', [
@@ -956,6 +1041,7 @@ export class LobbyController implements ChatController {
                 on: { click: () => { this.jouerOptions = !this.jouerOptions; maj(); } },
             }, this.jouerOptions ? [h('span', "Moins d'options")] : [h('span', "Plus d'options"), h('small', resume)]),
             this.jouerOptions ? this.renderPlusOptions(maj, reglages, ia) : '',
+            ia && this.soloLibre ? h('button.deja', { attrs: { type: 'button' }, on: { click: () => { this.soloLibre = false; maj(); } } }, "Retour à l'Aventure") : '',
             // Nouveau joueur (tutoriel ni fini ni écarté sur cet appareil) : on apprend d'abord.
             // Contre un ami, on ne bloque pas : c'est l'ami qui peut montrer les règles.
             ...(ia && !reglesConnues() ? [
@@ -966,7 +1052,7 @@ export class LobbyController implements ChatController {
                 h('button.mt-btn.mt-btn-or.mt-btn-large.lancer', {
                     attrs: { type: 'button', disabled: this.jouerEnvoi },
                     on: { click: () => this.lancerJouer(model) },
-                }, this.jouerEnvoi ? 'Préparation…' : (ia ? 'Lancer la partie' : 'Inviter un ami')),
+                }, this.jouerEnvoi ? 'Préparation…' : (ia ? 'Lancer la partie' : 'Défier un ami')),
             ]),
         ]);
 
@@ -991,7 +1077,7 @@ export class LobbyController implements ChatController {
         // Collection, Analyse et Éditeur sont rangés dans « Apprendre » ; « Installer l'appli » aussi,
         // et dans le bandeau du bas (bandeauInstallation)
         const installation = bandeauInstallation(maj);
-        return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [partie, scene]), installation ?? '']);
+        return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [partie, scene]), installation ?? '', ongletsDuBas]);
     }
 
     renderSeekButtons() {
@@ -1824,6 +1910,7 @@ export class LobbyController implements ChatController {
     }
 
     private onMsgNewGame(msg: MsgNewGame) {
+        if (this.aventureDemande) lierPartie(msg.gameId);
         window.location.assign('/' + msg.gameId);
     }
 

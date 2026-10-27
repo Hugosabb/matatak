@@ -461,6 +461,15 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
 
         rated = RATED if (seek.rated and classable(wplayer) and classable(bplayer)) else CASUAL
 
+        # Entre amis : chacun a pu choisir l'équipe de départ d'une Saison (seek.equipes)
+        if not sanitized_fen and seek.equipes and seek.variant.startswith("matatak") and not seek.isDraft:
+            sanitized_fen = FairyBoard.matatak_saisons_start(
+                seek.variant == "matatakmini",
+                seek.equipes.get(wplayer.username),
+                seek.equipes.get(bplayer.username),
+                boost,
+            )
+
         game = Game(
             app_state,
             game_id,
@@ -494,6 +503,7 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
         remove_seek(app_state.seeks, seek)
         return {"type": "error", "message": "Failed to create game"}
     app_state.games[game_id] = game
+    game.equipes = dict(seek.equipes)  # gardées pour la revanche
 
     if game.draft is not None and game.draft.delai is not None:
         # Draft classé : délai par étape (file d'attente, défi ou revanche)

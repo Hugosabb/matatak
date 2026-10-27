@@ -292,3 +292,30 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 .palmares-semaine .nom { display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 800; }
 .palmares-semaine .pts { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--mt-doux); }
 .en-ligne .nom { display: flex; align-items: center; gap: 6px; }
+
+
+/* Partout (téléphone, tablette, ordinateur) : Solo · Contre un ami · Classée fixés en bas, au même endroit
+   quel que soit l'onglet (en haut du panneau, ils bougeaient à chaque changement, Hugo) et sous le pouce,
+   au-dessus de la navigation du téléphone s'il y en a une (lobby.ts ongletsDuBas, 26/10/2026) */
+body[data-view="jouer"] { --mt-choix: 68px; }
+@media (max-width: 760px) { body[data-view="jouer"] { --mt-nav: var(--mt-tab-h); } } /* barre de navigation du bas */
+.panneau .choix-adv, .av-onglets { display: none; }
+.choix-adv-bas { position: fixed; z-index: 6; left: 50%; transform: translateX(-50%); width: min(560px, calc(100% - 24px));
+  bottom: calc(var(--mt-nav, 0px) + env(safe-area-inset-bottom, 0px) + 8px); }
+.choix-adv-bas .choix-adv { margin: 0; box-shadow: inset 0 0 0 1px var(--mt-filet), 0 -14px 30px -12px rgba(0, 0, 0, .9); }
+.jouer-page { padding-bottom: calc(var(--mt-choix) + 24px); }
+/* Téléphone (portrait ou paysage) : l'illustration en haut, plus petite, et le bouton doré collé au-dessus des onglets */
+@media (max-width: 760px), (max-height: 500px) and (orientation: landscape) {
+  .grille { gap: 14px; }
+  .grille .scene { order: -1; margin: 0; gap: 6px; padding-top: 30px; } /* place pour le bond et la rotation des cartes */
+  .grille .scene .scene-cartes { --carte: min(120px, 32vw); }
+  .grille .scene.duo .scene-cartes { --carte: min(96px, 26vw); }
+  .grille .scene.duo .duo-echange { height: calc(var(--carte) * 1.45); }
+  .grille .scene.duo .scene-txt { display: none; } /* « Entre amis » : l'onglet le dit déjà */
+  .grille .scene .scene-txt { gap: 2px; }
+  .grille .scene .scene-txt b { font-size: 22px; }
+  .grille .scene .scene-txt q { display: none; } /* la réplique du Roi : sur ordinateur seulement */
+  /* Le bouton doré reste au-dessus des onglets, comme « Affronter » dans l'Aventure */
+  .panneau.partie > .lancer, .panneau.partie > .classee-attente { position: sticky; z-index: 4; bottom: calc(var(--mt-nav, 0px) + env(safe-area-inset-bottom, 0px) + var(--mt-choix) + 16px);
+    filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .7)); }
+}

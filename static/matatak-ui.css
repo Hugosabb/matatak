@@ -9,6 +9,10 @@
   --mt-surface: #1f1512;
   --mt-surface-2: #281e1b;
   --mt-filet: #362d2b;
+  /* Tribeca : ses métriques (ascent 1136, descent 135, capitales et chiffres 766 sur 1000) centrent le texte
+     0,1175 em trop bas. À appliquer dans le repère du texte : `position: relative; top: var(--mt-tribeca)`,
+     ou `translateY(var(--mt-tribeca))` en dernier dans `transform` si un parent est tourné (losange) */
+  --mt-tribeca: -.1175em;
   --mt-encre: #f2ddce;
   --mt-doux: #b8a291;
   --mt-discret: #8a7666;
@@ -283,6 +287,7 @@ header.mt-haut #settings-board { max-width: calc(100vw - 16px); }
   box-shadow: inset 0 0 0 1.5px var(--mt-filet); font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux);
   transition: background .15s, color .15s;
 }
+a.fin-lien { display: inline-flex; align-items: center; box-sizing: border-box; text-decoration: none; white-space: nowrap; } /* « Voir la route » : comme les boutons */
 .fin-lien:hover, .fin-lien:active { background: var(--mt-surface-2); color: var(--mt-encre); }
 .fin-lien:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; border-radius: 8px; }
 @keyframes fin-apparait { from { opacity: 0; transform: translateY(8px); } }
@@ -485,6 +490,26 @@ bad { color: var(--mt-discret); }
 
 /* Couronne du premier du palmarès de la semaine passée (palmares.ts couronne) */
 svg.couronne { flex: none; width: 18px; height: 18px; color: var(--mt-or); filter: drop-shadow(0 0 6px rgba(234, 196, 90, .4)); }
+
+/* Contre un ami : chacun choisit l'équipe de départ d'une Saison (aussi sur la page d'invitation).
+   Comme dans la Collection : les cartes seules (face sombre), la carte choisie se soulève dans un halo or ;
+   « Hasard » est un dos de carte à l'étoile à 4 branches. */
+.equipe-ami { margin-bottom: 20px; }
+.choix-equipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.choix-equipe input { position: absolute; opacity: 0; pointer-events: none; }
+.choix-equipe .choix-eq { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
+  color: var(--mt-doux); font: 400 13px 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; -webkit-tap-highlight-color: transparent; }
+.choix-equipe .choix-eq img, .choix-equipe .choix-eq .hasard { width: 100%; aspect-ratio: 1; border-radius: 8%; display: block;
+  filter: brightness(.72) saturate(.8); box-shadow: 0 14px 22px -12px rgba(0, 0, 0, .9); transition: transform .25s cubic-bezier(.3, 1.4, .5, 1), filter .2s, box-shadow .2s; }
+.choix-equipe .choix-eq .hasard { background: #1f1512 url('/static/images/background/vitrine/etoile.png') center / 78% auto no-repeat; box-shadow: inset 0 0 0 1.5px rgba(234, 196, 90, .55), 0 14px 22px -12px rgba(0, 0, 0, .9); }
+.choix-equipe .choix-eq:hover img, .choix-equipe .choix-eq:hover .hasard { filter: none; }
+.choix-equipe .choix-eq.on, .choix-equipe input:checked + .choix-eq { color: var(--mt-or); }
+.choix-equipe .choix-eq.on :is(img, .hasard), .choix-equipe input:checked + .choix-eq :is(img, .hasard) {
+  filter: none; transform: translateY(-6px); box-shadow: 0 0 0 2px var(--mt-or), 0 0 24px rgba(234, 196, 90, .45), 0 18px 24px -12px rgba(0, 0, 0, .9); }
+.choix-equipe input:focus-visible + .choix-eq :is(img, .hasard), .choix-equipe .choix-eq:focus-visible :is(img, .hasard) { outline: 2px solid var(--mt-or); outline-offset: 3px; }
+.choix-equipe small { font: inherit; }
+.equipe-ami .aide, .invite-equipe .aide { display: block; margin-top: 8px; color: var(--mt-discret); font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { .choix-equipe .choix-eq :is(img, .hasard) { transition: none; } }
 
 /* ===== Choix du pseudo après la première connexion (client/usernameDialog.ts) ===== */
 #username-dialog.modal-overlay { inset: 0; left: 0; top: 0; transform: none; margin: 0; padding: 16px; background: rgba(10, 8, 7, .78); z-index: 1100; }

@@ -474,6 +474,22 @@ async def handle_analysis(app_state: PychessGlobalAppState, ws, data, game):
     await ws_send_json(ws, response)
 
 
+def pouce_de_revanche(boost, resultat, ajouter):
+    """Coup de pouce de la revanche, vu par les Blancs de la partie finie (> 0 : il aide les Blancs).
+    Il reste du côté du même joueur ; « Revanche avec un Coup de pouce » en ajoute un cran au perdant
+    (livret : le gagnant donne un coup de pouce de plus), jusqu'à 4."""
+    if ajouter and resultat in ("1-0", "0-1"):
+        boost += 1 if resultat == "0-1" else -1
+    return max(-4, min(4, boost))
+
+
+def boost_du_seek(pouce, ancien_blanc, nouveau_blanc, couleur):
+    """Valeur de Seek.boost (vue par le créateur, qui joue `couleur`) pour que le même joueur garde le
+    Coup de pouce `pouce` (vu par `ancien_blanc`) dans la nouvelle partie, où `nouveau_blanc` a les Blancs."""
+    vu_des_blancs = pouce if nouveau_blanc == ancien_blanc else -pouce
+    return vu_des_blancs if couleur == "w" else -vu_des_blancs
+
+
 async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game):
     if game.server_variant.two_boards:
         await handle_rematch_bughouse(app_state, game, user)
@@ -586,6 +602,10 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             color = "w" if game.wplayer.username == opp_name else "b"
             if handicap:
                 color = "w" if color == "b" else "b"
+            pouce = pouce_de_revanche(
+                game.boost, game.result, data.get("coup_de_pouce") or game.coup_de_pouce_demande
+            )
+            nouveau_blanc = user.username if color == "w" else opp_name
             seek_id = await new_id(None if app_state.db is None else app_state.db.seek)
             seek = Seek(
                 seek_id,
@@ -603,9 +623,10 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
                 chess960=game.chess960,
                 reused_fen=reused_fen,
                 isDraft=is_draft,
-                boost=game.boost*10,
+                boost=boost_du_seek(pouce, game.wplayer.username, nouveau_blanc, color),
                 rois=rois,
             )
+            seek.equipes = dict(game.equipes)  # chacun garde l'équipe qu'il avait choisie
             app_state.seeks[seek.id] = seek
 
             response = await join_seek(app_state, opp_player, seek)
@@ -615,9 +636,11 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
         else:
             game.rematch_offers.add(user.username)
             game.nouveau_draft_demande = bool(data.get("nouveau_draft"))
+            game.coup_de_pouce_demande = bool(data.get("coup_de_pouce"))
             response = {
                 "type": "rematch_offer",
                 "username": user.username,
+                "coup_de_pouce": game.coup_de_pouce_demande,
                 "message": "Rematch offer sent",
                 "room": "player",
                 "user": "",

@@ -478,3 +478,11 @@ body.ordi-reflechit-bas round-player1 .player-data::after {
 /* Annuler la partie pendant le Draft (draft.ts) : discret, sous l'écran */
 .dr-quitter { display: block; margin: 18px auto 8px; padding: 10px 16px; border: 0; background: none; cursor: pointer; font: 700 14px 'Nunito', sans-serif; color: var(--mt-discret); text-decoration: underline; text-underline-offset: 3px; }
 .dr-quitter:hover { color: var(--mt-doux); }
+
+/* Aventure : la recrue gagnée, en fin de partie (roundCtrl.renderFin) */
+.fin-recrue { display: grid; gap: 6px; justify-items: center; }
+.fin-recrue img { width: 96px; border-radius: 10px; box-shadow: 0 0 0 2px var(--mt-or), 0 0 28px rgba(234, 196, 90, .45); animation: recrue-arrive .7s cubic-bezier(.34, 1.56, .64, 1) .15s both; }
+.fin-recrue b { font: 400 22px/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or); text-align: center; }
+.fin-recrue small { font-weight: 800; color: var(--mt-doux); font-size: 14px; }
+@keyframes recrue-arrive { from { opacity: 0; transform: rotateY(180deg) scale(.6); } }
+@media (prefers-reduced-motion: reduce) { .fin-recrue img { animation: none; } }

@@ -79,7 +79,7 @@ async def lobby(request):
         context["view"] = "jouer"
         context["title"] = "Jouer · MATATAK!"
         context["view_css"] = "lobby.css"
-        context["extra_css"] = "jouer.css"
+        context["extra_css"] = ["jouer.css", "aventure.css"]
     else:
         context["view"] = "lobby"
 

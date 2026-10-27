@@ -140,6 +140,8 @@ async def lancer_draft_solo(page, site):
         "localStorage.setItem('jouer_choix', JSON.stringify({adv: 'ia', variant: 'matatakmini', level: 2}))"
     )
     await page.goto(site + "/jouer")
+    # L'onglet Solo ouvre l'Aventure : le Draft contre l'ordinateur est dans « Partie libre »
+    await page.locator(".av-lien", has_text="Partie libre").click()
     await page.click("button.plus")
     await page.locator("label.interrupteur").first.click()
     await page.locator("button.lancer").dispatch_event("click")

@@ -66,14 +66,14 @@ function vueSemaine(infos: PalmaresInfos, moi: string): VNode[] {
         lignes.length
             ? h('ol.liste', lignes)
             : h('div.vide', [
-                h('p', "Personne n'a encore joué de partie classée cette semaine. À vous la couronne !"),
-                h('a.mt-btn.mt-btn-or', { attrs: { href: '/jouer?classee=1' } }, 'Jouer une partie classée'),
+                h('p', "Personne n'a encore joué dans l'Arène cette semaine. À vous la couronne !"),
+                h('a.mt-btn.mt-btn-or', { attrs: { href: '/jouer?classee=1' } }, "Jouer dans l'Arène"),
             ]),
         moiHorsTop ? h('p.ma-place-bas', `Vous : ${rangTexte(infos.moi!.rang)}, ${infos.moi!.p} points`) : '',
         h('details.bareme', [
             h('summary', 'Comment gagner des points ?'),
             h('ul', [
-                h('li', [h('b', 'Chaque partie classée rapporte'), ', même perdue : 10 points pour une défaite, 25 pour une nulle, 50 pour une victoire.']),
+                h('li', [h('b', "Chaque partie de l'Arène rapporte"), ', même perdue : 10 points pour une défaite, 25 pour une nulle, 50 pour une victoire.']),
                 h('li', [h('b', 'Battre plus fort que soi'), ' rapporte jusqu\'à deux fois plus (jusqu\'à ×2 avec 400 points d\'écart).']),
                 h('li', [h('b', 'Plus votre classement est haut'), ', plus chaque partie rapporte : ×1,5 à 2500, ×1,8 à 3000.']),
                 h('li', 'Une partie de moins de 10 coups (5 chacun) ne rapporte rien.'),

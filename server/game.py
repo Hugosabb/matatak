@@ -110,6 +110,8 @@ class Game:
         # les revanches avec les mêmes équipes. None : Roi assorti à l'équipe (client/rois.ts).
         self.rois = rois
         self.nouveau_draft_demande = False  # revanche proposée avec « Nouveau Draft »
+        self.coup_de_pouce_demande = False  # revanche proposée avec un Coup de pouce pour le perdant
+        self.equipes = {}  # entre amis : Saison choisie par chaque joueur (nom → Saison), voir utils.new_game
 
         self.server_variant = get_server_variant(variant, chess960)
         self.encode_method = self.server_variant.move_encoding

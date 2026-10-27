@@ -1,0 +1,309 @@
+/* Aventure (onglet Solo de /jouer, client/aventure/vue.ts) : un chemin de losanges dorés vers la Colline,
+   épuré (Hugo, 23/10/2026). Une colonne, du téléphone à l'ordinateur. */
+
+.aventure-page { width: min(560px, 100% - 24px); padding-top: 18px; }
+.aventure { display: grid; grid-template-columns: minmax(0, 1fr); }
+.av-lien { display: inline-block; border: 0; background: none; cursor: pointer; padding: 8px 6px; font: 700 14px 'Nunito', sans-serif; color: var(--mt-doux); }
+.av-lien:hover, .av-lien:focus-visible { color: var(--mt-encre); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Choix du Roi (maquette du 27/10/2026) : sous-titre « Roi du Printemps »… à la couleur de
+   la Saison, léger halo de la Saison derrière la carte ; pas de difficulté (même équipe pour tous) ---------- */
+.av-accueil { display: grid; gap: 22px; justify-items: center; padding: 18px 0 20px; }
+.av-titre { display: grid; gap: 6px; text-align: center; padding: 12px 22px 14px; border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); } /* pas de titre or sur les feuilles (Hugo) */
+.av-titre b { display: inline-flex; align-items: center; justify-content: center; gap: 12px; white-space: nowrap; font: 400 clamp(21px, 6.4vw, 30px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
+.av-titre b::before, .av-titre b::after { content: ''; width: 9px; height: 9px; background: var(--mt-or); transform: rotate(45deg); }
+.av-titre small { color: var(--mt-doux); font-size: 15px; }
+.av-rois { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; width: 100%; }
+.av-roi { --saison: var(--mt-or); display: grid; justify-items: center; gap: 4px; padding: 18px 8px 16px; border: 0; border-radius: 22px; cursor: pointer;
+  background: radial-gradient(120% 70% at 50% 30%, color-mix(in srgb, var(--saison) 22%, transparent), transparent 70%), var(--mt-surface);
+  box-shadow: inset 0 0 0 1px var(--mt-filet); color: var(--mt-encre); transition: transform .15s, box-shadow .2s; }
+.av-roi.printemps { --saison: var(--mt-printemps); }
+.av-roi.ete { --saison: var(--mt-ete); }
+.av-roi.automne { --saison: var(--mt-automne); }
+.av-roi.hiver { --saison: var(--mt-hiver); }
+.av-roi:hover, .av-roi:focus-visible { box-shadow: inset 0 0 0 2px var(--saison); }
+.av-roi:active { transform: scale(.98); }
+.av-roi img { width: min(128px, 33vw); margin-bottom: 8px; border-radius: 8%; box-shadow: 0 16px 24px -12px rgba(0, 0, 0, .95); }
+.av-roi b { font: 400 24px 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; }
+.av-roi small { color: var(--saison); font-weight: 800; font-size: 13px; }
+.av-meme-equipe { margin: 0; max-width: 34ch; padding: 10px 16px; border-radius: 14px; background: var(--mt-surface); text-align: center; color: var(--mt-doux); font-size: 13.5px; line-height: 1.45; }
+
+/* ---------- Intro (client/aventure/intro.ts) : plein écran, au-dessus de tout ; tout tient dans la hauteur
+   visible (barre du navigateur comprise : 100dvh), le bouton du bas toujours visible (Hugo, 27/10/2026) ---------- */
+.av-intro { position: fixed; inset: 0; height: 100dvh; z-index: 160; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 22px calc(env(safe-area-inset-bottom, 0px) + 14px); overflow: hidden; background: #0b0908; color: var(--mt-encre); }
+.av-intro > * { width: min(440px, 100%); }
+.av-intro-depart { position: fixed; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; width: auto; border: 0; background: #0b0908; color: var(--mt-encre); cursor: pointer; }
+.av-intro.en-cours .av-intro-depart { display: none; }
+.av-intro-depart b { font: 400 24px 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); }
+.av-intro-losange { width: 34px; height: 34px; border-radius: 14%; background: var(--mt-or); transform: rotate(45deg); animation: av-intro-pouls 1.6s ease-in-out infinite; }
+@keyframes av-intro-pouls { 50% { transform: rotate(45deg) scale(1.18); } }
+.av-intro-son { display: flex; align-items: center; gap: 8px; font: 700 14px 'Nunito', sans-serif; color: var(--mt-discret); }
+.av-intro-son svg { width: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Les 4 Rois : chacun apparaît quand le texte le nomme, avec un halo de sa Saison */
+.av-intro-rois { display: flex; justify-content: center; gap: 10px; min-height: min(64px, 16vw); }
+.av-intro-rois img { width: min(64px, 16vw); border-radius: 8%; opacity: 0; transform: translateY(10px) scale(.8); transition: opacity .5s ease, transform .6s cubic-bezier(.2, 1.4, .4, 1); }
+.av-intro-rois img.vu { opacity: 1; transform: none; }
+.av-intro-rois .printemps.vu { box-shadow: 0 6px 22px -4px color-mix(in srgb, var(--mt-printemps) 70%, transparent); }
+.av-intro-rois .ete.vu { box-shadow: 0 6px 22px -4px color-mix(in srgb, var(--mt-ete) 70%, transparent); }
+.av-intro-rois .automne.vu { box-shadow: 0 6px 22px -4px color-mix(in srgb, var(--mt-automne) 70%, transparent); }
+.av-intro-rois .hiver.vu { box-shadow: 0 6px 22px -4px color-mix(in srgb, var(--mt-hiver) 70%, transparent); }
+.av-intro-texte { display: grid; gap: 7px; text-align: center; font: 600 clamp(13.5px, 3.7vw, 16px)/1.42 'Nunito', sans-serif; color: #e3d2c5; }
+.av-intro-texte p { margin: 0; white-space: pre-line; }
+.av-intro-texte .cache { color: transparent; } /* la place du texte à venir est déjà prise : rien ne bouge */
+.av-intro-texte .nom { font-weight: 900; }
+.av-intro-texte .printemps { color: var(--mt-printemps); }
+.av-intro-texte .ete { color: var(--mt-ete); }
+.av-intro-texte .automne { color: var(--mt-automne); }
+.av-intro-texte .hiver { color: var(--mt-hiver); }
+.av-intro-texte .nom .cache { color: transparent; }
+.av-intro-cri { min-height: 54px; margin: 0; text-align: center; font: 900 clamp(38px, 11vw, 52px)/54px 'Jost', sans-serif; letter-spacing: .02em; color: var(--mt-or); visibility: hidden; }
+.av-intro.cri .av-intro-cri { visibility: visible; animation: av-intro-cri .55s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes av-intro-cri { 0% { opacity: 0; transform: scale(.4); } 55% { opacity: 1; transform: scale(1.12); } }
+/* En bas : « Passer », puis « Continuer » à la même place */
+.av-intro-bas { margin-top: auto; min-height: 52px; display: grid; place-items: center; }
+.av-intro-bas > * { grid-area: 1 / 1; }
+.av-intro-passer { min-height: 44px; padding: 0 16px; border: 0; background: none; cursor: pointer; font: 800 15px 'Nunito', sans-serif; color: var(--mt-discret); position: relative; z-index: 2; }
+.av-intro-passer:hover, .av-intro-passer:focus-visible { color: var(--mt-encre); }
+.av-intro-continuer { width: 100%; visibility: hidden; }
+.av-intro.fin .av-intro-passer { visibility: hidden; }
+.av-intro.fin .av-intro-continuer { visibility: visible; animation: av-intro-suite .5s ease both; }
+@keyframes av-intro-suite { from { opacity: 0; transform: translateY(8px); } }
+@media (prefers-reduced-motion: reduce) { .av-intro-losange, .av-intro.cri .av-intro-cri, .av-intro.fin .av-intro-continuer { animation: none; } .av-intro-rois img { transition: none; } }
+/* Écrans bas (téléphone avec ses barres) : plus serré, pour que le bouton reste visible sans défiler */
+@media (max-height: 740px) {
+  .av-intro { gap: 6px; padding-top: calc(env(safe-area-inset-top, 0px) + 10px); }
+  .av-intro-rois { min-height: 50px; }
+  .av-intro-rois img { width: 50px; }
+  .av-intro-texte { gap: 5px; font-size: clamp(12.5px, 3.5vw, 14.5px); line-height: 1.36; }
+  .av-intro-cri { min-height: 46px; font-size: clamp(34px, 10vw, 44px); line-height: 46px; }
+}
+
+/* ---------- En haut (reste visible en défilant) : le Roi et sa bulle beige, posés sur les feuilles, sans
+   panneau autour (Hugo, 27/10/2026) ---------- */
+.av-haut { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--site-header-height, 60px) + 28px); z-index: 4; margin: 16px 0 12px; } /* descendu (Hugo, 27/10/2026) : trop près de la barre de navigation */
+.av-guide img { box-shadow: 0 10px 18px -8px rgba(0, 0, 0, .9); }
+.av-guide p { box-shadow: 0 10px 22px -10px rgba(0, 0, 0, .9); }
+@media (max-width: 760px) { .av-haut { top: calc(env(safe-area-inset-top, 0px) + 24px); } } /* pas d'en-tête sur téléphone */
+@media (min-width: 761px) and (max-height: 500px) and (orientation: landscape) { .av-haut { position: static; } } /* paysage : peu de hauteur, il défile avec la route */
+.av-guide { display: flex; gap: 10px; align-items: center; }
+.av-guide img { flex: none; width: 48px; border-radius: 9%; }
+.av-guide p { position: relative; margin: 0; padding: 9px 13px; border-radius: 14px; background: var(--mt-encre); color: var(--mt-nuit); font-weight: 700; font-size: 15px; line-height: 1.35; }
+.av-guide p::before { content: ''; position: absolute; left: -5px; top: 50%; width: 11px; height: 11px; background: var(--mt-encre); transform: translateY(-50%) rotate(45deg); }
+
+/* ---------- Le chemin : un escalier de losanges posé sur les feuilles du site, jusqu'à la Colline ----------
+   Chaque élément est placé par sa colonne --k (−3 à 3, 0 au centre) et sa rangée --r (0 en bas) :
+   les losanges d'une rangée sont à --d l'un de l'autre, une rangée monte de --d / 2. */
+.av-chemin { --d: min(180px, calc((100vw - 24px) / 2.2)); position: relative; height: calc((var(--rangees) + 2) * var(--d) / 2); margin: 0 0 12px; overflow: clip; } /* clip : rien ne peut la faire défiler de côté ; plus de damier (Hugo, 27/10/2026) */
+
+
+.av-chemin > * { position: absolute; }
+.av-niveau, .av-colline, .av-carte {
+  position: absolute; left: calc(50% + var(--k) * var(--d) / 2); bottom: calc((var(--r) + 1) * var(--d) / 2); transform: translate(-50%, 50%); }
+/* Les feuilles du site passent devant la route (Hugo, 27/10/2026) : les cases glissent dessous en défilant ;
+   le guide et le bouton (z-index 4) restent au-dessus, et les touchers traversent les feuilles */
+body:has(.av-route) .frame-layer { z-index: 3; }
+
+/* Une case du niveau : un losange en relief (dessus + tranche plus sombre en dessous) */
+.av-niveau, .av-colline { --dessus: var(--mt-filet); --tranche: #241a17; --chiffre: var(--mt-discret);
+  width: calc(var(--d) * .5); height: calc(var(--d) * .5); padding: 0; border: 0; background: none; cursor: default; -webkit-tap-highlight-color: transparent; }
+.av-relief, .av-dessus { position: absolute; inset: 0; border-radius: 14%; transform: rotate(45deg); }
+.av-relief { background: var(--tranche); transform: translateY(calc(var(--d) * .02)) rotate(45deg); }
+.av-dessus { transform: translateY(calc(var(--d) * -.02)) rotate(45deg); }
+.av-dessus { display: grid; place-items: center; background: var(--dessus); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07), 0 10px 18px -6px rgba(0, 0, 0, .7); transition: transform .15s; }
+/* Numéros en Tribeca (Hugo, 27/10/2026), recentrés par --mt-tribeca ; le losange est tourné : le décalage se fait dans le repère du chiffre, en fin de transform (un « top » le pousserait en diagonale) */
+.av-dessus span { transform: rotate(-45deg) translateY(var(--mt-tribeca)); font: 400 calc(var(--d) * .17) 'Tribeca', 'Jost', sans-serif; color: var(--chiffre); }
+.av-niveau.ete { --saison: var(--mt-ete); }
+.av-niveau.automne { --saison: var(--mt-automne); }
+.av-niveau.hiver { --saison: var(--mt-hiver); }
+.av-niveau.printemps { --saison: var(--mt-printemps); }
+.av-niveau { --dessus: color-mix(in srgb, var(--saison, var(--mt-filet)) 16%, var(--mt-surface-2)); --tranche: color-mix(in srgb, var(--saison, #241a17) 10%, #140e0c); --chiffre: color-mix(in srgb, var(--saison, var(--mt-discret)) 55%, var(--mt-discret)); }
+/* Gagné : la couleur de la Saison, le numéro reste ; on peut le toucher pour le rejouer (après confirmation) */
+.av-niveau.fait { --dessus: color-mix(in srgb, var(--saison) 72%, var(--mt-surface-2)); --tranche: color-mix(in srgb, var(--saison) 40%, #140e0c); --chiffre: var(--mt-nuit); cursor: pointer; }
+.av-niveau.fait:hover .av-dessus, .av-niveau.fait:focus-visible .av-dessus { transform: translateY(calc(var(--d) * -.02 - 3px)) rotate(45deg); }
+.av-niveau.fait:focus-visible { outline: none; }
+.av-niveau.fait:focus-visible .av-dessus, .av-niveau.choisi .av-dessus { box-shadow: 0 0 0 3px var(--mt-or), 0 0 22px rgba(234, 196, 90, .5); }
+.av-niveau.choisi { z-index: 1; }
+.av-niveau.refuse { animation: av-refuse .4s ease; }
+@keyframes av-refuse { 20%, 60% { margin-left: -5px; } 40%, 80% { margin-left: 5px; } } /* le transform sert déjà au placement */
+@media (prefers-reduced-motion: reduce) { .av-niveau.refuse { animation: none; } }
+.av-niveau.courant { --dessus: var(--mt-or); --tranche: var(--mt-or-fonce); --chiffre: #241805; cursor: pointer; z-index: 1; }
+.av-niveau.courant .av-relief { box-shadow: 0 0 calc(var(--d) * .3) rgba(234, 196, 90, .55); animation: av-halo 2.4s ease-in-out infinite; }
+.av-niveau.courant:hover .av-dessus, .av-niveau.courant:focus-visible .av-dessus { transform: translateY(calc(var(--d) * -.02 - 3px)) rotate(45deg); }
+.av-niveau.courant:active .av-dessus { transform: translateY(calc(var(--d) * .02)) rotate(45deg); }
+.av-niveau.courant:focus-visible { outline: none; }
+.av-niveau.courant:focus-visible .av-dessus { box-shadow: 0 0 0 3px var(--mt-encre); }
+@keyframes av-halo { 50% { box-shadow: 0 0 calc(var(--d) * .45) rgba(234, 196, 90, .8); } }
+
+/* La Colline, au bout de l'escalier */
+.av-colline { --dessus: var(--mt-surface); --tranche: var(--mt-or-fonce); --chiffre: var(--mt-or); width: calc(var(--d) * .56); height: calc(var(--d) * .56); }
+.av-colline .av-dessus { box-shadow: inset 0 0 0 2px var(--mt-or), 0 0 30px rgba(234, 196, 90, .3); }
+.av-colline .av-dessus span { transform: rotate(-45deg); font: 400 calc(var(--d) * .2) 'Nunito', sans-serif; } /* ✦ : pas de Tribeca */
+.av-chapitre { left: 0; right: 0; bottom: calc((var(--r) + 1) * var(--d) / 2); transform: translateY(50%); margin: 0; text-align: center; pointer-events: none; }
+
+/* Titre d'un chapitre, posé sur le damier entre deux escaliers */
+.av-chapitre { display: grid; justify-items: center; gap: 2px; --saison: var(--mt-or); }
+.av-chapitre.ete { --saison: var(--mt-ete); }
+.av-chapitre.automne { --saison: var(--mt-automne); }
+.av-chapitre.hiver { --saison: var(--mt-hiver); }
+.av-chapitre.printemps { --saison: var(--mt-printemps); }
+.av-chapitre small { font: 900 11px 'Jost', sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--mt-discret); }
+.av-chapitre b { font: 400 clamp(22px, 6.5vw, 28px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--saison); text-shadow: 0 2px 14px #000; }
+
+
+/* Carte à débloquer : à plat (nette) au repos ; elle tourne sur elle-même à son tour (vue.ts faireTourner),
+   immobile une fois recrutée */
+.av-carte { --carte: calc(var(--d) * .46); width: var(--carte); pointer-events: none; }
+/* Deux recrues au même virage : en éventail */
+.av-carte { transform: translate(calc(-50% + var(--eventail, 0) * 22%), 50%) rotate(calc(var(--eventail, 0) * 9deg)); }
+.av-carte[style*="--eventail: 1"] { z-index: 1; }
+.av-carte .face { border-radius: 8%; box-shadow: 0 14px 22px -10px rgba(0, 0, 0, .9); }
+.av-carte .carte-3d.tourne-une-fois { animation: av-tourne 1.6s cubic-bezier(.45, 0, .2, 1); }
+.av-carte.courant .face { box-shadow: 0 0 0 2px var(--mt-or), 0 0 26px rgba(234, 196, 90, .45), 0 14px 22px -10px rgba(0, 0, 0, .9); }
+@keyframes av-tourne {
+  from { transform: perspective(600px) rotateY(0); }
+  to { transform: perspective(600px) rotateY(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .av-carte .carte-3d, .av-niveau.courant .av-relief { animation: none !important; }
+}
+
+/* ---------- Barre d'action (en bas, au-dessus des onglets du téléphone) : Mon équipe et le bouton ---------- */
+.av-action { position: sticky; bottom: 12px; z-index: 4; display: grid; gap: 6px; align-items: center; padding: 10px; border-radius: 20px;
+  background: linear-gradient(170deg, var(--mt-surface-2), var(--mt-surface)); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 -18px 30px -18px rgba(0, 0, 0, .8); }
+.av-action { bottom: calc(var(--mt-nav, 0px) + env(safe-area-inset-bottom, 0px) + var(--mt-choix, 0px) + 16px); } /* au-dessus des onglets du bas */
+/* L'équipe (petit plateau 2 × 3) à gauche du bouton doré : la toucher ouvre « Équipe » */
+.av-action { grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; }
+.av-apercu { display: flex; align-items: center; padding: 0; border: 0; border-radius: 6px; background: none; cursor: pointer; }
+.av-apercu-plateau { display: grid; grid-template-columns: repeat(3, 30px); grid-auto-rows: 30px; flex: none; border-radius: 6px; overflow: hidden; box-shadow: 0 0 0 1px var(--mt-or-fonce); }
+.av-apercu-plateau img, .av-apercu-plateau i { width: 30px; height: 30px; display: grid; background: #2e211d; }
+.av-apercu-plateau img { box-sizing: border-box; padding: 1.5px; border-radius: 4px; object-fit: contain; }
+.av-apercu-plateau i { background: #1d1513; } /* place pas encore ouverte : dalle sombre, comme le reste */
+.av-apercu:hover .av-apercu-plateau, .av-apercu:focus-visible .av-apercu-plateau { box-shadow: 0 0 0 2px var(--mt-or); }
+.av-apercu:focus-visible { outline: none; }
+/* Rejouer un niveau gagné : Annuler à la place de l'équipe, à côté du bouton */
+.aventure .lancer { margin: 0; width: 100%; min-width: 0; font-size: clamp(13px, 4.4vw, 20px); white-space: nowrap; } /* « Rejouer niveau 12 » tient sur une ligne */
+
+/* ---------- Mon équipe ---------- */
+.av-equipe { display: grid; gap: 14px; padding: 4px 0 20px; }
+/* « Mon équipe » : une feuille plein écran, sur fond de nuit, par-dessus la route (qui garde sa place) ;
+   rien d'autre ne se voit ni ne défile dessous */
+.av-feuille { position: fixed; inset: 0; z-index: 150; overflow-y: auto; overscroll-behavior: contain; background: var(--mt-surface);
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 24px); animation: av-feuille .22s cubic-bezier(.2, .9, .3, 1); }
+.av-feuille > .av-equipe { width: min(560px, 100%); margin: 0 auto; }
+@keyframes av-feuille { from { opacity: 0; transform: translateY(24px); } }
+/* Ordinateur et tablette : une fenêtre par-dessus l'Aventure, qu'on voit encore autour (avec les feuilles
+   du site), plutôt qu'une page noire aux côtés vides */
+@media (min-width: 761px) {
+  .av-feuille { background: rgba(10, 8, 7, .6); padding: 28px 16px; }
+  .av-feuille > .av-equipe { padding: 18px 20px 22px; border-radius: 24px; background: var(--mt-surface);
+    box-shadow: 0 0 0 1px var(--mt-filet), 0 30px 80px rgba(0, 0, 0, .7); }
+}
+@media (prefers-reduced-motion: reduce) { .av-feuille { animation: none; } }
+body.av-page { overflow: hidden; }
+body.av-page .mt-tab, body.av-page .choix-adv-bas { display: none !important; }
+.av-equipe-tete { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.av-equipe-tete b { font: 400 clamp(20px, 6vw, 26px) 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
+.av-equipe-tete small { justify-self: end; color: var(--mt-doux); font-weight: 700; font-size: 13px; }
+/* Retour : une vraie flèche dorée devant « Aventure » (la petite ‹ ne se comprenait pas, Hugo) */
+.av-retour { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px 0 8px; border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--mt-surface-2); box-shadow: inset 0 0 0 1px var(--mt-filet); color: var(--mt-encre); font: 800 14px 'Nunito', sans-serif; white-space: nowrap; }
+.av-retour svg { width: 22px; height: 22px; fill: none; stroke: var(--mt-or); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.av-retour:hover, .av-retour:focus-visible { box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+/* Le plateau de l'équipe : 2 × 3 cases de dalle, collé en haut pendant qu'on fait défiler l'enclos */
+/* Collé en haut de la feuille pendant qu'on fait défiler l'enclos ; autour, transparent : on voit l'enclos
+   passer (Hugo : pas de fondu, qui le cachait) */
+.av-equipe-plateau { position: sticky; z-index: 4; top: 0; padding: 6px 0; pointer-events: none; }
+.av-equipe-plateau .av-formation { pointer-events: auto; }
+@media (max-height: 500px) and (orientation: landscape) { .av-equipe-plateau { position: static; } }
+/* 3 cases sur 4 de large : les cases de l'équipe ont exactement la taille de celles de l'enclos */
+.av-formation { display: grid; grid-template-columns: repeat(3, 1fr); width: 75%; margin: 0 auto;
+  border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1.5px var(--mt-or-fonce), 0 20px 34px -14px rgba(0, 0, 0, .95); }
+/* Une case : dalle claire ou sombre, la carte au centre, à 91 % de la case (carte de 5 cm sur une case de
+   5,5 cm, comme sur le plateau) ; place pas encore débloquée = losange de départ */
+.av-case { position: relative; aspect-ratio: 1; display: grid; place-items: center; padding: 0; border: 0; border-radius: 0; background: #2e211d; touch-action: none; -webkit-tap-highlight-color: transparent; }
+.av-case.sombre { background: #1d1513; }
+button.av-case { cursor: grab; }
+.av-case img { width: 91%; border-radius: 8%; display: block; box-shadow: 0 8px 14px -6px rgba(0, 0, 0, .8); pointer-events: none; user-select: none; -webkit-user-drag: none; }
+/* Place fermée : plus sombre, un cadenas et le niveau où elle s'ouvre */
+.av-case.verrou { background: #0f0b0a; align-content: center; gap: 4px; }
+.av-case.verrou svg { width: 28%; stroke: var(--mt-discret); stroke-width: 1.8; fill: none; }
+.av-case.verrou svg rect { fill: rgba(138, 118, 102, .18); }
+.av-case.verrou small { font: 800 11px 'Nunito', sans-serif; color: var(--mt-discret); }
+.av-case.choisi, .av-perso.choisi { z-index: 2; }
+.av-case.choisi img, .av-perso.choisi img { box-shadow: 0 0 0 2.5px var(--mt-or), 0 0 22px rgba(234, 196, 90, .5); }
+/* Pendant un glisser (ou après avoir touché un Personnage) : là où il peut aller, un losange doré comme une
+   prise en partie (carte assombrie, grand losange sur halo sombre) ; il grossit sous le doigt */
+.av-case.cible, .av-equipe.glisse .av-case.accepte, .av-perso.cible, .av-perso.accepte { --losange: 1; }
+.av-case.cible::after, .av-equipe.glisse .av-case.accepte::after, .av-perso.cible::after, .av-perso.accepte::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 30%; aspect-ratio: 1; border-radius: 14%; pointer-events: none;
+  transform: translate(-50%, -50%) rotate(45deg) scale(var(--losange)); transition: transform .15s;
+  background: rgba(234, 196, 90, .92); box-shadow: 0 0 0 5px rgba(18, 16, 14, .5); }
+.av-case.cible img, .av-equipe.glisse .av-case.accepte img, .av-perso.cible img, .av-perso.accepte img { filter: brightness(.7); }
+.av-equipe.glisse .av-case[data-rang]:not(.accepte) img { filter: brightness(.45); }
+.av-case.dessous.accepte, .av-perso.dessous.accepte { --losange: 1.3; }
+button.av-case:focus-visible, .av-perso:focus-visible { outline: 2px solid var(--mt-encre); outline-offset: -2px; }
+.av-aide { margin: 0; text-align: center; color: var(--mt-doux); font-size: 14px; }
+.av-erreur { margin: 0; text-align: center; color: var(--mt-automne); font-weight: 700; font-size: 14px; }
+/* Réglages et liens du bas */
+.av-bas { display: grid; gap: 14px; padding: 14px; border-radius: 18px; background: var(--mt-surface-2); }
+.av-reglage { display: grid; gap: 10px; }
+.av-reglage .interrupteur small { margin-top: 2px; }
+.av-reglage > span { font: 900 12px 'Jost', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--mt-discret); }
+.av-plateaux { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--mt-nuit); }
+.av-plateaux button { min-height: 40px; border: 0; border-radius: 9px; background: none; cursor: pointer; font: 800 14px 'Nunito', sans-serif; color: var(--mt-doux); }
+.av-plateaux button.on { background: var(--mt-surface-2); color: var(--mt-encre); box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+.av-liens { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 18px; }
+.av-confirmer { display: inline-flex; align-items: center; gap: 4px; color: var(--mt-encre); font-size: 14px; font-weight: 700; }
+.av-sauvegarde { display: block; text-align: center; color: var(--mt-discret); font-size: 12px; }
+
+/* L'enclos : damier de dalles, 4 colonnes, les recrues s'y promènent (enclos.ts promenade) */
+.av-enclos { --colonnes: 4; position: relative; width: 100%; aspect-ratio: var(--colonnes) / var(--rangees); border-radius: 16px; overflow: clip; box-shadow: 0 0 0 1px var(--mt-filet); }
+.av-enclos > i { position: absolute; left: calc(var(--x) * 100% / var(--colonnes)); bottom: calc(var(--y) * 100% / var(--rangees)); width: calc(100% / var(--colonnes)); height: calc(100% / var(--rangees)); background: #2e211d; }
+.av-enclos > i.sombre { background: #1d1513; }
+.av-enclos > i.marque { cursor: pointer; }
+.av-enclos > i.dessous.accepte::after { transform: translate(-50%, -50%) rotate(45deg) scale(1.4); }
+.av-equipe.glisse .av-enclos > i.accepte::after, .av-enclos > i.marque::after { content: ''; position: absolute; left: 50%; top: 50%; width: 22%; aspect-ratio: 1; transform: translate(-50%, -50%) rotate(45deg); border-radius: 12%; background: rgba(234, 196, 90, .85); }
+.av-perso { position: absolute; z-index: 1; left: calc(var(--x) * 100% / var(--colonnes)); bottom: calc(var(--y) * 100% / var(--rangees)); width: calc(100% / var(--colonnes)); height: calc(100% / var(--rangees));
+  display: grid; place-items: center; padding: 0; border: 0; background: none; cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  transition: left .6s cubic-bezier(.3, 1.3, .5, 1), bottom .6s cubic-bezier(.3, 1.3, .5, 1); }
+.av-perso img { width: 91%; border-radius: 8%; box-shadow: 0 12px 18px -8px rgba(0, 0, 0, .9); pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.av-enclos-vide { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--mt-discret); font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .av-perso { transition: none; } }
+/* La carte qui suit le doigt */
+.av-fantome { position: fixed; z-index: 200; left: 0; top: 0; border-radius: 8%; pointer-events: none; box-shadow: 0 0 0 2px var(--mt-or), 0 24px 40px -10px rgba(0, 0, 0, .9); }
+.av-passer { grid-column: 1 / -1; justify-self: center; padding: 0 6px 2px; font-size: 13px; }
+
+/* Phrase d'aide sous le plateau de l'équipe : deux lignes réservées, rien ne bouge quand elle change */
+.av-equipe > .av-aide { justify-self: center; min-height: calc(2 * 1.4em); line-height: 1.4; display: grid; align-items: center; color: var(--mt-doux); }
+
+/* Écran large (ordinateur, tablette, téléphone en paysage) : l'enclos 8 × 8 à droite, à la taille de l'écran,
+   l'équipe et les réglages à gauche, comme une partie ; les cases de l'équipe ont la taille de celles de
+   l'enclos (enclos.ts ECRAN_LARGE) */
+@media (min-width: 761px), (max-height: 500px) and (orientation: landscape) {
+  /* L'enclos prend toute la hauteur disponible (fenêtre : 2 × 28 px autour, 2 × 18 px dedans), dans la limite
+     de la largeur laissée par la colonne de gauche (380 px, assez pour le titre sur une ligne) */
+  .av-feuille > .av-equipe { --gauche: 380px; --cote: min(calc(100svh - 104px), calc(100vw - var(--gauche) - 110px)); width: fit-content; max-width: 100%; /* la fenêtre épouse son contenu */
+    display: grid; grid-template-columns: var(--gauche) var(--cote); grid-auto-rows: min-content; column-gap: 24px; align-items: start; justify-content: center; }
+  .av-feuille > .av-equipe > * { grid-column: 1; }
+  .av-feuille > .av-equipe > .av-enclos { grid-column: 2; grid-row: 1 / span 20; width: var(--cote); }
+  .av-feuille .av-equipe-plateau { position: static; padding: 0; margin: 0; background: none; }
+  .av-feuille .av-formation { width: calc(var(--cote) * 3 / 8); }
+  .av-feuille > .av-equipe > .av-aide { justify-self: stretch; text-align: center; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .av-feuille { padding: 8px; }
+  .av-feuille > .av-equipe { --cote: min(calc(100svh - 16px), calc(100vw - 300px)); padding: 0; grid-template-columns: minmax(0, 1fr) var(--cote); column-gap: 14px; width: 100%; }
+  .av-feuille .av-bas { padding: 10px; gap: 10px; }
+}
+
+/* « Trier » : rangés depuis le haut et immobiles, ou en promenade */
+.av-trier { justify-self: center; align-items: center; }
+.av-trier small { margin-top: 0; }
+
+/* En-tête de « Équipe » sur une ligne : retour, titre, places */
+.av-equipe-tete { gap: 8px; }
+.av-equipe-tete b, .av-equipe-tete small { white-space: nowrap; }
+/* Petites cases (téléphone en paysage) : le niveau d'ouverture reste sur une ligne */
+.av-case.verrou small { white-space: nowrap; }
+@media (max-height: 500px) and (orientation: landscape) { .av-case.verrou small { font-size: 8.5px; } .av-case.verrou { gap: 1px; } }

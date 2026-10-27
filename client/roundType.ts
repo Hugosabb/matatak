@@ -24,6 +24,7 @@ export interface MsgDrawRejected {
 export interface MsgRematchOffer {
     message: string;
     username: string;
+    coup_de_pouce?: boolean; // revanche avec un Coup de pouce pour le perdant
 }
 
 export interface MsgRematchRejected {
