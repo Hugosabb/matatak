@@ -3,6 +3,7 @@ import { WebsocketHeartbeatJs } from './socket/socket';
 import { premove } from './premoveCgOverride';
 import { h, VNode } from 'snabbdom';
 import * as Mousetrap from 'mousetrap';
+import type { DrawShape } from 'chessgroundx/draw';
 import * as cg from 'chessgroundx/types';
 import * as util from 'chessgroundx/util';
 
@@ -181,10 +182,9 @@ export abstract class GameController extends ChessgroundController implements Ch
 
         if (el) {
             el.addEventListener('mousedown', (e) => {
-                if (e.button === 2) { // Right click
+                if (e.button === 2) { // Right click : on dessine une flèche, les autres restent
                     this.inspectedKey = undefined;
-                    if (this.drawTimeout) clearTimeout(this.drawTimeout);
-                    this.chessground.set({ drawable: { shapes: [] } });
+                    this.effacerMotif();
                 }
             }, { capture: true });
 
@@ -196,8 +196,7 @@ export abstract class GameController extends ChessgroundController implements Ch
                         const isFriendly = this.inspectedKey && this.chessground.state.movable.dests?.has(this.inspectedKey);
                         if (isFriendly && !this.chessground.state.selectable.selected) {
                             this.inspectedKey = undefined;
-                            if (this.drawTimeout) clearTimeout(this.drawTimeout);
-                            this.chessground.set({ drawable: { shapes: [] } });
+                            this.effacerMotif();
                         }
                     }, 10);
                 }
@@ -439,6 +438,17 @@ export abstract class GameController extends ChessgroundController implements Ch
         }
     }
 
+    /** Les dessins du joueur (flèches, cercles), sans le motif théorique d'une pièce touchée. */
+    private dessins(): DrawShape[] {
+        return this.chessground.state.drawable.shapes.filter(s => !String(s.customSvg ?? '').includes('data-motif'));
+    }
+
+    /** Retire le motif théorique en gardant les flèches dessinées (on peut en dessiner plusieurs). */
+    protected effacerMotif() {
+        if (this.drawTimeout) clearTimeout(this.drawTimeout);
+        this.chessground.set({ drawable: { shapes: this.dessins() } });
+    }
+
     protected onSelect = () => {
         let lastTime = performance.now();
         let lastKey: cg.Key | undefined;
@@ -449,11 +459,13 @@ export abstract class GameController extends ChessgroundController implements Ch
             }
             const piece = key ? this.chessground.state.boardState.pieces.get(key) : undefined;
             if (piece && key) {
-                const isFriendly = this.chessground.state.movable.dests?.has(key);
+                // Pièce du joueur dont c'est le tour : seulement ses vrais coups (aucun si elle est clouée ou
+                // si le Roi est en échec et qu'elle ne peut pas l'aider). Avant, une telle pièce sans coup
+                // légal était prise pour une pièce adverse et montrait son motif théorique.
+                const isFriendly = piece.color === this.turnColor && piece.color === this.chessground.state.movable.color;
                 if (this.inspectedKey === key && !isFriendly) {
                     this.inspectedKey = undefined;
-                    if (this.drawTimeout) clearTimeout(this.drawTimeout);
-                    this.chessground.set({ drawable: { shapes: [] } });
+                    this.effacerMotif();
                 } else {
                     this.inspectedKey = key;
                     const emptyBoardState: cg.BoardState = {
@@ -468,7 +480,7 @@ export abstract class GameController extends ChessgroundController implements Ch
                     // Une carte jouable ne montre que ses vrais coups (losanges pleins, chessground.css).
                     // Pas de losange creux : dans la Collection, il veut dire « déplacement seulement ».
                     const shapes = isFriendly ? [] : theoreticMoves.map(dest => {
-                        const moveSvg = `<rect x="40.1" y="40.1" width="19.8" height="19.8" rx="1.5"
+                        const moveSvg = `<rect data-motif="1" x="40.1" y="40.1" width="19.8" height="19.8" rx="1.5"
                                     transform="rotate(45 50 50)" fill="rgb(234, 196, 90)" opacity="0.5" />`;
                         return {
                             orig: dest,
@@ -478,11 +490,8 @@ export abstract class GameController extends ChessgroundController implements Ch
 
                     if (this.drawTimeout) clearTimeout(this.drawTimeout);
                     this.drawTimeout = window.setTimeout(() => {
-                        this.chessground.set({
-                            drawable: {
-                                shapes: shapes
-                            }
-                        });
+                        // Les flèches dessinées restent : on ne remplace que le motif
+                        this.chessground.set({ drawable: { shapes: [...this.dessins(), ...shapes] } });
                     }, 1);
                 }
             } else {
@@ -490,8 +499,7 @@ export abstract class GameController extends ChessgroundController implements Ch
                 const isDest = selected && key && this.chessground.state.movable.dests?.get(selected)?.includes(key);
                 if (!isDest) {
                     this.inspectedKey = undefined;
-                    if (this.drawTimeout) clearTimeout(this.drawTimeout);
-                    this.chessground.set({ drawable: { shapes: [] } });
+                    this.effacerMotif();
                 }
             }
 
@@ -555,8 +563,7 @@ export abstract class GameController extends ChessgroundController implements Ch
       * Custom variant-specific logic to be triggered on move and alter state of board/pocket depending on variant rules.
       */
     protected onUserMove(orig: cg.Key, dest: cg.Key, meta: cg.MoveMetadata) {
-        if (this.drawTimeout) clearTimeout(this.drawTimeout);
-        this.chessground.set({ drawable: { shapes: [] } });
+        this.effacerMotif();
         if (this.duck.inputState === "move") {
             this.duck.finish(dest);
             return;
@@ -601,8 +608,7 @@ export abstract class GameController extends ChessgroundController implements Ch
      * Variant specific logic for when dropping a piece from pocket is performed
      */
     protected onUserDrop(piece: cg.Piece, dest: cg.Key, meta: cg.MoveMetadata) {
-        if (this.drawTimeout) clearTimeout(this.drawTimeout);
-        this.chessground.set({ drawable: { shapes: [] } });
+        this.effacerMotif();
         this.preaction = meta.premove;
         const role = piece.role;
         this.processInput(piece, util.dropOrigOf(role), dest, meta);
