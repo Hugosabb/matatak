@@ -204,6 +204,20 @@ class PagesTestCase(AioHTTPTestCase):
             manifest["id"], "/"
         )  # inchangé : les PWA déjà installées restent la même appli
 
+    @unittest.skipUnless(
+        os.path.exists("static/favicon/favicon.ico"), "icônes ignorées par git, absentes ici"
+    )
+    async def test_favicon_a_la_racine(self):
+        # Bug : /favicon.ico renvoyait la page 404 en HTML, le téléphone gardait l'icône de pychess.
+        resp = await self.client.request("GET", "/favicon.ico")
+        self.assertEqual(resp.status, 200)
+        self.assertNotIn("text/html", resp.headers["Content-Type"])
+
+    async def test_manifest_a_une_icone_512_adaptable(self):
+        resp = await self.client.request("GET", "/manifest.json")
+        icones = json.loads(await resp.text())["icons"]
+        self.assertIn(("512x512", "maskable"), {(i["sizes"], i.get("purpose")) for i in icones})
+
 
 class SansLimiteTestCase(AioHTTPTestCase):
     async def startup(self, app):

@@ -20,3 +20,11 @@ async def service_worker(request):
 
 async def manifest(request):
     return web.FileResponse(os.path.join("static", "manifest.json"))
+
+
+async def favicon(request):
+    """Les navigateurs demandent aussi /favicon.ico, sans lire la page : sans cette route, ils
+    recevaient la page 404 en HTML et gardaient leur ancienne icône (celle de pychess)."""
+    response = web.FileResponse(os.path.join("static", "favicon", "favicon.ico"))
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return response

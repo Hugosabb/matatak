@@ -214,6 +214,7 @@ get_routes = (
     ("/robots.txt", robots),
     ("/service-worker.js", pwa.service_worker),
     ("/manifest.json", pwa.manifest),
+    ("/favicon.ico", pwa.favicon),
 )
 
 post_routes = (
