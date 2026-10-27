@@ -1,3 +1,8 @@
+// Tutoriel (maquette validée par Hugo le 27/10/2026) : une seule partie racontée sur le plateau Mini. Le Roi
+// du joueur (celui choisi pour l'Aventure) guide dans une bulle ; la partie avance toute seule entre les
+// étapes (coups « avant »), des flèches montrent les façons de sortir de l'échec (« demo »), plusieurs
+// bonnes réponses sont acceptées. Données : server/tutorial_data.py.
+
 import { h, VNode } from 'snabbdom';
 import { PuzzleController } from './puzzleCtrl';
 import { PyChessModel } from "./types";
@@ -5,17 +10,30 @@ import { patch } from './document';
 import * as cg from 'chessgroundx/types';
 import { updateMovelist } from './movelist';
 import { uci2LastMove, UCIMove } from './chess';
-import { appliquerRois, saisonDuCamp } from './rois';
+import { appliquerRois } from './rois';
 import { sound } from './sound';
+import { IMAGE, Roi, SAISON_DU_ROI } from './aventure/personnages';
+import { lire as lireAventure, noterPartieDemandee, prochainePartie } from './aventure/progression';
 
 interface EtapeTutoriel {
-    _id: string; moves: string; fen: string; instruction: string; success_msg: string; title?: string;
-    chapitre?: number; chapitre_nom?: string; carte?: string; cible?: string; total?: number;
-    equipe?: PersoEquipe[];
+    _id: string; moves: string; fen: string; title?: string; total?: number; saison?: string;
+    avant?: string; bulle_avant?: Bulle; demo?: [string, string, string][]; bulle_demo?: Bulle;
+    bulle: Bulle; consigne: string; aide?: string; erreurs?: Record<string, string>; succes: Bulle;
 }
-interface PersoEquipe { carte: string; nom: string; lettre: string; rang: string; deplacement: string }
 
-const VIGNETTES = '/static/images/background/collection/clair/';
+type Phase = 'avant' | 'demo' | 'joueur' | 'adversaire' | 'succes';
+type Bulle = string | string[]; // une liste = plusieurs messages à la suite
+type TypeMessage = 'roi' | 'aide' | 'erreur' | 'bravo' | 'demo' | 'etape';
+interface Message { type: TypeMessage; texte: string; teinte: string }
+
+const CARTES = '/static/images/background/collection/sombre/';
+// Le temps de lire (Hugo : « ça va un peu vite »)
+const PAUSE_AVANT = 1600; // entre deux coups joués tout seuls : le temps de voir la carte bouger
+const PAUSE_REPONSE = 1100; // la réponse de l'adversaire
+const PAUSE_SUITE = 1700; // après le bravo, avant l'étape suivante
+const PAUSE_DEMO = 2600; // chaque flèche de la démonstration
+const DELAI_MESSAGE = 1100; // entre deux messages du fil
+const TEINTES: Record<string, string> = { ete: '#9bc781', hiver: '#92c9e0', printemps: '#da98c7', automne: '#eb963f' };
 
 /** Progression sur l'appareil : dernière étape réussie, et « fini » à la fin (lu par /jouer). */
 export function tutorielFini(): boolean {
@@ -29,191 +47,282 @@ function noterProgression(etape: number, fini: boolean) {
     } catch { /* navigation privée */ }
 }
 
+/** Fin du tutoriel : « Niveau 1 » lance tout de suite la 1re partie de l'Aventure (comme « Partie suivante »
+ *  en fin de partie : /jouer/solo la crée et y mène) ; sans Aventure commencée, retour à l'onglet Solo. */
+function lancerNiveau1() {
+    const p = lireAventure();
+    const partie = p ? prochainePartie(p) : null;
+    if (!p || !partie) return window.location.assign('/jouer?aventure=1');
+    noterPartieDemandee(p, partie);
+    const q = new URLSearchParams({
+        variant: partie.variant, level: String(partie.niveau), fen: partie.fen, color: partie.couleur,
+        rw: partie.rois.white, rb: partie.rois.black,
+    });
+    window.location.assign(`/jouer/solo?${q}`);
+}
+
+/** Le Roi choisi pour l'Aventure guide le tutoriel ; MOJO sans Aventure commencée. Son rival : AZAR et
+ *  l'équipe de l'Été, ou SHANS si le joueur a pris AZAR. */
+function lesRois(): { roi: Roi, rival: Roi } {
+    let roi: Roi = 'MOJO';
+    try {
+        const p = JSON.parse(localStorage.getItem('matatak_aventure') ?? 'null');
+        if (p?.roi && p.roi in SAISON_DU_ROI) roi = p.roi;
+    } catch { /* navigation privée ou progression illisible */ }
+    return { roi, rival: roi === 'AZAR' ? 'SHANS' : 'AZAR' };
+}
+
 export class TutorialController extends PuzzleController {
-    instruction: string;
-    successMsg: string;
-    title: string;
+    etape: EtapeTutoriel;
     tutorialId: number;
-    chapitreNom = '';
-    chapitre = 0;
-    carte = '';
-    cible = '';
-    equipe: PersoEquipe[] = [];
-    selection = ''; // lettre du Personnage touché (présentation d'une équipe)
+    total = 11;
     assets = '/static';
-    total = 10;
+    roi: Roi;
+    rival: Roi;
+    phase: Phase = 'joueur';
+    attendus: string[][] = []; // une entrée par coup, joueur et adversaire en alternance
+    rang = 0; // prochaine entrée de « attendus »
+    fil: Message[] = []; // tout ce que le Roi a dit depuis le début du tutoriel
+    attente: Message[] = []; // messages pas encore affichés (un par un)
+    minuteurFil = 0;
+    minuteurs: number[] = [];
+    vinfos: VNode | null = null;
 
     constructor(el: HTMLElement, model: PyChessModel) {
         super(el, model);
-        const data = JSON.parse(model.puzzle);
-        this.instruction = data.instruction;
-        this.successMsg = data.success_msg;
-        this.title = data.title || '';
+        this.etape = JSON.parse(model.puzzle);
         this.tutorialId = parseInt(this._id);
-        this.lireEtape(data);
-        // Le Roi de chaque camp assorti à son équipe, comme en partie
         this.assets = model['assetURL'];
-        appliquerRois(this.assets, saisonDuCamp(this.fullfen, 'white', this._id), saisonDuCamp(this.fullfen, 'black', this._id));
-        
-        // Hide puzzle ratings and auto-next
-        const userInfosEl = document.querySelector('.puzzle-user') as HTMLElement;
-        if (userInfosEl) userInfosEl.style.display = 'none';
-        const infoEl = document.querySelector('.puzzle-info') as HTMLElement;
-        if (infoEl) infoEl.style.display = 'none';
+        ({ roi: this.roi, rival: this.rival } = lesRois());
 
-        // Override the hint and solution buttons
-        const viewHintEl = document.querySelector('.hint') as HTMLElement;
-        if (viewHintEl) patch(viewHintEl, h('div'));
-
-        const viewSolutionEl = document.querySelector('.solution') as HTMLElement;
-        if (viewSolutionEl) patch(viewSolutionEl, h('div'));
-
-        this.renderInfos();
-        this.yourTurn();
-        this.afficherCible();
+        // Ni classement, ni enchaînement, ni indice des puzzles
+        for (const sel of ['.puzzle-user', '.puzzle-info']) (document.querySelector(sel) as HTMLElement | null)?.style.setProperty('display', 'none');
+        for (const sel of ['.hint', '.solution']) {
+            const el = document.querySelector(sel) as HTMLElement | null;
+            if (el) patch(el, h('div'));
+        }
+        document.body.classList.add('en-partie');
+        this.chessground.set({ drawable: { brushes: { ...this.chessground.state.drawable.brushes, ...Object.fromEntries(Object.entries(TEINTES).map(([k, color]) => [k, { key: k, color, opacity: 0.95, lineWidth: 12 }])) } } });
+        this.demarrer();
 
         // Les étapes s'enchaînent sur place : « Retour » du navigateur recharge l'étape demandée
         window.addEventListener('popstate', () => window.location.reload());
-
     }
 
-    private lireEtape(data: EtapeTutoriel) {
-        this.chapitre = data.chapitre || 0;
-        this.chapitreNom = data.chapitre_nom || '';
-        this.carte = data.carte || '';
-        this.cible = data.cible || '';
-        this.equipe = data.equipe || [];
-        this.selection = '';
-        this.total = data.total || 10;
+    /** {rival}, {roi}, et des espaces insécables devant « ! ? : ; » : le « ! » ne passe jamais seul à la
+     *  ligne (Hugo). */
+    private texte(s?: string): string {
+        return (s ?? '').replace(/\{rival\}/g, this.rival).replace(/\{roi\}/g, this.roi)
+            .replace(/ ([!?:;»])/g, '\u00a0$1').replace(/« /g, '«\u00a0');
     }
 
-    /** La case à atteindre, entourée sur le plateau (le joueur ne connaît pas encore les noms de cases). */
-    private afficherCible() {
-        this.chessground.set({ drawable: { brushes: { ...this.chessground.state.drawable.brushes, cible: { key: 'ci', color: '#eac45a', opacity: 1, lineWidth: 12 } } } });
-        this.chessground.setAutoShapes(this.cible ? [{ orig: this.cible as cg.Key, brush: 'cible' }] : []);
+    private plus(ms: number, f: () => void) {
+        this.minuteurs.push(window.setTimeout(f, ms));
     }
 
-    private enTete(): VNode[] {
-        return [
-            this.chapitreNom ? h('span.tutorial-chapitre', `Chapitre ${this.chapitre} · ${this.chapitreNom}`) : '',
-            this.title ? h('h2.tutorial-title', this.title) : '',
-        ] as VNode[];
+    /** Une étape commence : position, Rois du plateau, puis les coups joués tout seuls, la démonstration,
+     *  et enfin la main au joueur. */
+    /** Ajoute un message au fil, après ceux qui attendent : ils arrivent un par un, comme dans une
+     *  discussion (Hugo, 27/10/2026). Un message qui répète le précédent est ignoré. */
+    private dire(texte: string, type: TypeMessage = 'roi', teinte = '') {
+        const t = this.texte(texte);
+        if (!t) return;
+        const dernier = this.attente[this.attente.length - 1] ?? this.fil[this.fil.length - 1];
+        if (dernier && dernier.texte === t && dernier.type === type) return;
+        this.attente.push({ type, texte: t, teinte });
+        if (!this.minuteurFil) this.servir();
     }
 
-    private progression(): VNode[] {
-        const id = this.tutorialId || parseInt(this._id);
-        return [
-            h('div.tutorial-progress', [h('div.tutorial-progress-bar', { style: { width: `${Math.round(id / this.total * 100)}%` } })]),
-            h('span.tutorial-step-label', `Étape ${id} / ${this.total}`),
-        ];
+    private direTout(bulle: Bulle | undefined, type: TypeMessage = 'roi') {
+        (Array.isArray(bulle) ? bulle : [bulle ?? '']).forEach(t => this.dire(t, type));
+    }
+
+    private servir() {
+        const m = this.attente.shift();
+        if (!m) { this.minuteurFil = 0; return; }
+        this.fil.push(m);
+        if (m.type !== 'etape') sound.message();
+        this.renderInfos();
+        this.minuteurFil = window.setTimeout(() => this.servir(), DELAI_MESSAGE);
+    }
+
+    private demarrer() {
+        this.minuteurs.forEach(clearTimeout);
+        this.minuteurs = [];
+        const e = this.etape;
+        this.total = e.total || this.total;
+        this.attendus = e.moves.split(',').map(x => x.split('|'));
+        this.rang = 0;
+        this.mycolor = 'white';
+        this.color = 'white';
+        this.chessground.set({ orientation: 'white', movable: { color: undefined } });
+        appliquerRois(this.assets, SAISON_DU_ROI[this.roi], SAISON_DU_ROI[this.rival]);
+        // Le titre de l'étape, en tête de ses messages : « DYSKO rejoint l'équipe ! », « Capturer »
+        this.dire(e.title ?? '', 'etape');
+
+        const avant = (e.avant ?? '').split(',').filter(Boolean);
+        if (avant.length) {
+            this.phase = 'avant';
+            this.direTout(e.bulle_avant);
+            this.renderInfos();
+            avant.forEach((coup, i) => this.plus(PAUSE_AVANT * (i + 1), () => this.jouerSeul(coup)));
+            this.plus(PAUSE_AVANT * (avant.length + 1), () => this.apresAvant());
+        } else {
+            this.apresAvant();
+        }
+    }
+
+    /** Démonstration : les flèches s'ajoutent l'une après l'autre, chacune avec sa légende dans le fil ;
+     *  elles restent sur le plateau jusqu'au coup du joueur. */
+    private apresAvant() {
+        const demo = this.etape.demo ?? [];
+        if (!demo.length) return this.aToi();
+        this.phase = 'demo';
+        this.direTout(this.etape.bulle_demo);
+        this.renderInfos();
+        demo.forEach(([, teinte, legende], i) => this.plus(PAUSE_DEMO * i + 400, () => {
+            this.chessground.setAutoShapes(demo.slice(0, i + 1).map(([c, t]) => ({ orig: c.slice(0, 2) as cg.Key, dest: c.slice(2, 4) as cg.Key, brush: t })));
+            this.dire(legende, 'demo', teinte);
+            this.renderInfos();
+        }));
+        this.plus(PAUSE_DEMO * demo.length, () => this.aToi());
+    }
+
+    private aToi() {
+        this.phase = 'joueur';
+        this.direTout(this.etape.bulle);
+        if (this.etape.aide) this.dire(this.etape.aide, 'aide');
+        this.chessground.set({ turnColor: 'white', movable: { color: 'white' } });
+        this.setDests();
+        this.renderInfos();
+    }
+
+    /** Un coup joué par le tutoriel (adversaire, ou la partie qui avance), avec son bruit. */
+    private jouerSeul(coup: string) {
+        const prise = this.chessground.state.boardState.pieces.has(coup.slice(2, 4) as cg.Key);
+        this.makeMove(coup);
+        sound.moveSound(this.variant, prise);
+        this.chessground.set({ movable: { color: undefined } });
+    }
+
+    doSendMove(move: string) {
+        if (this.phase !== 'joueur') return this.annuler();
+        const attendu = this.attendus[this.rang] ?? [];
+        if (!(attendu.includes(move) || (attendu[0] === '*' && this.gagnant(move)))) {
+            this.fil.push({ type: 'erreur', texte: this.texte(this.etape.erreurs?.[move]) || "Ce n'est pas ce qui est demandé : essaie encore !", teinte: '' });
+            this.annuler();
+            this.renderInfos();
+            return;
+        }
+        this.chessground.setAutoShapes([]);
+        this.makeMove(move);
+        this.rang += 1;
+        if (this.rang >= this.attendus.length) return this.reussite();
+        // L'adversaire répond, puis la main revient au joueur
+        this.phase = 'adversaire';
+        this.chessground.set({ movable: { color: undefined } });
+        this.renderInfos();
+        this.plus(PAUSE_REPONSE, () => {
+            this.jouerSeul(this.attendus[this.rang][0]);
+            this.rang += 1;
+            if (this.rang >= this.attendus.length) return this.reussite();
+            this.aToi();
+        });
+    }
+
+    /** « * » : n'importe quel coup qui gagne tout de suite (échec et mat, ou la Colline). */
+    private gagnant(move: string): boolean {
+        this.ffishBoard.push(move);
+        const resultat = this.ffishBoard.result();
+        this.ffishBoard.pop();
+        return resultat === (this.turnColor === 'white' ? '1-0' : '0-1');
+    }
+
+    /** Mauvais coup (ou coup pendant une animation) : la carte revient à sa place. */
+    private annuler() {
+        this.goPly(this.ply);
+        this.ffishBoard.setFen(this.fullfen);
+        if (this.phase !== 'joueur') this.chessground.set({ movable: { color: undefined } });
+        else this.setDests();
+    }
+
+    /** Étape réussie : le bravo s'ajoute au fil et l'étape suivante enchaîne toute seule (Hugo : « génial
+     *  de pas avoir à cliquer sur Suivant ») ; seule la dernière s'arrête, sur la victoire. */
+    private reussite() {
+        this.chessground.set({ movable: { color: undefined } });
+        const derniere = this.tutorialId >= this.total;
+        noterProgression(this.tutorialId, derniere);
+        this.direTout(this.etape.succes, 'bravo');
+        // Partie gagnée (échec et mat, Colline) : le son de victoire
+        if (this.ffishBoard.result() === '1-0') sound.victory();
+        if (derniere) {
+            this.phase = 'succes';
+            this.renderInfos();
+            (document.querySelector('.tuto-suite .mt-btn') as HTMLElement | null)?.focus();
+            return;
+        }
+        this.phase = 'adversaire';
+        this.renderInfos();
+        this.plus(PAUSE_SUITE, () => this.nextTutorial());
+    }
+
+    // Les écrans des puzzles ne servent pas ici
+    yourTurn() {}
+    notTheMove() {}
+    bestMove() {}
+    puzzleComplete() {}
+
+    /** « Quitter » : retour à l'Aventure ; le tutoriel reste à reprendre (niveau 0). */
+    private quitter() {
+        window.location.assign('/jouer?aventure=1');
+    }
+
+    /** Le fil de discussion du Roi : tout ce qu'il a dit depuis le début, le plus récent en bas ; on le fait
+     *  défiler pour relire (Hugo, 27/10/2026). */
+    private leFil(): VNode {
+        const descendre = (el: HTMLElement) => { el.scrollTop = el.scrollHeight; };
+        return h('div.tuto-fil', {
+            attrs: { 'aria-live': 'polite' },
+            hook: {
+                insert: v => descendre(v.elm as HTMLElement),
+                postpatch: (ancien, v) => {
+                    // Un nouveau message : on descend, sauf si le joueur est remonté relire
+                    const el = v.elm as HTMLElement;
+                    if ((ancien.children?.length ?? 0) !== (v.children?.length ?? 0)) descendre(el);
+                },
+            },
+        }, this.fil.map(m => m.type === 'roi'
+            ? h('p.tuto-bulle', m.texte)
+            : h(`p.tuto-${m.type}${m.teinte ? '.' + m.teinte : ''}`, m.texte)));
     }
 
     renderInfos() {
-        // this.instruction is undefined when called from super() — skip early calls
-        if (!this.instruction) return;
-        const infosEl = document.querySelector('.infos') as HTMLElement;
-        if (!infosEl) return;
-        patch(infosEl, h('div.infos.tutorial-info', [
-            ...this.enTete(),
-            h('div.tutorial-consigne', [
-                this.carte ? h('img.tutorial-carte', { attrs: { src: VIGNETTES + this.carte, alt: '' } }) : '',
-                h('p.tutorial-instruction', this.instruction),
+        // Appelé aussi par le constructeur des puzzles, avant que l'étape soit lue
+        if (!this.etape) return;
+        // Le panneau est mis à jour en place (patcher l'élément à chaque fois en ajoutait un nouveau)
+        const cible = this.vinfos ?? document.querySelector('.infos') as HTMLElement | null;
+        if (!cible) return;
+        const fini = this.phase === 'succes';
+        // La consigne d'abord, puis le fil du Roi, et en bas la progression et « Quitter » (sur téléphone, ce
+        // bloc est sous le plateau : le plateau ne bouge plus quand le texte change, Hugo 27/10/2026)
+        this.vinfos = patch(cible, h('div.infos.tutorial-info', { class: { fini } }, [
+            fini
+                ? h('h2.tuto-victoire', 'À nous le Mananas\u00a0!')
+                : h('p.tuto-consigne', { class: { attente: this.phase !== 'joueur' } }, this.texte(this.etape.consigne)),
+            h('div.tuto-discussion', [
+                h('img', { attrs: { src: CARTES + IMAGE[this.roi], alt: this.roi } }),
+                this.leFil(),
             ]),
-            ...this.progression(),
+            fini ? h('div.tuto-suite', [h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => lancerNiveau1() } }, 'Niveau 1')]) : '',
+            h('div.tuto-pied', [
+                h('span.tuto-num', `${this.tutorialId} / ${this.total}`),
+                fini ? '' : h('button.tuto-passer', { attrs: { type: 'button' }, on: { click: () => this.quitter() } }, 'Quitter'),
+            ]),
         ]));
-    }
-
-    yourTurn() {
-        if (!this.playerEl || !this.variant) return;
-
-        const turnColor = this.fullfen.split(" ")[1];
-        const pieceColor = (turnColor == 'w') ? 'white' : 'black';
-        const kingRole = this.variant.kingRoles[0];
-        
-        this.playerEl = patch(this.playerEl,
-            h(`div.player.${this.variant.pieceFamily}`, [
-                h(`piece.${pieceColor}.no-square.${kingRole}.ally`),
-                h('div.instruction', [
-                    h('strong', 'À vous de jouer !'),
-                ]),
-            ])
-        );
-    }
-
-    notTheMove(san: string) {
-        this.failed = true;
-        this.playerEl = patch(this.playerEl,
-            h('div.player', [
-                h('div.icon', '✗'),
-                h('div.instruction', [
-                    h('san', [san, h('span.fail', '?')]),
-                    h('strong', "Ce n'est pas ce qui est demandé."),
-                    h('em', 'Essayez encore.'),
-                ]),
-            ])
-        );
-        const feedbackEl = document.querySelector('.feedback') as HTMLInputElement;
-        if (feedbackEl) {
-            feedbackEl.classList.toggle('good', false);
-            feedbackEl.classList.toggle('fail', true);
-        }
-    }
-
-    bestMove() {
-        // Not used heavily in single-move tutorials, but let's override it just in case
-        this.playerEl = patch(this.playerEl,
-            h('div.player', [
-                h('div.icon', '✓'),
-                h('div.instruction', [
-                    h('strong', 'Bon coup !'),
-                    h('em', 'Continuez…'),
-                ]),
-            ])
-        );
-    }
-
-    puzzleComplete(success: boolean) {
-        this.completed = true;
-        if (success) sound.victory();
-        this.chessground.setAutoShapes([]);
-        const derniere = this.tutorialId >= this.total;
-        noterProgression(this.tutorialId, derniere);
-
-        // Réussite affichée dans le cadre du haut (plus de bandeau sur le plateau : tout tient à l'écran).
-        // À la fin, une seule suite : la première vraie partie, contre AZAR au niveau 1.
-        // Après le tutoriel : les 4 équipes de départ (/collection#equipes), puis la première partie
-        const boutons = derniere ? [
-            h('a.mt-btn.mt-btn-or', { attrs: { href: '/collection#equipes' } }, 'Les équipes'),
-            h('a.tutorial-lien', { attrs: { href: '/jouer/solo?variant=matatakmini&level=1' } }, 'Jouer tout de suite'),
-        ] : [
-            h('button.mt-btn.mt-btn-or.suivante', { attrs: { type: 'button' }, on: { click: () => this.nextTutorial() } }, 'Étape suivante'),
-        ];
-        const infoEl = document.querySelector('.tutorial-info') as HTMLElement;
-        if (infoEl) {
-            patch(infoEl, h('div.infos.tutorial-info.tutorial-success', [
-                h('h2.tutorial-title', derniere ? 'Tutoriel terminé !' : 'Étape réussie !'),
-                h('p.tutorial-success-msg', this.successMsg),
-                h('div.tutorial-actions', boutons),
-                ...this.progression(),
-            ]));
-            this.recalerPlateau();
-            // Le bouton reçoit le focus : Entrée passe à l'étape suivante
-            (document.querySelector('.tutorial-actions .mt-btn') as HTMLElement | null)?.focus();
-        }
-
-        // Clear the old feedback zone
-        const feedbackEl = document.querySelector('.feedback') as HTMLElement;
-        if (feedbackEl) patch(feedbackEl, h('div.feedback'));
-
-        const engineEl = document.querySelector('.engine') as HTMLElement;
-        if (engineEl) engineEl.style.display = 'flex';
+        this.recalerPlateau();
     }
 
     nextTutorial() {
-        if (this.tutorialId >= this.total) {
-            window.location.assign('/jouer'); // Fin du tutoriel : retour à la page de jeu
-            return;
-        }
         const suivante = this.tutorialId + 1;
         // Étape suivante chargée sur place : le plateau reste affiché, seules les pièces changent
         fetch(`/api/tutorial/${suivante}`)
@@ -226,12 +335,9 @@ export class TutorialController extends PuzzleController {
     }
 
     private chargerEtape(etape: EtapeTutoriel) {
+        this.etape = etape;
         this._id = etape._id;
         this.tutorialId = parseInt(etape._id);
-        this.instruction = etape.instruction;
-        this.successMsg = etape.success_msg;
-        this.title = etape.title || '';
-        this.lireEtape(etape);
         this.solution = etape.moves.split(',') as UCIMove[];
         this.moves = [];
         this.ply = 0;
@@ -240,47 +346,36 @@ export class TutorialController extends PuzzleController {
         this.completed = false;
         this.posted = false;
 
+        // L'étape continue la partie (même position) : rien ne doit bouger ni clignoter (Hugo)
+        const suite = this.fullfen.split(' ')[0] === etape.fen.split(' ')[0];
+        const dernierCoup = suite ? this.chessground.state.lastMove : undefined;
         this.fullfen = etape.fen;
         this.turnColor = etape.fen.split(' ')[1] === 'w' ? 'white' : 'black' as cg.Color;
-        this.color = this.turnColor;
         this.ffishBoard.setFen(this.fullfen);
         this.steps = [{ fen: this.fullfen, turnColor: this.turnColor, check: false, move: undefined }];
 
         this.chessground.set({
             fen: this.fullfen,
             turnColor: this.turnColor,
-            orientation: this.turnColor,
-            lastMove: uci2LastMove(undefined),
+            lastMove: dernierCoup ?? uci2LastMove(undefined),
             check: false,
-            movable: { color: this.turnColor },
             drawable: { shapes: [], autoShapes: [] },
         });
         this.chessground.selectSquare(null);
-        this.setDests();
         updateMovelist(this);
-        appliquerRois(this.assets, saisonDuCamp(this.fullfen, 'white', this._id), saisonDuCamp(this.fullfen, 'black', this._id));
 
-        // Apparition en fondu des nouvelles pièces
+        // Apparition en fondu des nouvelles cartes (Personnages qui rejoignent l'équipe, équipe adverse)
         const wrap = document.querySelector('.tutorial-app .cg-wrap');
-        if (wrap) {
+        if (wrap && !suite) {
             wrap.classList.remove('changement');
             void (wrap as HTMLElement).offsetWidth; // relance l'animation
             wrap.classList.add('changement');
         }
-
-        const engineEl = document.querySelector('.engine') as HTMLElement;
-        if (engineEl) engineEl.style.display = 'none';
-        const feedbackEl = document.querySelector('.feedback') as HTMLElement;
-        if (feedbackEl) patch(feedbackEl, h('div.feedback'));
-        this.renderInfos();
-        this.yourTurn();
-        this.afficherCible();
-        this.recalerPlateau();
+        this.demarrer();
     }
 
-    /** Le cadre du haut change de hauteur (réussite, étape suivante) : le plateau se déplace à l'écran.
-     *  chessground garde en mémoire son ancienne position et décalait alors chaque toucher d'une case
-     *  (toucher TAMTAM visait une case vide, toucher BASS l'« attrapait »). */
+    /** Le cadre du haut change de hauteur : le plateau se déplace à l'écran. chessground garde en mémoire
+     *  son ancienne position et décalait alors chaque toucher d'une case. */
     private recalerPlateau() {
         requestAnimationFrame(() => this.chessground.state.dom.bounds.clear());
     }

@@ -4,13 +4,16 @@ from aiohttp import web
 import aiohttp_jinja2
 
 from views import get_user_context
-from tutorial_data import CHAPITRES, TUTORIAL_STEPS
+from tutorial_data import TUTORIAL_STEPS
+
+# Champs d'une étape transmis tels quels au client (tutorialCtrl.ts), voir tutorial_data.py
+CHAMPS = ("avant", "bulle_avant", "demo", "bulle_demo", "bulle", "consigne", "aide", "erreurs", "succes", "saison")
 
 
 def etape(step_id):
     """Une étape du tutoriel, au format attendu par le client (puzzleCtrl / tutorialCtrl)."""
     step_data = TUTORIAL_STEPS[step_id]
-    return {
+    puzzle = {
         "_id": step_data["id"],
         "gameId": f"Tutoriel {step_data['id']}",
         "site": "Matatak",
@@ -20,16 +23,11 @@ def etape(step_id):
         "moves": step_data["moves"],
         "fen": step_data["fen"],
         "variant": step_data["variant"],
-        "instruction": step_data["instruction"],
-        "success_msg": step_data["success_msg"],
         "title": step_data.get("title", ""),
-        "chapitre": step_data.get("chapitre", 0),
-        "chapitre_nom": CHAPITRES.get(step_data.get("chapitre", 0), ""),
-        "carte": step_data.get("carte", ""),
-        "equipe": step_data.get("equipe", []),
-        "cible": step_data.get("cible", ""),
         "total": len(TUTORIAL_STEPS),
     }
+    puzzle.update({champ: step_data[champ] for champ in CHAMPS if champ in step_data})
+    return puzzle
 
 
 async def api_tutorial(request):

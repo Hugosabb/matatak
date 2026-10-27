@@ -105,7 +105,7 @@
                     clone.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
 
                 }, 20);
-            }, 1000);
+            }, 500); // appui long : une demi-seconde suffit (Hugo, 27/10/2026)
         }
 
         function clearZoom() {

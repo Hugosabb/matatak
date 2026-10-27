@@ -7,6 +7,7 @@ et parties sans limite de temps (cadence 0+0).
 
 import json
 import logging
+import os
 import time
 import unittest
 
@@ -130,23 +131,57 @@ class PagesTestCase(AioHTTPTestCase):
         self.assertEqual(resp.status, 200)
         etape = json.loads(await resp.text())
         self.assertEqual(etape["_id"], "2")
-        for champ in ("fen", "moves", "instruction", "success_msg", "title"):
+        for champ in ("fen", "moves", "bulle", "consigne", "succes", "title"):
             self.assertTrue(etape[champ], champ)
         resp = await self.client.request("GET", "/api/tutorial/99")
         self.assertEqual(resp.status, 404)
 
     async def test_tutoriel_coherent(self):
-        """Chaque étape du tutoriel est jouable : coups légaux dans l'ordre, case entourée = arrivée
-        du premier coup ; l'API renvoie le nombre total d'étapes."""
+        """Chaque étape du tutoriel est jouable (maquette du 27/10/2026, positions vérifiées au moteur) :
+        coups de début légaux, toutes les bonnes réponses légales, réponses de l'adversaire légales après
+        chacune, « * » = au moins un coup gagnant, flèches et erreurs = coups légaux ; et l'histoire se
+        suit d'une étape à l'autre (5 à 10)."""
         import pyffish as sf
         from tutorial_data import TUTORIAL_STEPS
 
+        def gagne(fen):
+            fin, resultat = sf.is_immediate_game_end(V, fen, [])
+            return fin or not sf.legal_moves(V, fen, [])
+
+        V = "matatakmini"
+        fins = {}
         for num, etape in TUTORIAL_STEPS.items():
-            coups = etape["moves"].split(",")
-            for i, coup in enumerate(coups):
-                self.assertIn(coup, sf.legal_moves(etape["variant"], etape["fen"], coups[:i]), num)
-            if etape.get("cible"):
-                self.assertEqual(coups[0][2:], etape["cible"], num)
+            fen = etape["fen"]
+            for coup in filter(None, etape.get("avant", "").split(",")):
+                self.assertIn(coup, sf.legal_moves(V, fen, []), num)
+                fen = sf.get_fen(V, fen, [coup])
+            for coup, _, _ in etape.get("demo", []):
+                self.assertIn(coup, sf.legal_moves(V, fen, []), num)
+            for coup in etape.get("erreurs", {}):
+                self.assertIn(coup, sf.legal_moves(V, fen, []), num)
+            positions = [fen]
+            for entree in etape["moves"].split(","):
+                suivantes = []
+                for fen in positions:
+                    legaux = sf.legal_moves(V, fen, [])
+                    if entree == "*":
+                        gagnants = [c for c in legaux if gagne(sf.get_fen(V, fen, [c]))]
+                        self.assertTrue(gagnants, num)
+                        suivantes += [sf.get_fen(V, fen, [c]) for c in gagnants]
+                        continue
+                    for coup in entree.split("|"):
+                        self.assertIn(coup, legaux, (num, entree))
+                        suivantes.append(sf.get_fen(V, fen, [coup]))
+                positions = suivantes
+            fins[num] = positions
+        # La consigne tient sur une ligne de téléphone (Hugo), avec le Roi au nom le plus long
+        for num, etape in TUTORIAL_STEPS.items():
+            consigne = etape["consigne"].replace("{rival}", "SHANS").replace("{roi}", "KARMA")
+            self.assertLessEqual(len(consigne), 40, (num, consigne))
+        # L'histoire se suit : la fin d'une étape est le début de la suivante
+        for num in ("5", "6", "7", "8", "9", "11", "12"):
+            suivante = TUTORIAL_STEPS[str(int(num) + 1)]["fen"]
+            self.assertIn(suivante.split(" ")[0], [f.split(" ")[0] for f in fins[num]], num)
         etape = json.loads(await (await self.client.request("GET", "/api/tutorial/1")).text())
         self.assertEqual(etape["total"], len(TUTORIAL_STEPS))
 
