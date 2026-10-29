@@ -94,12 +94,13 @@
 /* ---------- Le chemin : un escalier de losanges posé sur les feuilles du site, jusqu'à la Colline ----------
    Chaque élément est placé par sa colonne --k (−3 à 3, 0 au centre) et sa rangée --r (0 en bas) :
    les losanges d'une rangée sont à --d l'un de l'autre, une rangée monte de --d / 2. */
-.av-chemin { --d: min(180px, calc((100vw - 24px) / 2.2)); position: relative; height: calc((var(--rangees) + 2) * var(--d) / 2); margin: 0 0 12px; overflow: clip; } /* clip : rien ne peut la faire défiler de côté ; plus de damier (Hugo, 27/10/2026) */
+/* --bas et --haut : marges sous la première case et au-dessus de la Colline, en demi-rangées (resserrées : Hugo, 29/10/2026, il restait un vide aux deux bouts) */
+.av-chemin { --d: min(180px, calc((100vw - 24px) / 2.2)); --bas: .2; --haut: 1.5; position: relative; height: calc((var(--rangees) - 2 + var(--bas) + var(--haut)) * var(--d) / 2); margin: 0 0 12px; overflow: clip; isolation: isolate; } /* clip : rien ne peut la faire défiler de côté ; plus de damier (Hugo, 27/10/2026) ; isolate : les cartes passent devant les cases mais jamais devant les feuilles (z-index 3) */
 
 
 .av-chemin > * { position: absolute; }
 .av-niveau, .av-colline, .av-carte {
-  position: absolute; left: calc(50% + var(--k) * var(--d) / 2); bottom: calc((var(--r) + 1) * var(--d) / 2); transform: translate(-50%, 50%); }
+  position: absolute; left: calc(50% + var(--k) * var(--d) / 2); bottom: calc((var(--r) + var(--bas)) * var(--d) / 2); transform: translate(-50%, 50%); }
 /* Les feuilles du site passent devant la route (Hugo, 27/10/2026) : les cases glissent dessous en défilant ;
    le guide et le bouton (z-index 4) restent au-dessus, et les touchers traversent les feuilles */
 body:has(.av-route) .frame-layer { z-index: 3; }
@@ -139,7 +140,7 @@ body:has(.av-route) .frame-layer { z-index: 3; }
 .av-colline { --dessus: var(--mt-surface); --tranche: var(--mt-or-fonce); --chiffre: var(--mt-or); width: calc(var(--d) * .56); height: calc(var(--d) * .56); }
 .av-colline .av-dessus { box-shadow: inset 0 0 0 2px var(--mt-or), 0 0 30px rgba(234, 196, 90, .3); }
 .av-colline .av-dessus span { transform: rotate(-45deg); font: 400 calc(var(--d) * .2) 'Nunito', sans-serif; } /* ✦ : pas de Tribeca */
-.av-chapitre { left: 0; right: 0; bottom: calc((var(--r) + 1) * var(--d) / 2); transform: translateY(50%); margin: 0; text-align: center; pointer-events: none; }
+.av-chapitre { left: 0; right: 0; bottom: calc((var(--r) + var(--bas)) * var(--d) / 2); transform: translateY(50%); margin: 0; text-align: center; pointer-events: none; }
 
 /* Titre d'un chapitre, posé sur le damier entre deux escaliers */
 .av-chapitre { display: grid; justify-items: center; gap: 2px; --saison: var(--mt-or); }
@@ -151,21 +152,16 @@ body:has(.av-route) .frame-layer { z-index: 3; }
 .av-chapitre b { font: 400 clamp(22px, 6.5vw, 28px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--saison); text-shadow: 0 2px 14px #000; }
 
 
-/* Carte à débloquer : à plat (nette) au repos ; elle tourne sur elle-même à son tour (vue.ts faireTourner),
-   immobile une fois recrutée */
-.av-carte { --carte: calc(var(--d) * .46); width: var(--carte); pointer-events: none; }
+/* Carte d'un virage (recrutée ou à débloquer) : animée comme toutes les cartes du site (carteAnimee.ts :
+   mouvement d'attente, un tour de temps en temps, un tour au toucher) */
+.av-carte { --carte: calc(var(--d) * .46); width: var(--carte); z-index: 2; } /* devant les cases, même la case en cours (Hugo, 29/10/2026) */
 /* Deux recrues au même virage : en éventail */
-.av-carte { transform: translate(calc(-50% + var(--eventail, 0) * 22%), 50%) rotate(calc(var(--eventail, 0) * 9deg)); }
-.av-carte[style*="--eventail: 1"] { z-index: 1; }
+.av-carte { transform: translate(calc(-50% + var(--eventail, 0) * 36%), 50%) rotate(calc(var(--eventail, 0) * 7deg)); } /* écartées : elles se chevauchent moins (Hugo) */
+.av-carte[style*="--eventail: 1"] { z-index: 3; }
 .av-carte .face { border-radius: 8%; box-shadow: 0 14px 22px -10px rgba(0, 0, 0, .9); }
-.av-carte .carte-3d.tourne-une-fois { animation: av-tourne 1.6s cubic-bezier(.45, 0, .2, 1); }
 .av-carte.courant .face { box-shadow: 0 0 0 2px var(--mt-or), 0 0 26px rgba(234, 196, 90, .45), 0 14px 22px -10px rgba(0, 0, 0, .9); }
-@keyframes av-tourne {
-  from { transform: perspective(600px) rotateY(0); }
-  to { transform: perspective(600px) rotateY(360deg); }
-}
 @media (prefers-reduced-motion: reduce) {
-  .av-carte .carte-3d, .av-niveau.courant .av-relief { animation: none !important; }
+  .av-niveau.courant .av-relief { animation: none !important; }
 }
 
 /* ---------- Barre d'action (en bas, au-dessus des onglets du téléphone) : Mon équipe et le bouton ---------- */

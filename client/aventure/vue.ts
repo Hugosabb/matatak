@@ -12,6 +12,7 @@ import {
 } from './progression';
 import { equipeEtEnclos, oublierChoix } from './enclos';
 import { intro, introVue } from './intro';
+import { enveloppeAnimee } from '../carteAnimee';
 import { composition, Plateau, route } from './route';
 
 const CARTES = '/static/images/background/collection/';
@@ -107,10 +108,10 @@ function carteDuNiveau(nom: Nom, rangee: number, colonne: number, etat: 'fait' |
         // Deux recrues au même virage (phase 1 : une partie par niveau) : en éventail, -1 et +1
         style: { '--r': String(rangee), '--k': String(colonne), '--eventail': String(eventail) },
         attrs: { title: nom },
-    }, [h('span.carte-3d', [
+    }, [enveloppeAnimee('flotte', h('span.carte-3d', [
         h('img.face.avant', { attrs: { src: carte(nom, 'sombre'), srcset: srcset(nom, 'sombre'), alt: '' } }),
         h('img.face.dos', { attrs: { src: carte(nom, 'clair'), srcset: srcset(nom, 'clair'), alt: '' } }),
-    ])]);
+    ]))]);
 }
 
 /** Une case du chemin : un losange en relief à la couleur de la Saison du chapitre (pâle tant qu'il reste
@@ -171,37 +172,21 @@ function lesCases(p: Progression, tutoriel: Tutoriel): Case[] {
     return cases;
 }
 
-// Les cartes à débloquer tournent l'une après l'autre. Une carte animée en 3D en permanence est floue
-// (le navigateur la dessine comme une texture) : elle reste à plat et ne passe en 3D que pendant son tour.
-let minuteurTours = 0;
-function faireTourner(chemin: HTMLElement) {
-    let suivante = 0;
-    window.clearInterval(minuteurTours);
-    minuteurTours = window.setInterval(() => {
-        if (!chemin.isConnected) { window.clearInterval(minuteurTours); return; }
-        const cartes = chemin.querySelectorAll<HTMLElement>('.av-carte:not(.fait) .carte-3d');
-        if (!cartes.length || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const carte = cartes[suivante++ % cartes.length];
-        carte.classList.add('tourne-une-fois');
-        carte.addEventListener('animationend', () => carte.classList.remove('tourne-une-fois'), { once: true });
-    }, 1400);
-}
-
-/** La route vient de s'afficher (onglet Solo, retour de « Mon équipe ») : on la montre au niveau en cours,
- *  jamais tout en haut, et les cartes se mettent à tourner. */
+/** La route vient de s'afficher (onglet Aventure, retour de « Mon équipe ») : on la montre au niveau en
+ *  cours, jamais tout en haut. Les cartes s'animent comme toutes les cartes du site (carteAnimee.ts). */
 function arriverSurLaRoute(chemin: HTMLElement) {
     requestAnimationFrame(() => chemin.querySelector('.av-niveau.courant')?.scrollIntoView({ block: 'center' }));
-    faireTourner(chemin);
 }
 
 function leChemin(p: Progression, tutoriel: Tutoriel, lancer: () => void, rejouer: (c: Case) => void): VNode {
     const cases = lesCases(p, tutoriel);
-    // Chaque recrue va au virage (case paire) de la dernière partie de son étape, ou juste avant ; deux au
-    // plus par virage, en éventail
+    // Chaque recrue va au virage (case paire) de la dernière partie de son étape, ou juste après : BONGO
+    // et FRANK (cases 7 et 8) se retrouvent ensemble, comme leur équipe (Hugo) ; deux au plus par virage,
+    // côte à côte
     const parVirage = new Map<number, Case[]>();
     for (const c of cases) {
         if (!c.recrue) continue;
-        let v = c.numero - (c.numero % 2);
+        let v = c.numero + (c.numero % 2);
         while ((parVirage.get(v)?.length ?? 0) >= 2) v += 2;
         parVirage.set(v, [...(parVirage.get(v) ?? []), c]);
     }
