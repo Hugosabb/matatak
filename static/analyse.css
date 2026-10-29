@@ -176,6 +176,8 @@ body:is([data-view="analysis"], [data-view="puzzle"]) under-board { display: non
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'side' 'board' 'gauge' 'move-controls' 'tools';
   }
+  /* Analyse libre : le choix du plateau passe en bas de la page (Hugo, 29/10/2026) ; une partie garde ses infos en haut */
+  body[data-view="analysis"] .analysis-app:has(.sidebar-first select#variant) { grid-template-areas: 'board' 'gauge' 'move-controls' 'tools' 'side'; }
   body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app #mainboard { justify-self: center; width: 100%; }
   body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app #mainboard.matatak4x8 { width: min(100%, calc((100svh - 300px) / 2)); }
   body:is([data-view="analysis"], [data-view="puzzle"]) #gauge { display: block !important; width: 100%; height: 10px; }
