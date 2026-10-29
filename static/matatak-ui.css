@@ -531,3 +531,10 @@ svg.couronne { flex: none; width: 18px; height: 18px; color: var(--mt-or); filte
 #username-dialog .username-status.available { color: var(--mt-ete); }
 #username-dialog .username-status.unavailable, #username-dialog .error-message { color: var(--mt-automne); }
 #username-dialog .dialog-buttons { display: flex; }
+
+/* ---------- Feuilles du fond (couronne du PSD de la boîte, 29/10/2026) ----------
+   Écran en hauteur (téléphone) : la couronne, étirée à la hauteur, montre surtout son haut et son bas ; les feuilles
+   du haut cachaient trop l'écran (Hugo). Retournée, ce sont celles du bas, plus courtes, qui passent en haut. */
+@media (max-aspect-ratio: 4/5) {
+  .frame-layer { transform: var(--feuilles-sens, scaleY(-1)); }
+}
