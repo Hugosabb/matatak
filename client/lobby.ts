@@ -231,6 +231,8 @@ export class LobbyController implements ChatController {
     aventureDemande = false;
     // « Plus d'options » de /jouer : non mémorisées, pour ne pas garder un Draft ou une FEN par surprise
     jouerOptions = false;
+    // Arène : repli « Plus d'options » (plateau ; Hugo, 03/11/2026)
+    classeeOptions = false;
     jouerDraft = false;
     jouerBoost = 0;
     // Contre un ami : Saison de l'équipe de départ de l'hôte ('' = au hasard) ; l'ami choisit la sienne sur l'invitation
@@ -773,7 +775,7 @@ export class LobbyController implements ChatController {
     }
 
     /** Panneau de l'onglet « Classée » : connexion obligatoire, puis un plateau et un bouton. */
-    private renderClassee(choixAdv: VNode, plateau: (v: 'matatak' | 'matatakmini', infos: VNode) => VNode, selonLEcran: VNode | string): VNode {
+    private renderClassee(choixAdv: VNode, blocPlateau: VNode, nomPlateau: string): VNode {
         const c = this.jouer;
         const infos = this.classee;
         // Aventure commencée sur cet appareil : le Classé se débloque à la fin de la phase 1
@@ -808,12 +810,6 @@ export class LobbyController implements ChatController {
         const secondes = attente ? Math.floor((Date.now() - this.classeeDebut) / 1000) : 0;
         return h('section.panneau.partie.classee', [
             choixAdv,
-            h('div.etiq', 'Plateau'),
-            h('div.plateaux', { class: { inactif: attente } }, [
-                plateau('matatakmini', h('small', '4 × 8 · rapide')),
-                plateau('matatak', h('small', '8 × 8 · grand format')),
-            ]),
-            selonLEcran,
             h('div.classee-regles', [
                 h('span', [h('b', 'Draft'), ` · ${v ? v.cadence.replace('+', ' min +') : ''}`]),
                 h('small', "Un seul classement pour les deux plateaux : si l'un des joueurs choisit le Mini, on joue sur le Mini. Si personne de votre niveau n'est en ligne, un adversaire d'entraînement prend la place."),
@@ -828,6 +824,11 @@ export class LobbyController implements ChatController {
                     attrs: { type: 'button' },
                     on: { click: () => this.chercherClassee() },
                 }, "Jouer dans l'Arène"),
+            h('button.plus', {
+                attrs: { type: 'button', 'aria-expanded': String(this.classeeOptions), 'aria-controls': 'plus-options-classee' },
+                on: { click: () => { this.classeeOptions = !this.classeeOptions; this.majJouer(); } },
+            }, this.classeeOptions ? [h('span', "Moins d'options")] : [h('span', "Plus d'options"), h('small', `Plateau ${nomPlateau}`)]),
+            this.classeeOptions ? h('div#plus-options-classee.plus-options', [blocPlateau]) : '',
             this.renderEnLigne(infos, attente),
             this.renderPalmaresSemaine(),
         ]);
@@ -920,6 +921,8 @@ export class LobbyController implements ChatController {
         const c = this.jouer;
         const ia = c.adv === 'ia';
         const maj = () => this.majJouer(model);
+        // Plateau « Selon l'écran » par défaut (client/plateauPrefere.ts)
+        if (plateauAuto() && !this.classeeDebut) c.variant = plateauDeLEcran();
         const cadences = ia ? CADENCES_IA : CADENCES_AMI;
         if (c.adv !== 'classee' && !cadences.some(x => x.id === c.tc)) c.tc = ia ? '0+0' : '5+3';
 
@@ -952,6 +955,7 @@ export class LobbyController implements ChatController {
         // Options repliées : on rappelle ce qui sera joué (cadence toujours, le reste seulement s'il a changé).
         const cadence = cadences.find(x => x.id === c.tc) ?? cadences[0];
         const resume = [
+            ia ? '' : (c.variant === 'matatakmini' ? 'Mini' : '8×8'),
             cadence.detail ? `${cadence.label} ${cadence.detail}` : cadence.label,
             c.color === 'w' ? 'vous commencez' : c.color === 'b' ? 'en second' : '',
             this.jouerDraft ? 'Draft' : '',
@@ -976,7 +980,6 @@ export class LobbyController implements ChatController {
         const ongletsDuBas = h('nav.choix-adv-bas', [onglets()]);
         // Plateau « Selon l'écran » par défaut (client/plateauPrefere.ts, même réglage que l'Aventure) ;
         // en choisir un à la main coupe ce réglage, « Selon l'écran » le remet
-        if (plateauAuto() && !this.classeeDebut) c.variant = plateauDeLEcran();
         const plateau = (v: 'matatak' | 'matatakmini', detail: VNode) =>
             bouton(c.variant === v, 'button.plat', () => { if (!this.classeeDebut) { noterPlateauAuto(false); c.variant = v; maj(); } }, [
                 damier(v === 'matatak' ? 8 : 4), h('span', [h('b', v === 'matatak' ? 'Matatak' : 'Matatak Mini'), detail]),
@@ -985,6 +988,17 @@ export class LobbyController implements ChatController {
             attrs: { type: 'button' },
             on: { click: () => { noterPlateauAuto(true); maj(); } },
         }, "Plateau selon l'écran");
+        // Choix du plateau : dans « Plus d'options » pour Défier un ami et l'Arène (Hugo, 03/11/2026),
+        // par défaut le format de l'appareil
+        const nomPlateau = c.variant === 'matatakmini' ? 'Mini' : '8×8';
+        const blocPlateau = (detailMini: string, inactif = false) => h('div.bloc.choix-plateau', [
+            h('div.etiq', [h('span', 'Plateau'), h('b', plateauAuto() ? `${nomPlateau} · selon l'écran` : nomPlateau)]),
+            h('div.plateaux', { class: { inactif } }, [
+                plateau('matatakmini', h('small', detailMini)),
+                plateau('matatak', h('small', '8 × 8 · grand format')),
+            ]),
+            selonLEcran,
+        ]);
 
         if (c.adv === 'classee') {
             this.chargerClassee();
@@ -996,7 +1010,7 @@ export class LobbyController implements ChatController {
                     : h('div.scene-txt', [h('b', 'Arène'), h('span', 'Gagnez des points, grimpez au classement')]),
             ]);
             const installation = bandeauInstallation(maj);
-            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, plateau, selonLEcran), scene]), installation ?? '', ongletsDuBas]);
+            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, blocPlateau('4 × 8 · rapide', this.classeeDebut > 0), nomPlateau), scene]), installation ?? '', ongletsDuBas]);
         }
 
         // Solo = l'Aventure ; son niveau 0 est le tutoriel (Hugo, 26/10/2026)
@@ -1023,12 +1037,8 @@ export class LobbyController implements ChatController {
 
         const partie = h('section.panneau.partie', [
             choixAdv,
-            h('div.etiq', 'Plateau'),
-            h('div.plateaux', [
-                plateau('matatakmini', h('small', '4 × 8 · rapide et facile')),
-                plateau('matatak', h('small', '8 × 8 · grand format')),
-            ]),
-            selonLEcran,
+            // Partie libre contre l'ordinateur : le plateau reste visible ; entre amis, dans les options
+            ia ? blocPlateau('4 × 8 · rapide et facile') : '',
             !ia && !this.jouerDraft ? h('div.bloc.equipe-ami', [
                 h('div.etiq', [h('span', 'Votre équipe'), h('b', this.jouerEquipe ? ROIS[this.jouerEquipe].nom : 'Au hasard')]),
                 h('div.choix-equipe', { attrs: { role: 'group', 'aria-label': 'Votre équipe' } }, [
@@ -1058,7 +1068,7 @@ export class LobbyController implements ChatController {
                 attrs: { type: 'button', 'aria-expanded': String(this.jouerOptions), 'aria-controls': 'plus-options' },
                 on: { click: () => { this.jouerOptions = !this.jouerOptions; maj(); } },
             }, this.jouerOptions ? [h('span', "Moins d'options")] : [h('span', "Plus d'options"), h('small', resume)]),
-            this.jouerOptions ? this.renderPlusOptions(maj, reglages, ia) : '',
+            this.jouerOptions ? this.renderPlusOptions(maj, ia ? reglages : [blocPlateau('4 × 8 · rapide et facile'), ...reglages], ia) : '',
             ia && this.soloLibre ? h('button.deja', { attrs: { type: 'button' }, on: { click: () => { this.soloLibre = false; maj(); } } }, "Retour à l'Aventure") : '',
             // Nouveau joueur (tutoriel ni fini ni écarté sur cet appareil) : on apprend d'abord.
             // Contre un ami, on ne bloque pas : c'est l'ami qui peut montrer les règles.

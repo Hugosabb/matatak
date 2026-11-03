@@ -78,6 +78,10 @@ async def test_partie_classee_contre_un_adversaire_d_entrainement(site_connecte,
     await page.wait_for_selector(".classee-regles")
     # Un seul classement (sous la carte) ; sur téléphone, le Mini par défaut (selon l'écran)
     await page.wait_for_selector('.scene-txt b:has-text("1500")')
+    # Le plateau est dans « Plus d'options » (03/11/2026) : caché d'abord, rappelé dans le résumé
+    assert await page.locator(".plat").count() == 0
+    assert "Mini" in await page.locator(".classee button.plus small").inner_text()
+    await page.locator(".classee button.plus").click()
     await page.wait_for_selector('.plat.on:has-text("Matatak Mini")')
     await page.locator("button.lancer").click()
     bouton = page.locator("button.lancer")

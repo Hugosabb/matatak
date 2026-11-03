@@ -322,3 +322,5 @@ body[data-view="jouer"] { --mt-choix: 68px; }
   .panneau.partie > .lancer, .panneau.partie > .classee-attente { position: sticky; z-index: 4; bottom: calc(var(--mt-nav, 0px) + env(safe-area-inset-bottom, 0px) + var(--mt-choix) + 16px);
     filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .7)); }
 }
+/* Arène : le repli « Plus d'options » sous le bouton doré (plateau ; 03/11/2026) */
+.classee > button.plus { margin-top: 12px; }
