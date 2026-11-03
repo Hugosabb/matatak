@@ -5,6 +5,7 @@ cassé ou ce qui casserait le plus de parties : pages, Solo, Draft (ordinateur e
 sécurité de la WebSocket, éditeur, analyse, fin de partie, installation de l'appli.
 """
 
+import pyffish as sf
 import pytest
 
 from conftest import (
@@ -105,6 +106,42 @@ async def test_reculer_pendant_que_l_ordinateur_reflechit_ne_perd_pas_son_coup(s
     # Son coup s'affiche : la liste des coups est revenue au dernier
     dernier = plateau["ply"] + 2
     assert await attendre(page, f"document.querySelector('#movelist move.active')?.getAttribute('ply') === '{dernier}'", 5000)
+    assert not page.erreurs, page.erreurs
+
+
+async def test_pre_coup_contre_l_ordinateur(site, chromium):
+    """Pré-coup (Hugo, 03/11/2026) : un seul, actif par défaut, aussi contre l'ordinateur. Posé
+    pendant qu'il réfléchit, il part tout seul après sa réponse s'il est encore possible."""
+    page, game_id = await partie_solo(chromium, site, niveau=3)
+    moi = await couleur_du_joueur(page)
+    if (await dernier_plateau(page))["fen"].split(" ")[1] != moi:
+        assert await attendre(page, "m => window.__msgs.some(x => x.type === 'board' && x.fen.split(' ')[1] === m)", 12000, moi)
+    plateau = await jouer_un_coup(page, game_id)
+    assert await attendre(page, "document.body.className.includes('ordi-reflechit')", 5000)
+    # Un coup à moi, comme si c'était mon tour (même position, trait inversé)
+    fen = (await dernier_plateau(page))["fen"]
+    parts = fen.split(" ")
+    parts[1] = moi
+    coup = sf.legal_moves("matatakmini", " ".join(parts), [])[0]
+    bb = await page.locator("cg-board").first.bounding_box()
+    noir = moi == "b"
+
+    def centre(case):
+        f, r = ord(case[0]) - 97, int(case[1:]) - 1
+        x = (3 - f if noir else f) + 0.5
+        y = (r if noir else 7 - r) + 0.5
+        return bb["x"] + x * bb["width"] / 4, bb["y"] + y * bb["height"] / 8
+
+    for case in (coup[:2], coup[2:4]):
+        await page.mouse.click(*centre(case))
+        await page.wait_for_timeout(150)
+    assert await page.locator("square.current-premove").count() >= 1, "pré-coup non posé"
+    # L'ordinateur répond, puis le pré-coup part (s'il est encore possible dans la nouvelle position)
+    reponse = plateau["ply"] + 2
+    assert await attendre(page, f"window.__msgs.some(m => m.type === 'board' && m.ply === {reponse})", 12000)
+    apres = [m for m in await page.evaluate("window.__msgs") if m.get("type") == "board" and m.get("ply") == reponse][-1]
+    if coup in sf.legal_moves("matatakmini", apres["fen"], []):
+        assert await attendre(page, f"window.__msgs.some(m => m.type === 'board' && m.ply === {reponse + 1})", 8000), "pré-coup non joué"
     assert not page.erreurs, page.erreurs
 
 

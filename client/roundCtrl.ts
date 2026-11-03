@@ -271,8 +271,10 @@ export class RoundController extends GameController {
                         afterNewPiece: (piece, dest, meta) => this.onUserDrop(piece, dest, meta),
                     }
                 },
+                // Pré-coup : un seul, actif par défaut, aussi contre l'ordinateur (Hugo, 03/11/2026) ;
+                // il part dès que l'adversaire a joué si le coup est encore possible, toucher ailleurs l'annule
                 premovable: {
-                    enabled: false,
+                    enabled: true,
                     premoveFunc: premove(this.variant.name, this.chess960, this.variant.board.dimensions),
                     predropFunc: predrop(this.variant.name, this.variant.board.dimensions),
                     events: {
@@ -1471,10 +1473,9 @@ export class RoundController extends GameController {
                         this.notifyMsg(`Played ${sanMove}\nYour turn.`);
                     }
 
-                    // prevent sending premove/predrop when (auto)reconnecting websocked asks server to (re)sends the same board to us
-                    // console.log("trying to play premove....");
-                    // TODO Handle premove with Local Ai moves
-                    // if (this.premove) this.performPremove();
+                    // Pré-coup en attente : joué maintenant (chessground vérifie qu'il est encore possible).
+                    // Pas au renvoi du même plateau après une reconnexion (latestPly faux), ni partie finie.
+                    if (this.premove && msg.status < 0) this.performPremove();
                 }
                 if (this.clockOn && !this.unlimited && msg.status < 0) {
                     this.clocks[myclock].start();
