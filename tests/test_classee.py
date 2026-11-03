@@ -417,3 +417,25 @@ class PersosDuDraftTestCase(BaseClassee):
         game = app_state.games[envoi.await_args.args[1]["gameId"]]
         self.assertEqual(game.persos, "s")
         self.assertEqual(game.draft.en_plus, "s")
+
+    def test_l_ordinateur_choisit_selon_la_force_de_l_excel(self):
+        """Draft contre l'ordinateur (Hugo, 03/11/2026) : la colonne Force de l'Excel, pas les étoiles.
+        KRAK (4★, 700) + DUB (2★, 350) contre FUNK (4★, 900) + DYSKO (3★, 600) : même écart d'étoiles
+        moins grand, mais le second groupe vaut nettement plus."""
+        import random
+        from draft import CHAMPIONS_CHOISIR, Draft
+
+        d = Draft("matatak", random.Random(1))
+        d.champions = list("xhdcnn")
+        d.groupes["pions"], d.choix["pions"] = [[0, 1, 2], [3, 4, 5]], 0
+        d.phase = CHAMPIONS_CHOISIR
+        d.groupes["champions"] = [[0, 1, 6], [2, 3, 7]]
+        d.jouer_ordinateur("white", random.Random(0), niveau=20)
+        self.assertEqual(d.choix["champions"], 1)
+        # Niveau 1 : il lui arrive de prendre le moins bon groupe, jamais au niveau 20
+        moins_bons = 0
+        for graine in range(200):
+            d.phase, d.choix["champions"] = CHAMPIONS_CHOISIR, None
+            d.jouer_ordinateur("white", random.Random(graine), niveau=1)
+            moins_bons += d.choix["champions"] == 0
+        self.assertTrue(30 < moins_bons < 110, moins_bons)

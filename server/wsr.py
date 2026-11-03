@@ -361,7 +361,7 @@ async def avancer_draft(game):
         if not joue:
             break
         for couleur in joue:
-            game.draft.jouer_ordinateur(couleur)
+            game.draft.jouer_ordinateur(couleur, niveau=game.level or 20)
         if game.draft.phase != FINI:
             await round_broadcast(game, message_draft(game), full=True)
     game.draft_phase = game.draft.phase

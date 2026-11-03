@@ -75,6 +75,26 @@ def etoiles(lettre: str) -> int:
     return FairyBoard.FORCE[lettre][1]
 
 
+# Valeur de chaque espèce pour l'ordinateur au Draft : colonne « Force » de l'Excel des Personnages
+# d'Hugo (motiontak/sources/donnees/characters-hugo.csv ; décision du 03/11/2026). Une lettre = une
+# espèce (Suricates, Tigres, Rhinocéros, Gorilles et Chevaux ont la même valeur).
+FORCE_HUGO = {
+    # Pions
+    "a": 100, "e": 110, "j": 110, "m": 120, "f": 130, "p": 130, "g": 140, "b": 150, "l": 150, "q": 160,
+    # Champions
+    "r": 225, "n": 250, "o": 300, "s": 300, "h": 350, "z": 450, "i": 500, "t": 500, "w": 560,
+    "c": 600, "x": 700, "y": 800, "d": 900,
+}  # fmt: skip
+# Petits niveaux de l'ordinateur : il lui arrive de prendre le groupe le plus faible (Hugo : quitte à
+# le désavantager un peu). Probabilité par niveau de 1 à 20.
+HASARD_MAX = 0.35
+NIVEAU_SANS_HASARD = 8
+
+
+def valeur(lettre: str) -> int:
+    return FORCE_HUGO.get(lettre, 100 * etoiles(lettre))
+
+
 def autre(couleur: str) -> str:
     return "black" if couleur == "white" else "white"
 
@@ -234,24 +254,28 @@ class Draft:
 
     # ---------- Ordinateur (Solo) ----------
 
-    def jouer_ordinateur(self, couleur: str, rng: random.Random | None = None) -> None:
-        """L'ordinateur fait son étape : groupes équilibrés en étoiles, choix du groupe le plus
-        fort, placement tel quel."""
+    def jouer_ordinateur(
+        self, couleur: str, rng: random.Random | None = None, niveau: int = 20
+    ) -> None:
+        """L'ordinateur fait son étape : groupes équilibrés selon la Force (FORCE_HUGO), choix du
+        groupe qui vaut le plus (aux petits niveaux, parfois l'autre), placement tel quel."""
         rng = rng or random.Random()
         if self.phase == PIONS_FORMER:
             self.former(
                 couleur,
-                self._groupes_equilibres(list(range(8)), [etoiles(p) for p in self.pions], rng),
+                self._groupes_equilibres(list(range(8)), [valeur(p) for p in self.pions], rng),
             )
         elif self.phase == CHAMPIONS_FORMER:
-            forces = [etoiles(c) for c in self.champions]
+            forces = [valeur(c) for c in self.champions]
             gardes = self._groupes_equilibres(list(range(6)), forces, rng, taille=2)
             self.former(couleur, [gardes[0] + [6], gardes[1] + [7]])
         elif self.phase in (PIONS_CHOISIR, CHAMPIONS_CHOISIR):
             type_ = "pions" if self.phase == PIONS_CHOISIR else "champions"
             noms = self.pions if type_ == "pions" else self.champions
-            force = [sum(etoiles(noms[i]) for i in g if i < len(noms)) for g in self.groupes[type_]]
-            self.choisir(couleur, 0 if force[0] >= force[1] else 1)
+            force = [sum(valeur(noms[i]) for i in g if i < len(noms)) for g in self.groupes[type_]]
+            meilleur = 0 if force[0] >= force[1] else 1
+            hasard = HASARD_MAX * max(0, NIVEAU_SANS_HASARD - niveau) / (NIVEAU_SANS_HASARD - 1)
+            self.choisir(couleur, 1 - meilleur if rng.random() < hasard else meilleur)
         elif self.phase == PLACEMENT and not self.pret[couleur]:
             equipe = self.equipes[couleur]
             self.placer(couleur, equipe["pions"], equipe["arriere"])
