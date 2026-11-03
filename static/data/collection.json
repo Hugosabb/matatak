@@ -7,14 +7,173 @@
  },
  "personnages": [
   {
-   "nom": "MOJO",
-   "espece": "Lion",
-   "rang": "roi",
+   "nom": "ZYG",
+   "espece": "Suricate",
+   "rang": "pion",
+   "saison": "ete",
+   "boite": "base",
+   "etoiles": 1,
+   "replique": "« Petits mais méchants ! »",
+   "numero": 1,
+   "echecs": "pion",
+   "famille": "Félins",
+   "image": "39-zyg.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "deplace",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "ZAG",
+   "espece": "Suricate",
+   "rang": "pion",
    "saison": "printemps",
    "boite": "base",
-   "etoiles": 0,
-   "replique": "« Vas-y, épate-moi. »",
-   "image": "04-mojo.webp",
+   "etoiles": 1,
+   "replique": "« Petits mais mignons ! »",
+   "numero": 2,
+   "echecs": "pion",
+   "famille": "Félins",
+   "image": "42-zag.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "deplace",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "ZUG",
+   "espece": "Suricate",
+   "rang": "pion",
+   "saison": "hiver",
+   "boite": "base",
+   "etoiles": 1,
+   "replique": "« Tu préférerais passer ton tour, hein ? »",
+   "numero": 3,
+   "echecs": "pion",
+   "famille": "Félins",
+   "image": "41-zug.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "deplace",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "ZWANG",
+   "espece": "Suricate",
+   "rang": "pion",
+   "saison": "automne",
+   "boite": "base",
+   "etoiles": 1,
+   "replique": "« Fais pas cette tête. »",
+   "numero": 4,
+   "echecs": "pion",
+   "famille": "Félins",
+   "image": "40-zwang.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "deplace",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "capture",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "SHASHA",
+   "espece": "Chat",
+   "rang": "pion",
+   "saison": "automne",
+   "boite": "base",
+   "etoiles": 4,
+   "replique": "« Mia miaw. »",
+   "numero": 5,
+   "echecs": null,
+   "famille": "Félins",
+   "image": "33-shasha.webp",
    "cases": [
     {
      "dx": -1,
@@ -39,46 +198,6 @@
      "saut": false,
      "repete": false,
      "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
     }
    ]
   },
@@ -90,6 +209,9 @@
    "boite": "base",
    "etoiles": 0,
    "replique": "« Pas de casse ? Pas de Mananas. »",
+   "numero": 6,
+   "echecs": "roi",
+   "famille": "Félins",
    "image": "01-azar.webp",
    "cases": [
     {
@@ -159,14 +281,17 @@
    ]
   },
   {
-   "nom": "SHANS",
+   "nom": "MOJO",
    "espece": "Lion",
    "rang": "roi",
-   "saison": "automne",
+   "saison": "printemps",
    "boite": "base",
    "etoiles": 0,
-   "replique": "« La chance sourit aux audacieuses. »",
-   "image": "02-shans.webp",
+   "replique": "« Vas-y, épate-moi. »",
+   "numero": 7,
+   "echecs": "roi",
+   "famille": "Félins",
+   "image": "04-mojo.webp",
    "cases": [
     {
      "dx": -1,
@@ -242,6 +367,9 @@
    "boite": "base",
    "etoiles": 0,
    "replique": "« La vengeance est un plat qui se mange glacé. »",
+   "numero": 8,
+   "echecs": "roi",
+   "famille": "Félins",
    "image": "03-karma.webp",
    "cases": [
     {
@@ -311,60 +439,23 @@
    ]
   },
   {
-   "nom": "BLUFF",
-   "espece": "Buffle",
-   "rang": "champion",
-   "saison": "printemps",
-   "boite": "extension",
-   "etoiles": 4,
-   "replique": "« Piège ? Quel piège ? »",
-   "image": "09-bluff.webp",
+   "nom": "SHANS",
+   "espece": "Lion",
+   "rang": "roi",
+   "saison": "automne",
+   "boite": "base",
+   "etoiles": 0,
+   "replique": "« La chance sourit aux audacieuses. »",
+   "numero": 9,
+   "echecs": "roi",
+   "famille": "Félins",
+   "image": "02-shans.webp",
    "cases": [
     {
-     "dx": 0,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
      "dx": -1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
      "dy": 1,
      "genre": "libre",
-     "saut": true,
+     "saut": false,
      "repete": false,
      "illimite": false
     },
@@ -374,243 +465,7 @@
      "genre": "libre",
      "saut": false,
      "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
      "illimite": false
-    },
-    {
-     "dx": -4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "RUMBA",
-   "espece": "Tigre",
-   "rang": "champion",
-   "saison": "printemps",
-   "boite": "extension",
-   "etoiles": 4,
-   "replique": "Rumba hypnotise ses proies d'un roulement d'épaules avant de fondre sur elles.",
-   "image": "08-rumba.webp",
-   "cases": [
-    {
-     "dx": -4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
     },
     {
      "dx": 1,
@@ -618,31 +473,7 @@
      "genre": "libre",
      "saut": false,
      "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
+     "illimite": false
     },
     {
      "dx": -1,
@@ -650,7 +481,7 @@
      "genre": "libre",
      "saut": false,
      "repete": false,
-     "illimite": true
+     "illimite": false
     },
     {
      "dx": 1,
@@ -658,31 +489,7 @@
      "genre": "libre",
      "saut": false,
      "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
+     "illimite": false
     },
     {
      "dx": -1,
@@ -690,7 +497,7 @@
      "genre": "libre",
      "saut": false,
      "repete": false,
-     "illimite": true
+     "illimite": false
     },
     {
      "dx": 0,
@@ -698,7 +505,7 @@
      "genre": "libre",
      "saut": false,
      "repete": false,
-     "illimite": true
+     "illimite": false
     },
     {
      "dx": 1,
@@ -706,79 +513,7 @@
      "genre": "libre",
      "saut": false,
      "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
+     "illimite": false
     }
    ]
   },
@@ -790,6 +525,9 @@
    "boite": "base",
    "etoiles": 3,
    "replique": "« Compte sur moi. »",
+   "numero": 10,
+   "echecs": null,
+   "famille": "Félins",
    "image": "13-dysko.webp",
    "cases": [
     {
@@ -923,642 +661,6 @@
    ]
   },
   {
-   "nom": "GLAM",
-   "espece": "Rhinocéros",
-   "rang": "champion",
-   "saison": "printemps",
-   "boite": "extension",
-   "etoiles": 3,
-   "replique": "Glam soigne son entrée : quand il charge, tout le plateau le regarde.",
-   "image": "28-glam.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "DUB",
-   "espece": "Ours",
-   "rang": "champion",
-   "saison": "printemps",
-   "boite": "base",
-   "etoiles": 2,
-   "replique": "« Plus loin ? Pas envie. »",
-   "image": "30-dub.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "SALSA",
-   "espece": "Cheval",
-   "rang": "champion",
-   "saison": "printemps",
-   "boite": "base",
-   "etoiles": 2,
-   "replique": "« Fais-moi danser ! »",
-   "image": "24-salsa.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "TANGO",
-   "espece": "Gorille",
-   "rang": "champion",
-   "saison": "printemps",
-   "boite": "extension",
-   "etoiles": 2,
-   "replique": "Tango glisse entre les lignes ennemies avec élégance.",
-   "image": "17-tango.webp",
-   "cases": [
-    {
-     "dx": -4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "KRAK",
-   "espece": "Crocodile",
-   "rang": "champion",
-   "saison": "ete",
-   "boite": "base",
-   "etoiles": 4,
-   "replique": "« Il est encore temps d'abandonner. »",
-   "image": "10-krak.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
    "nom": "PUNK",
    "espece": "Tigre",
    "rang": "champion",
@@ -1566,6 +668,9 @@
    "boite": "extension",
    "etoiles": 4,
    "replique": "Rebelle et imprévisible, Punk surgit toujours là où on ne l'attend pas.",
+   "numero": 11,
+   "echecs": "dame",
+   "famille": "Félins",
    "image": "05-punk.webp",
    "cases": [
     {
@@ -1827,446 +932,17 @@
    ]
   },
   {
-   "nom": "DRYLL",
-   "espece": "Rhinocéros",
-   "rang": "champion",
-   "saison": "ete",
-   "boite": "extension",
-   "etoiles": 3,
-   "replique": "Dryll creuse son chemin avec la puissance d'une perceuse.",
-   "image": "27-dryll.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "FOLK",
-   "espece": "Gorille",
-   "rang": "champion",
-   "saison": "ete",
-   "boite": "base",
-   "etoiles": 2,
-   "replique": "« Qui pour faire la bagarre ? »",
-   "image": "14-folk.webp",
-   "cases": [
-    {
-     "dx": -4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "TEKNO",
-   "espece": "Cheval",
-   "rang": "champion",
-   "saison": "ete",
-   "boite": "extension",
-   "etoiles": 2,
-   "replique": "Tekno ne s'arrête jamais : son galop bat la mesure.",
-   "image": "21-tekno.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "YXEL",
-   "espece": "Girafe",
-   "rang": "champion",
-   "saison": "ete",
-   "boite": "extension",
-   "etoiles": 1,
-   "replique": "« D'ici, je vois le Mananas. »",
-   "image": "25-yxel.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 3,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 3,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -3,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 3,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -3,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 3,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -3,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -3,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "MAMBO",
+   "nom": "RUMBA",
    "espece": "Tigre",
    "rang": "champion",
-   "saison": "automne",
+   "saison": "printemps",
    "boite": "extension",
    "etoiles": 4,
-   "replique": "Mambo chasse en rythme : chaque pas est un pas de danse.",
-   "image": "06-mambo.webp",
+   "replique": "Rumba hypnotise ses proies d'un roulement d'épaules avant de fondre sur elles.",
+   "numero": 12,
+   "echecs": "dame",
+   "famille": "Félins",
+   "image": "08-rumba.webp",
    "cases": [
     {
      "dx": -4,
@@ -2523,610 +1199,6 @@
      "saut": false,
      "repete": false,
      "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "BOONG",
-   "espece": "Kangourou",
-   "rang": "champion",
-   "saison": "automne",
-   "boite": "extension",
-   "etoiles": 3,
-   "replique": "« Tu ne m'as pas vu venir, avoue. »",
-   "image": "20-boong.webp",
-   "cases": [
-    {
-     "dx": -2,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": true,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "ROKK",
-   "espece": "Rhinocéros",
-   "rang": "champion",
-   "saison": "automne",
-   "boite": "base",
-   "etoiles": 3,
-   "replique": "« Le roque ? Je l'ai inventé. »",
-   "image": "26-rokk.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 0,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "SOUL",
-   "espece": "Gorille",
-   "rang": "champion",
-   "saison": "automne",
-   "boite": "extension",
-   "etoiles": 2,
-   "replique": "Soul a du cœur : jamais il n'abandonne un allié.",
-   "image": "15-soul.webp",
-   "cases": [
-    {
-     "dx": -4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": 4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 4,
-     "dy": -4,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "ZOUK",
-   "espece": "Cheval",
-   "rang": "champion",
-   "saison": "automne",
-   "boite": "extension",
-   "etoiles": 2,
-   "replique": "Zouk se balance d'un côté à l'autre avant de bondir.",
-   "image": "22-zouk.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "JAZZ",
-   "espece": "Orang-outan",
-   "rang": "champion",
-   "saison": "automne",
-   "boite": "base",
-   "etoiles": 1,
-   "replique": "« Tchou bi dou wa ! »",
-   "image": "18-jazz.webp",
-   "cases": [
-    {
-     "dx": -3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": -2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
     }
    ]
   },
@@ -3138,6 +1210,9 @@
    "boite": "base",
    "etoiles": 4,
    "replique": "« Joli coup. Dommage. »",
+   "numero": 13,
+   "echecs": "dame",
+   "famille": "Félins",
    "image": "07-funk.webp",
    "cases": [
     {
@@ -3399,6 +1474,2185 @@
    ]
   },
   {
+   "nom": "MAMBO",
+   "espece": "Tigre",
+   "rang": "champion",
+   "saison": "automne",
+   "boite": "extension",
+   "etoiles": 4,
+   "replique": "Mambo chasse en rythme : chaque pas est un pas de danse.",
+   "numero": 14,
+   "echecs": "dame",
+   "famille": "Félins",
+   "image": "06-mambo.webp",
+   "cases": [
+    {
+     "dx": -4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "GONG",
+   "espece": "Tortue",
+   "rang": "pion",
+   "saison": "automne",
+   "boite": "base",
+   "etoiles": 1,
+   "replique": "« Chi va piano va sano e va lontano. »",
+   "numero": 15,
+   "echecs": null,
+   "famille": "Massifs",
+   "image": "38-gong.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "TAMTAM",
+   "espece": "Phacochère",
+   "rang": "pion",
+   "saison": "ete",
+   "boite": "base",
+   "etoiles": 2,
+   "replique": "« Ahh mon ami, tu ferais mieux de t'écarter. »",
+   "numero": 16,
+   "echecs": null,
+   "famille": "Massifs",
+   "image": "35-tamtam.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "BASS",
+   "espece": "Panda",
+   "rang": "pion",
+   "saison": "hiver",
+   "boite": "base",
+   "etoiles": 3,
+   "replique": "« Crounch, crounch… la partie a commencé ? »",
+   "numero": 17,
+   "echecs": null,
+   "famille": "Massifs",
+   "image": "31-bass.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "DUB",
+   "espece": "Ours",
+   "rang": "champion",
+   "saison": "printemps",
+   "boite": "base",
+   "etoiles": 2,
+   "replique": "« Plus loin ? Pas envie. »",
+   "numero": 18,
+   "echecs": null,
+   "famille": "Massifs",
+   "image": "30-dub.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "DRYLL",
+   "espece": "Rhinocéros",
+   "rang": "champion",
+   "saison": "ete",
+   "boite": "extension",
+   "etoiles": 3,
+   "replique": "Dryll creuse son chemin avec la puissance d'une perceuse.",
+   "numero": 19,
+   "echecs": "tour",
+   "famille": "Massifs",
+   "image": "27-dryll.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "GLAM",
+   "espece": "Rhinocéros",
+   "rang": "champion",
+   "saison": "printemps",
+   "boite": "extension",
+   "etoiles": 3,
+   "replique": "Glam soigne son entrée : quand il charge, tout le plateau le regarde.",
+   "numero": 20,
+   "echecs": "tour",
+   "famille": "Massifs",
+   "image": "28-glam.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "METAL",
+   "espece": "Rhinocéros",
+   "rang": "champion",
+   "saison": "hiver",
+   "boite": "extension",
+   "etoiles": 3,
+   "replique": "Metal a la peau dure comme l'acier.",
+   "numero": 21,
+   "echecs": "tour",
+   "famille": "Massifs",
+   "image": "29-metal.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "ROKK",
+   "espece": "Rhinocéros",
+   "rang": "champion",
+   "saison": "automne",
+   "boite": "base",
+   "etoiles": 3,
+   "replique": "« Le roque ? Je l'ai inventé. »",
+   "numero": 22,
+   "echecs": "tour",
+   "famille": "Massifs",
+   "image": "26-rokk.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "MARAKAS",
+   "espece": "Macaque",
+   "rang": "pion",
+   "saison": "ete",
+   "boite": "base",
+   "etoiles": 1,
+   "replique": "« Mouahaha ! Laissez-moi vous expliquer mon plan diabolique… »",
+   "numero": 23,
+   "echecs": null,
+   "famille": "Singes",
+   "image": "37-marakas.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "BONGO",
+   "espece": "Gibbon",
+   "rang": "pion",
+   "saison": "hiver",
+   "boite": "base",
+   "etoiles": 3,
+   "replique": "« Swoosh, swoosh… Bim ! »",
+   "numero": 24,
+   "echecs": null,
+   "famille": "Singes",
+   "image": "34-bongo.webp",
+   "cases": [
+    {
+     "dx": -2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "BANJO",
+   "espece": "Chimpanzé",
+   "rang": "pion",
+   "saison": "printemps",
+   "boite": "base",
+   "etoiles": 2,
+   "replique": "« Euh… même pas peur ! »",
+   "numero": 25,
+   "echecs": null,
+   "famille": "Singes",
+   "image": "19-banjo.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "JAZZ",
+   "espece": "Orang-outan",
+   "rang": "champion",
+   "saison": "automne",
+   "boite": "base",
+   "etoiles": 1,
+   "replique": "« Tchou bi dou wa ! »",
+   "numero": 26,
+   "echecs": null,
+   "famille": "Singes",
+   "image": "18-jazz.webp",
+   "cases": [
+    {
+     "dx": -3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "FOLK",
+   "espece": "Gorille",
+   "rang": "champion",
+   "saison": "ete",
+   "boite": "base",
+   "etoiles": 2,
+   "replique": "« Qui pour faire la bagarre ? »",
+   "numero": 27,
+   "echecs": "fou",
+   "famille": "Singes",
+   "image": "14-folk.webp",
+   "cases": [
+    {
+     "dx": -4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "TANGO",
+   "espece": "Gorille",
+   "rang": "champion",
+   "saison": "printemps",
+   "boite": "extension",
+   "etoiles": 2,
+   "replique": "Tango glisse entre les lignes ennemies avec élégance.",
+   "numero": 28,
+   "echecs": "fou",
+   "famille": "Singes",
+   "image": "17-tango.webp",
+   "cases": [
+    {
+     "dx": -4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "BLUES",
+   "espece": "Gorille",
+   "rang": "champion",
+   "saison": "hiver",
+   "boite": "extension",
+   "etoiles": 2,
+   "replique": "Blues garde son calme quand tout le monde s'agite.",
+   "numero": 29,
+   "echecs": "fou",
+   "famille": "Singes",
+   "image": "16-blues.webp",
+   "cases": [
+    {
+     "dx": -4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "SOUL",
+   "espece": "Gorille",
+   "rang": "champion",
+   "saison": "automne",
+   "boite": "extension",
+   "etoiles": 2,
+   "replique": "Soul a du cœur : jamais il n'abandonne un allié.",
+   "numero": 30,
+   "echecs": "fou",
+   "famille": "Singes",
+   "image": "15-soul.webp",
+   "cases": [
+    {
+     "dx": -4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "TEKNO",
+   "espece": "Cheval",
+   "rang": "champion",
+   "saison": "ete",
+   "boite": "extension",
+   "etoiles": 2,
+   "replique": "Tekno ne s'arrête jamais : son galop bat la mesure.",
+   "numero": 31,
+   "echecs": "cavalier",
+   "famille": "Cavaliers",
+   "image": "21-tekno.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "SALSA",
+   "espece": "Cheval",
+   "rang": "champion",
+   "saison": "printemps",
+   "boite": "base",
+   "etoiles": 2,
+   "replique": "« Fais-moi danser ! »",
+   "numero": 32,
+   "echecs": "cavalier",
+   "famille": "Cavaliers",
+   "image": "24-salsa.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "POP",
+   "espece": "Cheval",
+   "rang": "champion",
+   "saison": "hiver",
+   "boite": "extension",
+   "etoiles": 2,
+   "replique": "Pop adore se faire remarquer, et ses sauts ne passent jamais inaperçus.",
+   "numero": 33,
+   "echecs": "cavalier",
+   "famille": "Cavaliers",
+   "image": "23-pop.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "ZOUK",
+   "espece": "Cheval",
+   "rang": "champion",
+   "saison": "automne",
+   "boite": "extension",
+   "etoiles": 2,
+   "replique": "Zouk se balance d'un côté à l'autre avant de bondir.",
+   "numero": 34,
+   "echecs": "cavalier",
+   "famille": "Cavaliers",
+   "image": "22-zouk.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
    "nom": "FRANK",
    "espece": "Éléphant",
    "rang": "champion",
@@ -3406,6 +3660,9 @@
    "boite": "base",
    "etoiles": 3,
    "replique": "« C'est imperdable, franchement. »",
+   "numero": 35,
+   "echecs": null,
+   "famille": "Maîtres",
    "image": "11-frank.webp",
    "cases": [
     {
@@ -3571,14 +3828,17 @@
    ]
   },
   {
-   "nom": "METAL",
-   "espece": "Rhinocéros",
+   "nom": "KRAK",
+   "espece": "Crocodile",
    "rang": "champion",
-   "saison": "hiver",
-   "boite": "extension",
-   "etoiles": 3,
-   "replique": "Metal a la peau dure comme l'acier.",
-   "image": "29-metal.webp",
+   "saison": "ete",
+   "boite": "base",
+   "etoiles": 4,
+   "replique": "« Il est encore temps d'abandonner. »",
+   "numero": 36,
+   "echecs": null,
+   "famille": "Maîtres",
+   "image": "10-krak.webp",
    "cases": [
     {
      "dx": 0,
@@ -3605,12 +3865,28 @@
      "illimite": true
     },
     {
+     "dx": -1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
      "dx": 0,
      "dy": 1,
      "genre": "libre",
      "saut": false,
      "repete": false,
      "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
     },
     {
      "dx": -4,
@@ -3677,12 +3953,28 @@
      "illimite": true
     },
     {
+     "dx": -1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    },
+    {
      "dx": 0,
      "dy": -1,
      "genre": "libre",
      "saut": false,
      "repete": false,
      "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
     },
     {
      "dx": 0,
@@ -3711,6 +4003,362 @@
    ]
   },
   {
+   "nom": "BLUFF",
+   "espece": "Buffle",
+   "rang": "champion",
+   "saison": "printemps",
+   "boite": "extension",
+   "etoiles": 4,
+   "replique": "« Piège ? Quel piège ? »",
+   "numero": 37,
+   "echecs": null,
+   "famille": "Maîtres",
+   "image": "09-bluff.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": 3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 3,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 4,
+     "dy": 0,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": -2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -3,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 0,
+     "dy": -4,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": true
+    }
+   ]
+  },
+  {
+   "nom": "HOP",
+   "espece": "Lapin",
+   "rang": "pion",
+   "saison": "printemps",
+   "boite": "extension",
+   "etoiles": 2,
+   "replique": "« Attrape-moi si tu peux ! »",
+   "numero": 38,
+   "echecs": null,
+   "famille": "Bondissants",
+   "image": "36-hop.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "GAMBY",
+   "espece": "Gazelle",
+   "rang": "pion",
+   "saison": "automne",
+   "boite": "extension",
+   "etoiles": 4,
+   "replique": "« Le jeu en vaut la chandelle ! »",
+   "numero": 39,
+   "echecs": null,
+   "famille": "Cavaliers",
+   "image": "32-gamby.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "YXEL",
+   "espece": "Girafe",
+   "rang": "champion",
+   "saison": "ete",
+   "boite": "extension",
+   "etoiles": 1,
+   "replique": "« D'ici, je vois le Mananas. »",
+   "numero": 40,
+   "echecs": null,
+   "famille": "Cavaliers",
+   "image": "25-yxel.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 3,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 3,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -3,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 3,
+     "dy": 1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -3,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 3,
+     "dy": -1,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -1,
+     "dy": -3,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": -3,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
    "nom": "RAY",
    "espece": "Zèbre",
    "rang": "champion",
@@ -3718,6 +4366,9 @@
    "boite": "extension",
    "etoiles": 3,
    "replique": "« Mes rayures vont te rendre fou. »",
+   "numero": 41,
+   "echecs": null,
+   "famille": "Cavaliers",
    "image": "12-ray.webp",
    "cases": [
     {
@@ -3819,670 +4470,145 @@
    ]
   },
   {
-   "nom": "BLUES",
-   "espece": "Gorille",
+   "nom": "BOONG",
+   "espece": "Kangourou",
    "rang": "champion",
-   "saison": "hiver",
+   "saison": "automne",
    "boite": "extension",
-   "etoiles": 2,
-   "replique": "Blues garde son calme quand tout le monde s'agite.",
-   "image": "16-blues.webp",
+   "etoiles": 3,
+   "replique": "« Tu ne m'as pas vu venir, avoue. »",
+   "numero": 42,
+   "echecs": null,
+   "famille": "Bondissants",
+   "image": "20-boong.webp",
    "cases": [
     {
-     "dx": -4,
+     "dx": -2,
      "dy": 4,
      "genre": "libre",
      "saut": false,
+     "repete": true,
+     "illimite": true
+    },
+    {
+     "dx": 2,
+     "dy": 4,
+     "genre": "libre",
+     "saut": false,
+     "repete": true,
+     "illimite": true
+    },
+    {
+     "dx": -4,
+     "dy": 2,
+     "genre": "libre",
+     "saut": false,
+     "repete": true,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
      "repete": false,
      "illimite": true
     },
     {
      "dx": 4,
-     "dy": 4,
+     "dy": 2,
      "genre": "libre",
      "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": 3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
+     "repete": true,
      "illimite": true
     },
     {
      "dx": -2,
-     "dy": 2,
+     "dy": 1,
      "genre": "libre",
-     "saut": false,
+     "saut": true,
      "repete": false,
      "illimite": true
     },
     {
      "dx": 2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
      "dy": 1,
      "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
+     "saut": true,
      "repete": false,
      "illimite": true
     },
     {
      "dx": -2,
-     "dy": -2,
+     "dy": -1,
      "genre": "libre",
-     "saut": false,
+     "saut": true,
      "repete": false,
      "illimite": true
     },
     {
      "dx": 2,
-     "dy": -2,
+     "dy": -1,
      "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": -3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": true
-    },
-    {
-     "dx": 3,
-     "dy": -3,
-     "genre": "libre",
-     "saut": false,
+     "saut": true,
      "repete": false,
      "illimite": true
     },
     {
      "dx": -4,
-     "dy": -4,
+     "dy": -2,
      "genre": "libre",
      "saut": false,
+     "repete": true,
+     "illimite": true
+    },
+    {
+     "dx": -1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": true
+    },
+    {
+     "dx": 1,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
      "repete": false,
      "illimite": true
     },
     {
      "dx": 4,
+     "dy": -2,
+     "genre": "libre",
+     "saut": false,
+     "repete": true,
+     "illimite": true
+    },
+    {
+     "dx": -2,
      "dy": -4,
      "genre": "libre",
      "saut": false,
-     "repete": false,
+     "repete": true,
      "illimite": true
-    }
-   ]
-  },
-  {
-   "nom": "POP",
-   "espece": "Cheval",
-   "rang": "champion",
-   "saison": "hiver",
-   "boite": "extension",
-   "etoiles": 2,
-   "replique": "Pop adore se faire remarquer, et ses sauts ne passent jamais inaperçus.",
-   "image": "23-pop.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
     },
     {
      "dx": 2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": -1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "BANJO",
-   "espece": "Chimpanzé",
-   "rang": "pion",
-   "saison": "printemps",
-   "boite": "base",
-   "etoiles": 2,
-   "replique": "« Euh… même pas peur ! »",
-   "image": "19-banjo.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 1,
+     "dy": -4,
      "genre": "libre",
      "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "HOP",
-   "espece": "Lapin",
-   "rang": "pion",
-   "saison": "printemps",
-   "boite": "extension",
-   "etoiles": 2,
-   "replique": "« Attrape-moi si tu peux ! »",
-   "image": "36-hop.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "ZAG",
-   "espece": "Suricate",
-   "rang": "pion",
-   "saison": "printemps",
-   "boite": "base",
-   "etoiles": 1,
-   "replique": "« Petits mais mignons ! »",
-   "image": "42-zag.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "deplace",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "TAMTAM",
-   "espece": "Phacochère",
-   "rang": "pion",
-   "saison": "ete",
-   "boite": "base",
-   "etoiles": 2,
-   "replique": "« Ahh mon ami, tu ferais mieux de t'écarter. »",
-   "image": "35-tamtam.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "MARAKAS",
-   "espece": "Macaque",
-   "rang": "pion",
-   "saison": "ete",
-   "boite": "base",
-   "etoiles": 1,
-   "replique": "« Mouahaha ! Laissez-moi vous expliquer mon plan diabolique… »",
-   "image": "37-marakas.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "ZYG",
-   "espece": "Suricate",
-   "rang": "pion",
-   "saison": "ete",
-   "boite": "base",
-   "etoiles": 1,
-   "replique": "« Petits mais méchants ! »",
-   "image": "39-zyg.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "deplace",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "GAMBY",
-   "espece": "Gazelle",
-   "rang": "pion",
-   "saison": "automne",
-   "boite": "extension",
-   "etoiles": 4,
-   "replique": "« Le jeu en vaut la chandelle ! »",
-   "image": "32-gamby.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 2,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": 1,
-     "genre": "libre",
-     "saut": true,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "SHASHA",
-   "espece": "Chat",
-   "rang": "pion",
-   "saison": "automne",
-   "boite": "base",
-   "etoiles": 4,
-   "replique": "« Mia miaw. »",
-   "image": "33-shasha.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "GONG",
-   "espece": "Tortue",
-   "rang": "pion",
-   "saison": "automne",
-   "boite": "base",
-   "etoiles": 1,
-   "replique": "« Chi va piano va sano e va lontano. »",
-   "image": "38-gong.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "ZWANG",
-   "espece": "Suricate",
-   "rang": "pion",
-   "saison": "automne",
-   "boite": "base",
-   "etoiles": 1,
-   "replique": "« Fais pas cette tête. »",
-   "image": "40-zwang.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "deplace",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "BASS",
-   "espece": "Panda",
-   "rang": "pion",
-   "saison": "hiver",
-   "boite": "base",
-   "etoiles": 3,
-   "replique": "« Crounch, crounch… la partie a commencé ? »",
-   "image": "31-bass.webp",
-   "cases": [
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 0,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": -1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "BONGO",
-   "espece": "Gibbon",
-   "rang": "pion",
-   "saison": "hiver",
-   "boite": "base",
-   "etoiles": 3,
-   "replique": "« Swoosh, swoosh… Bim ! »",
-   "image": "34-bongo.webp",
-   "cases": [
-    {
-     "dx": -2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 2,
-     "dy": 2,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "libre",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    }
-   ]
-  },
-  {
-   "nom": "ZUG",
-   "espece": "Suricate",
-   "rang": "pion",
-   "saison": "hiver",
-   "boite": "base",
-   "etoiles": 1,
-   "replique": "« Tu préférerais passer ton tour, hein ? »",
-   "image": "41-zug.webp",
-   "cases": [
-    {
-     "dx": -1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 0,
-     "dy": 1,
-     "genre": "deplace",
-     "saut": false,
-     "repete": false,
-     "illimite": false
-    },
-    {
-     "dx": 1,
-     "dy": 1,
-     "genre": "capture",
-     "saut": false,
-     "repete": false,
-     "illimite": false
+     "repete": true,
+     "illimite": true
     }
    ]
   }

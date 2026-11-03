@@ -179,7 +179,11 @@ async def test_collection_montre_les_personnages_debloques(site, chromium, telep
     await page.goto(site + "/collection")
     await page.wait_for_selector(".carte-col")
     assert await page.locator(".carte-col.verrou").count() > 20
+    # Filtres repliés derrière un bouton (03/11/2026)
+    assert await page.locator("button.puce", has_text="Débloqués").count() == 0
+    await page.locator("button.filtres-bouton").click()
     await page.locator("button.puce", has_text="Débloqués").click()
+    assert await page.locator(".filtres-nb").inner_text() == "1"
     # 8 recrues + les 4 Rois (phase 1 finie)
     assert await page.locator(".carte-col").count() == 12
     assert await page.locator(".carte-col.verrou").count() == 0

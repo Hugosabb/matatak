@@ -14,7 +14,10 @@ export interface Case { dx: number; dy: number; genre: 'libre' | 'deplace' | 'ca
 interface Personnage {
     nom: string; espece: string; rang: 'roi' | 'champion' | 'pion'; saison: string;
     boite: 'base' | 'extension'; etoiles: number; replique: string; image: string; cases: Case[];
+    // Tableau d'Hugo (server/build_collection_json.py) : numéro = ordre de la Collection
+    numero: number; echecs: Echecs | null; famille: string;
 }
+type Echecs = 'roi' | 'dame' | 'tour' | 'fou' | 'cavalier' | 'pion';
 interface Donnees { saisons: Record<string, string>; personnages: Personnage[] }
 
 const RANGS = { roi: 'Roi', champion: 'Champion', pion: 'Pion' };
@@ -31,6 +34,15 @@ const N = 8;
 let donnees: Donnees | null = null;
 let filtreSaison = 'toutes';
 let filtreBoite = 'toutes';
+// Sections de la grille : par rang (défaut), par famille ou par équivalent aux échecs (Hugo, 03/11/2026).
+// Un réglage « Ranger par » plutôt que deux rangées de filtres de plus (loi de Hick).
+type Rangement = 'rang' | 'famille' | 'echecs';
+const CLE_RANGEMENT = 'matatak_collection_rangement';
+let rangement: Rangement = (['rang', 'famille', 'echecs'] as const).find(r => r === localStorage.getItem(CLE_RANGEMENT)) ?? 'rang';
+const ECHECS_NOMS: Record<Echecs, string> = { roi: 'Comme le Roi', dame: 'Comme la Dame', tour: 'Comme la Tour', fou: 'Comme le Fou', cavalier: 'Comme le Cavalier', pion: 'Comme le Pion' };
+const ORDRE_FAMILLES = ['Félins', 'Massifs', 'Singes', 'Cavaliers', 'Maîtres', 'Bondissants'];
+// Filtres repliés derrière un bouton (Hugo, 03/11/2026 : trois rangées prenaient trop de hauteur sur téléphone)
+let filtresOuverts = false;
 // « Tout débloqué » : l'affichage seul, comme si l'Aventure était finie (pour qui vient du livret et ne joue
 // pas en ligne, Hugo 26/10/2026) ; la progression n'est pas touchée. Gardé sur l'appareil.
 type FiltreAventure = 'tout' | 'debloques' | 'comme-debloque';
@@ -400,14 +412,17 @@ function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
 }
 
 // ---------- Fiche détaillée (ouverte depuis la grille) ----------
-function ouvrirFiche(p: Personnage, liste: Personnage[]) {
+function ouvrirFiche(p: Personnage, liste: Personnage[], vers: 'gauche' | 'droite' | '' = '') {
     document.getElementById('fiche-perso')?.remove();
     const d = el('dialog', 'detail') as HTMLDialogElement;
     d.id = 'fiche-perso';
     d.style.setProperty('--c', `var(--mt-${p.saison})`);
     d.setAttribute('aria-label', p.nom);
+    // Arrivée par un balayage ou par ‹ › : la fiche glisse depuis le côté
+    if (vers) d.classList.add('vers-' + vers);
 
     const carte = bouton('carte3d grand', '', () => {
+        if (balaye) { balaye = false; return; }  // fin d'un balayage : pas de retournement
         carte.classList.toggle('retournee');
         carte.setAttribute('aria-pressed', String(carte.classList.contains('retournee')));
     });
@@ -419,6 +434,7 @@ function ouvrirFiche(p: Personnage, liste: Personnage[]) {
         img.sizes = '(max-width: 760px) calc(100vw - 48px), 440px';
         img.src = `${IMG}${face}-720/${p.image}`;
         img.alt = `Carte de ${p.nom}, face ${face}`;
+        img.draggable = false;  // sinon le navigateur glisse l'image et le balayage est annulé
         carte.appendChild(img);
     }
     const colCarte = el('div', 'd-carte');
@@ -443,8 +459,32 @@ function ouvrirFiche(p: Personnage, liste: Personnage[]) {
     // Personnage précédent / suivant, dans l'ordre de la grille filtrée
     const i = liste.indexOf(p);
     const nav = el('nav', 'd-nav');
-    if (i > 0) nav.appendChild(bouton('d-prec', `‹ ${liste[i - 1].nom}`, () => ouvrirFiche(liste[i - 1], liste)));
-    if (i < liste.length - 1) nav.appendChild(bouton('d-suiv', `${liste[i + 1].nom} ›`, () => ouvrirFiche(liste[i + 1], liste)));
+    const precedent = () => { if (i > 0) ouvrirFiche(liste[i - 1], liste, 'gauche'); };
+    const suivant = () => { if (i < liste.length - 1) ouvrirFiche(liste[i + 1], liste, 'droite'); };
+    if (i > 0) nav.appendChild(bouton('d-prec', `‹ ${liste[i - 1].nom}`, precedent));
+    if (i < liste.length - 1) nav.appendChild(bouton('d-suiv', `${liste[i + 1].nom} ›`, suivant));
+
+    // Balayer la carte ou le texte à gauche / à droite = Personnage suivant / précédent (Hugo, 02/11/2026).
+    // Pas sur le plateau : on y touche les cases et on y joue le mini-jeu.
+    let balaye = false;
+    let depart: { x: number, y: number } | null = null;
+    for (const zoneBalayage of [colCarte, infos]) {
+        zoneBalayage.addEventListener('pointerdown', (e) => { depart = { x: e.clientX, y: e.clientY }; balaye = false; });
+        zoneBalayage.addEventListener('pointerup', (e) => {
+            if (!depart) return;
+            const dx = e.clientX - depart.x, dy = e.clientY - depart.y;
+            depart = null;
+            if (Math.abs(dx) < 50 || Math.abs(dx) < 1.5 * Math.abs(dy)) return;
+            balaye = true;
+            if (dx < 0) suivant(); else precedent();
+        });
+        zoneBalayage.addEventListener('pointercancel', () => { depart = null; });
+    }
+    // Clavier : flèches gauche / droite
+    d.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); precedent(); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); suivant(); }
+    });
 
 
     const fermer = bouton('d-fermer', '×', () => d.close());
@@ -524,18 +564,45 @@ function vue(): VNode {
     const visibles = d.personnages.filter(p =>
         (filtreSaison === 'toutes' || p.saison === filtreSaison) && (filtreBoite === 'toutes' || p.boite === filtreBoite)
         && (filtreAventure === 'tout' || !aventure || aventure.debloques.has(p.nom)));
-    const ordre = (['roi', 'champion', 'pion'] as const).flatMap(rang => visibles.filter(p => p.rang === rang));
-    const sections = (['roi', 'champion', 'pion'] as const).map(rang => {
-        const liste = visibles.filter(p => p.rang === rang);
-        return liste.length ? h('section.rang', [h('h2', `${RANGS_PLURIEL[rang]} · ${liste.length}`), h('div.fiches', liste.map(p => carteGrille(p, ordre, aventure)))]) : '';
-    });
+    // Groupes [titre, test] selon le rangement choisi ; dans chaque groupe, l'ordre du tableau d'Hugo
+    const groupes: [string, (p: Personnage) => boolean][] =
+        rangement === 'famille' ? [...ORDRE_FAMILLES, ...new Set(d.personnages.map(p => p.famille).filter(f => !ORDRE_FAMILLES.includes(f)))]
+            .map(f => [f, (p: Personnage) => p.famille === f])
+        : rangement === 'echecs' ? [
+            ...(Object.keys(ECHECS_NOMS) as Echecs[]).map(e => [ECHECS_NOMS[e], (p: Personnage) => p.echecs === e] as [string, (p: Personnage) => boolean]),
+            ['Sans équivalent aux échecs', (p: Personnage) => !p.echecs],
+        ]
+        : (['roi', 'champion', 'pion'] as const).map(r => [RANGS_PLURIEL[r], (p: Personnage) => p.rang === r]);
+    const listes = groupes.map(([titre, test]) => [titre, visibles.filter(test).sort((a, b) => a.numero - b.numero)] as const);
+    const ordre = listes.flatMap(([, liste]) => liste);
+    const sections = listes.map(([titre, liste]) =>
+        liste.length ? h('section.rang', [h('h2', `${titre} · ${liste.length}`), h('div.fiches', liste.map(p => carteGrille(p, ordre, aventure)))]) : '');
+    const nbActifs = Number(filtreSaison !== 'toutes') + Number(filtreBoite !== 'toutes')
+        + Number(Boolean(avancement) && filtreAventure !== 'tout') + Number(rangement !== 'rang');
+    const ranger = (r: Rangement) => { rangement = r; localStorage.setItem(CLE_RANGEMENT, r); rendre(); };
     const nbBase = d.personnages.filter(p => p.boite === 'base').length;
     return h('div.collection-page', [
         h('header.tete', [
             h('h1', 'Collection'),
             h('p', `Les ${d.personnages.length} Personnages de MATATAK : ${nbBase} dans le jeu de base, les autres dans les extensions. Touchez une carte pour voir le Personnage, ses déplacements, et le mettre à l'épreuve.`),
         ]),
-        h('div.filtres', [
+        h('div.filtres-barre', [
+            h('button.puce.filtres-bouton', {
+                class: { on: filtresOuverts },
+                attrs: { type: 'button', 'aria-expanded': String(filtresOuverts), 'aria-controls': 'filtres-collection' },
+                on: { click: () => { filtresOuverts = !filtresOuverts; rendre(); } },
+            }, [
+                h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.4', 'stroke-linecap': 'round', 'aria-hidden': 'true' } },
+                    [h('path', { attrs: { d: 'M4 7h16M7 12h10M10 17h4' } })]),
+                'Filtres',
+                nbActifs ? h('span.filtres-nb', String(nbActifs)) : '',
+            ]),
+            nbActifs ? h('button.filtres-effacer', { attrs: { type: 'button' }, on: { click: () => {
+                filtreSaison = 'toutes'; filtreBoite = 'toutes'; rangement = 'rang'; localStorage.setItem(CLE_RANGEMENT, 'rang');
+                if (filtreAventure !== 'tout') choisirFiltreAventure('tout'); else rendre();
+            } } }, 'Tout effacer') : '',
+        ]),
+        filtresOuverts ? h('div.filtres#filtres-collection', [
             h('div.groupe', { attrs: { role: 'group', 'aria-label': 'Saison' } }, [
                 puce(filtreSaison === 'toutes', 'Toutes', () => { filtreSaison = 'toutes'; rendre(); }),
                 ...Object.entries(d.saisons).map(([k, nom]) => h('span', { style: { '--c': `var(--mt-${k})` } }, [
@@ -551,7 +618,13 @@ function vue(): VNode {
                 puce(filtreAventure === 'debloques', `Débloqués · ${d.personnages.filter(p => avancement.debloques.has(p.nom)).length}`, () => choisirFiltreAventure('debloques')),
                 puce(filtreAventure === 'comme-debloque', 'Tout débloqué', () => choisirFiltreAventure('comme-debloque')),
             ]) : '',
-        ]),
+            h('div.groupe.ranger', { attrs: { role: 'group', 'aria-label': 'Ranger par' } }, [
+                h('span.ranger-titre', 'Ranger par'),
+                puce(rangement === 'rang', 'Rang', () => ranger('rang')),
+                puce(rangement === 'famille', 'Famille', () => ranger('famille')),
+                puce(rangement === 'echecs', 'Échecs', () => ranger('echecs')),
+            ]),
+        ]) : '',
         ...sections,
     ]);
 }

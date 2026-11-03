@@ -9,11 +9,19 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
 .tete p { margin: 0 0 18px; padding: 0; max-width: min(62ch, 100%); color: var(--mt-encre); text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }
 
 /* Filtres */
+.filtres-barre { display: flex; align-items: center; gap: 12px; padding-top: 10px; }
+.filtres-bouton { display: inline-flex; align-items: center; gap: 8px; }
+.filtres-bouton svg { width: 18px; height: 18px; flex: none; }
+.filtres-nb { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--mt-or); color: #241805; font: 900 12px 'Nunito', sans-serif; }
+.filtres-effacer { min-height: 40px; padding: 0 6px; border: 0; background: none; cursor: pointer; font: 800 13.5px 'Nunito', sans-serif; color: var(--mt-discret); }
+.filtres-effacer:hover { color: var(--mt-encre); }
 .filtres { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 10px 0; margin-bottom: 8px; }
 .filtres .groupe { display: flex; flex-wrap: wrap; gap: 6px; }
 .puce { min-height: 40px; padding: 0 14px; border: 0; border-radius: 12px; cursor: pointer; background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px var(--mt-filet); font: 800 14px 'Nunito', sans-serif; color: var(--mt-doux); touch-action: manipulation; }
 .puce.on { color: var(--mt-encre); box-shadow: inset 0 0 0 2px var(--c, var(--mt-or)); }
 .filtres span .puce { color: var(--c); }
+.filtres .ranger { align-items: center; }
+.filtres .ranger-titre { margin-right: 2px; font: 800 13px 'Nunito', sans-serif; color: var(--mt-discret); }
 
 .rang h2 { margin: 30px 0 14px; font: 900 13px 'Jost', sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--mt-discret); }
 .fiches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px 18px; } /* par 4, comme le jeu */
@@ -26,12 +34,11 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
 .carte-col:hover .carte-3d, .carte-col:focus-visible .carte-3d { transform: translateY(-4px); }
 .carte-col:hover .face, .carte-col:focus-visible .face { box-shadow: 0 26px 36px -18px rgba(0, 0, 0, .95), 0 0 0 2px var(--c); }
 .carte-col:active .carte-3d { transform: scale(.97); }
-/* En entrant à l'écran : petit bond, tour complet (face claire au dos), atterrissage */
-.carte-col.entre .carte-3d { animation: carte-entre .95s cubic-bezier(.3, 1.3, .5, 1) var(--retard, 0ms) both; }
+/* En entrant à l'écran : simple fondu qui monte un peu (Hugo, 02/11/2026 : le tour complet donnait la nausée) */
+.carte-col.entre .carte-3d { animation: carte-entre .45s ease-out var(--retard, 0ms) both; }
 @keyframes carte-entre {
-  0% { transform: translateY(14px) rotateY(0) scale(.96); }
-  55% { transform: translateY(-10px) rotateY(200deg) scale(1.05); }
-  100% { transform: translateY(0) rotateY(360deg) scale(1); }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
 }
 .carte-col:focus-visible { outline: none; }
 .carte-col .nom { font: 400 clamp(15px, 1.6vw, 19px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--c); text-align: center; overflow-wrap: anywhere; }
@@ -55,6 +62,13 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
   .detail .t-plateau { width: min(100%, calc(100svh - 150px)); align-self: center; }
 }
 @keyframes ouverture { from { opacity: 0; transform: translateY(14px) scale(.98); } }
+/* Personnage suivant / précédent : la fiche glisse depuis le côté, sans rebond */
+.detail.vers-droite[open] { animation: glisse-droite .22s ease-out; }
+.detail.vers-gauche[open] { animation: glisse-gauche .22s ease-out; }
+@keyframes glisse-droite { from { opacity: .4; transform: translateX(36px); } }
+@keyframes glisse-gauche { from { opacity: .4; transform: translateX(-36px); } }
+/* Balayage horizontal sur la carte et le texte : le navigateur ne garde que le défilement vertical */
+.detail .d-carte, .detail .d-infos { touch-action: pan-y; }
 .detail::backdrop { background: rgba(10, 8, 7, .8); backdrop-filter: blur(4px); }
 .d-fermer { position: absolute; top: 8px; right: 10px; z-index: 5; width: 44px; height: 44px; border: 0; border-radius: 12px; background: none; color: var(--mt-doux); font-size: 28px; cursor: pointer; }
 .d-carte { display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -128,7 +142,7 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
   .d-depl { margin-top: 20px; }
   .t-barre .mt-btn { flex: 1; }
 }
-@media (prefers-reduced-motion: reduce) { .carte3d .face, .t-perso, .t-ennemi, .carte-col .carte-3d, .detail[open] { transition: none; animation: none; } }
+@media (prefers-reduced-motion: reduce) { .carte3d .face, .t-perso, .t-ennemi, .carte-col .carte-3d, .detail[open], .detail.vers-droite[open], .detail.vers-gauche[open] { transition: none; animation: none; } }
 
 /* /collection#equipes (fin du tutoriel) : les 4 équipes de départ, 3 cartes chacune */
 .equipes-depart .equipe { margin-top: 26px; }

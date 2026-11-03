@@ -1,27 +1,59 @@
 """Construit les données de la page /collection à partir du projet motiontak (livret et vidéos).
 
-    python3 server/build_collection_json.py [chemin/vers/motiontak]
+    python3 server/build_collection_json.py [chemin/vers/motiontak] [--sans-images]
 
 Sorties :
 - static/data/collection.json : les 42 Personnages (nom, espèce, rang, Saison, boîte, Force, réplique,
-  déplacements calculés depuis variants.ini par motiontak/outils/deplacements.py) ;
+  déplacements calculés depuis variants.ini par motiontak/outils/deplacements.py ; numéro et
+  équivalent aux échecs du tableau d'Hugo `sources/donnees/characters-hugo.csv`, famille de
+  `donnees/lore.csv`), rangés dans l'ordre du tableau ;
 - static/images/background/collection/{sombre,clair}{,-720}/NN-nom.webp : les cartes réduites en 360 et
   720 px (illustrations sous droits réservés : dossier ignoré par git, à copier à la main sur le serveur).
 
 Nécessite Pillow (pour les images).
 """
 
+import csv
 import json
 import sys
 from pathlib import Path
 
 RACINE = Path(__file__).resolve().parent.parent
-MOTIONTAK = Path(sys.argv[1]) if len(sys.argv) > 1 else RACINE.parent / "motiontak"
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+MOTIONTAK = Path(ARGS[0]) if ARGS else RACINE.parent / "motiontak"
+SANS_IMAGES = "--sans-images" in sys.argv
 TAILLES = {"": 360, "-720": 720}  # suffixe du dossier -> px ; le navigateur choisit (srcset)
 
 SAISONS = {"printemps": "Printemps", "ete": "Été", "automne": "Automne", "hiver": "Hiver"}
-ORDRE_RANG = {"roi": 0, "champion": 1, "pion": 2}
-ORDRE_SAISON = {"printemps": 0, "ete": 1, "automne": 2, "hiver": 3}
+# Colonne « Chess » du tableau d'Hugo -> filtre de la Collection (les autres : pas d'équivalent exact)
+ECHECS = {
+    "King": "roi",
+    "Queen": "dame",
+    "Rook": "tour",
+    "Bishop": "fou",
+    "Knight": "cavalier",
+    "Pawn": "pion",
+}
+
+
+def tableau_d_hugo():
+    """{NOM: (numéro, équivalent aux échecs ou None)} depuis l'export CSV de l'Excel des Personnages."""
+    lignes = list(
+        csv.reader((MOTIONTAK / "sources/donnees/characters-hugo.csv").open(encoding="utf-8"))
+    )
+    entete = lignes[2]
+    i_id, i_nom, i_echecs = entete.index("ID"), entete.index("Name"), entete.index("Chess")
+    tableau = {}
+    for ligne in lignes[3:]:
+        nom = ligne[i_nom].strip().upper()
+        if ligne[i_id].isdigit() and nom and nom not in tableau:
+            tableau[nom] = (int(ligne[i_id]), ECHECS.get(ligne[i_echecs].strip()))
+    return tableau
+
+
+def familles():
+    with (MOTIONTAK / "donnees/lore.csv").open(encoding="utf-8-sig") as f:
+        return {ligne["nom"].upper(): ligne["famille"] for ligne in csv.DictReader(f, delimiter=";")}
 
 
 def main():
@@ -30,6 +62,8 @@ def main():
         (MOTIONTAK / "assets/data/deplacements.json").read_text(encoding="utf-8")
     )
 
+    tableau = tableau_d_hugo()
+    famille = familles()
     personnages = []
     for c in cartes:
         espece = deplacements[c["espece"]]
@@ -43,6 +77,9 @@ def main():
                 "boite": "base" if c["boite"] == "base" else "extension",
                 "etoiles": c["etoiles"],
                 "replique": c.get("lore") or "",
+                "numero": tableau[c["nom"].upper()][0],
+                "echecs": tableau[c["nom"].upper()][1],
+                "famille": famille[c["nom"].upper()],
                 "image": nom_fichier,
                 "cases": [
                     {k: m[k] for k in ("dx", "dy", "genre", "saut", "repete", "illimite")}
@@ -50,9 +87,7 @@ def main():
                 ],
             }
         )
-    personnages.sort(
-        key=lambda p: (ORDRE_RANG[p["rang"]], ORDRE_SAISON[p["saison"]], -p["etoiles"], p["nom"])
-    )
+    personnages.sort(key=lambda p: p["numero"])
 
     sortie = RACINE / "static/data/collection.json"
     sortie.parent.mkdir(parents=True, exist_ok=True)
@@ -62,6 +97,8 @@ def main():
         encoding="utf-8",
     )
     print(f"{len(personnages)} Personnages -> {sortie.relative_to(RACINE)}")
+    if SANS_IMAGES:
+        return
 
     from PIL import Image
 
