@@ -303,3 +303,4 @@ button.av-case:focus-visible, .av-perso:focus-visible { outline: 2px solid var(-
 /* Petites cases (téléphone en paysage) : le niveau d'ouverture reste sur une ligne */
 .av-case.verrou small { white-space: nowrap; }
 @media (max-height: 500px) and (orientation: landscape) { .av-case.verrou small { font-size: 8.5px; } .av-case.verrou { gap: 1px; } }
+.av-retrouver { display: block; margin: 2px auto 0; text-align: center; text-decoration: none; font-size: 13px; color: var(--mt-discret); }

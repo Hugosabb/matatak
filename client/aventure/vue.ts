@@ -86,6 +86,8 @@ function choixDuRoi(ctx: ContexteAventure): VNode {
         )),
         h('p.av-meme-equipe', 'Pas de bon ou de mauvais choix : tous les Rois partent avec la même équipe.'),
         h('button.av-lien', { attrs: { type: 'button' }, on: { click: ctx.partieLibre } }, 'Partie libre, sans Aventure'),
+        // Invité : son Aventure d'un autre appareil (ou de Safari, pour l'appli installée sur iPhone) est sur son compte
+        document.body.dataset.anon === 'False' ? '' : h('a.av-lien.av-retrouver', { attrs: { href: '/connexion' } }, 'Déjà commencé ailleurs ? Connecte-toi pour retrouver ton Aventure'),
     ]);
 }
 

@@ -1,7 +1,7 @@
 import { carteTournante, duoEchange } from './carteAnimee';
 import { ROIS, roiDuNiveau, saisonDuNiveau, Saison } from './rois';
 import { montrerEquipe, renderAventure } from './aventure/vue';
-import { classeeDebloquee, classeeForcee, draftDebloque, forcerClassee, lierPartie, lire as lireAventure, noterPartieDemandee, Partie as PartieAventure, prochainePartie } from './aventure/progression';
+import { classeeDebloquee, classeeForcee, draftDebloque, forcerClassee, lierPartie, lire as lireAventure, noterPartieDemandee, Partie as PartieAventure, prochainePartie, synchroniserAvecLeCompte } from './aventure/progression';
 import { WebsocketHeartbeatJs } from './socket/socket';
 import { installeur, ouvrirInstallation } from './installer';
 import { equipeMemorisee, fenPourCouleur } from './equipe';
@@ -309,6 +309,9 @@ export class LobbyController implements ChatController {
                 this.jouer.adv = 'classee';
                 if (!this.anon) this.defier(aDefier);
             }
+            // Joueur connecté : l'Aventure de son compte, si elle est plus loin que celle de cet appareil
+            // (l'appli installée sur iPhone n'a pas le stockage de Safari)
+            if (jouerEl) synchroniserAvecLeCompte().then(change => { if (change) this.majJouer(); });
             const aventure = new URLSearchParams(window.location.search).get('aventure');
             if (jouerEl && aventure) {
                 window.history.replaceState({}, '', window.location.pathname);

@@ -90,6 +90,7 @@ from views import (
     livret,
 )
 import pwa
+import aventure_compte
 import classee
 import palmares
 from views import palmares as palmares_vue
@@ -186,6 +187,7 @@ get_routes = (
     ("/api/{profileId}/all", get_user_games),
     ("/api/{profileId}/win", get_user_games),
     ("/api/{profileId}/loss", get_user_games),
+    ("/api/aventure", aventure_compte.lire),
     ("/api/classee", classee.infos),
     ("/api/palmares", palmares.infos),
     ("/palmares", palmares_vue.palmares),
@@ -218,6 +220,7 @@ get_routes = (
 )
 
 post_routes = (
+    ("/api/aventure", aventure_compte.enregistrer),
     ("/api/token/test", bot_token_test),
     ("/api/bot/game/{gameId}/abort", bot_abort),
     ("/api/bot/game/{gameId}/resign", bot_resign),

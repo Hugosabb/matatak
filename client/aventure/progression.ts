@@ -38,12 +38,82 @@ export function enregistrer(p: Progression) {
     try {
         localStorage.setItem(CLE, JSON.stringify(p));
     } catch { /* navigation privée : la progression ne dure que le temps de la page */ }
+    envoyerAuCompte({ aventure: p });
 }
 
 export function effacer() {
     try {
         localStorage.removeItem(CLE);
     } catch { /* rien à effacer */ }
+    envoyerAuCompte({ reinitialiser: true });
+}
+
+// ---------- Progression gardée sur le compte (server/aventure_compte.py) ----------
+// Sur iPhone, l'appli installée n'a pas le stockage de Safari : sans le compte, elle repartait du
+// niveau 0 (bug d'Hugo du 03/11/2026). On garde toujours la progression la plus avancée.
+
+const CLE_TUTORIEL = 'matatak_tutoriel';
+
+function connecte(): boolean {
+    return document.body?.dataset.anon === 'False';
+}
+
+function tutorielLocal(): string | null {
+    try { return localStorage.getItem(CLE_TUTORIEL); } catch { return null; }
+}
+
+/** Étape, puis victoires de l'étape, puis parties jouées : plus grand = plus loin. */
+export function avancement(p: Progression | null): number[] {
+    return p ? [p.etape, p.victoires, p.parties] : [-1, -1, -1];
+}
+
+export function plusAvancee(a: Progression | null, b: Progression | null): boolean {
+    const [x, y] = [avancement(a), avancement(b)];
+    for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return x[i] > y[i];
+    return false;
+}
+
+let envoiEnAttente: ReturnType<typeof setTimeout> | undefined;
+function envoyerAuCompte(corps: { aventure?: Progression, reinitialiser?: boolean }) {
+    if (!connecte()) return;
+    // Plusieurs enregistrements d'affilée (fin de partie, équipe) : un seul envoi
+    clearTimeout(envoiEnAttente);
+    envoiEnAttente = setTimeout(() => {
+        fetch('/api/aventure', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...corps, tutoriel: tutorielLocal() }),
+            keepalive: true,
+        }).catch(() => { /* hors ligne : on renverra au prochain enregistrement ou à la prochaine visite */ });
+    }, corps.reinitialiser ? 0 : 400);
+}
+
+/** À l'ouverture de /jouer : reprend la progression du compte si elle est plus loin que celle de
+ *  l'appareil (et le tutoriel déjà fait), sinon envoie celle de l'appareil. Renvoie true si
+ *  l'appareil a changé (il faut redessiner). */
+export async function synchroniserAvecLeCompte(): Promise<boolean> {
+    if (!connecte()) return false;
+    let compte: { connecte: boolean, aventure?: Progression | null, tutoriel?: string | null };
+    try {
+        compte = await (await fetch('/api/aventure', { credentials: 'same-origin' })).json();
+    } catch { return false; }
+    if (!compte.connecte) return false;
+    let change = false;
+    const ici = lire();
+    const laBas = compte.aventure && compte.aventure.version === 1 ? compte.aventure : null;
+    if (laBas && plusAvancee(laBas, ici)) {
+        try { localStorage.setItem(CLE, JSON.stringify(laBas)); change = true; } catch { /* navigation privée */ }
+    } else if (ici && plusAvancee(ici, laBas)) {
+        envoyerAuCompte({ aventure: ici });
+    }
+    const t = tutorielLocal();
+    if (compte.tutoriel && (t === null || (t !== 'fini' && compte.tutoriel === 'fini') || !['fini', 'connu'].includes(t))) {
+        try { localStorage.setItem(CLE_TUTORIEL, compte.tutoriel); change = true; } catch { /* navigation privée */ }
+    } else if (t && ['fini', 'connu'].includes(t) && compte.tutoriel !== t && !(compte.tutoriel === 'fini')) {
+        envoyerAuCompte(ici ? { aventure: ici } : {});
+    }
+    return change;
 }
 
 /** Demande au navigateur de ne pas effacer nos données quand il manque de place (accordé facilement
