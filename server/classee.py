@@ -15,6 +15,7 @@ import time
 
 from bots_classes import choisir_bot, creer_bot, niveau_du_bot
 from classement_unique import cle_perf
+from draft import en_commun, nettoyer_en_plus
 from const import STARTED
 from logger import log
 from newid import new_id
@@ -37,9 +38,10 @@ def plateau_commun(a: str, b: str) -> str:
 
 
 class Attente:
-    def __init__(self, user, variant, classement):
+    def __init__(self, user, variant, classement, en_plus=""):
         self.user = user
         self.variant = variant  # plateau préféré
+        self.en_plus = nettoyer_en_plus(en_plus)  # Personnages du Draft en plus de la base
         self.classement = classement
         self.debut = time.monotonic()
         self.tache: asyncio.Task | None = None
@@ -78,7 +80,7 @@ def _adversaire(app_state, attente: Attente) -> Attente | None:
     return None
 
 
-async def _creer_partie(app_state, joueur, adversaire, variant, level=0):
+async def _creer_partie(app_state, joueur, adversaire, variant, level=0, persos=""):
     minutes, inc = CADENCES[variant]
     seek_id = await new_id(None if app_state.db is None else app_state.db.seek)
     seek = Seek(
@@ -92,6 +94,7 @@ async def _creer_partie(app_state, joueur, adversaire, variant, level=0):
         player1=joueur,
         rated=True,
         isDraft=True,
+        persos=persos,
     )
     return await join_seek(app_state, adversaire, seek)
 
@@ -157,7 +160,10 @@ async def _attendre(app_state, attente: Attente):
         )
         _derniers(app_state)[user.username] = nom
         bot = await creer_bot(app_state, nom)
-        response = await _creer_partie(app_state, user, bot, attente.variant, niveau_du_bot(nom))
+        # Contre un adversaire d'entraînement : les Personnages en plus du joueur
+        response = await _creer_partie(
+            app_state, user, bot, attente.variant, niveau_du_bot(nom), persos=attente.en_plus
+        )
         log.info("Partie classée %s contre l'entraînement %s", user.username, nom)
         await _envoyer(user, response)
     except asyncio.CancelledError:
@@ -171,7 +177,13 @@ async def _attendre(app_state, attente: Attente):
 async def _apparier(app_state, a: Attente, b: Attente):
     _retirer(app_state, a.user.username)
     _retirer(app_state, b.user.username)
-    response = await _creer_partie(app_state, a.user, b.user, plateau_commun(a.variant, b.variant))
+    response = await _creer_partie(
+        app_state,
+        a.user,
+        b.user,
+        plateau_commun(a.variant, b.variant),
+        persos=en_commun(a.en_plus, b.en_plus),
+    )
     log.info("Partie classée %s contre %s", a.user.username, b.user.username)
     await _envoyer(a.user, response)
     await _envoyer(b.user, response)
@@ -184,7 +196,7 @@ async def chercher(app_state, user, data):
         await _envoyer(user, {"type": "classee_annulee"})
         return
     _retirer(app_state, user.username)
-    attente = Attente(user, variant, user.get_rating_value(variant, False))
+    attente = Attente(user, variant, user.get_rating_value(variant, False), data.get("persos"))
     _file(app_state)[user.username] = attente
 
     autre = _adversaire(app_state, attente)
@@ -260,9 +272,10 @@ def joueurs_en_ligne(app_state, moi) -> list[dict]:
 
 
 class Defi:
-    def __init__(self, de, a, variant):
+    def __init__(self, de, a, variant, en_plus=""):
         self.id = secrets.token_hex(4)
         self.de, self.a, self.variant = de, a, variant
+        self.en_plus = nettoyer_en_plus(en_plus)
         self.tache: asyncio.Task | None = None
 
 
@@ -312,7 +325,7 @@ async def defier(app_state, user, data):
     for ancien in [d for d in _defis(app_state).values() if d.de is user]:
         await _fin_defi(app_state, ancien, "annule")
     await annuler(app_state, user)
-    defi = Defi(user, adversaire, variant)
+    defi = Defi(user, adversaire, variant, data.get("persos"))
     _defis(app_state)[defi.id] = defi
     defi.tache = asyncio.create_task(_expirer(app_state, defi), name="defi-%s" % defi.id)
     await _envoyer(
@@ -362,7 +375,9 @@ async def repondre(app_state, user, data):
     await annuler(app_state, defi.a)
     plateau = data.get("variant")
     variant = plateau_commun(defi.variant, plateau if plateau in CADENCES else defi.variant)
-    response = await _creer_partie(app_state, defi.de, defi.a, variant)
+    response = await _creer_partie(
+        app_state, defi.de, defi.a, variant, persos=en_commun(defi.en_plus, data.get("persos"))
+    )
     log.info("Défi classé %s contre %s", defi.de.username, defi.a.username)
     await _envoyer(defi.de, response)
     await _envoyer(defi.a, response)

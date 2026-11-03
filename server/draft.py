@@ -23,6 +23,27 @@ from fairy.fairy_board import FairyBoard
 
 PIONS = "abefgjlmpq"
 CHAMPIONS = "cdhinorstwxyz"
+# Toujours dans le tirage (Hugo, 03/11/2026) : les 4 équipes de départ + DUB et JAZZ, comme les règles
+# du jeu. Pions : SHASHA, TAMTAM, BONGO, BANJO ; Champions : DYSKO, DUB, ROKK, JAZZ, FRANK, KRAK.
+BASE_PIONS = "bflm"
+BASE_CHAMPIONS = "chinwx"
+
+
+def nettoyer_en_plus(valeur) -> str:
+    """Personnages « en plus » envoyés par le navigateur (lettres, client/draftPersos.ts) : seulement
+    des lettres connues hors base, sans doublon, triées."""
+    if not isinstance(valeur, str):
+        return ""
+    connues = set(PIONS + CHAMPIONS) - set(BASE_PIONS + BASE_CHAMPIONS)
+    return "".join(sorted(set(valeur[:40]) & connues))
+
+
+def en_commun(a: str, b: str) -> str:
+    """Arène : un Personnage en plus n'entre que si les deux joueurs l'ont (pour ne pas pénaliser
+    le nouveau joueur)."""
+    return "".join(sorted(set(nettoyer_en_plus(a)) & set(nettoyer_en_plus(b))))
+
+
 ROIS = ("printemps", "ete", "automne", "hiver")  # MOJO, AZAR, SHANS, KARMA
 
 PIONS_FORMER = "PIONS_FORMER"
@@ -59,13 +80,18 @@ def autre(couleur: str) -> str:
 
 
 class Draft:
-    def __init__(self, variant: str, rng: random.Random | None = None):
+    def __init__(self, variant: str, rng: random.Random | None = None, en_plus: str = ""):
         rng = rng or random.Random()
         self.mini = variant == "matatakmini"
         # Toujours au hasard (Hugo) : 8 Pions, 6 Champions, 2 Rois différents ; des doublons de
         # Pions ou de Champions sont possibles, la boîte a 4 exemplaires de chaque Personnage.
-        self.pions = [rng.choice(PIONS) for _ in range(8)]
-        self.champions = [rng.choice(CHAMPIONS) for _ in range(6)]
+        # Tirés dans la base + les Personnages en plus choisis (nettoyer_en_plus).
+        en_plus = nettoyer_en_plus(en_plus)
+        self.en_plus = en_plus
+        reserve_pions = BASE_PIONS + "".join(c for c in en_plus if c in PIONS)
+        reserve_champions = BASE_CHAMPIONS + "".join(c for c in en_plus if c in CHAMPIONS)
+        self.pions = [rng.choice(reserve_pions) for _ in range(8)]
+        self.champions = [rng.choice(reserve_champions) for _ in range(6)]
         self.rois = rng.sample(ROIS, 2)
         self.phase = PIONS_FORMER
         # Groupes formés : listes d'indices. Pour les Champions, 0-5 = self.champions, 6-7 = self.rois.

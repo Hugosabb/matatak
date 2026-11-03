@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from const import CORR_SEEK_EXPIRE_WEEKS
+from draft import nettoyer_en_plus
 from misc import time_control_str
 from newid import new_id
 from logger import log
@@ -40,6 +41,7 @@ class Seek:
         expire_at=None,
         reused_fen=False,
         isDraft=False,
+        persos="",
         boost=0,
         rois=None,
     ):
@@ -74,6 +76,8 @@ class Seek:
         # True if this is 960 variant 1st, 3rd etc. rematch seek
         self.reused_fen = reused_fen
         self.isDraft = isDraft
+        # Draft : Personnages en plus de la base (server/draft.py, client/draftPersos.ts)
+        self.persos = persos
         self.rois = rois  # Rois d'une revanche de Draft (mêmes équipes), voir Game.rois
         # Entre amis : Saison de l'équipe de départ choisie par chaque joueur (nom → Saison), voir new_game
         self.equipes = {}
@@ -204,6 +208,7 @@ async def create_seek(db, invites, seeks, user, data, empty=False, engine=None):
         game_id=game_id,
         # Le navigateur envoie « draft » (lobby.ts) : sans ça, le Draft entre amis était ignoré
         isDraft=bool(data.get("isDraft", data.get("draft", False))),
+        persos=nettoyer_en_plus(data.get("persos")),
         boost=data.get("boost", 0),
     )
 

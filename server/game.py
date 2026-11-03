@@ -77,6 +77,7 @@ class Game:
         tournamentId=None,
         new_960_fen_needed_for_rematch=False,
         isDraft=False,
+        persos="",
         boost=0,
         rois=None,
     ):
@@ -106,6 +107,7 @@ class Game:
         self.new_960_fen_needed_for_rematch = new_960_fen_needed_for_rematch
         self.imported_by = ""
         self.isDraft = isDraft
+        self.persos = persos  # Draft : Personnages en plus de la base (server/draft.py)
         self.boost = boost
         # Roi de chaque camp ({"white": Saison, "black": Saison}) : tiré au Draft, puis gardé dans
         # les revanches avec les mêmes équipes. None : Roi assorti à l'équipe (client/rois.ts).
@@ -232,7 +234,7 @@ class Game:
         # Draft (server/draft.py) : les équipes se composent avant la partie, qui reste CREATED ;
         # en attendant, le plateau porte une position de départ ordinaire, cachée par l'écran du Draft.
         self.draft = (
-            Draft(self.variant)
+            Draft(self.variant, en_plus=self.persos)
             if self.variant.startswith("matatak") and self.isDraft and not self.initial_fen
             else None
         )

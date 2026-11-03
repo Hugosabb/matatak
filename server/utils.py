@@ -489,6 +489,7 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
             isDraft=seek.isDraft,
             boost=boost,
             rois=seek.rois,
+            persos=getattr(seek, "persos", ""),
         )
     except Exception:
         log.exception(

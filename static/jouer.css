@@ -324,3 +324,15 @@ body[data-view="jouer"] { --mt-choix: 68px; }
 }
 /* Arène : le repli « Plus d'options » sous le bouton doré (plateau ; 03/11/2026) */
 .jouer-page .partie.classee > .plus { margin-top: 12px; }
+/* Personnages du Draft (client/draftPersos.ts, 03/11/2026) : petites cartes en ligne ; entourée d'or =
+   dans le tirage, sombre = pas pris ; la base (équipes de départ + DUB et JAZZ) est toujours prise */
+.draft-persos .aide { display: block; margin: -4px 0 8px; }
+.dp-titre { margin: 10px 0 6px; font: 900 11px 'Jost', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--mt-discret); }
+.dp-rangee { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.dp-carte { position: relative; aspect-ratio: 1; padding: 0; border: 0; border-radius: 10%; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.dp-carte img { display: block; width: 100%; height: 100%; border-radius: 10%; }
+.dp-carte.libre img { filter: brightness(.38) saturate(.5); }
+.dp-carte.pris, .dp-carte.base { box-shadow: 0 0 0 2px var(--mt-or); }
+.dp-carte.base { cursor: default; opacity: .9; }
+.dp-carte.libre:hover img { filter: brightness(.6) saturate(.7); }
+.dp-carte:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }

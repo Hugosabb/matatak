@@ -1,6 +1,7 @@
 from __future__ import annotations
 import asyncio
 import random
+from draft import nettoyer_en_plus
 from datetime import datetime, timezone
 
 import aiohttp_session
@@ -222,6 +223,7 @@ async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
         isDraft=data["draft"],
         boost=data["boost"],
         rois=rois,
+        persos=nettoyer_en_plus(data.get("persos")),
     )
     log.debug("adding seek: %s" % seek)
 

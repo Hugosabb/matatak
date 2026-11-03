@@ -30,6 +30,7 @@ import { seekViewBughouse, switchEnablingLobbyControls } from "./bug/lobby.bug";
 import { handleOngoingGameEvents, Game, gameViewPlaying, compareGames } from './nowPlaying';
 import { createWebsocket } from "@/socket/webSocketUtils";
 import { noterPlateauAuto, plateauAuto, plateauDeLEcran } from './plateauPrefere';
+import { choixPersosDraft, persosEnPlus } from './draftPersos';
 
 
 const autoPairingTCs: [number, number, number][] = [
@@ -299,7 +300,7 @@ export class LobbyController implements ChatController {
                 this.jouer.adv = 'classee';
                 if (!this.anon) {
                     this.classeeDebut = Date.now();
-                    this.doSend({ type: 'classee_chercher', variant: this.jouer.variant });
+                    this.doSend({ type: 'classee_chercher', variant: this.jouer.variant, persos: persosEnPlus() });
                 }
             }
             // « Défier » sur la page d'un joueur : /jouer?defier=pseudo envoie le défi depuis l'Arène
@@ -459,6 +460,8 @@ export class LobbyController implements ChatController {
             chess960: chess960,
             color: color,
             draft: draft,
+            // Draft : Personnages en plus de la base (client/draftPersos.ts)
+            persos: draft ? persosEnPlus() : '',
             boost: boost
         });
     }
@@ -478,6 +481,8 @@ export class LobbyController implements ChatController {
             color: color,
             profileid: this.profileid,
             draft: draft,
+            // Draft : Personnages en plus de la base (client/draftPersos.ts)
+            persos: draft ? persosEnPlus() : '',
             boost: boost
         });
     }
@@ -499,6 +504,8 @@ export class LobbyController implements ChatController {
             color: color,
             profileid: (this.profileid === "") ? "Fairy-Stockfish" : this.profileid,
             draft: draft,
+            // Draft : Personnages en plus de la base (client/draftPersos.ts)
+            persos: draft ? persosEnPlus() : '',
             boost: boost
         });
     }
@@ -517,6 +524,8 @@ export class LobbyController implements ChatController {
             chess960: chess960,
             color: color,
             draft: draft,
+            // Draft : Personnages en plus de la base (client/draftPersos.ts)
+            persos: draft ? persosEnPlus() : '',
             boost: boost
         });
     }
@@ -675,7 +684,7 @@ export class LobbyController implements ChatController {
 
     private defier(adversaire: string) {
         this.defiMessage = '';
-        this.doSend({ type: 'classee_defier', variant: this.jouer.variant, adversaire });
+        this.doSend({ type: 'classee_defier', variant: this.jouer.variant, adversaire, persos: persosEnPlus() });
     }
 
     private onMsgDefi(msg: Record<string, any>) {
@@ -698,7 +707,7 @@ export class LobbyController implements ChatController {
 
     private repondreDefi(defi: DefiRecu, accepte: boolean) {
         // Son plateau préféré : la partie se joue sur le Mini si l'un des deux le préfère
-        this.doSend({ type: 'classee_defi_reponse', id: defi.id, accepte, variant: this.jouer.variant });
+        this.doSend({ type: 'classee_defi_reponse', id: defi.id, accepte, variant: this.jouer.variant, persos: persosEnPlus() });
         if (!accepte) this.defisRecus = this.defisRecus.filter(d => d.id !== defi.id);
         this.majJouer();
     }
@@ -768,7 +777,7 @@ export class LobbyController implements ChatController {
     private chercherClassee() {
         if (this.classeeDebut) return;
         this.classeeDebut = Date.now(); // tout de suite, sans attendre la réponse du serveur
-        this.doSend({ type: 'classee_chercher', variant: this.jouer.variant });
+        this.doSend({ type: 'classee_chercher', variant: this.jouer.variant, persos: persosEnPlus() });
         this.majJouer();
     }
 
@@ -831,7 +840,10 @@ export class LobbyController implements ChatController {
                 attrs: { type: 'button', 'aria-expanded': String(this.classeeOptions), 'aria-controls': 'plus-options-classee' },
                 on: { click: () => { this.classeeOptions = !this.classeeOptions; this.majJouer(); } },
             }, this.classeeOptions ? [h('span', "Moins d'options")] : [h('span', "Plus d'options"), h('small', `Plateau ${nomPlateau}`)]),
-            this.classeeOptions ? h('div#plus-options-classee.plus-options', [blocPlateau]) : '',
+            this.classeeOptions ? h('div#plus-options-classee.plus-options', [
+                blocPlateau,
+                choixPersosDraft(() => this.majJouer(), "Toujours les Personnages du jeu de base. Touche une carte pour en ajouter : il n'entre que si ton adversaire l'a aussi."),
+            ]) : '',
             this.renderEnLigne(infos, attente),
             this.renderPalmaresSemaine(),
         ]);
@@ -896,6 +908,9 @@ export class LobbyController implements ChatController {
                 h('span', [h('b', 'Draft'), h('small', "Les Personnages sont tirés au hasard. L'un forme deux groupes, l'autre choisit le sien, puis chacun place son équipe."
                     + (lireAventure() && !draftDebloque(lireAventure()!) ? " Dans l'Aventure, il se débloque à la fin de la phase 3." : ''))]),
             ]),
+            this.jouerDraft ? choixPersosDraft(maj, ia
+                ? "Toujours les Personnages du jeu de base. Touche une carte pour en ajouter."
+                : "Toujours les Personnages du jeu de base. Touche une carte pour en ajouter : ton ami jouera avec les mêmes.") : '',
             // Coup de pouce (règle du livret) : entre amis seulement ; en Solo, on choisit un niveau plus facile
             ia ? '' : h('div.bloc.pouce', { class: { inactif: this.jouerDraft } }, [
                 h('div.etiq', [h('label', { attrs: { for: 'jouer-pouce' } }, 'Coup de pouce'),

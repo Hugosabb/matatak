@@ -380,3 +380,40 @@ class DefiTestCase(BaseClassee):
             for nom in ("alice", "Cool-Camel#000003", "personne"):
                 await classee.defier(app_state, a, {"variant": "matatakmini", "adversaire": nom})
         self.assertEqual(classee._defis(app_state), {})
+
+
+class PersosDuDraftTestCase(BaseClassee):
+    """Personnages du Draft (Hugo, 03/11/2026) : toujours la base (équipes de départ + DUB et JAZZ),
+    plus ceux choisis ; dans l'Arène, seulement ceux que les deux joueurs ont."""
+
+    def test_reserve_base_et_en_plus(self):
+        import random
+        from draft import BASE_CHAMPIONS, BASE_PIONS, Draft, en_commun, nettoyer_en_plus
+
+        for graine in range(30):
+            d = Draft("matatakmini", random.Random(graine))
+            self.assertTrue(set(d.pions) <= set(BASE_PIONS))
+            self.assertTrue(set(d.champions) <= set(BASE_CHAMPIONS))
+        vus = set()
+        for graine in range(200):
+            d = Draft("matatak", random.Random(graine), en_plus="ds")
+            vus |= set(d.pions) | set(d.champions)
+        self.assertTrue({"d", "s"} <= vus)  # FUNK et SALSA tirés au moins une fois
+        self.assertTrue(vus <= set(BASE_PIONS + BASE_CHAMPIONS + "ds"))
+        # Lettres inconnues, base ou doublons : ignorés
+        self.assertEqual(nettoyer_en_plus("ssdkX!b"), "ds")
+        self.assertEqual(nettoyer_en_plus(None), "")
+        self.assertEqual(en_commun("dsa", "sa"), "as")
+
+    async def test_arene_personnages_en_commun(self):
+        import classee
+
+        app_state = get_app_state(self.app)
+        a = self.joueur("alice", 1500)
+        b = self.joueur("bruno", 1520)
+        with patch("classee.ws_send_json", new=AsyncMock()) as envoi:
+            await classee.chercher(app_state, a, {"variant": "matatakmini", "persos": "dsa"})
+            await classee.chercher(app_state, b, {"variant": "matatakmini", "persos": "sz"})
+        game = app_state.games[envoi.await_args.args[1]["gameId"]]
+        self.assertEqual(game.persos, "s")
+        self.assertEqual(game.draft.en_plus, "s")
