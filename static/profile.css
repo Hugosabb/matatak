@@ -1,228 +1,56 @@
-/* profile games */
-.filter-tabs {
-    display: flex;
-    padding-top: 10px;
-}
-div.filter-tabs div.sub-ratings {
-    flex: auto;
-    font-size: 1.2em;
-}
-div.filter-tabs a {
-    justify-content: center;
-}
-div.versus player:nth-of-type(1) {
-  text-align: end;
-  white-space: normal;
-}
-div.versus vs-swords {
-  font-size: 2em;
-  width: 2.5em;
-  text-align: center;
-}
-.player-sum {
-    display: flex;
-    flex-flow: column;
-}
-.player-head {
-    font-size: 24px;
-    display: flex;
-    padding: 2em 1.5em 1em 1.5em;
-    flex-flow: row nowrap;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg-color2);
-}
-.player-head h1 {
-    flex: 0 0 auto;
-    margin: 0;
-    padding: 0;
-}
-.player-social {
-    display: flex;
-    background: var(--bg-color2);
-    justify-content: flex-end;
-}
-player-title {
-  white-space: normal;
-}
-.trophies {
-    height: 40px;
-    display: flex;
-    flex-flow: row wrap;
-    align-items: flex-start;
-    justify-content: flex-end;
-    margin-top: 0 !important;
-}
-.trophy {
-    display: flex;
-    align-items: flex-end;
-    height: 40px;
-    transition: transform 0.2s;
-    margin-right: -8px;
-}
-.trophy:not(.patron):hover, .shield-trophy:not(.patron):hover {
-    transform:translateY(-3px);
-}
+/* Page d'un joueur (/@/pseudo), refaite au style Matatak le 03/11/2026 : templates/profile.html,
+   client/profile.ts. Couleurs et boutons : matatak-ui.css. */
+main.compte { width: 100%; padding: 24px 16px 48px; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 760px); justify-content: center; align-content: start; gap: 18px; font: 400 15.5px/1.5 'Nunito', system-ui, sans-serif; color: var(--mt-encre); }
 
-.trophy img {
-    height: 80px;
-}
-.trophy.top1 {
-    filter: drop-shadow(0 0 6px #d59020);
-}
-.combo-trophy {
-    width: 60px;
-    height: 60px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    font-family: 'pychess';
-    text-align: center;
-}
-.shield-trophy {
-    width: 50px;
-    background-image: url(images/trophy/shield-gold.png);
-    font-size: 30px;
-    line-height: 60px;
-    color: #333 !important;
-    text-shadow: 0 0 6px #fff;
-    margin-top: -20px;
-    filter: drop-shadow(0 0 6px #d59020);
-}
-.btn-rack {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--border-color);
-    border-radius: 3px;
-    margin: 1em;
-}
-.btn-rack a {
-    padding: 0 0.6em;
-    text-align: center;
-    line-height: 2rem;
-    border-right: 1px solid var(--border-color);
-    color: var(--font-color);
-}
-[class*=" icon-"]::before {
-    line-height: 2rem;
-    margin-right: 0.4em;
-}
-.i-at, .i-tv, .i-dl, .i-ch {
-    float: right;
-    padding: 0px 4px 0px 4px;
-    color: #505050;
-    text-decoration: none;
-}
-.editor-button-container .i-pgn div:before {
-    padding-right: 6px;
-}
-a.i-at:link, a.i-tv:link, a.i-dl:link, a.i-ch:link, a.i-pgn:link {
-    display: inline-block;
-    text-decoration: none;
-}
-a.i-at:hover, a.i-tv:hover, a.i-dl:hover, a.i-ch:hover {
-    color: RoyalBlue;
-}
-.i-pgn:hover {
-    color: #004f98;
-}
+/* En-tête : initiale, pseudo, classement, actions */
+.compte-tete { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 18px; padding: 20px 22px; border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); }
+.compte-avatar { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--mt-surface-2, #281e1b); box-shadow: inset 0 0 0 2px var(--mt-or); font: 400 30px/1 'Tribeca', 'Jost', sans-serif; color: var(--mt-or); }
+.compte-avatar { padding-top: var(--mt-tribeca, 0); }
+.compte-nom { min-width: 0; }
+.compte-nom h1 { margin: 0; padding: 0; display: flex; align-items: center; gap: 10px; font: 400 clamp(24px, 4vw, 32px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); overflow-wrap: anywhere; }
+.compte-nom .couronne { width: 26px; height: 26px; flex: none; color: var(--mt-jaune); }
+.compte-classement { margin: 4px 0 0; padding: 0; display: flex; align-items: baseline; gap: 8px; color: var(--mt-doux); }
+.compte-classement strong { font: 900 22px 'Nunito', sans-serif; font-variant-numeric: tabular-nums; color: var(--mt-encre); }
+.compte-classement span { font-size: 14px; font-weight: 700; }
+.compte-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.compte-actions .mt-btn { padding: 0 28px; }
+.compte-lien { min-height: 40px; display: inline-flex; align-items: center; font-weight: 800; color: var(--mt-doux); text-decoration: none; }
+.compte-lien:hover { color: var(--mt-encre); }
+.compte-lien.discret { font-size: 13.5px; font-weight: 700; color: var(--mt-discret); }
 
-div#profile, table#players {
-    grid-area: content;
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0px;
-    border-radius: 3px;
-    /*box-shadow: var(--base-shadow);*/
-}
-table#games {
-    width: 100%;
-}
-td.player-data {
-    padding: 8px;
-}
+/* Onglets Parties · Classées */
+.compte-onglets { display: flex; gap: 6px; }
+.compte-onglet { min-height: 40px; display: inline-flex; align-items: center; padding: 0 16px; border-radius: 12px; font: 800 14px 'Nunito', sans-serif; color: var(--mt-doux); text-decoration: none; background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px var(--mt-filet); }
+.compte-onglet.actif { color: var(--mt-encre); box-shadow: inset 0 0 0 2px var(--mt-or); }
 
-#games th {
-    height: 80px;
-    background-color: var(--bg-color2);
-}
+/* Parties : une carte chacune */
+#games { display: grid; gap: 10px; }
+#games:empty { display: none; }
+.compte-vide { margin: 0; padding: 18px; text-align: center; color: var(--mt-discret); }
+#games:not(:empty) ~ .compte-vide { display: none; }
+a.partie { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px; padding: 12px 16px 12px 12px; border-radius: 16px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); color: inherit; text-decoration: none; }
+a.partie:hover { box-shadow: inset 0 0 0 1.5px var(--mt-or); }
+a.partie:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+/* Petit plateau : 8×8 carré, Mini deux fois plus haut que large */
+.partie-plateau { display: block; width: 92px; border-radius: 8px; overflow: hidden; }
+.partie-plateau.matatak4x8 { width: 56px; margin-inline: 18px; }
+.partie-plateau .cg-wrap.mini { width: 100%; height: 0; } /* hauteur : le padding-bottom de cg-512 / cg-256-512 */
+.partie-infos { min-width: 0; display: grid; gap: 2px; }
+.partie-issue { font: 400 19px/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; }
+.partie-issue.victoire { color: var(--mt-or); }
+.partie-issue.defaite, .partie-issue.annulee, .partie-issue.encours { color: var(--mt-doux); }
+.partie-issue.nul { color: var(--mt-encre); }
+.partie-points { font: 800 14px 'Nunito', sans-serif; letter-spacing: 0; color: var(--mt-discret); }
+.partie-adv { color: var(--mt-doux); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.partie-adv strong { font-weight: 800; color: var(--mt-encre); }
+.partie-meta { font-size: 13px; font-weight: 600; color: var(--mt-discret); }
 
-#games td.board {
-    padding: 6px 12px 6px 12px;
-    align-self: center;
-}
-
-#games td.board.with-pockets {
-    padding: 46px 12px 44px 12px;
-}
-
-#games tr {
-    border: 1px solid var(--bg-color1);
-    background-color: var(--bg-color2);
-}
-#games tr a {
-    display: flex;
-    width:100%;
-}
-#games tr:nth-child(odd) {
-    width:100%;
-    background-color: var(--bg-color1);
-}
-#games tr player {
-    font-size: 1.3em;
-}
-#games tr player a {
-    display: contents;
-}
-#games tbody tr:hover {
-    width:100%;
-    background-color: var(--game-hover);
-    cursor: pointer;
-}
-#games tr a .icon-trophy {
-    display: contents;
-    color: var(--link-color-blue);
-}
-#games tr a .icon-trophy::before {
-    padding-right: 4px;
-}
-#games a:hover {
-  color: var(--font-hover);
-}
-#games .games-info a:hover {
-  color: var(--link-hover);
-}
-@media (max-width: 799px) and (orientation: portrait) {
-    ul.perfs {
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(10ch, 1fr));
-    padding-right: 0rem;
-    }
-    .sub-ratings a span rating {
-    display: flex;
-    }
-    .sub-ratings h3, rating span, .sub-ratings a span rating span {
-    display: none;
-    }
-    a.info0.icon {
-    font-size: 0.6rem;
-    }
-    strong.user-rating-strong {
-    font-size: 1rem;
-    }
-    td.board {
-    display:none;
-    }
-    .sub-ratings a::before {
-    margin-right: 0px;
-    }
-    .trophies {
-    display: none;
-    }
-}
-td.board.bug {
-    display: flex;
-}
-td.board.bug selection {
-    padding-right: 10px;
+@media (max-width: 760px) {
+  main.compte { padding: 14px 12px 32px; gap: 14px; }
+  .compte-tete { grid-template-columns: auto minmax(0, 1fr); padding: 16px; }
+  .compte-avatar { width: 52px; height: 52px; font-size: 24px; }
+  .compte-actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .compte-actions .mt-btn { flex: 1; }
+  .partie-plateau { width: 76px; }
+  .partie-plateau.matatak4x8 { width: 48px; margin-inline: 14px; }
 }

@@ -5,6 +5,8 @@ from const import IMPORTED, RATED, DASH, NONE_USER, TROPHIES
 from custom_trophy_owners import CUSTOM_TROPHY_OWNERS
 from glicko2.glicko2 import PROVISIONAL_PHI
 from views import get_user_context
+from views.confidentialite import CONTACT
+from classement_unique import CLE_CLASSEMENT
 from pychess_global_app_state_utils import get_app_state
 from variants import NOT_RATED_VARIANTS, VARIANTS, VARIANT_ICONS
 
@@ -97,6 +99,11 @@ async def profile(request):
         for v in NOT_RATED_VARIANTS:
             if v in ["matatak", "matatakmini"]:
                 context["ratings"][v] = ("1500?", 0)
+
+    # Un seul classement pour les deux plateaux (classement_unique.py, décision d'Hugo du 02/11/2026)
+    unique = context["ratings"].get(CLE_CLASSEMENT)
+    context["classement"] = unique if unique and unique[1] > 0 else None
+    context["contact"] = CONTACT
 
     context["profile_title"] = (
         app_state.users[profileId].title if profileId in app_state.users else ""
