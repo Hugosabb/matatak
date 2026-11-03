@@ -862,7 +862,8 @@ export class AnalysisController extends GameController {
             e.value = this.fullfen;
 
             if (this.isAnalysisBoard) {
-                this.vpgn = patch(this.vpgn, h('div#pgntext', this.getPgn(idxInVari)));
+                // Bloc PGN retiré de la page (df9e537e4) : sans ce test, le plantage bloquait les flèches de l'analyse libre
+                if (this.vpgn) this.vpgn = patch(this.vpgn, h('div#pgntext', this.getPgn(idxInVari)));
             } else {
                 const hist = this.home + '/' + this.gameId + '?ply=' + ply.toString();
                 window.history.replaceState({}, '', hist);
@@ -1049,7 +1050,8 @@ export class AnalysisController extends GameController {
             e.value = this.fullfen;
 
             if (this.isAnalysisBoard || this.result == "*") {
-                this.vpgn = patch(this.vpgn, h('div#pgntext', this.getPgn(idxInVari)));
+                // Bloc PGN retiré de la page (df9e537e4) : sans ce test, le plantage bloquait les flèches de l'analyse libre
+                if (this.vpgn) this.vpgn = patch(this.vpgn, h('div#pgntext', this.getPgn(idxInVari)));
             }
         }
 

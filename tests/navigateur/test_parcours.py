@@ -80,6 +80,34 @@ async def test_solo_l_ordinateur_repond_et_montre_qu_il_reflechit(site, chromium
     assert not page.erreurs, page.erreurs
 
 
+async def test_reculer_pendant_que_l_ordinateur_reflechit_ne_perd_pas_son_coup(site, chromium):
+    """Bug d'Hugo (03/11/2026) : reculer dans les coups pendant que l'ordinateur réfléchit lui
+    faisait jeter son coup (comparaison avec le coup affiché) : il ne jouait plus jamais."""
+    page, game_id = await partie_solo(chromium, site, niveau=3)
+    moi = await couleur_du_joueur(page)
+    # Au moins deux demi-coups, pour pouvoir reculer
+    while (await dernier_plateau(page))["ply"] < 2 or (await dernier_plateau(page))["fen"].split(" ")[1] != moi:
+        n = await page.evaluate("window.__msgs.length")
+        if (await dernier_plateau(page))["fen"].split(" ")[1] == moi:
+            await jouer_un_coup(page, game_id)
+        await attendre(page, "n => window.__msgs.slice(n).some(m => m.type === 'board')", 12000, n)
+    n = await page.evaluate("window.__msgs.length")
+    plateau = await jouer_un_coup(page, game_id)
+    assert await attendre(page, "document.body.className.includes('ordi-reflechit')", 5000)
+    await page.get_by_role("button", name="Coup précédent").click()
+    await page.get_by_role("button", name="Coup précédent").click()
+    assert await attendre(
+        page,
+        "([n, moi]) => window.__msgs.slice(n).some(m => m.type === 'board' && m.fen.split(' ')[1] === moi)",
+        12000,
+        [n, moi],
+    ), "l'ordinateur n'a pas joué"
+    # Son coup s'affiche : la liste des coups est revenue au dernier
+    dernier = plateau["ply"] + 2
+    assert await attendre(page, f"document.querySelector('#movelist move.active')?.getAttribute('ply') === '{dernier}'", 5000)
+    assert not page.erreurs, page.erreurs
+
+
 async def test_abandon_confirme_dans_le_menu_sans_fenetre_du_navigateur(site, chromium):
     """Abandonner : confirmation dans le menu ⋯ de la partie, plus de confirm() du navigateur (23/10/2026)."""
     page, game_id = await partie_solo(chromium, site, niveau=1, telephone=True)

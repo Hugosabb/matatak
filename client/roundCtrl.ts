@@ -25,6 +25,7 @@ import { WHITE, BLACK, uci2LastMove, getCounting, isHandicap } from './chess';
 import { crosstableView } from './crosstable';
 import { chatMessage, chatView } from './chat';
 import { createMovelistButtons, updateMovelist, updateResult, selectMove } from './movelist';
+import { appuiRepete } from './appuiRepete';
 import { renderRdiff, result } from './result';
 import { player } from './player';
 import { updateCount, updatePoint } from './info';
@@ -553,6 +554,9 @@ export class RoundController extends GameController {
         const icone = (d: string, epaisseur = '2.4') => h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': epaisseur, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } }, [h('path', { attrs: { d } })]);
         const bouton = (texte: string, svg: VNode, onClick: () => void, attrs: Record<string, string> = {}) =>
             h('button.barre-btn', { attrs: { type: 'button', 'aria-label': texte, title: texte, ...attrs }, on: { click: onClick } }, [svg]);
+        // ‹ › : appui long = les coups défilent de plus en plus vite
+        const fleche = (texte: string, svg: VNode, action: () => void) =>
+            h('button.barre-btn.fleche', { attrs: { type: 'button', 'aria-label': texte, title: texte }, on: appuiRepete(action) }, [svg]);
         // Rien à proposer (partie finie, spectateur) : pas de bouton Options
         if (!actions.length) this.menuOuvert = false;
         this.vbarre = patch(this.vbarre, h('div#barre-partie', { class: { ouvert: this.menuOuvert, 'sans-options': !actions.length } }, [
@@ -560,8 +564,8 @@ export class RoundController extends GameController {
             this.menuOuvert ? h('div.barre-menu', { attrs: { role: 'menu' } }, actions) : '',
             actions.length ? bouton('Menu de la partie', icone('M5 12h.01M12 12h.01M19 12h.01', '4'), () => { this.menuOuvert = !this.menuOuvert; this.confirmerAbandon = false; this.renderBarre(); },
                 { 'aria-expanded': String(this.menuOuvert), 'aria-haspopup': 'menu' }) : '',
-            bouton('Coup précédent', icone('M15 5l-7 7 7 7'), () => selectMove(this, this.ply - 1)),
-            bouton('Coup suivant', icone('M9 5l7 7-7 7'), () => selectMove(this, this.ply + 1)),
+            fleche('Coup précédent', icone('M15 5l-7 7 7 7'), () => selectMove(this, this.ply - 1)),
+            fleche('Coup suivant', icone('M9 5l7 7-7 7'), () => selectMove(this, this.ply + 1)),
         ]));
     }
 
@@ -1869,11 +1873,16 @@ export class RoundController extends GameController {
 
     /** Joue le coup trouvé quand le temps visé est écoulé, si la partie n'a pas bougé entre-temps. */
     private jouerCoupOrdinateur(coup: string) {
-        const ply = this.ply;
+        // Nombre de coups de la partie, pas `this.ply` : celui-ci suit le coup affiché, et reculer dans
+        // les coups pendant que l'ordinateur réfléchit lui faisait jeter son coup pour toujours (Hugo, 03/11/2026)
+        const longueur = this.steps.length;
         const attente = Math.max(0, this.reflexion.vise - (performance.now() - this.reflexion.debut));
         setTimeout(() => {
             this.marquerReflexion(false);
-            if (this.status >= 0 || this.ply !== ply || this.turnColor === this.mycolor) return;
+            if (this.status >= 0 || this.steps.length !== longueur || this.turnColor === this.mycolor) return;
+            // On regardait un coup passé : retour à la position en cours avant de jouer (comme chess.com),
+            // sinon le coup part avec le numéro du coup affiché
+            if (this.ply !== this.steps.length - 1) selectMove(this, this.steps.length - 1);
             this.doSendMove(coup);
         }, attente);
     }

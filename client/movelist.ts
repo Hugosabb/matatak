@@ -5,6 +5,7 @@ import { GameController } from './gameCtrl';
 import { result } from './result'
 import { Step } from './messages';
 import { patch } from './document';
+import { appuiRepete } from './appuiRepete';
 
 export function selectMove (ctrl: GameController, ply: number, plyVari = 0): void {
     //console.log("selectMove()", ply, plyVari);
@@ -78,8 +79,8 @@ export function createMovelistButtons (ctrl: GameController) {
     let buttons = [
         h('button', { on: { click: () => ctrl.toggleOrientation() }, props: { title: _('Flip board')} }, [ h('i.icon.icon-refresh') ]),
         h('button', { on: { click: () => selectMove(ctrl, 0) } }, [ h('i.icon.icon-fast-backward') ]),
-        h('button', { on: { click: () => selectMove(ctrl, ctrl.ply - 1, ctrl.plyVari) } }, [ h('i.icon.icon-step-backward') ]),
-        h('button', { on: { click: () => selectMove(ctrl, ctrl.ply + 1, ctrl.plyVari) } }, [ h('i.icon.icon-step-forward') ]),
+        h('button.fleche', { on: appuiRepete(() => selectMove(ctrl, ctrl.ply - 1, ctrl.plyVari)) }, [ h('i.icon.icon-step-backward') ]),
+        h('button.fleche', { on: appuiRepete(() => selectMove(ctrl, ctrl.ply + 1, ctrl.plyVari)) }, [ h('i.icon.icon-step-forward') ]),
         h('button', { on: { click: () => selectMove(ctrl, ctrl.steps.length - 1) } }, [ h('i.icon.icon-fast-forward') ]),
     ];
     if (ctrl.variant.name === 'alice') {
