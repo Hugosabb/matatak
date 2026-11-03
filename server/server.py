@@ -53,6 +53,8 @@ async def handle_404(request, handler):
     except web.HTTPException as ex:
         if ex.status == 404:
             response = await page404.page404(request)
+            # Vrai code 404 (avant : 200, piège 12 de CLAUDE.md)
+            response.set_status(404)
             return response
         raise
     except NotInDbUsers:

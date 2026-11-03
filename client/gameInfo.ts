@@ -18,12 +18,23 @@ export function gameInfo(model: PyChessModel): VNode {
     const tc = timeControlStr(model["base"], model["inc"], model["byo"], model["corr"] === "True" ? model["base"] : 0);
     const altStartName = alternateStartName(variant, model.initialFen);
     const startFen = model.initialFen.replace(/\+/g, '.');
+    // Analyse d'une partie jouée : retour au cadre de fin (Rejouer, Partie suivante de l'Aventure…),
+    // sur la ligne de la cadence, sans hauteur en plus sur téléphone (Hugo, 03/11/2026)
+    const enAnalyse = model["view"] === 'analysis';
+    const retour = enAnalyse ? h('a.retour-partie', { attrs: { href: '/' + model["gameId"], 'aria-label': 'Retour à la partie' } }, [
+        h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } },
+            [h('path', { attrs: { d: 'M15 5l-7 7 7 7' } })]),
+        'Retour',
+    ]) : '';
     const sections = [
         h('section', [
-            // Une ligne : cadence, partie classée, date (le plateau et la variante se voient déjà)
-            h('div.info-meta', [
-                tc + (model["rated"] === '1' ? ' · ' + gameType(model["rated"]) : '') + ' · ',
-                Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now"),
+            // Une ligne : (retour,) cadence, partie classée, date (le plateau et la variante se voient déjà)
+            h('div.info-meta', { class: { 'avec-retour': enAnalyse } }, [
+                retour,
+                h('span', [
+                    tc + (model["rated"] === '1' ? ' · ' + gameType(model["rated"]) : '') + ' · ',
+                    Number(model["status"]) >= 0 ? h('info-date', { attrs: { timestamp: model["date"] } }, timeago(model["date"])) : _("Playing right now"),
+                ]),
                 altStartName ? h('div', altStartName) : '',
             ]),
             // Temps restant de chaque joueur au coup affiché : rempli par analysisClock.renderClocks

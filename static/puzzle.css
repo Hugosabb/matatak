@@ -101,6 +101,9 @@ body[data-view="puzzle"] .feedback:not(.after) .player { grid-column: 1 / -1; }
 .feedback .button.hint:hover, .feedback .button.solution:hover { color: var(--mt-encre); }
 
 /* ---------- Résolution : fin ---------- */
+/* body + .feedback.after : plus fort que `.feedback.after { max-height: 50% }` d'analysis.css,
+   qui coupait le bloc (« Réussi ! » débordait en haut sur téléphone) */
+body[data-view="puzzle"] .feedback.after.fin-puzzle { max-height: none; height: auto; }
 .fin-puzzle {
   align-items: center; gap: 10px; padding: 20px 16px 14px; text-align: center; max-height: none;
   animation: fin-apparait .35s cubic-bezier(.16, 1, .3, 1);

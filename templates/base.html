@@ -62,6 +62,7 @@
     data-oauth-email="{{ oauth_username_selection.oauth_email }}" {% endif %} data-wplayer-b="{{ wplayerB }}"
     data-wtitle-b="{{ wtitleB }}" data-wrating-b="{{ wratingB }}" data-bplayer-b="{{ bplayerB }}"
     data-btitle-b="{{ btitleB }}" data-brating-b="{{ bratingB }}">
+<div class="mt-barre-safari" aria-hidden="true"></div>
     <img class="frame-layer" src="{{ static('images/background/feuilles-2000.webp') }}"
       srcset="{{ static('images/background/feuilles-900.webp') }} 900w, {{ static('images/background/feuilles-1400.webp') }} 1400w, {{ static('images/background/feuilles-2000.webp') }} 2000w"
       sizes="100vmax" alt="">
@@ -72,6 +73,7 @@
     <script src="{{ static('./js/pwa-update.js') }}"></script>
     <script src="{{ static('./js/plein-ecran.js') }}"></script>
     <script src="{{ static('./js/installer.js') }}"></script>
+    <script src="{{ static('./js/secousse-echec.js') }}"></script>
 </body>
 
 </html>

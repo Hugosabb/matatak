@@ -258,13 +258,9 @@ cg-board square {
  * doré sur halo sombre, carte assombrie (un cadre doré se perdait sur la Colline). Carte adverse
  * touchée : son motif en losanges transparents (gameCtrl.onSelect). Jamais de losange creux : dans la
  * Collection, il veut dire « déplacement seulement ». Au survol, le losange grossit.
- * Dernier coup : les deux cases teintées d'or, sans animation. MATATAK ! (échec) : cadre orange vif
- * arrondi qui pulse vite, dans la case du Roi (à ne pas confondre avec le dernier coup). */
+ * Dernier coup : les deux cases teintées d'or, sans animation. MATATAK ! (échec) : liseré qui épouse
+ * la carte du Roi et pulse, plus une secousse (voir plus bas). */
 
-@keyframes matatak-pulse {
-  from { box-shadow: inset 0 0 0 3px #ff9a1f, inset 0 0 14px 5px rgba(255, 154, 31, 0.65); }
-  to { box-shadow: inset 0 0 0 4px #ffb84d, inset 0 0 24px 10px rgba(255, 154, 31, 0.95); }
-}
 
 
 cg-board square {
@@ -299,15 +295,32 @@ cg-board square.oc.move-dest {
   pointer-events: auto;
 }
 
-/* Dans sa case, coins arrondis comme les cartes (Hugo : « trop carré », « ne doit pas dépasser »), et
-   au-dessus de la carte : dessous, la carte (91 % de la case) le cachait presque entièrement (Hugo,
-   26/10/2026). Le centre reste transparent : on voit le Roi. */
+/* Échec (choix d'Hugo du 03/11/2026, maquette A) : un liseré lumineux qui épouse la carte du Roi et
+   pulse doucement ; la carte reste nette (avant : un voile orange la recouvrait). Au-dessus de la carte
+   (z-index), dans sa case. Couleur : --echec (variable pour essayer les teintes). Le Roi fait aussi une
+   petite secousse quand l'échec arrive (static/js/secousse-echec.js). */
+cg-board { --echec: #ff4b3e; --echec-halo: rgba(255, 60, 50, .85); } /* rouge : seule exception à « pas de rouge » (Hugo, 03/11/2026) */
 cg-board square.check {
   z-index: 3;
   pointer-events: none;
-  border-radius: 14%;
-  background-color: rgba(255, 154, 31, 0.16);
-  animation: matatak-pulse 0.6s ease-in-out infinite alternate;
+}
+cg-board square.check::after {
+  content: '';
+  position: absolute;
+  inset: 3.5%;
+  border-radius: 10%;
+  box-shadow: 0 0 0 2.5px var(--echec), 0 0 10px 3px var(--echec-halo);
+  animation: matatak-echec .8s ease-in-out infinite alternate;
+}
+@keyframes matatak-echec { from { opacity: .55; } to { opacity: 1; } }
+/* La secousse : quelques allers-retours courts, une seule fois */
+cg-board piece.secoue { animation: matatak-secousse .42s cubic-bezier(.36, .07, .19, .97); }
+@keyframes matatak-secousse {
+  0%, 100% { translate: 0 0; rotate: 0deg; }
+  20% { translate: -4% 0; rotate: -4deg; }
+  40% { translate: 4% 0; rotate: 4deg; }
+  60% { translate: -3% 0; rotate: -2deg; }
+  80% { translate: 2% 0; rotate: 1deg; }
 }
 
 cg-board square.premove-dest {
@@ -344,7 +357,8 @@ cg-board square.oc.move-dest.drag-over {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  cg-board square.check { animation: none; box-shadow: inset 0 0 0 4px #ff9a1f, inset 0 0 20px 8px rgba(255, 154, 31, 0.9); }
+  cg-board square.check::after { animation: none; }
+  cg-board piece.secoue { animation: none; }
   cg-board square.move-dest, cg-board square.oc.move-dest { transition: none; }
 }
 

@@ -20,6 +20,13 @@ body:is([data-view="analysis"], [data-view="puzzle"]) .sidebar-first > .containe
 body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .user-link { font: 800 15px 'Nunito', sans-serif; color: var(--mt-encre); }
 body:is([data-view="analysis"], [data-view="puzzle"]) .game-info section { display: grid; gap: 6px; }
 body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .info-meta { font: 600 13px/1.4 'Nunito', sans-serif; color: var(--mt-discret); }
+/* Retour au cadre de fin de la partie (analyse d'une partie jouée) : en tête de la ligne de la cadence,
+   même chevron que les flèches ‹ ›, sans hauteur en plus */
+body[data-view="analysis"] .game-info .info-meta.avec-retour { display: flex; align-items: center; flex-wrap: wrap; gap: 0 10px; }
+body[data-view="analysis"] .game-info .retour-partie { display: inline-flex; align-items: center; gap: 3px; margin: -8px 0 -8px -8px; padding: 8px 8px 8px 4px; border-radius: 10px; font: 800 14px 'Nunito', sans-serif; color: var(--mt-or); text-decoration: none; }
+body[data-view="analysis"] .game-info .retour-partie svg { width: 17px; height: 17px; flex: none; }
+body[data-view="analysis"] .game-info .retour-partie:hover { background: rgba(234, 196, 90, .1); }
+body[data-view="analysis"] .game-info .retour-partie:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 0; }
 body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .player-data { display: flex; align-items: center; gap: 8px; min-height: 30px; }
 body:is([data-view="analysis"], [data-view="puzzle"]) .game-info .player-data player { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Temps restant au coup affiché, à droite du nom ; celui qui a le trait en or */

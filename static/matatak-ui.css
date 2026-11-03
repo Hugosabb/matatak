@@ -58,9 +58,34 @@
 .mt-btn-large { width: 100%; }
 .mt-btn[disabled] { filter: grayscale(.6) brightness(.7); cursor: progress; }
 
+/* ===== Texte non sélectionnable (comme une appli) =====
+   Un appui long ou deux touchers rapides surlignaient les titres, bulles et cases.
+   Exceptions : ce qu'on écrit ou copie (champs, liens d'invitation, FEN, PGN),
+   la discussion, la page de confidentialité et les adresses e-mail. */
+body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea, [contenteditable], #pgntext, #messages, .confidentialite, a[href^="mailto:"] {
+    -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+}
+#pgntext { -webkit-user-select: all; user-select: all; }
+/* Flèches ‹ › à appui long (appuiRepete.ts) : le navigateur ne doit pas reprendre le doigt pour défiler */
+button.fleche { touch-action: none; }
+
 /* ===== En-tête du site ===== */
 /* Appli installée en plein écran (viewport-fit=cover) : rien sous l'encoche ni la barre d'état */
 body { padding-top: env(safe-area-inset-top); }
+/* Safari iPhone (26 et plus) : la barre du haut ne lit plus theme-color, elle devine sa couleur
+   (WebKit, LocalFrameView::fixedContainerEdges) : un élément fixé en haut, de presque toute la largeur
+   et de plus de 10 px, lui donne sa couleur de fond ; sinon il capture des pixels et garde la première
+   couleur trouvée (le contenu qui défile apparaissait sous l'heure). Bande pleine de 12 px au moins
+   (la hauteur de l'encoche dans l'appli installée), seulement sur iPhone (-webkit-touch-callout) et
+   téléphone ; le haut de la page est décalé d'autant pour qu'elle ne cache rien. */
+.mt-barre-safari { display: none; }
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 760px) {
+    .mt-barre-safari { display: block; position: fixed; top: 0; left: 0; right: 0; height: max(12px, env(safe-area-inset-top)); background-color: #12100e; z-index: 2147483000; pointer-events: none; }
+    body { padding-top: max(12px, env(safe-area-inset-top)); }
+  }
+}
 header.mt-haut {
   position: sticky; top: env(safe-area-inset-top); z-index: 106;
   display: flex; align-items: center; justify-content: flex-start; gap: 22px;
@@ -204,15 +229,15 @@ body[data-view="analysis"] select, body[data-view="editor"] select {
 body[data-view="analysis"] select:focus-visible, body[data-view="editor"] select:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
 body[data-view="analysis"] label[for="variant"], body[data-view="editor"] label[for="variant"] { font: 900 12px 'Jost', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--mt-encre); text-shadow: 0 1px 8px rgba(0, 0, 0, .95); }
 
-/* Moteur, variantes et coups : panneaux aux couleurs du site */
-body[data-view="analysis"] #ceval, body[data-view="analysis"] .pvbox, body[data-view="analysis"] .movelist-block {
+/* Moteur, variantes et coups : panneaux aux couleurs du site (analyse et puzzles) */
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval, body:is([data-view="analysis"], [data-view="puzzle"]) .pvbox, body:is([data-view="analysis"], [data-view="puzzle"]) .movelist-block {
   background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); border-radius: 14px; overflow: hidden;
 }
-body[data-view="analysis"] #ceval .engine { background: none; padding: 10px 14px; }
-body[data-view="analysis"] .moteur-nom { font: 800 15px 'Nunito', sans-serif; color: var(--mt-encre); }
-body[data-view="analysis"] #info { font: 600 12.5px 'Nunito', sans-serif; color: var(--mt-discret); }
-body[data-view="analysis"] .pvbox:empty { display: none; }
-body[data-view="analysis"] #movelist:empty { min-height: 0; height: auto; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #ceval .engine { background: none; padding: 10px 14px; }
+body:is([data-view="analysis"], [data-view="puzzle"]) .moteur-nom { font: 800 15px 'Nunito', sans-serif; color: var(--mt-encre); }
+body:is([data-view="analysis"], [data-view="puzzle"]) #info { font: 600 12.5px 'Nunito', sans-serif; color: var(--mt-discret); }
+body:is([data-view="analysis"], [data-view="puzzle"]) .pvbox:empty { display: none; }
+body:is([data-view="analysis"], [data-view="puzzle"]) #movelist:empty { min-height: 0; height: auto; }
 
 /* Position (FEN) : étiquette discrète et champ copiable */
 #fentext { gap: 8px; align-items: center; margin-top: 8px; font: 800 12px 'Nunito', sans-serif; color: var(--mt-discret); }

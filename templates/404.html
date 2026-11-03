@@ -1,28 +1,16 @@
 {% extends "template.html" %}
 {% block content %}
-<div id="main-wrap">
-  <div class="not-found">
-    <div class="header">
-        <h1>404</h1>
-        <div>
-            <strong>Page not found!</strong><p>Return to <a href="/">the homepage</a> or play this mini-game</p>
-        </div>
+<main class="introuvable">
+    <div class="introuvable-page">
+        <img class="introuvable-carte" alt="BLUFF"
+             src="{{ static('images/background/collection/sombre/09-bluff.webp') }}"
+             srcset="{{ static('images/background/collection/sombre/09-bluff.webp') }} 360w, {{ static('images/background/collection/sombre-720/09-bluff.webp') }} 720w"
+             sizes="200px" width="200" height="200">
+        <p class="introuvable-code">404</p>
+        <h1>Cette page n'existe pas</h1>
+        <p class="introuvable-texte">C'était du BLUFF ! L'adresse est peut-être mal écrite, ou la page a changé de place.</p>
+        <a class="mt-btn mt-btn-or mt-btn-large" href="/jouer">Jouer</a>
+        <a class="introuvable-lien" href="/">Découvrir le jeu</a>
     </div>
-  <div class="main-game-body">
-    <h2>Eight Queens Puzzle</h2>
-    <div id="rules">
-      <p>Place eight queens on the board so that no two queens attack each other.</p>
-      <p>Click on empty squares to place queens. Click on placed queens to remove them.</p>
-      <p><a href="https://en.wikipedia.org/wiki/Eight_queens_puzzle">Learn more about this puzzle.</a></p>
-    </div>
-    <canvas id="board" width="400" height="400"></canvas>
-    <div id="message"></div>
-    <div id="counter">Solutions found: 0</div>
-    <button id="reset-button">Reset</button>
-  </div></div>
-</div>
-{% endblock %}
-{% block js %}
-    <script src={{ static("8queens.js") }}></script>
-    <script src="{{ js }}"></script>
+</main>
 {% endblock %}
