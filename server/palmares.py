@@ -13,6 +13,7 @@ Collection `palmares` : un document par joueur et par semaine
 from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
+from classement_unique import CLE_CLASSEMENT
 from logger import log
 
 BASE = {"defaite": 10, "nulle": 25, "victoire": 50}
@@ -112,8 +113,8 @@ async def couronne(app_state) -> str | None:
 
 
 async def classement_general(app_state, variant: str, limite: int = 50) -> list[dict]:
-    """Classement de tous les temps sur un plateau : les comptes qui y ont joué au moins une partie
-    classée, sans les bots (titre LIA)."""
+    """Classement de tous les temps (clé de perfs, « matatak » pour les deux plateaux) : les comptes
+    qui ont joué au moins une partie classée, sans les bots (titre LIA)."""
     if app_state.db is None:
         return []
     cle = "perfs.%s" % variant
@@ -137,8 +138,8 @@ async def classement_general(app_state, variant: str, limite: int = 50) -> list[
 
 
 async def infos(request):
-    """GET /api/palmares : la semaine (classement, sa place, fin), la couronne, et les classements
-    de tous les temps des deux plateaux."""
+    """GET /api/palmares : la semaine (classement, sa place, fin), la couronne, et le classement de
+    tous les temps (un seul pour les deux plateaux)."""
     from aiohttp import web
     import aiohttp_session
     from pychess_global_app_state_utils import get_app_state
@@ -159,6 +160,7 @@ async def infos(request):
             "joueurs": len(top),
             "moi": ma_place,
             "couronne": await couronne(app_state),
-            "general": {v: await classement_general(app_state, v) for v in VARIANTES_CLASSEES},
+            # Un seul classement pour les deux plateaux (classement_unique.py)
+            "general": {CLE_CLASSEMENT: await classement_general(app_state, CLE_CLASSEMENT)},
         }
     )

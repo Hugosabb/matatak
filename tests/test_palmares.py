@@ -76,9 +76,9 @@ class PalmaresTestCase(BaseClassee):
         perf = lambda r, nb: {"gl": {"r": r, "d": 60, "v": 0.06}, "nb": nb}  # noqa: E731
         await db.user.insert_many(
             [
-                {"_id": "alice", "perfs": {"matatakmini": perf(1620, 3)}},
-                {"_id": "bruno", "perfs": {"matatakmini": perf(1810, 9)}},
-                {"_id": "Tall-Pig", "title": "LIA", "perfs": {"matatakmini": perf(2900, 50)}},
+                {"_id": "alice", "perfs": {"matatak": perf(1620, 3)}},
+                {"_id": "bruno", "perfs": {"matatak": perf(1810, 9)}},
+                {"_id": "Tall-Pig", "title": "LIA", "perfs": {"matatak": perf(2900, 50)}},
             ]
         )
         reponse = await (await self.client.get("/api/palmares")).json()
@@ -86,11 +86,30 @@ class PalmaresTestCase(BaseClassee):
             [(t["u"], t["p"]) for t in reponse["top"]], [("bruno", 300), ("alice", 120)]
         )
         self.assertEqual(reponse["couronne"], "carla")
-        self.assertEqual([g["u"] for g in reponse["general"]["matatakmini"]], ["bruno", "alice"])
-        self.assertEqual(reponse["general"]["matatak"], [])
+        # Un seul classement de tous les temps, sans les bots
+        self.assertEqual(list(reponse["general"]), ["matatak"])
+        self.assertEqual([g["u"] for g in reponse["general"]["matatak"]], ["bruno", "alice"])
         page = await self.client.get("/palmares")
         self.assertEqual(page.status, 200)
         # La couronne sur le profil du premier de la semaine passée, pas sur les autres
         await db.user.insert_one({"_id": "carla", "perfs": {"matatakmini": perf(1700, 9)}})
         self.assertIn('class="couronne"', await (await self.client.get("/@/carla")).text())
         self.assertNotIn('class="couronne"', await (await self.client.get("/@/bruno")).text())
+
+
+class ClassementUniqueTestCase(unittest.TestCase):
+    """Un seul classement pour le Mini et le 8×8 (décision d'Hugo du 02/11/2026)."""
+
+    def test_les_deux_plateaux_partagent_la_meme_cle(self):
+        from classement_unique import cle_perf
+
+        self.assertEqual(cle_perf("matatakmini"), "matatak")
+        self.assertEqual(cle_perf("matatak"), "matatak")
+        self.assertEqual(cle_perf("chess", True), "chess960")
+
+    def test_le_mini_est_choisi_des_qu_un_joueur_le_prefere(self):
+        from classee import plateau_commun
+
+        self.assertEqual(plateau_commun("matatak", "matatakmini"), "matatakmini")
+        self.assertEqual(plateau_commun("matatakmini", "matatakmini"), "matatakmini")
+        self.assertEqual(plateau_commun("matatak", "matatak"), "matatak")

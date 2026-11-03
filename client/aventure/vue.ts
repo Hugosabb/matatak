@@ -14,6 +14,7 @@ import { equipeEtEnclos, oublierChoix } from './enclos';
 import { intro, introVue } from './intro';
 import { enveloppeAnimee } from '../carteAnimee';
 import { composition, Plateau, route } from './route';
+import { plateauAuto, noterPlateauAuto, plateauDeLEcran } from '../plateauPrefere';
 
 const CARTES = '/static/images/background/collection/';
 const carte = (nom: Nom | Roi, face: 'clair' | 'sombre' = 'sombre') => `${CARTES}${face}/${IMAGE[nom]}`;
@@ -337,14 +338,7 @@ function ecranEquipe(p: Progression, ctx: ContexteAventure): VNode {
 
 // Taille du plateau : automatique par défaut (Mini sur téléphone, 8 × 8 sur ordinateur et tablette) ;
 // couper l'interrupteur, ou choisir un plateau, garde ce choix (Hugo, 26/10/2026)
-const CLE_AUTO = 'matatak_aventure_plateau_auto';
-function plateauAuto(): boolean {
-    try { return localStorage.getItem(CLE_AUTO) !== 'non'; } catch { return true; }
-}
-function noterPlateauAuto(auto: boolean) {
-    try { localStorage.setItem(CLE_AUTO, auto ? 'oui' : 'non'); } catch { /* navigation privée */ }
-}
-const plateauDeLEcran = (): Plateau => (matchMedia('(max-width: 760px)').matches ? 'matatakmini' : 'matatak');
+// Réglage « Selon l'écran » : client/plateauPrefere.ts (le même pour tout /jouer)
 
 function reglagePlateau(ctx: ContexteAventure): VNode {
     const auto = plateauAuto();

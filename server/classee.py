@@ -1,7 +1,9 @@
 """Parties classées : file d'attente de l'onglet « Classée » de /jouer.
 
-Le joueur (connecté) demande une partie sur un plateau. On cherche un autre joueur en attente de
-classement proche ; l'écart accepté grandit avec l'attente. Au bout de DELAI_BOT secondes sans
+Le joueur (connecté) demande une partie, avec son plateau préféré (« variant » : Mini ou 8×8, selon
+son écran par défaut). Un seul classement pour les deux plateaux (classement_unique.py) : on cherche
+un autre joueur en attente de classement proche, quel que soit son plateau ; si l'un des deux veut le
+Mini, la partie se joue sur le Mini (Hugo, 03/11/2026). L'écart accepté grandit avec l'attente. Au bout de DELAI_BOT secondes sans
 adversaire, un adversaire d'entraînement de son niveau prend la place (bots_classes.py).
 Toujours en Draft, à cadence fixe par plateau. Inspiré de auto_pair.py (appariement pychess).
 """
@@ -12,6 +14,7 @@ import secrets
 import time
 
 from bots_classes import choisir_bot, creer_bot, niveau_du_bot
+from classement_unique import cle_perf
 from const import STARTED
 from logger import log
 from newid import new_id
@@ -20,7 +23,7 @@ from utils import join_seek
 from websocket_utils import ws_send_json
 
 # (minutes, incrément) par plateau
-CADENCES = {"matatakmini": (5, 3), "matatak": (5, 3)}  # choix d'Hugo : deux classements, 5+3
+CADENCES = {"matatakmini": (5, 3), "matatak": (5, 3)}  # choix d'Hugo : 5+3 sur les deux plateaux
 # Un défi sans réponse expire au bout de DELAI_DEFI secondes
 DELAI_DEFI = 30
 DELAI_BOT = 5  # Hugo : 15 s, c'est trop long à attendre
@@ -28,10 +31,15 @@ ECART_DEPART = 150
 ECART_PAR_SECONDE = 20
 
 
+def plateau_commun(a: str, b: str) -> str:
+    """Mini dès que l'un des deux joueurs le préfère (il est souvent sur téléphone)."""
+    return "matatakmini" if "matatakmini" in (a, b) else "matatak"
+
+
 class Attente:
     def __init__(self, user, variant, classement):
         self.user = user
-        self.variant = variant
+        self.variant = variant  # plateau préféré
         self.classement = classement
         self.debut = time.monotonic()
         self.tache: asyncio.Task | None = None
@@ -62,7 +70,7 @@ async def _envoyer(user, message):
 
 def _adversaire(app_state, attente: Attente) -> Attente | None:
     for autre in _file(app_state).values():
-        if autre is attente or autre.variant != attente.variant:
+        if autre is attente:
             continue
         ecart = abs(autre.classement - attente.classement)
         if ecart <= min(autre.ecart, attente.ecart):
@@ -163,7 +171,7 @@ async def _attendre(app_state, attente: Attente):
 async def _apparier(app_state, a: Attente, b: Attente):
     _retirer(app_state, a.user.username)
     _retirer(app_state, b.user.username)
-    response = await _creer_partie(app_state, a.user, b.user, a.variant)
+    response = await _creer_partie(app_state, a.user, b.user, plateau_commun(a.variant, b.variant))
     log.info("Partie classée %s contre %s", a.user.username, b.user.username)
     await _envoyer(a.user, response)
     await _envoyer(b.user, response)
@@ -215,6 +223,8 @@ async def infos(request):
     if user is None or user.anon:
         return web.json_response({"connecte": False})
     reponse = {"connecte": True, "username": user.username}
+    # Un seul classement ; gardé aussi sous chaque plateau pour les anciennes pages encore ouvertes
+    reponse["classement"] = dict(classement(user, "matatak"), cadence="%d+%d" % CADENCES["matatak"])
     for variant, (minutes, inc) in CADENCES.items():
         reponse[variant] = dict(classement(user, variant), cadence="%d+%d" % (minutes, inc))
     reponse["en_ligne"] = joueurs_en_ligne(app_state, user)
@@ -223,7 +233,7 @@ async def infos(request):
 
 def classement(user, variant) -> dict:
     r, prov = user.get_rating(variant, False).rating_prov
-    return {"r": r, "prov": prov == "?", "nb": user.perfs.get(variant, {}).get("nb", 0)}
+    return {"r": r, "prov": prov == "?", "nb": user.perfs.get(cle_perf(variant), {}).get("nb", 0)}
 
 
 def joueurs_en_ligne(app_state, moi) -> list[dict]:
@@ -238,13 +248,15 @@ def joueurs_en_ligne(app_state, moi) -> list[dict]:
             {
                 "u": username,
                 "en_partie": user.game_in_progress is not None,
+                **classement(user, "matatak"),
                 **{v: classement(user, v) for v in CADENCES},
             }
         )
     return joueurs[:50]
 
 
-# ---------- Défis entre joueurs en ligne (même plateau, même cadence, en Draft, classé) ----------
+# ---------- Défis entre joueurs en ligne (même cadence, en Draft, classé ; Mini si l'un des deux le
+# préfère : le plateau de celui qui défie, puis celui du joueur défié à sa réponse) ----------
 
 
 class Defi:
@@ -348,7 +360,9 @@ async def repondre(app_state, user, data):
         defi.tache.cancel()
     await annuler(app_state, defi.de)
     await annuler(app_state, defi.a)
-    response = await _creer_partie(app_state, defi.de, defi.a, defi.variant)
+    plateau = data.get("variant")
+    variant = plateau_commun(defi.variant, plateau if plateau in CADENCES else defi.variant)
+    response = await _creer_partie(app_state, defi.de, defi.a, variant)
     log.info("Défi classé %s contre %s", defi.de.username, defi.a.username)
     await _envoyer(defi.de, response)
     await _envoyer(defi.a, response)

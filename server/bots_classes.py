@@ -18,6 +18,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import random
 
+from classement_unique import cle_perf
 from const import ADJECTIVES, ANIMALS
 from glicko2.glicko2 import gl2
 from user import User
@@ -109,7 +110,8 @@ async def creer_bot(app_state, username: str) -> User:
 
 
 async def classements(app_state, variant: str) -> dict[str, int]:
-    """Classement actuel de chaque bot sur ce plateau (lu en base une fois, puis en mémoire)."""
+    """Classement actuel de chaque bot (un seul pour les deux plateaux ; lu en base une fois, puis
+    en mémoire)."""
     cache = getattr(app_state, "classements_bots", None)
     if cache is None:
         cache = {}
@@ -124,7 +126,7 @@ async def classements(app_state, variant: str) -> dict[str, int]:
         if nom in app_state.users.data:
             actuels[nom] = app_state.users.data[nom].get_rating_value(variant, False)
         else:
-            actuels[nom] = cache.get(nom, {}).get(variant, ancrage)
+            actuels[nom] = cache.get(nom, {}).get(cle_perf(variant), ancrage)
     return actuels
 
 

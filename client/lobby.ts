@@ -29,6 +29,7 @@ import { validFen, uci2LastMove } from './chess';
 import { seekViewBughouse, switchEnablingLobbyControls } from "./bug/lobby.bug";
 import { handleOngoingGameEvents, Game, gameViewPlaying, compareGames } from './nowPlaying';
 import { createWebsocket } from "@/socket/webSocketUtils";
+import { noterPlateauAuto, plateauAuto, plateauDeLEcran } from './plateauPrefere';
 
 
 const autoPairingTCs: [number, number, number][] = [
@@ -83,12 +84,12 @@ const IMG_ROI: Record<Saison, string> = { ete: '01-azar.webp', automne: '02-shan
 
 // Onglet « Classée » : réponse de GET /api/classee (server/classee.py)
 interface ClasseeVariante { r: number; prov: boolean; nb: number; cadence: string; }
-interface JoueurEnLigne { u: string; en_partie: boolean; matatak: ClasseeVariante; matatakmini: ClasseeVariante; }
-interface ClasseeInfos { connecte: boolean; matatak?: ClasseeVariante; matatakmini?: ClasseeVariante; en_ligne?: JoueurEnLigne[]; }
+// Un seul classement pour les deux plateaux (server/classement_unique.py) : r, prov, nb à la racine
+interface JoueurEnLigne { u: string; en_partie: boolean; r: number; prov: boolean; nb: number; }
+interface ClasseeInfos { connecte: boolean; classement?: ClasseeVariante; matatak?: ClasseeVariante; matatakmini?: ClasseeVariante; en_ligne?: JoueurEnLigne[]; }
 // Défi reçu d'un joueur en ligne (server/classee.py defier)
 interface DefiRecu { id: string; de: string; r: number; prov: boolean; variant: 'matatak' | 'matatakmini'; cadence: string; }
 
-const NOM_PLATEAU = { matatak: 'Matatak', matatakmini: 'Matatak Mini' };
 // Pourquoi un défi envoyé n'a pas abouti (message classee_defi_fin)
 const FIN_DEFI: Record<string, (nom: string) => string> = {
     refuse: nom => `${nom} a refusé le défi.`,
@@ -298,6 +299,13 @@ export class LobbyController implements ChatController {
                     this.classeeDebut = Date.now();
                     this.doSend({ type: 'classee_chercher', variant: this.jouer.variant });
                 }
+            }
+            // « Défier » sur la page d'un joueur : /jouer?defier=pseudo envoie le défi depuis l'Arène
+            const aDefier = new URLSearchParams(window.location.search).get('defier');
+            if (jouerEl && aDefier) {
+                window.history.replaceState({}, '', window.location.pathname);
+                this.jouer.adv = 'classee';
+                if (!this.anon) this.defier(aDefier);
             }
             const aventure = new URLSearchParams(window.location.search).get('aventure');
             if (jouerEl && aventure) {
@@ -684,7 +692,8 @@ export class LobbyController implements ChatController {
     }
 
     private repondreDefi(defi: DefiRecu, accepte: boolean) {
-        this.doSend({ type: 'classee_defi_reponse', id: defi.id, accepte });
+        // Son plateau préféré : la partie se joue sur le Mini si l'un des deux le préfère
+        this.doSend({ type: 'classee_defi_reponse', id: defi.id, accepte, variant: this.jouer.variant });
         if (!accepte) this.defisRecus = this.defisRecus.filter(d => d.id !== defi.id);
         this.majJouer();
     }
@@ -697,7 +706,7 @@ export class LobbyController implements ChatController {
         return h('div.defi-recu', { attrs: { role: 'alertdialog', 'aria-label': `${defi.de} vous défie` } }, [
             h('div.defi-txt', [
                 h('b', `${defi.de} vous défie`),
-                h('small', `${texteClassement(v)} · Draft ${NOM_PLATEAU[defi.variant]} · ${defi.cadence.replace('+', ' min +')} · Arène`),
+                h('small', `${texteClassement(v)} · Draft · ${defi.cadence.replace('+', ' min +')} · Arène`),
             ]),
             h('div.defi-actions', [
                 h('button.mt-btn.mt-btn-or.mt-btn-petit', { attrs: { type: 'button' }, on: { click: () => this.repondreDefi(defi, true) } }, 'Accepter'),
@@ -727,9 +736,9 @@ export class LobbyController implements ChatController {
     /** Joueurs connectés sur /jouer, les plus proches de son classement d'abord, à défier. */
     private renderEnLigne(infos: ClasseeInfos, attente: boolean): VNode {
         const c = this.jouer;
-        const moi = infos[c.variant]?.r ?? 1500;
+        const moi = (infos.classement ?? infos[c.variant])?.r ?? 1500;
         const tous = infos.en_ligne ?? [];
-        const proches = [...tous].sort((x, y) => Math.abs(x[c.variant].r - moi) - Math.abs(y[c.variant].r - moi)).slice(0, 6);
+        const proches = [...tous].sort((x, y) => Math.abs(x.r - moi) - Math.abs(y.r - moi)).slice(0, 6);
         const action = (j: JoueurEnLigne) => {
             if (j.en_partie) return h('span.etat', 'En partie');
             if (this.defiEnvoye?.a === j.u) return h('button.defi.envoye', {
@@ -743,7 +752,7 @@ export class LobbyController implements ChatController {
             proches.length
                 ? h('ul', proches.map(j => h('li', [
                     h('a.nom', { attrs: { href: '/@/' + j.u } }, [this.palmares?.couronne === j.u ? couronne() : '', j.u]),
-                    h('span.r', texteClassement(j[c.variant])),
+                    h('span.r', texteClassement({ r: j.r, prov: j.prov, nb: j.nb, cadence: '' })),
                     action(j),
                 ])))
                 : h('p.vide', "Personne d'autre en ligne pour l'instant."),
@@ -764,7 +773,7 @@ export class LobbyController implements ChatController {
     }
 
     /** Panneau de l'onglet « Classée » : connexion obligatoire, puis un plateau et un bouton. */
-    private renderClassee(choixAdv: VNode, plateau: (v: 'matatak' | 'matatakmini', infos: VNode) => VNode): VNode {
+    private renderClassee(choixAdv: VNode, plateau: (v: 'matatak' | 'matatakmini', infos: VNode) => VNode, selonLEcran: VNode | string): VNode {
         const c = this.jouer;
         const infos = this.classee;
         // Aventure commencée sur cet appareil : le Classé se débloque à la fin de la phase 1
@@ -793,20 +802,21 @@ export class LobbyController implements ChatController {
                 this.renderPalmaresSemaine(),
             ]);
         }
-        const v = infos[c.variant];
+        // Un seul classement pour les deux plateaux (server/classement_unique.py)
+        const v = infos.classement ?? infos[c.variant];
         const attente = this.classeeDebut > 0;
         const secondes = attente ? Math.floor((Date.now() - this.classeeDebut) / 1000) : 0;
-        const ligne = (x?: ClasseeVariante) => h('small', `Classement ${texteClassement(x)}`);
         return h('section.panneau.partie.classee', [
             choixAdv,
             h('div.etiq', 'Plateau'),
             h('div.plateaux', { class: { inactif: attente } }, [
-                plateau('matatakmini', ligne(infos.matatakmini)),
-                plateau('matatak', ligne(infos.matatak)),
+                plateau('matatakmini', h('small', '4 × 8 · rapide')),
+                plateau('matatak', h('small', '8 × 8 · grand format')),
             ]),
+            selonLEcran,
             h('div.classee-regles', [
                 h('span', [h('b', 'Draft'), ` · ${v ? v.cadence.replace('+', ' min +') : ''}`]),
-                h('small', "Si personne de votre niveau n'est en ligne, un adversaire d'entraînement prend la place."),
+                h('small', "Un seul classement pour les deux plateaux : si l'un des joueurs choisit le Mini, on joue sur le Mini. Si personne de votre niveau n'est en ligne, un adversaire d'entraînement prend la place."),
             ]),
             attente
                 ? h('div.classee-attente', [
@@ -964,22 +974,29 @@ export class LobbyController implements ChatController {
         // Téléphone : les mêmes onglets, fixés en bas au-dessus de la navigation (le pouce y est) ;
         // ceux du haut du panneau sont alors masqués (jouer.css)
         const ongletsDuBas = h('nav.choix-adv-bas', [onglets()]);
+        // Plateau « Selon l'écran » par défaut (client/plateauPrefere.ts, même réglage que l'Aventure) ;
+        // en choisir un à la main coupe ce réglage, « Selon l'écran » le remet
+        if (plateauAuto() && !this.classeeDebut) c.variant = plateauDeLEcran();
         const plateau = (v: 'matatak' | 'matatakmini', detail: VNode) =>
-            bouton(c.variant === v, 'button.plat', () => { if (!this.classeeDebut) { c.variant = v; maj(); } }, [
+            bouton(c.variant === v, 'button.plat', () => { if (!this.classeeDebut) { noterPlateauAuto(false); c.variant = v; maj(); } }, [
                 damier(v === 'matatak' ? 8 : 4), h('span', [h('b', v === 'matatak' ? 'Matatak' : 'Matatak Mini'), detail]),
             ]);
+        const selonLEcran = plateauAuto() ? '' : h('button.selon-ecran', {
+            attrs: { type: 'button' },
+            on: { click: () => { noterPlateauAuto(true); maj(); } },
+        }, "Plateau selon l'écran");
 
         if (c.adv === 'classee') {
             this.chargerClassee();
-            const v = this.classee?.[c.variant];
+            const v = this.classee?.classement ?? this.classee?.[c.variant];
             const scene = h('aside.scene', { key: 'classee' }, [
                 h('div.scene-cartes', [carteTournante('26-rokk.webp')]),
                 this.classee?.connecte
-                    ? h('div.scene-txt', [h('b', v ? String(v.r) : '…'), h('span', `${v?.prov ? 'Classement provisoire' : 'Votre classement'} · ${c.variant === 'matatak' ? 'Matatak' : 'Matatak Mini'}`)])
+                    ? h('div.scene-txt', [h('b', v ? String(v.r) : '…'), h('span', v?.prov ? 'Classement provisoire' : 'Votre classement')])
                     : h('div.scene-txt', [h('b', 'Arène'), h('span', 'Gagnez des points, grimpez au classement')]),
             ]);
             const installation = bandeauInstallation(maj);
-            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, plateau), scene]), installation ?? '', ongletsDuBas]);
+            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, plateau, selonLEcran), scene]), installation ?? '', ongletsDuBas]);
         }
 
         // Solo = l'Aventure ; son niveau 0 est le tutoriel (Hugo, 26/10/2026)
@@ -1011,6 +1028,7 @@ export class LobbyController implements ChatController {
                 plateau('matatakmini', h('small', '4 × 8 · rapide et facile')),
                 plateau('matatak', h('small', '8 × 8 · grand format')),
             ]),
+            selonLEcran,
             !ia && !this.jouerDraft ? h('div.bloc.equipe-ami', [
                 h('div.etiq', [h('span', 'Votre équipe'), h('b', this.jouerEquipe ? ROIS[this.jouerEquipe].nom : 'Au hasard')]),
                 h('div.choix-equipe', { attrs: { role: 'group', 'aria-label': 'Votre équipe' } }, [

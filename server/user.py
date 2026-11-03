@@ -9,6 +9,7 @@ from aiohttp import web
 from aiohttp.web_ws import WebSocketResponse
 
 from broadcast import round_broadcast
+from classement_unique import cle_perf
 from const import random_anonyme_username, STARTED, TEST_PREFIX, reserved
 from glicko2.glicko2 import gl2, DEFAULT_PERF, Rating
 from newid import id8
@@ -179,18 +180,18 @@ class User:
 
     def get_rating_value(self, variant: str, chess960: bool) -> int:
         try:
-            return int(round(self.perfs[variant + ("960" if chess960 else "")]["gl"]["r"], 0))
+            return int(round(self.perfs[cle_perf(variant, chess960)]["gl"]["r"], 0))
         except KeyError:
             return 1500
 
     def get_rating(self, variant: str, chess960: bool) -> Rating:
         try:
-            gl = self.perfs[variant + ("960" if chess960 else "")]["gl"]
-            la = self.perfs[variant + ("960" if chess960 else "")]["la"]
+            gl = self.perfs[cle_perf(variant, chess960)]["gl"]
+            la = self.perfs[cle_perf(variant, chess960)]["la"]
             return gl2.create_rating(gl["r"], gl["d"], gl["v"], la)
         except KeyError:
             rating = gl2.create_rating()
-            self.perfs[variant + ("960" if chess960 else "")] = DEFAULT_PERF
+            self.perfs[cle_perf(variant, chess960)] = DEFAULT_PERF
             return rating
 
     def get_puzzle_rating(self, variant: str, chess960: bool) -> Rating:
@@ -217,8 +218,8 @@ class User:
             return
         gl = {"r": rating.mu, "d": rating.phi, "v": rating.sigma}
         la = datetime.now(timezone.utc)
-        nb = self.perfs[variant + ("960" if chess960 else "")].get("nb", 0)
-        self.perfs[variant + ("960" if chess960 else "")] = {
+        nb = self.perfs[cle_perf(variant, chess960)].get("nb", 0)
+        self.perfs[cle_perf(variant, chess960)] = {
             "gl": gl,
             "la": la,
             "nb": nb + 1,

@@ -76,6 +76,25 @@ class ClasseeTestCase(BaseClassee):
         self.assertEqual((game.base, game.inc), (5, 3))
         self.assertEqual(classee.en_attente(app_state), 0)
 
+    async def test_un_seul_classement_le_mini_si_l_un_des_deux_le_prefere(self):
+        """Classement unique (03/11/2026) : un joueur sur 8×8 et un sur le Mini se retrouvent dans la
+        même file, la partie se joue sur le Mini, et elle compte pour le même classement."""
+        import classee
+
+        app_state = get_app_state(self.app)
+        a = self.joueur("alice", 1500)
+        b = self.joueur("bruno", 1540)
+        with patch("classee.ws_send_json", new=AsyncMock()) as envoi:
+            await classee.chercher(app_state, a, {"variant": "matatak"})
+            await classee.chercher(app_state, b, {"variant": "matatakmini"})
+        reponse = envoi.await_args.args[1]
+        self.assertEqual(reponse["type"], "new_game")
+        game = app_state.games[reponse["gameId"]]
+        self.assertEqual(game.variant, "matatakmini")
+        self.assertEqual(
+            a.get_rating_value("matatak", False), a.get_rating_value("matatakmini", False)
+        )
+
     async def test_ecart_trop_grand_puis_bot_classe(self):
         import classee
         from bots_classes import BOTS, niveau_du_bot
@@ -145,7 +164,8 @@ class ClasseeTestCase(BaseClassee):
         apres = bot.get_rating_value("matatakmini", False)
         self.assertTrue(ancrage < apres <= ancrage + DERIVE_MAX, (ancrage, apres))
         doc = await app_state.db.user.find_one({"_id": bot.username})
-        self.assertEqual(round(doc["perfs"]["matatakmini"]["gl"]["r"]), apres)
+        # Un seul classement pour les deux plateaux : enregistré sous « matatak »
+        self.assertEqual(round(doc["perfs"]["matatak"]["gl"]["r"]), apres)
 
     def test_un_bot_ne_s_eloigne_pas_de_son_ancrage(self):
         from bots_classes import BOTS, DERIVE_MAX, PHI_BOT, borner

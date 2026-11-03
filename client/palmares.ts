@@ -15,10 +15,10 @@ export interface PalmaresInfos {
     joueurs: number;
     moi: (LigneSemaine & { rang: number }) | null;
     couronne: string | null;
-    general: { matatak: LigneGenerale[], matatakmini: LigneGenerale[] };
+    general: { matatak: LigneGenerale[] };  // un seul classement pour les deux plateaux
 }
 
-type Onglet = 'semaine' | 'matatakmini' | 'matatak';
+type Onglet = 'semaine' | 'classement';
 
 export function chargerPalmares(): Promise<PalmaresInfos> {
     return fetch('/api/palmares', { credentials: 'same-origin' }).then(r => r.json());
@@ -83,7 +83,7 @@ function vueSemaine(infos: PalmaresInfos, moi: string): VNode[] {
 }
 
 function vueGenerale(lignes: LigneGenerale[], infos: PalmaresInfos, moi: string): VNode[] {
-    if (!lignes.length) return [h('div.vide', [h('p', "Personne n'est encore classé sur ce plateau.")])];
+    if (!lignes.length) return [h('div.vide', [h('p', "Personne n'est encore classé.")])];
     return [h('ol.liste', lignes.map((l, i) => h('li', { class: { moi: l.u === moi, podium: i < 3 } }, [
         h('span.rang', String(i + 1)),
         h('span.qui', [nom(l.u, infos, moi), h('small', `${l.nb} partie${l.nb > 1 ? 's' : ''}`)]),
@@ -104,10 +104,10 @@ export function palmaresView(model: PyChessModel): VNode[] {
         }, texte);
         const contenu = !infos
             ? [h('p.remise', 'Chargement…')]
-            : onglet === 'semaine' ? vueSemaine(infos, moi) : vueGenerale(infos.general[onglet], infos, moi);
+            : onglet === 'semaine' ? vueSemaine(infos, moi) : vueGenerale(infos.general.matatak ?? [], infos, moi);
         return h('div.palmares-contenu', [
             h('div.onglets', { attrs: { role: 'group', 'aria-label': 'Palmarès' } }, [
-                bouton('semaine', 'Cette semaine'), bouton('matatakmini', 'Matatak Mini'), bouton('matatak', 'Matatak'),
+                bouton('semaine', 'Cette semaine'), bouton('classement', 'Classement'),
             ]),
             h('section.panneau', contenu),
         ]);

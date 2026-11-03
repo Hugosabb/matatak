@@ -6,6 +6,7 @@ from time import monotonic
 from typing import Set, List
 
 from broadcast import round_broadcast
+from classement_unique import cle_perf
 from clock import Clock, CorrClock
 from compress import R2C
 from const import (
@@ -671,26 +672,26 @@ class Game:
         self.need_crosstable_save = False
 
     def get_highscore(self, variant, chess960):
-        len_hs = len(self.app_state.highscore[variant + ("960" if chess960 else "")])
+        len_hs = len(self.app_state.highscore[cle_perf(variant, chess960)])
         if len_hs > 0:
             return (
-                self.app_state.highscore[variant + ("960" if chess960 else "")].peekitem()[1],
+                self.app_state.highscore[cle_perf(variant, chess960)].peekitem()[1],
                 len_hs,
             )
         return (0, 0)
 
     async def set_highscore(self, variant, chess960, value):
-        self.app_state.highscore[variant + ("960" if chess960 else "")].update(value)
+        self.app_state.highscore[cle_perf(variant, chess960)].update(value)
         new_data = {
             "scores": dict(
-                self.app_state.highscore[variant + ("960" if chess960 else "")].items()[
+                self.app_state.highscore[cle_perf(variant, chess960)].items()[
                     :MAX_HIGHSCORE_ITEM_LIMIT
                 ]
             )
         }
         try:
             await self.app_state.db.highscore.find_one_and_update(
-                {"_id": variant + ("960" if chess960 else "")},
+                {"_id": cle_perf(variant, chess960)},
                 {"$set": new_data},
                 upsert=True,
             )
@@ -741,7 +742,7 @@ class Game:
         await self.wplayer.set_rating(self.variant, self.chess960, new_white_rating)
         await self.bplayer.set_rating(self.variant, self.chess960, new_black_rating)
 
-        w_nb = self.wplayer.perfs[self.variant + ("960" if self.chess960 else "")]["nb"]
+        w_nb = self.wplayer.perfs[cle_perf(self.variant, self.chess960)]["nb"]
         if w_nb >= HIGHSCORE_MIN_GAMES and not self.wplayer.entrainement:
             _id = "%s|%s" % (self.wplayer.username, self.wplayer.title)
             await self.set_highscore(
@@ -750,7 +751,7 @@ class Game:
                 {_id: int(round(wcurr.mu + wrdiff, 0))},
             )
 
-        b_nb = self.bplayer.perfs[self.variant + ("960" if self.chess960 else "")]["nb"]
+        b_nb = self.bplayer.perfs[cle_perf(self.variant, self.chess960)]["nb"]
         if b_nb >= HIGHSCORE_MIN_GAMES and not self.bplayer.entrainement:
             _id = "%s|%s" % (self.bplayer.username, self.bplayer.title)
             await self.set_highscore(

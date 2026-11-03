@@ -44,6 +44,9 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 
 .etiq { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 10px; font: 900 12px 'Jost', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--mt-discret); }
 .etiq label { cursor: inherit; }
+/* « Plateau selon l'écran » : remet le réglage par défaut après un choix à la main (plateauPrefere.ts) */
+.selon-ecran { display: inline-flex; align-items: center; min-height: 36px; margin: -4px 0 6px; padding: 0 4px; border: 0; background: none; cursor: pointer; font: 800 13px 'Nunito', sans-serif; color: var(--mt-discret); }
+.selon-ecran:hover { color: var(--mt-encre); }
 .etiq label, label.etiq, label.interrupteur { padding: 0; } /* site.css décale tous les label de 12 px */
 .etiq b { color: var(--mt-or); letter-spacing: .02em; font: 800 15px 'Nunito', sans-serif; text-transform: none; }
 
