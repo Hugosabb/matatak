@@ -1,14 +1,15 @@
-"""Construit les données de la page /collection à partir du projet motiontak (livret et vidéos).
+"""Construit les données de la page /collection à partir du dépôt privé matatak-jeu (livret et vidéos).
 
-    python3 server/build_collection_json.py [chemin/vers/motiontak] [--sans-images]
+    python3 server/build_collection_json.py [chemin/vers/jeu] [--sans-images]
 
 Sorties :
 - static/data/collection.json : les 42 Personnages (nom, espèce, rang, Saison, boîte, Force, réplique,
-  déplacements calculés depuis variants.ini par motiontak/outils/deplacements.py ; numéro et
+  déplacements calculés depuis variants.ini par jeu/outils/deplacements.py ; numéro et
   équivalent aux échecs du tableau d'Hugo `sources/donnees/characters-hugo.csv`, famille de
   `donnees/lore.csv`), rangés dans l'ordre du tableau ;
-- static/images/background/collection/{sombre,clair}{,-720}/NN-nom.webp : les cartes réduites en 360 et
-  720 px (illustrations sous droits réservés : dossier ignoré par git, à copier à la main sur le serveur).
+- <jeu>/assets/site/images/background/collection/{sombre,clair}{,-720}/NN-nom.webp : les cartes réduites
+  en 360 et 720 px (illustrations sous droits réservés : rangées dans le dépôt privé, puis copiées dans
+  static/ par outils/assets-depuis-jeu.sh, ici comme sur le serveur).
 
 Nécessite Pillow (pour les images).
 """
@@ -20,7 +21,7 @@ from pathlib import Path
 
 RACINE = Path(__file__).resolve().parent.parent
 ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
-MOTIONTAK = Path(ARGS[0]) if ARGS else RACINE.parent / "motiontak"
+JEU = Path(ARGS[0]) if ARGS else RACINE.parent / "jeu"
 SANS_IMAGES = "--sans-images" in sys.argv
 TAILLES = {"": 360, "-720": 720}  # suffixe du dossier -> px ; le navigateur choisit (srcset)
 
@@ -39,7 +40,7 @@ ECHECS = {
 def tableau_d_hugo():
     """{NOM: (numéro, équivalent aux échecs ou None)} depuis l'export CSV de l'Excel des Personnages."""
     lignes = list(
-        csv.reader((MOTIONTAK / "sources/donnees/characters-hugo.csv").open(encoding="utf-8"))
+        csv.reader((JEU / "sources/donnees/characters-hugo.csv").open(encoding="utf-8"))
     )
     entete = lignes[2]
     i_id, i_nom, i_echecs = entete.index("ID"), entete.index("Name"), entete.index("Chess")
@@ -52,14 +53,14 @@ def tableau_d_hugo():
 
 
 def familles():
-    with (MOTIONTAK / "donnees/lore.csv").open(encoding="utf-8-sig") as f:
+    with (JEU / "donnees/lore.csv").open(encoding="utf-8-sig") as f:
         return {ligne["nom"].upper(): ligne["famille"] for ligne in csv.DictReader(f, delimiter=";")}
 
 
 def main():
-    cartes = json.loads((MOTIONTAK / "assets/cartes/cartes.json").read_text(encoding="utf-8"))
+    cartes = json.loads((JEU / "assets/cartes/cartes.json").read_text(encoding="utf-8"))
     deplacements = json.loads(
-        (MOTIONTAK / "assets/data/deplacements.json").read_text(encoding="utf-8")
+        (JEU / "assets/data/deplacements.json").read_text(encoding="utf-8")
     )
 
     tableau = tableau_d_hugo()
@@ -104,14 +105,14 @@ def main():
 
     for face, dossier in (("sombre", "recto"), ("clair", "verso")):
         for suffixe, taille in TAILLES.items():
-            dest = RACINE / "static/images/background/collection" / (face + suffixe)
+            dest = JEU / "assets/site/images/background/collection" / (face + suffixe)
             dest.mkdir(parents=True, exist_ok=True)
             for c in cartes:
-                im = Image.open(MOTIONTAK / "assets/cartes" / dossier / c["fichier"]).convert("RGB")
+                im = Image.open(JEU / "assets/cartes" / dossier / c["fichier"]).convert("RGB")
                 im.resize((taille, taille), Image.LANCZOS).save(
                     dest / (Path(c["fichier"]).stem + ".webp"), quality=82, method=6
                 )
-    print("images -> static/images/background/collection/{sombre,clair}{,-720}/")
+    print("images -> <jeu>/assets/site/images/background/collection/ ; puis : bash outils/assets-depuis-jeu.sh")
 
 
 if __name__ == "__main__":

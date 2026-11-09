@@ -1,11 +1,11 @@
-"""Pistes d'icône Matatak à partir des calques de la boîte (motiontak/assets/boite)."""
+"""Pistes d'icône Matatak à partir des calques de la boîte (jeu/assets/boite)."""
 import math
 import sys
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter
 
-BOITE = Path.home() / "github/motiontak/assets/boite"
+BOITE = Path(__file__).resolve().parents[3] / "jeu/assets/boite"
 SORTIE = Path(sys.argv[1])
 N = 1024  # taille de travail
 SS = 4  # suréchantillonnage des formes vectorielles

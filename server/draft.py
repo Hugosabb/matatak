@@ -76,7 +76,7 @@ def etoiles(lettre: str) -> int:
 
 
 # Valeur de chaque espèce pour l'ordinateur au Draft : colonne « Force » de l'Excel des Personnages
-# d'Hugo (motiontak/sources/donnees/characters-hugo.csv ; décision du 03/11/2026). Une lettre = une
+# d'Hugo (jeu/sources/donnees/characters-hugo.csv ; décision du 03/11/2026). Une lettre = une
 # espèce (Suricates, Tigres, Rhinocéros, Gorilles et Chevaux ont la même valeur).
 FORCE_HUGO = {
     # Pions

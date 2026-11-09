@@ -4,7 +4,7 @@
 export type Saison = 'printemps' | 'ete' | 'automne' | 'hiver';
 
 // Image du Roi : static/images/pieces/matatak/{0|1}k{n}.jpg (0 = face claire, 1 = face sombre)
-// Répliques des cartes (validées par Hugo, motiontak/assets/cartes/cartes.json)
+// Répliques des cartes (validées par Hugo, jeu/assets/cartes/cartes.json)
 export const ROIS: Record<Saison, { nom: string, image: number, titre: string, replique: string }> = {
     printemps: { nom: 'MOJO', image: 0, titre: 'Roi du Printemps', replique: '« Vas-y, épate-moi. »' },
     ete: { nom: 'AZAR', image: 1, titre: "Roi de l'Été", replique: '« Pas de casse ? Pas de Mananas. »' },
