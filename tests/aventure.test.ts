@@ -93,6 +93,20 @@ test('niveau caché : monte vite au début, puis +1 par victoire et −2 par dé
     expect(p.niveauOrdi).toBe(3);
 });
 
+test('victoire éclair au début (la Colline en 3 coups) : niveau 8 d\'un coup, pas ensuite (Hugo, 10/11/2026)', () => {
+    let p = commencer('MOJO', 'matatakmini');
+    p = apresPartie(p, 'victoire', new Date(), 3).progression;
+    expect(p.niveauOrdi).toBe(8);
+    p = apresPartie(p, 'victoire', new Date(), 3).progression;
+    expect(p.niveauOrdi).toBe(11); // déjà au-dessus de 8 : le pas normal du placement (+3)
+    let q = commencer('MOJO', 'matatakmini');
+    q = apresPartie(q, 'victoire', new Date(), 20).progression;
+    expect(q.niveauOrdi).toBe(4); // victoire normale
+    q = { ...q, parties: 10 };
+    q = apresPartie(q, 'victoire', new Date(), 3).progression;
+    expect(q.niveauOrdi).toBe(5); // après le placement : +1, même en 3 coups
+});
+
 test('flamme : jours joués d\'affilée', () => {
     let p = commencer('SHANS', 'matatak');
     p = apresPartie(p, 'defaite', new Date(2026, 9, 23, 20)).progression;

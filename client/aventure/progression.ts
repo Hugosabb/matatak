@@ -25,6 +25,10 @@ const NIVEAU_DEPART = 1; // le plus faible : la première partie doit se gagner 
 const NIVEAU_MAX = 20;
 // Grands pas au début, pour qu'un joueur déjà fort trouve vite son niveau
 const PARTIES_DE_PLACEMENT = 4;
+// Victoire éclair au tout début (la Colline en 3 coups : l'ordinateur ne défend bien qu'à partir du niveau 4
+// environ) : il saute au niveau 8 d'un coup ; ensuite les pas restent petits, pour rester stable (Hugo, 10/11/2026)
+const COUPS_ECLAIR = 5;
+const NIVEAU_APRES_ECLAIR = 8;
 
 export function lire(): Progression | null {
     try {
@@ -277,10 +281,14 @@ function flammeApres(flamme: Progression['flamme'], maintenant: Date): Progressi
     return { jours: flamme.dernier === hier ? flamme.jours + 1 : 1, dernier: aujourdhui };
 }
 
-/** Niveau caché : +1 par victoire, −2 par défaite (≈ 2 victoires sur 3), plus vite pendant le placement. */
-function niveauApres(niveau: number, resultat: Resultat, parties: number): number {
-    const pas = resultat === 'victoire' ? (parties < PARTIES_DE_PLACEMENT ? 3 : 1) : resultat === 'defaite' ? -2 : 0;
-    return Math.min(NIVEAU_MAX, Math.max(1, niveau + pas));
+/** Niveau caché : +1 par victoire, −2 par défaite (≈ 2 victoires sur 3), plus vite pendant le placement ;
+ *  une victoire éclair (`coups` du joueur) pendant le placement envoie au moins au niveau 8. */
+export function niveauApres(niveau: number, resultat: Resultat, parties: number, coups = Infinity): number {
+    const placement = parties < PARTIES_DE_PLACEMENT;
+    const pas = resultat === 'victoire' ? (placement ? 3 : 1) : resultat === 'defaite' ? -2 : 0;
+    let n = niveau + pas;
+    if (resultat === 'victoire' && placement && coups <= COUPS_ECLAIR) n = Math.max(n, NIVEAU_APRES_ECLAIR);
+    return Math.min(NIVEAU_MAX, Math.max(1, n));
 }
 
 export interface Bilan {
@@ -292,11 +300,11 @@ export interface Bilan {
 }
 
 /** Applique le résultat d'une partie de l'étape en cours. Fonction pure : à enregistrer ensuite. */
-export function apresPartie(p: Progression, resultat: Resultat, maintenant = new Date()): Bilan {
+export function apresPartie(p: Progression, resultat: Resultat, maintenant = new Date(), coups = Infinity): Bilan {
     const etape = etapeEnCours(p);
     let suite: Progression = {
         ...p,
-        niveauOrdi: niveauApres(p.niveauOrdi, resultat, p.parties),
+        niveauOrdi: niveauApres(p.niveauOrdi, resultat, p.parties, coups),
         parties: p.parties + 1,
         flamme: flammeApres(p.flamme, maintenant),
     };
@@ -398,7 +406,7 @@ export function rivalDeLaPartie(gameId: string): Roi | null {
 }
 
 /** Fin d'une partie de l'Aventure : le résultat compte une fois (rechargement de la page compris). */
-export function compterPartie(gameId: string, resultat: Resultat): Bilan | null {
+export function compterPartie(gameId: string, resultat: Resultat, coups = Infinity): Bilan | null {
     const partie = lirePartie();
     const p = lire();
     if (!partie || partie.gameId !== gameId || !p) return null;
@@ -406,7 +414,7 @@ export function compterPartie(gameId: string, resultat: Resultat): Bilan | null 
     if (partie.bilan) return { progression: p, ...partie.bilan };
     // La progression a changé entre-temps (autre onglet) : on ne compte pas une partie périmée
     if (partie.etape !== p.etape || partie.victoires !== p.victoires) return null;
-    const bilan = apresPartie(p, resultat);
+    const bilan = apresPartie(p, resultat, new Date(), coups);
     enregistrer(bilan.progression);
     ecrirePartie({ ...partie, bilan: { recrue: bilan.recrue, placesEnPlus: bilan.placesEnPlus, finie: bilan.finie, resultat, debloque: bilan.debloque } });
     return bilan;

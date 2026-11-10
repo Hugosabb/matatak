@@ -1117,7 +1117,7 @@ export class RoundController extends GameController {
             if (suite) liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=1' } }, "Voir l'Aventure"));
             liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=equipe' } }, 'Équipe'));
         } else if (joueur && !this.corr && this.contreIA() && estPartieAventure(this.gameId)) {
-            const bilan = fin.status !== 0 ? compterPartie(this.gameId, gagne ? 'victoire' : perdu ? 'defaite' : 'nulle') : null;
+            const bilan = fin.status !== 0 ? compterPartie(this.gameId, gagne ? 'victoire' : perdu ? 'defaite' : 'nulle', Math.ceil((this.steps.length - 1) / 2)) : null;
             if (bilan?.recrue) {
                 points = h('div.fin-recrue', [
                     h('img', { attrs: { src: `/static/images/background/collection/sombre/${IMAGE[bilan.recrue]}`, alt: '' } }),
