@@ -10,6 +10,7 @@ function stockage(cle: string): string | null {
 }
 
 import { premove } from './premoveCgOverride';
+import { choisirPreCoups, preCoupsActifs } from './preCoups';
 import { predrop } from 'chessgroundx/predrop';
 import * as cg from 'chessgroundx/types';
 import { Api } from "chessgroundx/api";
@@ -53,6 +54,7 @@ const LVL_SKILL = [-20, -17, -14, -11, -8, -5, -3, -1, 0, 1, 3, 4, 5, 6, 7, 10, 
 const REFLEXION_MAX = 5000;
 const REFLEXION_MAX_FORT = 8000;
 const RESERVE_PRESSE = 30 * 1000;
+const CALCUL_FORT = 7000;
 const LVL_DEPTHS = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 7, 9, 13, 17, 22];
 
 export class RoundController extends GameController {
@@ -271,10 +273,11 @@ export class RoundController extends GameController {
                         afterNewPiece: (piece, dest, meta) => this.onUserDrop(piece, dest, meta),
                     }
                 },
-                // Pré-coup : un seul, actif par défaut, aussi contre l'ordinateur (Hugo, 03/11/2026) ;
-                // il part dès que l'adversaire a joué si le coup est encore possible, toucher ailleurs l'annule
+                // Pré-coup : un seul, aussi contre l'ordinateur (Hugo, 03/11/2026) ; il part dès que l'adversaire
+                // a joué si le coup est encore possible, toucher ailleurs l'annule. Réglable dans le menu ⋯
+                // (client/preCoups.ts : désactivé par défaut pendant la phase 1 de l'Aventure)
                 premovable: {
-                    enabled: true,
+                    enabled: preCoupsActifs(),
                     premoveFunc: premove(this.variant.name, this.chess960, this.variant.board.dimensions),
                     predropFunc: predrop(this.variant.name, this.variant.board.dimensions),
                     events: {
@@ -551,6 +554,16 @@ export class RoundController extends GameController {
                 attrs: { type: 'button', role: 'menuitem' },
                 on: { click: () => { this.confirmerAbandon = true; this.renderBarre(); } },
             }, 'Abandonner'));
+            const actifs = this.chessground.state.premovable.enabled;
+            actions.push(h('button.barre-action.reglage', {
+                attrs: { type: 'button', role: 'menuitemcheckbox', 'aria-checked': String(actifs) },
+                on: { click: () => {
+                    choisirPreCoups(!actifs);
+                    this.chessground.cancelPremove();
+                    this.chessground.set({ premovable: { enabled: !actifs } });
+                    this.renderBarre(); // menu laissé ouvert : on voit le réglage changer
+                } },
+            }, [h('span', 'Pré-coups'), h('b', actifs ? 'Oui' : 'Non')]));
         }
         // Icônes seules (barre plus basse, plateau plus grand) ; le nom reste pour les lecteurs d'écran
         const icone = (d: string, epaisseur = '2.4') => h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': epaisseur, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } }, [h('path', { attrs: { d } })]);
@@ -1849,13 +1862,25 @@ export class RoundController extends GameController {
 
         // Les niveaux 1 à 15 s'arrêtent à la profondeur 5 en quelques millisecondes ; les plus forts
         // calculent pendant le temps visé (au moins 1 s, sauf quand la pendule presse).
-        const movetime = Math.max(this.reflexion.vise, this.reflexion.vise === 0 ? 200 : 1000);
+        // Niveaux 16 à 20 : le temps visé ne doit pas couper le calcul (Hugo, 10/11/2026 : depuis qu'il
+        // « réfléchit comme un joueur », le niveau 19 jouait plus vite et moins bien) ; il calcule
+        // jusqu'à sa profondeur, au plus CALCUL_FORT (ou une petite part de sa pendule).
+        const movetime = this.level >= 16 && this.reflexion.vise > 0
+            ? Math.max(this.reflexion.vise, this.calculFort())
+            : Math.max(this.reflexion.vise, this.reflexion.vise === 0 ? 200 : 1000);
         this.fsfPostMessage(`go depth ${LVL_DEPTHS[this.level - 1]} movetime ${Math.round(movetime)}`);
 
         this.isSearching = false;
     }
 
     private reflexion = { debut: 0, vise: 0 };
+
+    /** Temps de calcul permis aux niveaux forts : 7 s comme avant le 22/10, moins quand la pendule presse. */
+    private calculFort(): number {
+        if (this.unlimited) return CALCUL_FORT;
+        const reste = this.clocktimes[this.oppcolor === 'white' ? WHITE : BLACK];
+        return Math.min(CALCUL_FORT, reste / 25 + this.inc * 1000 * 0.5);
+    }
 
     /** Temps de réflexion visé pour le prochain coup de l'ordinateur, en ms. */
     private tempsVise(): number {

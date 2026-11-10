@@ -89,6 +89,9 @@ FORCE_HUGO = {
 # le désavantager un peu). Probabilité par niveau de 1 à 20.
 HASARD_MAX = 0.35
 NIVEAU_SANS_HASARD = 8
+# Groupes miroir évités si un autre partage ne coûte pas plus que ça au groupe le plus faible
+# (Pions : ≈ deux Pions voisins dans le tableau de Force ; Champions : leurs Forces sont plus espacées)
+MIROIR_TOLERANCE = {3: 40, 2: 100}  # par taille de groupe : 3 Pions, 2 Champions (+ 1 Roi)
 
 
 def valeur(lettre: str) -> int:
@@ -100,8 +103,13 @@ def autre(couleur: str) -> str:
 
 
 class Draft:
-    def __init__(self, variant: str, rng: random.Random | None = None, en_plus: str = ""):
+    def __init__(
+        self, variant: str, rng: random.Random | None = None, en_plus: str = "", boost: int = 0
+    ):
         rng = rng or random.Random()
+        # Coup de pouce (livret ; choix A d'Hugo, 10/11/2026) : appliqué aux équipes tirées, une fois
+        # les groupes choisis, avec les mêmes crans que pour les équipes toutes faites. > 0 : les Blancs.
+        self.boost = max(-4, min(4, int(boost or 0)))
         self.mini = variant == "matatakmini"
         # Toujours au hasard (Hugo) : 8 Pions, 6 Champions, 2 Rois différents ; des doublons de
         # Pions ou de Champions sont possibles, la boîte a 4 exemplaires de chaque Personnage.
@@ -218,6 +226,22 @@ class Draft:
                 "arriere": [autres[0], "k", autres[1]],
                 "roi": self.rois[roi - 6],
             }
+        self._appliquer_le_coup_de_pouce()
+
+    def _appliquer_le_coup_de_pouce(self):
+        if not self.boost:
+            return
+        blanc, noir = self.equipes["white"], self.equipes["black"]
+        nchamp, npions, bpions, bchamp = FairyBoard.add_boost(
+            self.mini,
+            self.boost,
+            "".join(noir["arriere"]),
+            "".join(noir["pions"]),
+            "".join(blanc["pions"]),
+            "".join(blanc["arriere"]),
+        )
+        blanc["arriere"], blanc["pions"] = list(bchamp), list(bpions)
+        noir["arriere"], noir["pions"] = list(nchamp), list(npions)
 
     def placer(self, couleur: str, pions, arriere) -> None:
         self._verifier(couleur, PLACEMENT)
@@ -263,11 +287,15 @@ class Draft:
         if self.phase == PIONS_FORMER:
             self.former(
                 couleur,
-                self._groupes_equilibres(list(range(8)), [valeur(p) for p in self.pions], rng),
+                self._groupes_equilibres(
+                    list(range(8)), [valeur(p) for p in self.pions], rng, noms=self.pions
+                ),
             )
         elif self.phase == CHAMPIONS_FORMER:
             forces = [valeur(c) for c in self.champions]
-            gardes = self._groupes_equilibres(list(range(6)), forces, rng, taille=2)
+            gardes = self._groupes_equilibres(
+                list(range(6)), forces, rng, taille=2, noms=self.champions
+            )
             self.former(couleur, [gardes[0] + [6], gardes[1] + [7]])
         elif self.phase in (PIONS_CHOISIR, CHAMPIONS_CHOISIR):
             type_ = "pions" if self.phase == PIONS_CHOISIR else "champions"
@@ -281,18 +309,32 @@ class Draft:
             self.placer(couleur, equipe["pions"], equipe["arriere"])
 
     @staticmethod
-    def _groupes_equilibres(indices, forces, rng, taille: int = 3) -> list[list[int]]:
-        """Garde les 2 * taille cartes les plus fortes (un peu de hasard à égalité), puis les répartit
-        pour que les deux groupes aient le même nombre d'étoiles, ou presque."""
+    def _groupes_equilibres(indices, forces, rng, taille: int = 3, noms=None) -> list[list[int]]:
+        """Forme 2 groupes de `taille` cartes. Celui qui forme les groupes garde celui que l'autre ne
+        prend pas, donc le plus faible : il cherche le partage où le plus faible des deux vaut le plus
+        (Force du tableau d'Hugo), puis, à égalité, l'écart le plus petit ; un peu de hasard ensuite.
+        Pas de groupes miroir (les mêmes Personnages des deux côtés : plus de choix) s'il existe un
+        partage presque aussi bon (MIROIR_TOLERANCE). Hugo, 10/11/2026."""
         melange = indices[:]
         rng.shuffle(melange)
-        gardes = sorted(melange, key=lambda i: -forces[i])[: 2 * taille]
         meilleur = None
-        for groupe in combinations(gardes, taille):
-            reste = [i for i in gardes if i not in groupe]
-            ecart = abs(sum(forces[i] for i in groupe) - sum(forces[i] for i in reste))
-            if meilleur is None or ecart < meilleur[0]:
-                meilleur = (ecart, list(groupe), reste)
+        sans_miroir = None
+        for groupe in combinations(melange, taille):
+            reste = [i for i in melange if i not in groupe]
+            for autre_groupe in combinations(reste, taille):
+                a = sum(forces[i] for i in groupe)
+                b = sum(forces[i] for i in autre_groupe)
+                note = (min(a, b), -abs(a - b))
+                choix = (note, list(groupe), list(autre_groupe))
+                if meilleur is None or note > meilleur[0]:
+                    meilleur = choix
+                miroir = noms is not None and sorted(noms[i] for i in groupe) == sorted(
+                    noms[i] for i in autre_groupe
+                )
+                if not miroir and (sans_miroir is None or note > sans_miroir[0]):
+                    sans_miroir = choix
+        if sans_miroir is not None and sans_miroir[0][0] >= meilleur[0][0] - MIROIR_TOLERANCE[taille]:
+            meilleur = sans_miroir
         return [meilleur[1], meilleur[2]]
 
     # ---------- Position de départ ----------
@@ -317,6 +359,13 @@ class Draft:
 
     # ---------- Pour le navigateur ----------
 
+    def _lettres(self) -> set[str]:
+        lettres = set(self.pions + self.champions)
+        for equipe in self.equipes.values():
+            if equipe:
+                lettres |= set(equipe["pions"]) | (set(equipe["arriere"]) - {"k"})
+        return lettres
+
     def etat(self) -> dict:
         return {
             "phase": self.phase,
@@ -324,7 +373,8 @@ class Draft:
             "pions": self.pions,
             "champions": self.champions,
             "rois": self.rois,
-            "etoiles": {lettre: etoiles(lettre) for lettre in set(self.pions + self.champions)},
+            "etoiles": {lettre: etoiles(lettre) for lettre in self._lettres()},
+            "boost": self.boost,
             "groupes": self.groupes,
             "choix": self.choix,
             "equipes": self.equipes,

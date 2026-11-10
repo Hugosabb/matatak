@@ -228,6 +228,9 @@ body:has(#toggle-moves:not(:checked)) .round #movelist { height: auto; min-heigh
   }
   .barre-action:active, .barre-action:hover { background: var(--mt-surface-2); }
   .barre-action.attention { color: var(--mt-automne); }
+  .barre-action.reglage { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 4px; box-shadow: 0 -1px 0 var(--mt-filet); border-radius: 0 0 10px 10px; }
+  .barre-action.reglage b { font-weight: 800; color: var(--mt-or); }
+  .barre-action.reglage[aria-checked="false"] b { color: var(--mt-discret); }
 }
 
 /* ---------- Ordinateur : plus de panneau de gauche, plateau + colonne de droite centrés ---------- */
@@ -359,6 +362,7 @@ button.dr-carte:focus-visible { outline: 2px solid var(--mt-jaune); outline-offs
 
 /* Attente : trois losanges qui pulsent */
 .dr-attente { display: flex; justify-content: center; gap: 10px; padding: 6px; }
+.dr-pouce { margin: 0; text-align: center; font-size: 0.9rem; color: var(--mt-or, #f5c542); }
 .dr-attente i { width: 9px; height: 9px; border-radius: 2px; background: var(--mt-or); transform: rotate(45deg); animation: dr-pouls 1.2s ease-in-out infinite; }
 .dr-attente i:nth-child(2) { animation-delay: .2s; } .dr-attente i:nth-child(3) { animation-delay: .4s; }
 @keyframes dr-pouls { 50% { opacity: .25; transform: rotate(45deg) scale(.7); } }

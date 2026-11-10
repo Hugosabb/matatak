@@ -237,7 +237,7 @@ class Game:
         # Draft (server/draft.py) : les équipes se composent avant la partie, qui reste CREATED ;
         # en attendant, le plateau porte une position de départ ordinaire, cachée par l'écran du Draft.
         self.draft = (
-            Draft(self.variant, en_plus=self.persos)
+            Draft(self.variant, en_plus=self.persos, boost=self.boost if rated != RATED else 0)
             if self.variant.startswith("matatak") and self.isDraft and not self.initial_fen
             else None
         )

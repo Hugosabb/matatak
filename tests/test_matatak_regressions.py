@@ -610,11 +610,16 @@ class CampagneTestCase(AioHTTPTestCase):
         )
         self.assertEqual(resp.status, 200)
 
-    async def test_ancienne_page_learn_redirige_vers_apprendre(self):
-        """/variants était la page « Learn » de pychess, qui parlait d'échecs (AUDIT P2-13)."""
-        for chemin in ("/variants", "/variants/matatak"):
+    async def test_anciennes_pages_redirigees(self):
+        """/variants était la page « Learn » de pychess, qui parlait d'échecs (AUDIT P2-13) ; /apprendre
+        a été supprimée le 10/11/2026 (tout est dans le menu « Plus »)."""
+        for chemin, cible in (
+            ("/variants", "/collection"),
+            ("/variants/matatak", "/collection"),
+            ("/apprendre", "/jouer"),
+        ):
             resp = await self.client.get(chemin, allow_redirects=False)
-            self.assertEqual((resp.status, resp.headers["Location"]), (302, "/apprendre"))
+            self.assertEqual((resp.status, resp.headers["Location"]), (302, cible))
 
 
 class SansDropTestCase(unittest.TestCase):
@@ -693,3 +698,67 @@ class EquipesChoisiesTestCase(unittest.TestCase):
         # Coup de pouce pour les Blancs : leur Champion gagne une étoile (KRAK a déjà 4 : il reste)
         aide = FairyBoard.matatak_saisons_start(False, "hiver", "ete", boost=1)
         self.assertNotEqual(aide.split()[0].split("/")[7], "3WK3")
+
+
+class DraftOrdinateurEtCoupDePouceTestCase(unittest.TestCase):
+    """Draft (10/11/2026) : l'ordinateur forme le partage où le groupe qu'il gardera (le plus faible)
+    vaut le plus ; le Coup de pouce entre amis s'applique aussi aux équipes tirées (choix A d'Hugo)."""
+
+    def test_l_ordinateur_maximise_le_groupe_le_plus_faible(self):
+        import random
+        from itertools import combinations
+
+        from draft import Draft
+
+        for graine in range(30):
+            rng = random.Random(graine)
+            forces = [rng.choice([100, 110, 120, 130, 150, 160]) for _ in range(8)]
+            g = Draft._groupes_equilibres(list(range(8)), forces, random.Random(graine))
+            obtenu = min(sum(forces[i] for i in groupe) for groupe in g)
+            optimum = max(
+                min(sum(forces[i] for i in a), sum(forces[i] for i in b))
+                for a in combinations(range(8), 3)
+                for b in combinations([i for i in range(8) if i not in a], 3)
+            )
+            self.assertEqual(obtenu, optimum)
+
+    def test_pas_de_groupes_miroir_quand_on_peut_l_eviter(self):
+        """Deux groupes identiques ne laissent pas de choix (Hugo, 10/11/2026)."""
+        import random
+
+        from draft import Draft
+
+        miroirs = 0
+        for graine in range(200):
+            d = Draft("matatak", random.Random(graine))
+            for couleur in ("white", "black", "black"):
+                d.jouer_ordinateur(couleur, random.Random(graine))
+            for type_, noms in (("pions", d.pions), ("champions", d.champions)):
+                a, b = (sorted(noms[i] for i in g if i < len(noms)) for g in d.groupes[type_])
+                miroirs += a == b
+        self.assertLessEqual(miroirs, 10)  # sur 400 partages ; quelques-uns sont inévitables (hhhhhh)
+
+    def test_le_coup_de_pouce_donne_des_etoiles_apres_le_draft(self):
+        import random
+
+        from draft import Draft, etoiles
+
+        def total(equipe):
+            return sum(etoiles(c) for c in equipe["pions"] + equipe["arriere"] if c != "k")
+
+        for graine in range(20):
+            sans, avec = (
+                Draft("matatak", random.Random(graine), boost=b) for b in (0, 2)
+            )  # mêmes tirages
+            for d in (sans, avec):
+                d.jouer_ordinateur("white", random.Random(1))
+                d.jouer_ordinateur("black", random.Random(1))
+                d.jouer_ordinateur("black", random.Random(1))
+                d.jouer_ordinateur("white", random.Random(1))
+            self.assertGreaterEqual(total(avec.equipes["white"]), total(sans.equipes["white"]))
+            self.assertEqual(total(avec.equipes["black"]), total(sans.equipes["black"]))
+            self.assertEqual(avec.equipes["white"]["arriere"][1], "k")
+            # Le placement accepte les cartes renforcées
+            e = avec.equipes["white"]
+            avec.placer("white", e["pions"][::-1], e["arriere"][::-1])
+        self.assertIn("boost", avec.etat())

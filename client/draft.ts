@@ -29,6 +29,7 @@ export interface EtatDraft {
     dernier: { action: string, type: 'pions' | 'champions', couleur: Couleur, groupe?: number } | null;
     fen: string | null;
     reste?: number | null; // partie classée : secondes pour l'étape en cours (server/draft.py)
+    boost?: number; // Coup de pouce (> 0 : les Blancs), déjà appliqué aux équipes du placement
 }
 
 interface Options {
@@ -361,12 +362,21 @@ export class EcranDraft {
         return [
             ...this.entete(e, pret ? `${adv} place son équipe…` : 'Placez votre équipe',
                 pret ? 'La partie commence dès qu\'il est prêt.' : 'Touchez deux Personnages d\'une même rangée pour les échanger. Le Roi garde sa case.'),
+            this.notePouce(e, adv),
             h('div.dr-placement', [rangee('pions'), rangee('arriere')]),
             pret ? this.attente() : h('button.mt-btn.mt-btn-or.dr-valider', {
                 attrs: { type: 'button' },
                 on: { click: () => { this.envoye = true; this.o.envoyer({ action: 'placer', pions: p.pions, arriere: p.arriere }); this.dessiner(); } },
             }, 'Prêt'),
         ];
+    }
+
+    /** Coup de pouce entre amis : rappelle pourquoi les cartes ont changé depuis les groupes. */
+    private notePouce(e: EtatDraft, adv: string): VNode {
+        const b = e.boost ?? 0;
+        if (!b) return h('p.dr-pouce', { attrs: { hidden: true } });
+        const pourMoi = (b > 0) === (this.o.mycolor === 'white');
+        return h('p.dr-pouce', `Coup de pouce ${Math.abs(b)} pour ${pourMoi ? 'vous' : adv} : des Personnages ont changé d'étoiles depuis les groupes.`);
     }
 
     private attente(): VNode {
