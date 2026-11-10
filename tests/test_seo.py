@@ -36,11 +36,12 @@ class ReferencementTestCase(AioHTTPTestCase):
         resp = await self.client.get("/sitemap.xml")
         self.assertEqual(resp.headers["Content-Type"].split(";")[0], "application/xml")
         plan = await resp.text()
-        for adresse in ("/jouer", "/collection", "/apprendre"):
+        for adresse in ("/jouer", "/collection", "/palmares"):
             self.assertIn("%s</loc>" % adresse, plan)
+        self.assertNotIn("/apprendre</loc>", plan)  # page supprimée le 10/11/2026
 
     async def test_pages_publiques_indexees_avec_description(self):
-        for adresse in ("/jouer", "/collection", "/apprendre", "/palmares"):
+        for adresse in ("/jouer", "/collection", "/palmares"):
             texte = await self.page(adresse)
             self.assertIn('rel="canonical"', texte, adresse)
             self.assertNotIn('name="robots" content="noindex"', texte, adresse)

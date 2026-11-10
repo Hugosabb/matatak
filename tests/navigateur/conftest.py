@@ -47,7 +47,7 @@ async def chromium():
         await navigateur.close()
 
 
-async def ouvrir(chromium, site, telephone=False, premiere_page="/apprendre"):
+async def ouvrir(chromium, site, telephone=False, premiere_page="/confidentialite"):
     """Une page, comme un visiteur qui connaît déjà les règles. Les erreurs JavaScript sont
     gardées dans page.erreurs. La première visite attend 3 s côté serveur : on la fait ici, pour
     que la connexion du salon ne tombe pas plus tard au milieu d'un test."""

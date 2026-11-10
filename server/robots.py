@@ -27,7 +27,6 @@ Sitemap: %s/sitemap.xml
 PAGES = [
     "/",
     "/jouer",
-    "/apprendre",
     "/collection",
     "/tutorial",
     "/puzzle/campaign/matatakmini",

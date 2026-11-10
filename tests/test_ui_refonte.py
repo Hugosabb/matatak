@@ -110,7 +110,8 @@ class PagesTestCase(AioHTTPTestCase):
             text = await resp.text()
             self.assertIn('class="mt-haut"', text, adresse)
             self.assertIn('class="mt-tab"', text, adresse)
-            self.assertIn(">Connexion</a>", text, adresse)  # le compte, 4e onglet (invité)
+            self.assertIn("mt-plus-bouton", text, adresse)  # menu « Plus » (10/11/2026)
+            self.assertIn("Se connecter<small>", text, adresse)  # le compte, dans « Plus » (invité)
 
     async def test_adresses_du_livret(self):
         """Les 3 QR codes du livret redirigent (302, la cible peut changer) ; l'adresse reste fixe."""
@@ -209,7 +210,6 @@ class PagesTestCase(AioHTTPTestCase):
             ("/", "vitrine.css"),
             ("/puzzle/campaign/matatakmini", "puzzle.css"),
             ("/puzzle/matatakmini/level/1", "puzzle.css"),
-            ("/apprendre", "apprendre.css"),
         ):
             text = await (await self.client.request("GET", chemin)).text()
             self.assertIn(css, text, chemin)
@@ -219,7 +219,6 @@ class PagesTestCase(AioHTTPTestCase):
             "vitrine.css",
             "partie.css",
             "puzzle.css",
-            "apprendre.css",
             "matatak-ui.css",
             "js/vitrine.js",
         ):
