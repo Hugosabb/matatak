@@ -12,7 +12,8 @@
     const NB_IMAGES = 72;
     const taille = (window.innerWidth * (window.devicePixelRatio || 1) > 900 && window.innerWidth > 700) ? 1100 : 720;
     const images = new Array(NB_IMAGES);
-    let imageVoulue = 0, imageAffichee = -1;
+    let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0;
+    const FONDU = location.hash === '#fondu';
     scene.width = scene.height = taille;
     // Images décodées à l'avance (createImageBitmap) : sur téléphone, décoder un WebP au moment de le
     // dessiner, pendant le défilement, peut faire sauter des images (10/11/2026)
@@ -26,6 +27,18 @@
                     ctx.drawImage(im, 0, 0, taille, taille);
                     imageAffichee = k;
                     scene.parentElement.classList.add('pret');
+                }
+                // Essai « fondu » (/#fondu, 10/11/2026, à comparer par Hugo) : l'image suivante par-dessus,
+                // d'autant plus visible qu'on approche d'elle, pour lisser les 72 images au défilement
+                if (FONDU && k === imageVoulue) {
+                    const suivante = decodees[k + 1];
+                    const part = positionVoulue - k;
+                    if (suivante && part > 0.02) {
+                        ctx.globalAlpha = part;
+                        ctx.drawImage(suivante, 0, 0, taille, taille);
+                        ctx.globalAlpha = 1;
+                    }
+                    imageAffichee = -2; // le mélange change à chaque mouvement : toujours redessiner
                 }
                 return;
             }
@@ -67,7 +80,8 @@
         // Progression dans la section collante : de 0 à 1
         const r = film.getBoundingClientRect();
         const p = Math.min(1, Math.max(0, -r.top / (r.height - h)));
-        imageVoulue = Math.round(p * (NB_IMAGES - 1));
+        positionVoulue = p * (NB_IMAGES - 1);
+        imageVoulue = FONDU ? Math.floor(positionVoulue) : Math.round(positionVoulue);
         dessiner();
         const i = Math.min(2, Math.floor(p * 3));
         etapes.forEach((e, k) => e.classList.toggle('active', k === i));
