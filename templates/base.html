@@ -3,12 +3,26 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <meta name="description" content="Free Online Chess Variants">
-    <meta property="og:image" content={{ static("favicon/ms-icon-310x310.png") }} />
-    <meta property="og:image:width" content="310" />
-    <meta property="og:image:height" content="310" />
-    <meta name="keywords"
-        content="Chess variants xiangqi janggi shogi dobutsu gorogoro kyoto tori makruk sittuyin asean makpong capablanca seirawan grand shako shogun synochess orda shinobi empire chak chennis duck spartan">
+    {# Référencement (10/11/2026) : une description par page ; seules les pages publiques sont indexées
+       (pas les parties, profils, invitations, éditeur…), lien canonique sans paramètres ; rien d'externe #}
+    {% set descriptions = {
+        "jouer": "Jouez à MATATAK gratuitement en ligne : l'Aventure contre l'ordinateur, un ami par un simple lien, ou l'Arène contre des joueurs de votre niveau.",
+        "apprendre": "Apprenez à jouer à MATATAK : tutoriel, puzzles, Collection des Personnages, analyse et éditeur de positions.",
+        "collection": "Tous les Personnages de MATATAK, leurs déplacements et leur Force, carte par carte.",
+        "palmares": "Le palmarès de la semaine de l'Arène de MATATAK : les meilleurs joueurs et leurs points.",
+        "tutorial": "Apprenez les règles de MATATAK en une partie guidée, sur le petit plateau.",
+        "campaign": "La campagne de puzzles de MATATAK : 200 niveaux pour trouver le meilleur coup.",
+        "confidentialite": "Ce que le site de MATATAK garde de vos données, pourquoi et combien de temps.",
+    } %}
+    {% set indexable = view in descriptions %}
+    <meta name="description" content="{{ descriptions.get(view, "MATATAK, le jeu de société qui réinvente les échecs dans la jungle : jouez gratuitement en ligne.") }}">
+    {% if not indexable %}<meta name="robots" content="noindex">{% endif %}
+    {% if indexable and chemin %}<link rel="canonical" href="{{ home }}{{ chemin }}">{% endif %}
+    <meta property="og:site_name" content="MATATAK">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ descriptions.get(view, "Le jeu de société qui réinvente les échecs. Jouez gratuitement en ligne.") }}">
+    <meta property="og:image" content="{{ home }}{{ static('favicon/og-image.png') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#12100e">
     <!-- Appli installée (PWA) : sans ça, le navigateur peint en blanc les zones qu'il dessine lui-même

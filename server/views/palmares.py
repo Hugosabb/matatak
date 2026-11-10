@@ -9,5 +9,5 @@ async def palmares(request):
     user, context = await get_user_context(request)
     context["view"] = "palmares"
     context["view_css"] = "palmares.css"
-    context["title"] = "Palmarès · MATATAK!"
+    context["title"] = "Palmarès · MATATAK"
     return context

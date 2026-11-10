@@ -12,6 +12,6 @@ async def confidentialite(request):
     user, context = await get_user_context(request)
     context["view"] = "confidentialite"
     context["view_css"] = "confidentialite.css"
-    context["title"] = "Confidentialité · MATATAK!"
+    context["title"] = "Confidentialité · MATATAK"
     context["contact"] = CONTACT
     return context

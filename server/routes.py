@@ -49,7 +49,7 @@ from tournament.wst import tournament_socket_handler
 from tournament.tournament_calendar import tournament_calendar
 from twitch import twitch_request_handler
 from puzzle import puzzle_complete, puzzle_vote
-from robots import robots
+from robots import robots, sitemap
 from server_metrics import metrics_handler
 from user import block_user, get_blocked_users, set_theme, get_status
 from views import (
@@ -214,6 +214,7 @@ get_routes = (
     ("/fishnet/monitor", fishnet_monitor),
     ("/fishnet/key/{key}", fishnet_validate_key),
     ("/robots.txt", robots),
+    ("/sitemap.xml", sitemap),
     ("/service-worker.js", pwa.service_worker),
     ("/manifest.json", pwa.manifest),
     ("/favicon.ico", pwa.favicon),

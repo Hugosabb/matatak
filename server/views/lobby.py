@@ -66,7 +66,7 @@ async def lobby(request):
         if user.anon and context["profile_title"] != "BOT":
             raise web.HTTPNotFound()
 
-    context["title"] = "Matatak"
+    context["title"] = "MATATAK"
     context["tournamentdirector"] = user.username in TOURNAMENT_DIRECTORS
 
     puzzle = await get_daily_puzzle(request)
@@ -77,7 +77,7 @@ async def lobby(request):
 
     if request.path == "/jouer":
         context["view"] = "jouer"
-        context["title"] = "Jouer · MATATAK!"
+        context["title"] = "Jouer · MATATAK"
         context["view_css"] = "lobby.css"
         context["extra_css"] = ["jouer.css", "aventure.css"]
     else:

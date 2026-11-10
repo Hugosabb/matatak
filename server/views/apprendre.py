@@ -10,7 +10,7 @@ async def apprendre(request):
     user, context = await get_user_context(request)
     context["view"] = "apprendre"
     context["view_css"] = "apprendre.css"
-    context["title"] = "Apprendre · MATATAK!"
+    context["title"] = "Apprendre · MATATAK"
     return context
 
 

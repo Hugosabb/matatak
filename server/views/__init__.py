@@ -22,6 +22,20 @@ piece_sets = [x.name for x in piece_css_path.iterdir() if x.is_dir() and x.name 
 from users import NotInDbUsers  # noqa: E402 (après piece_sets, comme avant)
 
 
+# Titre de l'onglet par défaut, en français (une vue peut le remplacer)
+TITRES = {
+    "editor": "Éditeur",
+    "analysis": "Analyse",
+    "tutorial": "Tutoriel",
+    "puzzle": "Puzzle",
+    "campaign": "Puzzles",
+    "profile": "Profil",
+    "invite": "Invitation",
+    "players": "Joueurs",
+    "about": "À propos",
+}
+
+
 async def get_user_context(request):
     app_state = get_app_state(request.app)
 
@@ -91,12 +105,13 @@ async def get_user_context(request):
         "lang": lang,
         "variant_display_name": variant_display_name,
         "theme": user.theme,
-        "title": "%s • Matatak" % view.capitalize(),
+        "title": "%s · MATATAK" % TITRES.get(view, view.capitalize()),
         "view": view,
         "view_css": ("round" if view == "tv" else view) + ".css",
         "anon": user.anon,
         "username": user.username,
         "piece_sets": piece_sets,
+        "chemin": request.path,  # lien canonique (templates/base.html)
     }
     return (user, context)
 

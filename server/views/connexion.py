@@ -13,6 +13,6 @@ async def connexion(request):
         raise web.HTTPFound("/@/%s" % user.username)
     context["view"] = "connexion"
     context["view_css"] = "connexion.css"
-    context["title"] = "Se connecter · MATATAK!"
+    context["title"] = "Se connecter · MATATAK"
     context["fournisseurs"] = fournisseurs_actifs()
     return context

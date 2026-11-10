@@ -9,5 +9,5 @@ async def collection(request):
     user, context = await get_user_context(request)
     context["view"] = "collection"
     context["view_css"] = "collection.css"
-    context["title"] = "Collection · MATATAK!"
+    context["title"] = "Collection · MATATAK"
     return context

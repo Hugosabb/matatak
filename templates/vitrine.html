@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{ title }}</title>
-<meta name="description" content="MATATAK!, la stratégie des échecs accessible à tous : un jeu de société de 2 à 4 joueurs dans la jungle. Essayez-le gratuitement en ligne.">
+<meta name="description" content="MATATAK, la stratégie des échecs accessible à tous : un jeu de société de 2 à 4 joueurs dans la jungle. Essayez-le gratuitement en ligne.">
 <meta name="theme-color" content="#12100e">
 <meta name="color-scheme" content="dark">
 <!-- Appli installée sur iPhone : barre d'état transparente (le fond sombre passe dessous, pas de bande blanche) ;
@@ -13,7 +13,16 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>html { background: #12100e; color-scheme: dark; }</style>
-<meta property="og:title" content="MATATAK! · Le jeu de société">
+<meta property="og:title" content="MATATAK · Le jeu de société">
+<link rel="canonical" href="{{ home }}/">
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "Game", "name": "MATATAK",
+ "description": "Le jeu de société qui réinvente les échecs dans la jungle : chaque Personnage a son déplacement dessiné sur sa carte.",
+ "url": "{{ home }}/", "image": "{{ home }}{{ static('favicon/og-image.png') }}",
+ "numberOfPlayers": {"@type": "QuantitativeValue", "minValue": 2, "maxValue": 4},
+ "audience": {"@type": "PeopleAudience", "suggestedMinAge": 7},
+ "inLanguage": "fr", "author": {"@type": "Person", "name": "Hugo Sabatier"}}
+</script>
 <meta property="og:description" content="La stratégie des échecs, accessible à tous. Jouez gratuitement en ligne.">
 <meta property="og:image" content="{{ static('favicon/og-image.png') }}">
 <script>
@@ -52,7 +61,7 @@
   <div class="fond" id="fond"></div>
   <div class="voile"></div>
   <div class="contenu">
-    <h1 class="logo-grand"><img src="/static/images/background/vitrine/logo.png" alt="MATATAK!"></h1>
+    <h1 class="logo-grand"><img src="/static/images/background/vitrine/logo.png" alt="MATATAK"></h1>
     <div class="yeux-bloc" aria-hidden="true">
       <img class="etoile" src="/static/images/background/vitrine/etoile.png" alt="">
       <img class="yeux" src="/static/images/background/vitrine/yeux-2.png" alt="">
@@ -155,7 +164,7 @@
     <div class="mt-apparait">
       <div class="surtitre gauche"><i class="mt-losange"></i>Qui sommes-nous</div>
       <h2 class="mt-tribeca">Un jeu indépendant, fait avec soin</h2>
-      <p class="intro">MATATAK! est né de l'envie de partager le plaisir des échecs avec ceux qui n'y ont jamais touché.</p>
+      <p class="intro">MATATAK est né de l'envie de partager le plaisir des échecs avec ceux qui n'y ont jamais touché.</p>
       <div class="equipe">
         <div class="membre" style="--c:var(--mt-printemps)"><div class="av">HS</div><div><b>Hugo Sabatier</b><span>Auteur</span></div></div>
         <div class="membre" style="--c:var(--mt-ete)"><div class="av">SB</div><div><b>Samuel Boniface</b><span>Illustrateur</span></div></div>
