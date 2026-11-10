@@ -474,10 +474,12 @@ async def export(request):
     failed = 0
     cursor = None
 
+    # Parties terminées seulement : l'export ne doit pas montrer une partie en cours (AUDIT P2-5)
+    finie = {"s": {"$gt": STARTED}}
     if profileId is not None:
-        cursor = app_state.db.game.find({"us": profileId})
+        cursor = app_state.db.game.find({"us": profileId, **finie})
     elif tournamentId is not None:
-        cursor = app_state.db.game.find({"tid": tournamentId})
+        cursor = app_state.db.game.find({"tid": tournamentId, **finie})
     elif session_user in ADMINS:
         yearmonth = request.match_info.get("yearmonth")
         print("---", yearmonth[:4], yearmonth[4:])
