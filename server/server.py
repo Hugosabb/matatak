@@ -102,6 +102,13 @@ async def cross_origin_policy_middleware(request, handler):
         if request.match_info.get("gameId") is not None:
             response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
             response.headers["Expires"] = "0"
+    # En-têtes de sécurité (AUDIT P2-7, 10/11/2026) ; pas de CSP pour l'instant (scripts en ligne)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    if not request.path.startswith(
+        "/embed/"
+    ):  # /embed/ est fait pour être intégré dans une autre page
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
     return response
 
 
