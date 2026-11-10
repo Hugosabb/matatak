@@ -1875,7 +1875,6 @@ export class RoundController extends GameController {
         return vise;
     }
 
-    /** Joue le coup trouvé quand le temps visé est écoulé, si la partie n'a pas bougé entre-temps. */
     /** Fait défiler pour que le bas du cadre de fin passe au-dessus des barres fixées en bas de l'écran. */
     private montrerLaFin() {
         const fin = document.querySelector('.fin-partie');
@@ -1895,6 +1894,7 @@ export class RoundController extends GameController {
         if (ecart > 0 && decalage > 0) window.scrollBy({ top: decalage, behavior: 'smooth' });
     }
 
+    /** Joue le coup trouvé quand le temps visé est écoulé, si la partie n'a pas bougé entre-temps. */
     private jouerCoupOrdinateur(coup: string) {
         // Nombre de coups de la partie, pas `this.ply` : celui-ci suit le coup affiché, et reculer dans
         // les coups pendant que l'ordinateur réfléchit lui faisait jeter son coup pour toujours (Hugo, 03/11/2026)
