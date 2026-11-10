@@ -57,7 +57,9 @@ def upsert_from_json(json_file: str, mongo_host: str, dry_run: bool = False):
                 continue
 
             if dry_run:
-                print(f"  [DRY-RUN] Ligne {lineno}: {doc.get('_id', '?')} ({doc.get('variant', '?')})")
+                print(
+                    f"  [DRY-RUN] Ligne {lineno}: {doc.get('_id', '?')} ({doc.get('variant', '?')})"
+                )
                 inserted += 1
                 continue
 
@@ -87,7 +89,7 @@ def upsert_from_json(json_file: str, mongo_host: str, dry_run: bool = False):
         total = db2.puzzle.count_documents({})
         matatak_count = db2.puzzle.count_documents({"variant": "matatak"})
         matatakmini_count = db2.puzzle.count_documents({"variant": "matatakmini"})
-        print(f"\nBase de données:")
+        print("\nBase de données:")
         print(f"  Total puzzles      : {total}")
         print(f"  Puzzles matatak    : {matatak_count}")
         print(f"  Puzzles matatakmini: {matatakmini_count}")

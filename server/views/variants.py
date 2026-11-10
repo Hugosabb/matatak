@@ -2,7 +2,6 @@ import os
 
 import aiohttp_jinja2
 
-from const import VARIANT_GROUPS
 from lang import get_locale_ext
 from views import get_user_context
 from variants import VARIANTS, VARIANT_ICONS
@@ -17,9 +16,7 @@ async def variants(request):
         variant = "matatak"
 
     # Only show 'matatak' in the variants documentation page
-    matatak_variants = {
-        "matatak": VARIANTS["matatak"]
-    }
+    matatak_variants = {"matatak": VARIANTS["matatak"]}
 
     context["variants"] = matatak_variants
     context["icons"] = {"matatak": VARIANT_ICONS["matatak"]}

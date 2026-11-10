@@ -180,8 +180,8 @@ async def get_winners(app_state: PychessGlobalAppState, shield, variant: str = N
                 try:
                     await app_state.users.get(doc["winner"])
                 except Exception:
-                    from users import NotInDbUsers
                     from logger import log
+
                     log.warning("Tournament winner %s not found in DB", doc["winner"])
 
         wi[variant] = winners
@@ -418,9 +418,9 @@ async def load_tournament(app_state: PychessGlobalAppState, tournament_id, tourn
             try:
                 user = await app_state.users.get(uid)
             except Exception:
-                from users import NotInDbUsers
                 # Handle the case where a tournament player no longer exists in the database
                 from logger import log
+
                 log.warning("Tournament player %s not found in DB, skipping", uid)
                 continue
 
@@ -477,8 +477,8 @@ async def load_tournament(app_state: PychessGlobalAppState, tournament_id, tourn
                 tournament.ongoing_games.add(game)
                 tournament.update_game_ranks(game)
             except Exception:
-                from users import NotInDbUsers
                 from logger import log
+
                 log.warning("Failed to load tournament game %s - skipping", _id)
                 continue
         else:
@@ -497,7 +497,11 @@ async def load_tournament(app_state: PychessGlobalAppState, tournament_id, tourn
                 tournament.nb_games_finished += 1
             except KeyError:
                 from logger import log
-                log.warning("Failed to create GameData for tournament game %s - player not found, skipping", _id)
+
+                log.warning(
+                    "Failed to create GameData for tournament game %s - player not found, skipping",
+                    _id,
+                )
                 continue
 
         if res == "a":

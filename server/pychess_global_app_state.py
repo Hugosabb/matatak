@@ -70,7 +70,6 @@ from twitch import Twitch
 from user import User
 from users import Users, NotInDbUsers
 from utils import load_game
-from utils import load_game
 from videos import VIDEOS
 from youtube import Youtube
 from lang import LOCALE
@@ -183,7 +182,9 @@ class PychessGlobalAppState:
                     try:
                         await load_tournament(self, doc["_id"])
                     except NotInDbUsers:
-                        log.warning("Failed to load tournament %s - user not found, skipping", doc["_id"])
+                        log.warning(
+                            "Failed to load tournament %s - user not found, skipping", doc["_id"]
+                        )
             self.tournaments_loaded.set()
 
             # Plus de tournois pychess créés à chaque démarrage : ils portaient sur des variantes absentes du
@@ -359,8 +360,6 @@ class PychessGlobalAppState:
                     await self.db.video.drop()
                 await self.db.video.insert_many(VIDEOS)
 
-
-
             if "fishnet" in db_collections:
                 cursor = self.db.fishnet.find()
                 async for doc in cursor:
@@ -381,9 +380,10 @@ class PychessGlobalAppState:
                     [{"$set": {"oauth_id": {"$toLower": "$_id"}, "oauth_provider": "lichess"}}],
                 )
 
-
         except NotInDbUsers:
-            log.error("init_from_db() NotInDbUsers exception - this should have been caught earlier")
+            log.error(
+                "init_from_db() NotInDbUsers exception - this should have been caught earlier"
+            )
             # This should not happen as all NotInDbUsers exceptions should be caught
             # in their specific contexts above. If we get here, log it but don't crash.
             pass

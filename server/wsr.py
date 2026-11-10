@@ -10,7 +10,7 @@ from bug.wsr_bug import handle_resign_bughouse, handle_rematch_bughouse, handle_
 import game
 from broadcast import round_broadcast
 from chat import chat_response
-from const import ANALYSIS, STARTED, CREATED, RATED
+from const import ANALYSIS, STARTED, RATED
 from draw import draw, reject_draw
 from draft import DraftErreur, FINI, PLACEMENT, tourner
 from fairy import WHITE, BLACK, FairyBoard
@@ -272,7 +272,7 @@ async def handle_ready(ws, users, user, data, game):
     opp_player = await users.get(opp_name)
     if opp_player is not None and opp_player.bot:
         # Janggi game start have to wait for human player setup!
-        if (game.variant != "janggi" ) or not (game.bsetup or game.wsetup):
+        if (game.variant != "janggi") or not (game.bsetup or game.wsetup):
             await opp_player.event_queue.put(game.game_start)
 
         await ws_send_json(ws, message_debut(game, data))
@@ -352,7 +352,9 @@ async def handle_draft(ws, user, data, game):
 async def avancer_draft(game):
     """En Solo, l'ordinateur (titre LIA) joue ses étapes tout de suite. Chaque étape est envoyée à
     part : le navigateur montre le choix de l'adversaire avec une pause (client/draft.ts)."""
-    ordinateur = [c for c, p in (("white", game.wplayer), ("black", game.bplayer)) if p.title == "LIA"]
+    ordinateur = [
+        c for c, p in (("white", game.wplayer), ("black", game.bplayer)) if p.title == "LIA"
+    ]
     while game.draft.phase != FINI:
         if game.draft.phase == PLACEMENT:
             joue = [c for c in ordinateur if not game.draft.pret[c]]
@@ -381,7 +383,9 @@ async def handle_setup(ws, users, user, data, game):
         game.board.fen = game.board.initial_fen
 
         opp_name = (
-            game.wplayer.username if user.username == game.bplayer.username else game.bplayer.username
+            game.wplayer.username
+            if user.username == game.bplayer.username
+            else game.bplayer.username
         )
         opp_player = users[opp_name] if opp_name in users else None
 
@@ -419,7 +423,7 @@ async def handle_setup(ws, users, user, data, game):
 
         # restart expiration time after setup phase
         game.stopwatch.restart(game.stopwatch.time_for_first_move)
-        
+
 
 async def handle_analysis(app_state: PychessGlobalAppState, ws, data, game):
     # fishnet_analysis() wants to inject analysis data into game.steps
@@ -485,7 +489,8 @@ def pouce_de_revanche(boost, resultat, ajouter):
 
 def boost_du_seek(pouce, ancien_blanc, nouveau_blanc, couleur):
     """Valeur de Seek.boost (vue par le créateur, qui joue `couleur`) pour que le même joueur garde le
-    Coup de pouce `pouce` (vu par `ancien_blanc`) dans la nouvelle partie, où `nouveau_blanc` a les Blancs."""
+    Coup de pouce `pouce` (vu par `ancien_blanc`) dans la nouvelle partie, où `nouveau_blanc` a les Blancs.
+    """
     vu_des_blancs = pouce if nouveau_blanc == ancien_blanc else -pouce
     return vu_des_blancs if couleur == "w" else -vu_des_blancs
 
@@ -506,7 +511,9 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
     if opp_player.title != "LIA":
         opp_player = app_state.users[opp_name]
     handicap = data["handicap"]
-    fen = "" if (game.variant == "janggi" or game.variant.startswith("matatak")) else game.initial_fen
+    fen = (
+        "" if (game.variant == "janggi" or game.variant.startswith("matatak")) else game.initial_fen
+    )
 
     reused_fen = True
     if (game.chess960 or game.random_only) and game.new_960_fen_needed_for_rematch:
@@ -544,12 +551,12 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             "increment": game.inc,
             "byoyomiPeriod": game.byoyomi_period,
             "level": target_level,
-            "rm": False,  
+            "rm": False,
             "chess960": game.chess960,
             "rated": False,
             "profileid": "Fairy-Stockfish",
             "draft": is_draft,
-            "boost": game.boost*10,
+            "boost": game.boost * 10,
             "rois": rois,
         }
         await handle_create_ai_challenge(app_state, ws, user, rematch_data)
@@ -585,7 +592,7 @@ async def handle_rematch(app_state: PychessGlobalAppState, ws, user, data, game)
             chess960=game.chess960,
             reused_fen=reused_fen,
             isDraft=is_draft,
-            boost=game.boost*10,
+            boost=game.boost * 10,
             rois=rois,
         )
         app_state.seeks[seek.id] = seek

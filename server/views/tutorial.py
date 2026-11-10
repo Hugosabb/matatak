@@ -7,7 +7,18 @@ from views import get_user_context
 from tutorial_data import TUTORIAL_STEPS
 
 # Champs d'une étape transmis tels quels au client (tutorialCtrl.ts), voir tutorial_data.py
-CHAMPS = ("avant", "bulle_avant", "demo", "bulle_demo", "bulle", "consigne", "aide", "erreurs", "succes", "saison")
+CHAMPS = (
+    "avant",
+    "bulle_avant",
+    "demo",
+    "bulle_demo",
+    "bulle",
+    "consigne",
+    "aide",
+    "erreurs",
+    "succes",
+    "saison",
+)
 
 
 def etape(step_id):

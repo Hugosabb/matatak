@@ -100,4 +100,3 @@ async def api_campaign_levels(request):
     variant = request.match_info.get("variant", "matatak")
     levels = load_campaign(variant)
     return web.json_response(levels)
-

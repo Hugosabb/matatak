@@ -19,6 +19,7 @@ from logger import log
 async def get_user(session: aiohttp_session.Session, request: web.Request) -> User:
     from users import NotInDbUsers
     from const import NONE_USER
+
     session_user = session.get("user_name")
     try:
         user = await get_app_state(request.app).users.get_joueur(session_user)
@@ -27,17 +28,17 @@ async def get_user(session: aiohttp_session.Session, request: web.Request) -> Us
 
     if user is None or user.username == NONE_USER:
         from user import User
-        
+
         if user is None:
-             log.info("WS User %s not found in DB.", session_user)
+            log.info("WS User %s not found in DB.", session_user)
         else:
-             log.info("WS User is NONE_USER (session=%s). Creating new.", session_user)
+            log.info("WS User is NONE_USER (session=%s). Creating new.", session_user)
 
         app_state = get_app_state(request.app)
         user = User(app_state, anon=True)
         app_state.users[user.username] = user
         session["user_name"] = user.username
-        
+
     return user
 
 
@@ -89,6 +90,7 @@ async def process_ws(
 
     # Manually save session to ensure cookie is sent with handshake
     from aiohttp_session import STORAGE_KEY
+
     if STORAGE_KEY in request.app:
         storage = request.app[STORAGE_KEY]
         await storage.save_session(request, ws, session)

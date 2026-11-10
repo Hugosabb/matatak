@@ -30,7 +30,6 @@ from chat import chat_response
 import classee
 from const import RATED, STARTED
 from newid import new_id
-from const import NONE_USER, MAX_NAMED_SPECTATORS, MAX_HIGHSCORE_ITEM_LIMIT
 from const import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -189,7 +188,13 @@ async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
     # Solo sur le Mini : l'ordinateur joue l'équipe de la Saison du Roi de son palier de niveaux
     # (AZAR / Été pour les niveaux 1 à 5…). Le joueur garde une équipe au hasard. Avec une position
     # imposée, un Draft ou un Boost, rien ne change.
-    if variant == "matatakmini" and not fen and not data["draft"] and not data["rm"] and not data["boost"]:
+    if (
+        variant == "matatakmini"
+        and not fen
+        and not data["draft"]
+        and not data["rm"]
+        and not data["boost"]
+    ):
         if color not in ("w", "b"):
             color = random.choice(("w", "b"))
         saison = saison_du_niveau(int(data["level"]))
@@ -201,7 +206,9 @@ async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
 
     # Aventure (client/aventure) : le Roi de chaque camp est imposé. Une valeur inattendue est ignorée.
     rois = data.get("rois")
-    if not (isinstance(rois, dict) and rois.get("white") in SAISONS and rois.get("black") in SAISONS):
+    if not (
+        isinstance(rois, dict) and rois.get("white") in SAISONS and rois.get("black") in SAISONS
+    ):
         rois = None
     else:
         rois = {"white": rois["white"], "black": rois["black"]}

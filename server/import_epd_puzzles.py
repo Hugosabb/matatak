@@ -136,7 +136,7 @@ def import_epd(epd_file: str, mongo_host: str, dry_run: bool = False, replace: b
             result = db.puzzle.delete_many({"variant": variant})
             print(f"  ✓ {result.deleted_count} puzzles '{variant}' supprimés")
     else:
-        print(f"\n[AJOUT] Ajout des puzzles sans supprimer les existants...")
+        print("\n[AJOUT] Ajout des puzzles sans supprimer les existants...")
 
     # Assure des IDs uniques (génère de nouveaux si collision)
     existing_ids = set(doc["_id"] for doc in db.puzzle.find({}, {"_id": 1}))
@@ -159,7 +159,7 @@ def import_epd(epd_file: str, mongo_host: str, dry_run: bool = False, replace: b
 
     client.close()
 
-    print(f"\nRésultat:")
+    print("\nRésultat:")
     print(f"  Importés : {inserted}")
     print(f"  Erreurs  : {errors}")
 
@@ -199,5 +199,3 @@ if __name__ == "__main__":
         sys.exit(1)
 
     import_epd(args.epd_file, args.mongo_host, dry_run=args.dry_run, replace=args.replace)
-
-

@@ -19,7 +19,8 @@ piece_css_path = Path(Path(__file__).parent.parent.parent, "static/piece-css")
 piece_sets = [x.name for x in piece_css_path.iterdir() if x.is_dir() and x.name != "mono"]
 
 
-from users import NotInDbUsers
+from users import NotInDbUsers  # noqa: E402 (après piece_sets, comme avant)
+
 
 async def get_user_context(request):
     app_state = get_app_state(request.app)
@@ -54,13 +55,15 @@ async def get_user_context(request):
                 user = None
 
             if user is None or user.username == NONE_USER:
-                log.info("User %s not found in DB or is NONE_USER. Creating new anon user.", session_user)
-                
+                log.info(
+                    "User %s not found in DB or is NONE_USER. Creating new anon user.", session_user
+                )
+
                 # Heal session without redirecting
                 user = User(app_state, anon=not app_state.anon_as_test_users)
                 app_state.users[user.username] = user
                 session["user_name"] = user.username
-                
+
             if not user.enabled:
                 session.invalidate()
                 raise web.HTTPFound("/")

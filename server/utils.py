@@ -460,12 +460,19 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
         from invites import est_invite
 
         def classable(p):
-            return (not p.anon) or p.entrainement or (getattr(seek, "arene", False) and est_invite(p))
+            return (
+                (not p.anon) or p.entrainement or (getattr(seek, "arene", False) and est_invite(p))
+            )
 
         rated = RATED if (seek.rated and classable(wplayer) and classable(bplayer)) else CASUAL
 
         # Entre amis : chacun a pu choisir l'équipe de départ d'une Saison (seek.equipes)
-        if not sanitized_fen and seek.equipes and seek.variant.startswith("matatak") and not seek.isDraft:
+        if (
+            not sanitized_fen
+            and seek.equipes
+            and seek.variant.startswith("matatak")
+            and not seek.isDraft
+        ):
             sanitized_fen = FairyBoard.matatak_saisons_start(
                 seek.variant == "matatakmini",
                 seek.equipes.get(wplayer.username),

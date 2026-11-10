@@ -62,7 +62,9 @@ async def invite(request):
         context["seekempty"] = seek.player1 is None and seek.player2 is None
         # Entre amis : l'invité peut choisir l'équipe de départ d'une Saison (pas en Draft ni avec une position)
         choix = seek.variant.startswith("matatak") and not seek.isDraft and not seek.fen
-        context["choixequipe"] = seek.equipes.get(seek.creator.username, "au hasard") if choix else ""
+        context["choixequipe"] = (
+            seek.equipes.get(seek.creator.username, "au hasard") if choix else ""
+        )
     else:
         # The new invite game started
         game = await load_game(app_state, gameId)

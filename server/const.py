@@ -30,41 +30,122 @@ RESERVED_USERS = (
 def reserved(username):
     return username.upper() in map(str.upper, RESERVED_USERS)
 
+
 ANIMALS = [
-    "Lion", "Tiger", "Zebra", "Cobra", "Puma", "Rhino", "Hippo", "Croc", "Gorilla",
-    "Bear", "Lynx", "Bat", "Rat", "Snake", "Yak",
-    "Koala", "Panda", "Lama", "Cat",
-    "Girafe", "Kangaroo", "Gazelle", "Buffalo", "Elephant", "Leopard", "Tortoise",
-    "Outan", "Chimp", "Lemur",
-    "Eagle", "Jaguar", "Cougar", "Viper",
-    "Goat", "Duck", "Frog", "Platypus",
-    "Bird", "Mouse", "Rabbit", "Deer", 
-    "Monkey", "Pig", "Sheep", "Horse", "Donkey",
-    "Camel", "Penguin", "Parrot",
+    "Lion",
+    "Tiger",
+    "Zebra",
+    "Cobra",
+    "Puma",
+    "Rhino",
+    "Hippo",
+    "Croc",
+    "Gorilla",
+    "Bear",
+    "Lynx",
+    "Bat",
+    "Rat",
+    "Snake",
+    "Yak",
+    "Koala",
+    "Panda",
+    "Lama",
+    "Cat",
+    "Girafe",
+    "Kangaroo",
+    "Gazelle",
+    "Buffalo",
+    "Elephant",
+    "Leopard",
+    "Tortoise",
+    "Outan",
+    "Chimp",
+    "Lemur",
+    "Eagle",
+    "Jaguar",
+    "Cougar",
+    "Viper",
+    "Goat",
+    "Duck",
+    "Frog",
+    "Platypus",
+    "Bird",
+    "Mouse",
+    "Rabbit",
+    "Deer",
+    "Monkey",
+    "Pig",
+    "Sheep",
+    "Horse",
+    "Donkey",
+    "Camel",
+    "Penguin",
+    "Parrot",
     "Dinosaur",
 ]
 
 ADJECTIVES = [
-    "Dark", "Mad", "Bad", "Sad", "Evil", 
-    "Zen", "Wild", "Cute", "Good", "Wise", 
-    "Toxic", "Magic", "Lucky", "Crazy", "Lazy",
-    "Smart", "Cheeky", "Sneaky",
-    "Big", "Fat", "Hot", "Old", "Fast", "Slow", "Tiny", "Huge", "Mini",
-    "Cool", "Epic", "Pure", "Prime",    
-    "Solo", "Hyper", "Super", "Mega", "Giga", "Small", "Tall", "Short",
-    "Silly", "Goofy", "Jazzy",
-    "Dumb", "Happy", "Jolly", "Brave", "Calm", "Kind"
+    "Dark",
+    "Mad",
+    "Bad",
+    "Sad",
+    "Evil",
+    "Zen",
+    "Wild",
+    "Cute",
+    "Good",
+    "Wise",
+    "Toxic",
+    "Magic",
+    "Lucky",
+    "Crazy",
+    "Lazy",
+    "Smart",
+    "Cheeky",
+    "Sneaky",
+    "Big",
+    "Fat",
+    "Hot",
+    "Old",
+    "Fast",
+    "Slow",
+    "Tiny",
+    "Huge",
+    "Mini",
+    "Cool",
+    "Epic",
+    "Pure",
+    "Prime",
+    "Solo",
+    "Hyper",
+    "Super",
+    "Mega",
+    "Giga",
+    "Small",
+    "Tall",
+    "Short",
+    "Silly",
+    "Goofy",
+    "Jazzy",
+    "Dumb",
+    "Happy",
+    "Jolly",
+    "Brave",
+    "Calm",
+    "Kind",
 ]
+
 
 def random_anonyme_username():
     adj = random.choice(ADJECTIVES)
     animal = random.choice(ANIMALS)
-    
+
     base_name = adj + "-" + animal
 
     unique_id = f"{random.randint(0, 999999):06}"
-    
+
     return base_name + "#" + unique_id
+
 
 SCHEDULE_MAX_DAYS = 7
 TOURNAMENT_SPOTLIGHTS_MAX = 3

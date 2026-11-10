@@ -13,7 +13,8 @@ async def solo(request):
     Utilisé à la fin du tutoriel et par la page des équipes (« Première partie ») : avant, le lien
     passait par /jouer?auto_ai=1, qui affichait le menu un instant avant de repartir.
     L'Aventure s'en sert aussi pour « Partie suivante » : `fen`, `color` (w ou b) et les Rois `rw` / `rb`
-    (Saison de chaque camp) ; la position est validée par utils.new_game, les Rois par creer_partie_solo."""
+    (Saison de chaque camp) ; la position est validée par utils.new_game, les Rois par creer_partie_solo.
+    """
     user, _context = await get_user_context(request)
     app_state = get_app_state(request.app)
 
@@ -28,7 +29,11 @@ async def solo(request):
     # Une partie commencée en cours : on y retourne ; une partie pas commencée est annulée
     if user.game_in_progress is not None:
         game = await load_game(app_state, user.game_in_progress)
-        if game is not None and game.status <= STARTED and not await abort_if_not_started(game, user):
+        if (
+            game is not None
+            and game.status <= STARTED
+            and not await abort_if_not_started(game, user)
+        ):
             raise web.HTTPFound("/" + game.id)
         user.game_in_progress = None
 
@@ -37,10 +42,18 @@ async def solo(request):
         color = "r"
     rw, rb = request.query.get("rw"), request.query.get("rb")
     data = {
-        "variant": variant, "fen": request.query.get("fen", "")[:200], "color": color,
-        "minutes": 0, "increment": 0,
-        "byoyomiPeriod": 0, "rated": False, "level": level, "chess960": False, "rm": False,
-        "draft": False, "boost": 0,
+        "variant": variant,
+        "fen": request.query.get("fen", "")[:200],
+        "color": color,
+        "minutes": 0,
+        "increment": 0,
+        "byoyomiPeriod": 0,
+        "rated": False,
+        "level": level,
+        "chess960": False,
+        "rm": False,
+        "draft": False,
+        "boost": 0,
     }
     if rw and rb:
         data["rois"] = {"white": rw, "black": rb}

@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timezone
 from typing import Dict, Any
 
+
 def epd_to_json(epd_line, username="sab"):
     """
     Converts a single line from an EPD puzzle file to a JSON object
@@ -18,7 +19,7 @@ def epd_to_json(epd_line, username="sab"):
         part = part.strip()
         if " " in part:
             key, value = part.split(" ", 1)
-            ops[key] = value.strip('"') 
+            ops[key] = value.strip('"')
 
     # The first part of the EPD is the FEN string, which can contain spaces.
     # The operations start after the first ';'.

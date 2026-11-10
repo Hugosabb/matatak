@@ -36,7 +36,6 @@ from fairy import get_fog_fen, get_san_moves, NOTATION_SAN, FairyBoard, BLACK, W
 from glicko2.glicko2 import gl2
 from draw import reject_draw
 from draft import DELAI_CLASSEE, Draft, FINI
-import random
 from settings import URI
 from spectators import spectators
 from logger import log
@@ -113,8 +112,12 @@ class Game:
         # les revanches avec les mêmes équipes. None : Roi assorti à l'équipe (client/rois.ts).
         self.rois = rois
         self.nouveau_draft_demande = False  # revanche proposée avec « Nouveau Draft »
-        self.coup_de_pouce_demande = False  # revanche proposée avec un Coup de pouce pour le perdant
-        self.equipes = {}  # entre amis : Saison choisie par chaque joueur (nom → Saison), voir utils.new_game
+        self.coup_de_pouce_demande = (
+            False  # revanche proposée avec un Coup de pouce pour le perdant
+        )
+        self.equipes = (
+            {}
+        )  # entre amis : Saison choisie par chaque joueur (nom → Saison), voir utils.new_game
 
         self.server_variant = get_server_variant(variant, chess960)
         self.encode_method = self.server_variant.move_encoding
@@ -487,7 +490,10 @@ class Game:
     async def terminer_draft(self):
         """Fin du Draft : la position composée devient la position de départ de la partie."""
         fen = self.draft.fen()
-        self.rois = {"white": self.draft.equipes["white"]["roi"], "black": self.draft.equipes["black"]["roi"]}
+        self.rois = {
+            "white": self.draft.equipes["white"]["roi"],
+            "black": self.draft.equipes["black"]["roi"],
+        }
         self.draft_phase = FINI
         self.initial_fen = fen
         self.board = FairyBoard(self.variant, fen, self.chess960)
@@ -515,8 +521,8 @@ class Game:
             "l": datetime.now(timezone.utc),
             "s": self.status,
             "if": self.initial_fen,
-            "ws": "", #self.wsetup,
-            "bs": "", #self.bsetup,
+            "ws": "",  # self.wsetup,
+            "bs": "",  # self.bsetup,
         }
         if self.rois:
             new_data["ro"] = self.rois
@@ -849,7 +855,12 @@ class Game:
             if is_game_end and (
                 game_result_value != 0
                 or (game_result_value == 0 and self.n_fold_is_draw)
-                or (self.wplayer.bot or self.bplayer.bot or self.wplayer.title == "LIA" or self.bplayer.title == "LIA")
+                or (
+                    self.wplayer.bot
+                    or self.bplayer.bot
+                    or self.wplayer.title == "LIA"
+                    or self.bplayer.title == "LIA"
+                )
                 or self.variant == "ataxx"
             ):
                 self.result = result_string_from_value(self.board.color, game_result_value)

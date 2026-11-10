@@ -1,6 +1,5 @@
 import aiohttp_jinja2
 
-from const import VARIANT_GROUPS
 from views import get_user_context
 from variants import VARIANTS, VARIANT_ICONS
 
@@ -11,9 +10,7 @@ async def games(request):
 
     variant = request.match_info.get("variant")
 
-    matatak_variants = {
-        "matatak": VARIANTS["matatak"]
-    }
+    matatak_variants = {"matatak": VARIANTS["matatak"]}
     context["variant"] = variant if variant is not None else ""
     context["variants"] = matatak_variants
     context["icons"] = {"matatak": VARIANT_ICONS["matatak"]}

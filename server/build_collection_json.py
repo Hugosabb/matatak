@@ -39,9 +39,7 @@ ECHECS = {
 
 def tableau_d_hugo():
     """{NOM: (numéro, équivalent aux échecs ou None)} depuis l'export CSV de l'Excel des Personnages."""
-    lignes = list(
-        csv.reader((JEU / "sources/donnees/characters-hugo.csv").open(encoding="utf-8"))
-    )
+    lignes = list(csv.reader((JEU / "sources/donnees/characters-hugo.csv").open(encoding="utf-8")))
     entete = lignes[2]
     i_id, i_nom, i_echecs = entete.index("ID"), entete.index("Name"), entete.index("Chess")
     tableau = {}
@@ -54,14 +52,14 @@ def tableau_d_hugo():
 
 def familles():
     with (JEU / "donnees/lore.csv").open(encoding="utf-8-sig") as f:
-        return {ligne["nom"].upper(): ligne["famille"] for ligne in csv.DictReader(f, delimiter=";")}
+        return {
+            ligne["nom"].upper(): ligne["famille"] for ligne in csv.DictReader(f, delimiter=";")
+        }
 
 
 def main():
     cartes = json.loads((JEU / "assets/cartes/cartes.json").read_text(encoding="utf-8"))
-    deplacements = json.loads(
-        (JEU / "assets/data/deplacements.json").read_text(encoding="utf-8")
-    )
+    deplacements = json.loads((JEU / "assets/data/deplacements.json").read_text(encoding="utf-8"))
 
     tableau = tableau_d_hugo()
     famille = familles()
@@ -112,7 +110,9 @@ def main():
                 im.resize((taille, taille), Image.LANCZOS).save(
                     dest / (Path(c["fichier"]).stem + ".webp"), quality=82, method=6
                 )
-    print("images -> <jeu>/assets/site/images/background/collection/ ; puis : bash outils/assets-depuis-jeu.sh")
+    print(
+        "images -> <jeu>/assets/site/images/background/collection/ ; puis : bash outils/assets-depuis-jeu.sh"
+    )
 
 
 if __name__ == "__main__":

@@ -26,7 +26,6 @@ async def generate_crosstable(app_state, username=None):
             b_user = await app_state.users.get(bp)
         except Exception:
             # Skip games where one or both players no longer exist in the database
-            from users import NotInDbUsers
             continue
 
         if wp < bp:
@@ -38,8 +37,10 @@ async def generate_crosstable(app_state, username=None):
         ct_id = s1p + "/" + s2p
         # print(ct_id, game_id)
         # R2C = {"1-0": "a", "0-1": "b", "1/2-1/2": "c", "*": "d"}
-        if (result == "d"
-            or w_user.anon or b_user.anon
+        if (
+            result == "d"
+            or w_user.anon
+            or b_user.anon
             or wp == "Random-Mover"
             or wp == "Fairy-Stockfish"
             or bp == "Random-Mover"

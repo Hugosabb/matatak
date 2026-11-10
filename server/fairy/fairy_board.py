@@ -75,7 +75,14 @@ def modded_variant(variant: str, chess960: bool, initial_fen: str) -> str:
 
 class FairyBoard:
     def __init__(
-        self, variant: str, initial_fen="", chess960=False, count_started=0, disabled_fen="", isDraft=False, boost=0
+        self,
+        variant: str,
+        initial_fen="",
+        chess960=False,
+        count_started=0,
+        disabled_fen="",
+        isDraft=False,
+        boost=0,
     ):
         initial_fen = sans_reserve(variant, initial_fen)
         self.variant = modded_variant(variant, chess960, initial_fen)
@@ -141,7 +148,7 @@ class FairyBoard:
                 new_fen = FairyBoard.shuffle_start(variant)
         elif variant.startswith("matatak"):
             # Le Draft se compose avant la partie (server/draft.py) : position ordinaire en attendant
-            new_fen = FairyBoard.matatak_random_start(variant=="matatakmini", boost)
+            new_fen = FairyBoard.matatak_random_start(variant == "matatakmini", boost)
         elif variant == "alice":
             new_fen = sf_alice.start_fen("alice")
         else:
@@ -445,14 +452,18 @@ class FairyBoard:
                 + "0 1"
             )
         return fen
-    
+
     @staticmethod
-    def matatak_random_start(isMini = False, boost=0):
+    def matatak_random_start(isMini=False, boost=0):
         """Create random initial position."""
-        bchampions, bpawns, wpawns, wchampions = FairyBoard.matatak_seasons_teams() if isMini else FairyBoard.matatak_random_teams()
-        bchampions, bpawns, wpawns, wchampions = FairyBoard.add_boost(isMini, boost, bchampions, bpawns, wpawns, wchampions)
+        bchampions, bpawns, wpawns, wchampions = (
+            FairyBoard.matatak_seasons_teams() if isMini else FairyBoard.matatak_random_teams()
+        )
+        bchampions, bpawns, wpawns, wchampions = FairyBoard.add_boost(
+            isMini, boost, bchampions, bpawns, wpawns, wchampions
+        )
         return FairyBoard.matatak_placement_start(bchampions, bpawns, wpawns, wchampions, isMini)
-    
+
     # Force totale minimale d'une équipe tirée au hasard (étoiles des 2 Champions + 3 Pions). En dessous,
     # le Roi adverse pouvait monter sur la Colline de force : 15 parties perdues d'avance sur 1 300 tirages,
     # toutes à 10 étoiles ou moins (étude du 23/10/2026, docs/etudes/colline/ ; règle choisie par Hugo).
@@ -462,7 +473,9 @@ class FairyBoard:
     def matatak_random_teams():
         pawns = "abefgjlmpq"
         champions = "cdhinorstwxyz"
-        etoiles = lambda lettres: sum(FairyBoard.FORCE[c][1] for c in lettres)
+
+        def etoiles(lettres):
+            return sum(FairyBoard.FORCE[c][1] for c in lettres)
 
         # On retire tant que l'équipe est trop faible (≈ 1 fois sur 5) : toutes les équipes assez fortes
         # restent également probables, ce qu'« améliorer » l'équipe tirée ne garantirait pas
@@ -476,9 +489,9 @@ class FairyBoard:
         bpawns = p1 + p2 + p3
         wpawns = p3.upper() + p2.upper() + p1.upper()
         wchampions = c2.upper() + "K" + c1.upper()
-    
+
         return bchampions, bpawns, wpawns, wchampions
-    
+
     # Équipes de départ du Mini (Pion, Champion), par Saison
     MINI_SAISONS = {
         "printemps": ("m", "c"),
@@ -513,18 +526,32 @@ class FairyBoard:
         wchampions = wteam[1].upper() + "K"
 
         return bchampions, bpawns, wpawns, wchampions
-    
+
     # Coup de pouce (livret) : rang, étoiles et Saison du Personnage affiché pour chaque lettre
     FORCE = {
-        "a": ("pion", 1, "printemps"), "e": ("pion", 1, "automne"), "j": ("pion", 1, "ete"),
-        "f": ("pion", 2, "ete"), "m": ("pion", 2, "printemps"), "p": ("pion", 2, "printemps"),
-        "g": ("pion", 3, "hiver"), "l": ("pion", 3, "hiver"),
-        "b": ("pion", 4, "automne"), "q": ("pion", 4, "automne"),
-        "n": ("champion", 1, "automne"), "r": ("champion", 1, "ete"),
-        "h": ("champion", 2, "printemps"), "o": ("champion", 2, "ete"), "s": ("champion", 2, "printemps"),
-        "c": ("champion", 3, "printemps"), "i": ("champion", 3, "automne"), "t": ("champion", 3, "automne"),
-        "w": ("champion", 3, "hiver"), "z": ("champion", 3, "hiver"),
-        "d": ("champion", 4, "hiver"), "x": ("champion", 4, "ete"), "y": ("champion", 4, "printemps"),
+        "a": ("pion", 1, "printemps"),
+        "e": ("pion", 1, "automne"),
+        "j": ("pion", 1, "ete"),
+        "f": ("pion", 2, "ete"),
+        "m": ("pion", 2, "printemps"),
+        "p": ("pion", 2, "printemps"),
+        "g": ("pion", 3, "hiver"),
+        "l": ("pion", 3, "hiver"),
+        "b": ("pion", 4, "automne"),
+        "q": ("pion", 4, "automne"),
+        "n": ("champion", 1, "automne"),
+        "r": ("champion", 1, "ete"),
+        "h": ("champion", 2, "printemps"),
+        "o": ("champion", 2, "ete"),
+        "s": ("champion", 2, "printemps"),
+        "c": ("champion", 3, "printemps"),
+        "i": ("champion", 3, "automne"),
+        "t": ("champion", 3, "automne"),
+        "w": ("champion", 3, "hiver"),
+        "z": ("champion", 3, "hiver"),
+        "d": ("champion", 4, "hiver"),
+        "x": ("champion", 4, "ete"),
+        "y": ("champion", 4, "printemps"),
     }
 
     EXTENSIONS = set("pqrtyz")  # HOP, GAMBY, YXEL, BOONG, BLUFF, RAY
@@ -532,7 +559,8 @@ class FairyBoard:
     @staticmethod
     def changer_force(groupe, delta):
         """Chaque Personnage du groupe (lettres) gagne (delta=+1) ou perd (-1) une étoile : remplacé par
-        un Personnage du même rang, de la même Saison si possible. Impossible (1 ou 4 étoiles) : inchangé."""
+        un Personnage du même rang, de la même Saison si possible. Impossible (1 ou 4 étoiles) : inchangé.
+        """
         force = FairyBoard.FORCE
         choix = {}
         for lettre in set(groupe.lower()) - {"k"}:
@@ -556,9 +584,22 @@ class FairyBoard:
         crans = min(abs(boost), 4)
         if crans == 0:
             return bchampions, bpawns, wpawns, wchampions
-        aide = {"champions": wchampions, "pions": wpawns} if boost > 0 else {"champions": bchampions, "pions": bpawns}
-        autre = {"champions": bchampions, "pions": bpawns} if boost > 0 else {"champions": wchampions, "pions": wpawns}
-        etapes = [(aide, "champions", 1), (aide, "pions", 1), (autre, "pions", -1), (autre, "champions", -1)]
+        aide = (
+            {"champions": wchampions, "pions": wpawns}
+            if boost > 0
+            else {"champions": bchampions, "pions": bpawns}
+        )
+        autre = (
+            {"champions": bchampions, "pions": bpawns}
+            if boost > 0
+            else {"champions": wchampions, "pions": wpawns}
+        )
+        etapes = [
+            (aide, "champions", 1),
+            (aide, "pions", 1),
+            (autre, "pions", -1),
+            (autre, "champions", -1),
+        ]
         for camp, groupe, delta in etapes[:crans]:
             camp[groupe] = FairyBoard.changer_force(camp[groupe], delta)
         if boost > 0:
@@ -566,11 +607,13 @@ class FairyBoard:
         return aide["champions"], aide["pions"], autre["pions"], autre["champions"]
 
     @staticmethod
-    def matatak_placement_start(bchampions: str, bpawns: str, wpawns: str, wchampions: str, isMini: bool) -> str:
+    def matatak_placement_start(
+        bchampions: str, bpawns: str, wpawns: str, wchampions: str, isMini: bool
+    ) -> str:
         width = 4 if isMini else 8
-        bspace1 = (width-len(bchampions))//2
+        bspace1 = (width - len(bchampions)) // 2
         bspace2 = width - bspace1 - len(bchampions)
-        wspace1 = (width-len(wchampions))//2
+        wspace1 = (width - len(wchampions)) // 2
         wspace2 = width - wspace1 - len(wchampions)
 
         fen = str(bspace1)

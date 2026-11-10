@@ -251,14 +251,10 @@ async def check_username_availability(request):
         return web.json_response({"available": False, "error": "Choisissez un pseudo"})
 
     if len(username) < 3:
-        return web.json_response(
-            {"available": False, "error": "Au moins 3 caractères"}
-        )
+        return web.json_response({"available": False, "error": "Au moins 3 caractères"})
 
     if len(username) > 20:
-        return web.json_response(
-            {"available": False, "error": "20 caractères au plus"}
-        )
+        return web.json_response({"available": False, "error": "20 caractères au plus"})
 
     # Check for invalid characters
     import re

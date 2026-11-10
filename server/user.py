@@ -12,7 +12,6 @@ from broadcast import round_broadcast
 from classement_unique import cle_perf
 from const import random_anonyme_username, STARTED, TEST_PREFIX, reserved
 from glicko2.glicko2 import gl2, DEFAULT_PERF, Rating
-from newid import id8
 from notify import notify
 from const import BLOCK, MAX_USER_BLOCK, TYPE_CHECKING
 from seek import Seek
