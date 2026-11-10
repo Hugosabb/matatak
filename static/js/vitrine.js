@@ -14,11 +14,14 @@
     const images = new Array(NB_IMAGES);
     let imageVoulue = 0, imageAffichee = -1;
     scene.width = scene.height = taille;
+    // Images décodées à l'avance (createImageBitmap) : sur téléphone, décoder un WebP au moment de le
+    // dessiner, pendant le défilement, peut faire sauter des images (10/11/2026)
+    const decodees = new Array(NB_IMAGES);
     function dessiner() {
         // l'image voulue, sinon la plus proche déjà chargée en arrière
         for (let k = imageVoulue; k >= 0; k--) {
-            const im = images[k];
-            if (im && im.complete && im.naturalWidth) {
+            const im = decodees[k] || images[k];
+            if (im && (decodees[k] || (im.complete && im.naturalWidth))) {
                 if (k !== imageAffichee) {
                     ctx.drawImage(im, 0, 0, taille, taille);
                     imageAffichee = k;
@@ -31,7 +34,12 @@
     function charger(k) {
         const im = new Image();
         im.decoding = 'async';
-        im.onload = () => { if (Math.abs(k - imageVoulue) < 3 || imageAffichee < 0) dessiner(); };
+        im.onload = () => {
+            const pret = () => { if (Math.abs(k - imageVoulue) < 3 || imageAffichee < 0) dessiner(); };
+            if (window.createImageBitmap) {
+                createImageBitmap(im).then((b) => { decodees[k] = b; pret(); }, pret);
+            } else pret();
+        };
         im.src = `/static/images/background/vitrine/partie/p${taille}-${String(k).padStart(2, '0')}.webp`;
         images[k] = im;
     }
@@ -44,7 +52,8 @@
     }, { rootMargin: '800px 0px' });
     ioFilm.observe(film);
     const etapes = [...document.querySelectorAll('.etape')];
-    const barres = [...document.querySelectorAll('.progression i')];
+    const progression = document.querySelector('.progression');
+    const remplissage = document.querySelector('.progression b');
 
     let attente = false;
     function maj() {
@@ -62,7 +71,10 @@
         dessiner();
         const i = Math.min(2, Math.floor(p * 3));
         etapes.forEach((e, k) => e.classList.toggle('active', k === i));
-        barres.forEach((b, k) => b.classList.toggle('on', k <= i));
+        // Une seule barre qui se remplit, et une flèche vers le bas tant qu'il reste à voir : trois points
+        // côte à côte faisaient croire à un carrousel à balayer de côté (Hugo, 03/11/2026)
+        if (remplissage) remplissage.style.transform = `scaleX(${p})`;
+        if (progression) progression.classList.toggle('fini', p > 0.98);
     }
     window.addEventListener('scroll', () => {
         if (!attente) { attente = true; requestAnimationFrame(maj); }

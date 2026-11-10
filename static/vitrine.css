@@ -63,9 +63,14 @@ h1, h2, h3 { font-weight: 400; }
 .etape .num i { width: 9px; height: 9px; background: var(--c); transform: rotate(45deg); }
 .etape h2 { font-size: clamp(30px, 4vw, 46px); line-height: 1.05; margin: 0 0 14px; }
 .etape p { color: var(--mt-doux); margin: 0; max-width: 420px; font-size: 18px; }
-.progression { display: flex; gap: 8px; margin-top: 28px; }
-.progression i { width: 34px; height: 3px; border-radius: 2px; background: var(--mt-filet); transition: background .3s; }
-.progression i.on { background: var(--mt-or); }
+/* Avancement de la partie : une barre qui se remplit au défilement et une flèche vers le bas (vitrine.js) ;
+   plus de trois points côte à côte, qui donnaient envie de balayer de côté (Hugo, 03/11/2026) */
+.progression { display: flex; align-items: center; gap: 14px; margin-top: 28px; }
+.progression .piste { position: relative; width: 120px; height: 3px; border-radius: 2px; overflow: hidden; background: var(--mt-filet); }
+.progression .piste b { position: absolute; inset: 0; background: var(--mt-or); transform: scaleX(0); transform-origin: left; }
+.progression .vers-le-bas { width: 10px; height: 10px; margin-top: -6px; border: solid var(--mt-or); border-width: 0 2px 2px 0; transform: rotate(45deg); animation: rebond 2s infinite; transition: opacity .3s; }
+.progression.fini .vers-le-bas { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .progression .vers-le-bas { animation: none; } }
 @media (max-width: 860px) {
   .film .collant { grid-template-columns: 1fr; grid-template-rows: auto auto; align-content: center; gap: 6px; padding-top: 56px; }
   .film .scene { width: min(440px, 96%, 52svh); margin: auto; }
