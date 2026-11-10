@@ -458,11 +458,22 @@ export abstract class GameController extends ChessgroundController implements Ch
                 return;
             }
             const piece = key ? this.chessground.state.boardState.pieces.get(key) : undefined;
+            // Toucher sa carte puis une case de sa portée tenue par une carte (pré-coup de capture, ou de
+            // recapture sur une alliée) : c'est un coup, pas une demande de voir comment l'autre carte se
+            // déplace (Hugo, 10/11/2026). chessground prévient ici après coup (setTimeout) : la sélection
+            // est déjà vide, mais le pré-coup est posé sur cette case.
+            if (key && this.chessground.state.premovable.current?.[1] === key) {
+                this.inspectedKey = undefined;
+                this.effacerMotif();
+                return;
+            }
             if (piece && key) {
                 // Pièce du joueur dont c'est le tour : seulement ses vrais coups (aucun si elle est clouée ou
                 // si le Roi est en échec et qu'elle ne peut pas l'aider). Avant, une telle pièce sans coup
                 // légal était prise pour une pièce adverse et montrait son motif théorique.
                 const isFriendly = piece.color === this.turnColor && piece.color === this.chessground.state.movable.color;
+                // Ma carte pendant le tour adverse : ses pré-coups s'affichent déjà (losanges, liseré sur les cartes)
+                const enPreCoup = !isFriendly && piece.color === this.chessground.state.movable.color && this.chessground.state.premovable.enabled;
                 if (this.inspectedKey === key && !isFriendly) {
                     this.inspectedKey = undefined;
                     this.effacerMotif();
@@ -479,7 +490,7 @@ export abstract class GameController extends ChessgroundController implements Ch
                     // jouer maintenant (adversaire, ou pas son tour) : losange doré plein mais transparent.
                     // Une carte jouable ne montre que ses vrais coups (losanges pleins, chessground.css).
                     // Pas de losange creux : dans la Collection, il veut dire « déplacement seulement ».
-                    const shapes = isFriendly ? [] : theoreticMoves.map(dest => {
+                    const shapes = (isFriendly || enPreCoup) ? [] : theoreticMoves.map(dest => {
                         const moveSvg = `<rect data-motif="1" x="40.1" y="40.1" width="19.8" height="19.8" rx="1.5"
                                     transform="rotate(45 50 50)" fill="rgb(234, 196, 90)" opacity="0.5" />`;
                         return {

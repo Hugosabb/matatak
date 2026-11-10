@@ -135,9 +135,14 @@ async def test_pre_coup_contre_l_ordinateur(site, chromium):
     for case in (coup[:2], coup[2:4]):
         await page.mouse.click(*centre(case))
         await page.wait_for_timeout(150)
-    assert await page.locator("square.current-premove").count() >= 1, "pré-coup non posé"
-    # L'ordinateur répond, puis le pré-coup part (s'il est encore possible dans la nouvelle position)
     reponse = plateau["ply"] + 2
+    # Posé, ou déjà parti si l'ordinateur a répondu très vite
+    deja_joue = await page.evaluate(
+        "([p, c]) => window.__msgs.some(m => m.type === 'board' && m.ply === p && m.lastMove && (m.lastMove.join ? m.lastMove.join('') : m.lastMove).startsWith(c))",
+        [reponse + 1, coup[:4]],
+    )
+    assert deja_joue or await page.locator("square.current-premove").count() >= 1, "pré-coup non posé"
+    # L'ordinateur répond, puis le pré-coup part (s'il est encore possible dans la nouvelle position)
     assert await attendre(page, f"window.__msgs.some(m => m.type === 'board' && m.ply === {reponse})", 12000)
     apres = [m for m in await page.evaluate("window.__msgs") if m.get("type") == "board" and m.get("ply") == reponse][-1]
     if coup in sf.legal_moves("matatakmini", apres["fen"], []):
@@ -351,3 +356,231 @@ async def test_analyse_d_une_partie_moteur_et_jauge(site, chromium):
     assert await attendre(page, "document.querySelector('#score') && document.querySelector('#score').textContent.trim() !== ''", 15000)
     assert await attendre(page, "getComputedStyle(document.getElementById('gauge')).getPropertyValue('--noirs') !== ''", 5000)
     assert not page.erreurs, page.erreurs
+
+
+async def _poser_pre_coup_sur(page, game_id, cible, toucher=False):
+    """Pendant que l'ordinateur réfléchit, cherche une de mes cartes A et une case B de sa portée
+    (cible = 'alliee' : B tient une de mes cartes ; 'adverse' : une carte adverse), touche A puis B.
+    Renvoie (A, B) ou None s'il n'y a pas de tel couple dans la position."""
+    moi = await couleur_du_joueur(page)
+    bb = await page.locator("cg-board").first.bounding_box()
+    noir = moi == "b"
+    fen = (await dernier_plateau(page))["fen"].split(" ")[0]
+    larg = sum(int(c) if c.isdigit() else 1 for c in fen.split("/")[0])
+
+    def centre(case):
+        f, r = ord(case[0]) - 97, int(case[1:]) - 1
+        x = (larg - 1 - f if noir else f) + 0.5
+        y = (r if noir else 7 - r) + 0.5
+        return bb["x"] + x * bb["width"] / larg, bb["y"] + y * bb["height"] / 8
+
+    cases = {}
+    for r, rang in enumerate(fen.split("/")):
+        f = 0
+        for c in rang:
+            if c.isdigit():
+                f += int(c)
+                continue
+            cases[f"{chr(97 + f)}{8 - r}"] = "w" if c.isupper() else "b"
+            f += 1
+    async def clic(case):
+        if toucher:
+            await page.touchscreen.tap(*centre(case))
+        else:
+            await page.mouse.click(*centre(case))
+
+    mes_cases = [k for k, v in cases.items() if v == moi]
+    voulues = [k for k, v in cases.items() if (v == moi) == (cible == "alliee")]
+    for a in mes_cases:
+        await clic(a)
+        await page.wait_for_timeout(120)
+        portee = await page.evaluate(
+            "() => [...document.querySelectorAll('cg-board square.premove-dest')].map(s => s.cgKey)"
+        )
+        b = next((k for k in voulues if k in portee and k != a), None)
+        if b:
+            await clic(b)
+            await page.wait_for_timeout(150)
+            return a, b
+        await clic(a)  # désélectionne
+        await page.wait_for_timeout(80)
+    return None
+
+
+@pytest.mark.parametrize("cible", ["alliee"])
+async def test_pre_coup_au_doigt_sur_une_carte(site, chromium, cible):
+    """Bug d'Hugo (10/11/2026) : au doigt, pendant le tour adverse, toucher sa carte puis une case de
+    sa portée tenue par une carte (alliée : recapture ; adverse : capture) doit poser le pré-coup,
+    comme Lichess, et non sélectionner l'autre carte ou montrer ses déplacements. S'il devient
+    légal après le coup adverse, il est joué."""
+    hote, ami = await inviter_un_ami(chromium, site)
+    game_id = id_partie(hote)
+    for page in (hote, ami):
+        await ecouter_partie(page, game_id)
+    moi = await couleur_du_joueur(ami)
+    # L'ami (téléphone) attend : c'est à l'hôte de jouer
+    for _ in range(2):
+        plateau = await dernier_plateau(hote)
+        if plateau["fen"].split(" ")[1] != moi:
+            break
+        await jouer_un_coup(ami, game_id)
+        await attendre(hote, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, plateau["ply"] + 1)
+    await ami.wait_for_timeout(500)
+    couple = await _poser_pre_coup_sur(ami, game_id, cible, toucher=True)
+    if couple is None:
+        pytest.skip(f"pas de carte {cible} à portée dans cette position")
+    a, b = couple
+    assert await ami.locator("square.current-premove").count() >= 1, f"pré-coup {a}{b} non posé"
+    await ami.wait_for_timeout(100)
+    assert await ami.evaluate("() => !document.querySelector('cg-container [data-motif]')"), "motif de la carte touchée affiché"
+    # L'hôte joue ; si le pré-coup est alors légal, il part tout seul
+    plateau = await dernier_plateau(hote)
+    variante = "matatakmini" if sum(int(c) if c.isdigit() else 1 for c in plateau["fen"].split("/")[0]) == 4 else "matatak"
+    coups = sf.legal_moves(variante, plateau["fen"], [])
+    coup = next((c for c in coups if c[2:4] == b), coups[0])  # prendre la carte visée si possible
+    await envoyer(hote, {"type": "move", "gameId": game_id, "move": coup, "clocks": [300000, 300000], "ply": plateau["ply"] + 1})
+    apres_ply = plateau["ply"] + 1
+    assert await attendre(ami, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, apres_ply)
+    apres = [m for m in await ami.evaluate("window.__msgs") if m.get("type") == "board" and m.get("ply") == apres_ply][-1]
+    legaux = sf.legal_moves(variante, apres["fen"], [])
+    if any(c.startswith(a + b) for c in legaux):
+        assert await attendre(ami, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, apres_ply + 1), f"pré-coup {a}{b} non joué"
+    for page in (hote, ami):
+        assert not page.erreurs, page.erreurs
+
+
+def _cases_du_fen(fen):
+    cases = {}
+    for r, rang in enumerate(fen.split(" ")[0].split("/")):
+        f = 0
+        for c in rang:
+            if c.isdigit():
+                f += int(c)
+                continue
+            cases[f"{chr(97 + f)}{8 - r}"] = "w" if c.isupper() else "b"
+            f += 1
+    return cases
+
+
+def _variante(fen):
+    largeur = sum(int(c) if c.isdigit() else 1 for c in fen.split("/")[0])
+    return "matatakmini" if largeur == 4 else "matatak"
+
+
+def _recapture_possible(fen):
+    """Dans fen (trait à l'hôte), un coup de l'hôte qui prend une carte en B, après lequel l'autre
+    peut reprendre en B depuis A. Renvoie (coup de l'hôte, A, B) ou None."""
+    cases = _cases_du_fen(fen)
+    for coup in sf.legal_moves(_variante(fen), fen, []):
+        b = coup[2:4]
+        if b not in cases:
+            continue
+        apres = sf.get_fen(_variante(fen), fen, [coup])
+        reprise = next((c for c in sf.legal_moves(_variante(fen), apres, []) if c[2:4] == b and len(c) == 4), None)
+        if reprise:
+            return coup, reprise[:2], b
+    return None
+
+
+async def test_pre_coup_de_recapture_au_doigt(site, chromium):
+    """Bug d'Hugo (10/11/2026) : pendant le tour adverse, toucher sa carte A puis sa carte B (à portée de A) ;
+    l'adversaire prend B ; le pré-coup A×B doit partir tout seul (recapture, comme Lichess)."""
+    hote, ami = await inviter_un_ami(chromium, site)
+    game_id = id_partie(hote)
+    for page in (hote, ami):
+        await ecouter_partie(page, game_id)
+    moi = await couleur_du_joueur(ami)
+    trouve = None
+    for _ in range(40):  # on joue jusqu'à une position où l'hôte peut prendre une carte reprenable
+        plateau = await dernier_plateau(hote)
+        au_trait = plateau["fen"].split(" ")[1]
+        if au_trait != moi:
+            trouve = _recapture_possible(plateau["fen"])
+            if trouve:
+                break
+        joueur = ami if au_trait == moi else hote
+        coups = sf.legal_moves(_variante(plateau["fen"]), plateau["fen"], [])
+        # éviter les captures pour garder des cartes sur le plateau
+        cases = _cases_du_fen(plateau["fen"])
+        sans_prise = [c for c in coups if c[2:4] not in cases] or coups
+        coup = sans_prise[(plateau["ply"] * 7) % len(sans_prise)]
+        await envoyer(joueur, {"type": "move", "gameId": game_id, "move": coup, "clocks": [300000, 300000], "ply": plateau["ply"] + 1})
+        assert await attendre(hote, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, plateau["ply"] + 1)
+        if (await dernier_plateau(hote))["status"] >= 0:
+            pytest.skip("partie finie avant une position de recapture")
+    if not trouve:
+        pytest.skip("pas de position de recapture trouvée")
+    coup_hote, a, b = trouve
+    await attendre(ami, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, plateau["ply"])
+    await ami.wait_for_timeout(400)
+    bb = await ami.locator("cg-board").first.bounding_box()
+    noir = moi == "b"
+    larg = 4 if _variante(plateau["fen"]) == "matatakmini" else 8
+
+    def centre(case):
+        f, r = ord(case[0]) - 97, int(case[1:]) - 1
+        x = (larg - 1 - f if noir else f) + 0.5
+        y = (r if noir else 7 - r) + 0.5
+        return bb["x"] + x * bb["width"] / larg, bb["y"] + y * bb["height"] / 8
+
+    for case in (a, b):
+        await ami.touchscreen.tap(*centre(case))
+        await ami.wait_for_timeout(200)
+    assert await ami.locator("square.current-premove").count() >= 1, f"pré-coup {a}{b} non posé"
+    await envoyer(hote, {"type": "move", "gameId": game_id, "move": coup_hote, "clocks": [300000, 300000], "ply": plateau["ply"] + 1})
+    assert await attendre(
+        ami, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, plateau["ply"] + 2
+    ), f"recapture {a}{b} non jouée après {coup_hote}"
+    for page in (hote, ami):
+        assert not page.erreurs, page.erreurs
+
+
+async def test_pre_coup_de_capture_au_doigt_sans_motif_adverse(site, chromium):
+    """Pendant le tour adverse, toucher sa carte A puis une carte adverse B à sa portée pose le pré-coup
+    A×B ; le motif de déplacement de B (losanges transparents) ne s'affiche pas (Hugo, 10/11/2026)."""
+    hote, ami = await inviter_un_ami(chromium, site)
+    game_id = id_partie(hote)
+    for page in (hote, ami):
+        await ecouter_partie(page, game_id)
+    moi = await couleur_du_joueur(ami)
+    trouve = None
+    for _ in range(40):
+        plateau = await dernier_plateau(hote)
+        fen = plateau["fen"]
+        au_trait = fen.split(" ")[1]
+        cases = _cases_du_fen(fen)
+        if au_trait != moi:
+            parts = fen.split(" ")
+            parts[1] = moi
+            inverse = " ".join(parts)
+            trouve = next((c for c in sf.legal_moves(_variante(fen), inverse, []) if c[2:4] in cases and len(c) == 4), None)
+            if trouve:
+                break
+        joueur = ami if au_trait == moi else hote
+        coups = sf.legal_moves(_variante(fen), fen, [])
+        sans_prise = [c for c in coups if c[2:4] not in cases] or coups
+        coup = sans_prise[(plateau["ply"] * 7) % len(sans_prise)]
+        await envoyer(joueur, {"type": "move", "gameId": game_id, "move": coup, "clocks": [300000, 300000], "ply": plateau["ply"] + 1})
+        assert await attendre(hote, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, plateau["ply"] + 1)
+    if not trouve:
+        pytest.skip("pas de position de capture trouvée")
+    a, b = trouve[:2], trouve[2:4]
+    await attendre(ami, "p => window.__msgs.some(m => m.type === 'board' && m.ply === p)", 8000, plateau["ply"])
+    await ami.wait_for_timeout(400)
+    bb = await ami.locator("cg-board").first.bounding_box()
+    noir = moi == "b"
+    larg = 4 if _variante(fen) == "matatakmini" else 8
+
+    def centre(case):
+        f, r = ord(case[0]) - 97, int(case[1:]) - 1
+        x = (larg - 1 - f if noir else f) + 0.5
+        y = (r if noir else 7 - r) + 0.5
+        return bb["x"] + x * bb["width"] / larg, bb["y"] + y * bb["height"] / 8
+
+    for case in (a, b):
+        await ami.touchscreen.tap(*centre(case))
+        await ami.wait_for_timeout(200)
+    assert await ami.locator("square.current-premove").count() >= 1, f"pré-coup {a}{b} non posé"
+    assert await ami.evaluate("() => !document.querySelector('cg-container [data-motif]')"), "motif de la carte adverse affiché"
+    for page in (hote, ami):
+        assert not page.erreurs, page.erreurs
