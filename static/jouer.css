@@ -38,9 +38,9 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 .partie { padding: 22px; }
 .choix-adv { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--mt-nuit); padding: 5px; border-radius: 14px; margin-bottom: 22px; }
 .choix-adv button { border: 0; background: none; cursor: pointer; min-height: 48px; padding: 8px 10px; border-radius: 10px; font-weight: 800; font-size: 16px; color: var(--mt-doux); display: flex; gap: 10px; justify-content: center; align-items: center; transition: background .2s, color .2s; }
-.choix-adv button img { width: 26px; border-radius: 5px; transition: transform .3s; }
+.choix-adv button .icone-mode { width: 24px; height: 24px; flex: none; transition: transform .3s; }
 .choix-adv button.on { background: var(--mt-surface-2); color: var(--mt-encre); box-shadow: 0 4px 14px rgba(0, 0, 0, .4); }
-.choix-adv button.on img { transform: rotate(-6deg) scale(1.1); }
+.choix-adv button.on .icone-mode { color: var(--mt-or); transform: scale(1.1); }
 
 .etiq { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 10px; font: 900 12px 'Jost', sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--mt-discret); }
 .etiq label { cursor: inherit; }
@@ -208,36 +208,8 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 /* Bouton doré en lien (« Apprendre à jouer ») : .jouer-page a impose color: inherit */
 .jouer-page a.mt-btn-or { color: #241805; }
 
-/* Bandeau « Installer l'appli » (lobby.ts bandeauInstallation) : sous le panneau, dans le fil de la
-   page et discret, pour ne jamais cacher le bouton doré (une seule action principale par écran). */
-.bandeau-installer {
-  width: min(440px, 100%); box-sizing: border-box; margin: 18px auto 0;
-  display: flex; align-items: center; gap: 4px; padding: 6px 6px 6px 8px;
-  border-radius: 16px; background: var(--mt-surface);
-  box-shadow: inset 0 0 0 1px var(--mt-filet);
-  animation: bandeau-apparait .5s cubic-bezier(.2, .8, .2, 1) both .4s;
-}
-@keyframes bandeau-apparait { from { opacity: 0; transform: translateY(10px); } }
-.bandeau-installer .installer {
-  flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; min-height: 48px;
-  padding: 4px 6px; border: 0; border-radius: 12px; background: none; cursor: pointer; text-align: left;
-}
-.bandeau-installer .installer:hover b { text-decoration: underline; text-underline-offset: 3px; }
-.bandeau-installer .icone {
-  flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
-  background: var(--mt-or); color: var(--mt-nuit);
-}
-.bandeau-installer .icone svg { width: 22px; height: 22px; }
-.bandeau-installer .txt { display: flex; flex-direction: column; min-width: 0; }
-.bandeau-installer b { font-weight: 800; font-size: 15px; color: var(--mt-encre); }
-.bandeau-installer small { font-weight: 600; font-size: 12.5px; color: var(--mt-doux); }
-.bandeau-installer .fermer {
-  flex: none; width: 44px; height: 44px; border: 0; border-radius: 12px; background: none; cursor: pointer;
-  font-size: 24px; line-height: 1; color: var(--mt-discret);
-}
-.bandeau-installer .fermer:hover { color: var(--mt-encre); }
-.bandeau-installer button:focus-visible { outline: 2px solid var(--mt-or); outline-offset: 2px; }
-@media (prefers-reduced-motion: reduce) { .bandeau-installer { animation: none; } }
+/* « Installer l'appli » : plus de bandeau dans /jouer, une ligne du panneau « Plus » de la barre du bas
+   (client/navigation.ts, Hugo, 10/11/2026) */
 
 /* Onglet « Classée » (lobby.ts renderClassee) */
 .choix-adv { grid-template-columns: repeat(3, 1fr); }
@@ -256,7 +228,7 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 @media (prefers-reduced-motion: reduce) { .classee-attente .lancer:disabled { animation: none; } }
 @media (max-width: 760px) {
   .choix-adv button { flex-direction: column; gap: 3px; font-size: 14px; min-height: 58px; padding: 6px 4px; }
-  .choix-adv button img { width: 22px; }
+  .choix-adv button .icone-mode { width: 22px; height: 22px; }
 }
 
 /* Joueurs en ligne de l'onglet Classée (lobby.ts renderEnLigne) */
@@ -307,6 +279,21 @@ body[data-view="jouer"] { --mt-choix: 68px; }
   bottom: calc(var(--mt-nav, 0px) + env(safe-area-inset-bottom, 0px) + 8px); }
 .choix-adv-bas .choix-adv { margin: 0; box-shadow: inset 0 0 0 1px var(--mt-filet), 0 -14px 30px -12px rgba(0, 0, 0, .9); }
 .jouer-page { padding-bottom: calc(var(--mt-choix) + 24px); }
+/* Téléphone en portrait : les modes sont dans la barre du bas (templates/template.html), plus de seconde
+   rangée ; balayer de côté change de mode et la page glisse depuis le bord (lobby.ts changerDeMode) */
+@media (max-width: 760px) and (orientation: portrait) {
+  body[data-view="jouer"] { --mt-choix: 0px; }
+  .choix-adv-bas { display: none; }
+  /* fondu sur la page, glissement seulement sur la grille : un transform sur .jouer-page déplacerait ses
+     éléments fixés (bouton « Affronter » de l'Aventure) */
+  .jouer-page.arrive-droite, .jouer-page.arrive-gauche { animation: mode-fondu .28s ease-out; }
+  .jouer-page.arrive-droite > .grille { animation: mode-arrive-droite .28s cubic-bezier(.16, 1, .3, 1); }
+  .jouer-page.arrive-gauche > .grille { animation: mode-arrive-gauche .28s cubic-bezier(.16, 1, .3, 1); }
+}
+@keyframes mode-fondu { from { opacity: .35; } }
+@keyframes mode-arrive-droite { from { translate: 40px 0; } }
+@keyframes mode-arrive-gauche { from { translate: -40px 0; } }
+@media (prefers-reduced-motion: reduce) { .jouer-page.arrive-droite, .jouer-page.arrive-gauche, .jouer-page > .grille { animation: none !important; } }
 /* Téléphone (portrait ou paysage) : l'illustration en haut, plus petite, et le bouton doré collé au-dessus des onglets */
 @media (max-width: 760px), (max-height: 500px) and (orientation: landscape) {
   .grille { gap: 14px; }

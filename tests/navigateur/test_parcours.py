@@ -312,19 +312,45 @@ def id_partie_url(url):
     return url.rstrip("/").split("/")[-1].split("?")[0]
 
 
-async def test_bandeau_installation_apres_une_partie_et_croix(site, chromium):
-    page, game_id = await partie_solo(chromium, site, niveau=1, telephone=True)
-    await page.goto(site + "/jouer")
-    assert await page.locator(".bandeau-installer").count() == 0  # pas avant une partie finie
-    page2, game_id = await partie_solo(chromium, site, niveau=1, telephone=True)
-    await envoyer(page2, {"type": "resign", "gameId": game_id})
-    await page2.wait_for_selector(".fin-partie", timeout=10000)
-    await page2.goto(site + "/jouer")
-    await page2.wait_for_selector(".bandeau-installer", timeout=5000)
-    await page2.click(".bandeau-installer .fermer")
-    await page2.goto(site + "/jouer")
-    await page2.wait_for_timeout(800)
-    assert await page2.locator(".bandeau-installer").count() == 0  # plus jamais après la croix
+async def test_barre_du_bas_modes_balayage_et_plus(site, chromium):
+    """Téléphone en portrait (Hugo, 10/11/2026) : une rangée Aventure · Défier un ami · Arène · Le jeu ·
+    Plus ; les modes changent sur place, balayer passe au mode voisin, « Plus » ouvre Apprendre, le compte
+    et « Installer l'appli » (plus de bandeau dans /jouer)."""
+    page = await ouvrir(chromium, site, telephone=True)
+    await page.goto(site + "/jouer?mode=ami")
+    await page.wait_for_selector(".jouer-page .grille")
+    visibles = await page.evaluate("[...document.querySelectorAll('.mt-tab > *')].filter(e => e.offsetParent).map(e => e.textContent.trim())")
+    assert visibles == ["Aventure", "Défier un ami", "Arène", "Le jeu", "Plus"], visibles
+    actif = "() => [...document.querySelectorAll('.mt-tab a.actif')].filter(e => e.offsetParent).map(e => e.dataset.mode)"
+    assert await page.evaluate(actif) == ["ami"]
+    assert await page.locator(".choix-adv-bas").is_hidden()  # plus de seconde rangée
+    assert await page.locator(".bandeau-installer").count() == 0
+    # Toucher « Arène » : même page, onglet changé
+    url = page.url
+    await page.locator('.mt-tab a[data-mode="classee"]').tap()
+    assert await attendre(page, "() => document.querySelector('.mt-tab a[data-mode=classee]').classList.contains('actif')", 3000)
+    assert page.url.split("?")[0] == url.split("?")[0]
+    # Balayer vers la droite : retour à « Défier un ami »
+    await page.evaluate("""() => { const el = document.querySelector('.jouer-page');
+        const t = (type, x) => el.dispatchEvent(new TouchEvent(type, {bubbles: true,
+            touches: type === 'touchend' ? [] : [new Touch({identifier: 1, target: el, clientX: x, clientY: 300})],
+            changedTouches: [new Touch({identifier: 1, target: el, clientX: x, clientY: 300})]}));
+        t('touchstart', 60); t('touchend', 260); }""")
+    assert await attendre(page, "() => document.querySelector('.mt-tab a[data-mode=ami]').classList.contains('actif')", 3000)
+    # « Plus »
+    await page.locator(".mt-plus-bouton").tap()
+    panneau = page.locator("#mt-plus")
+    await panneau.wait_for(state="visible", timeout=3000)
+    texte = await panneau.inner_text()
+    assert "Apprendre" in texte and "Se connecter" in texte, texte
+    await page.locator(".mt-plus-fond").tap(position={"x": 20, "y": 20})
+    await panneau.wait_for(state="hidden", timeout=3000)
+    # Depuis une autre page, l'onglet mène au bon mode de /jouer
+    await page.goto(site + "/apprendre")
+    await page.locator('.mt-tab a[data-mode="classee"]').tap()
+    await page.wait_for_url("**/jouer**")
+    assert await attendre(page, "() => document.querySelector('.mt-tab a[data-mode=classee]')?.classList.contains('actif')", 5000)
+    assert not page.erreurs, page.erreurs
 
 
 async def test_editeur_toucher_pour_poser_et_gommer(site, chromium):

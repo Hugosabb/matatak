@@ -284,10 +284,10 @@ async def test_le_tutoriel_est_le_niveau_0(site, chromium, telephone):
     assert (await lancer.inner_text()).lower() == "apprendre à jouer"
     assert await lancer.get_attribute("href") == "/tutorial/1"
     if telephone:
-        # Onglets Aventure · Défier un ami · Arène en bas, au-dessus de la navigation
-        onglets = await page.locator(".choix-adv-bas").bounding_box()
+        # Onglets Aventure · Défier un ami · Arène dans la barre du bas (10/11/2026)
+        onglets = await page.locator(".mt-tab").bounding_box()
         assert onglets and onglets["y"] > page.viewport_size["height"] / 2
-    assert await page.locator(".choix-adv button:visible").count() == 3
+    assert await page.locator(".choix-adv button:visible, .mt-tab a[data-mode]:visible").count() == 3
     await capture(page, f"aventure-niveau0-{'tel' if telephone else 'pc'}")
 
     await page.locator(".av-passer").click()
@@ -319,7 +319,7 @@ async def test_revenir_sur_solo_montre_le_niveau_en_cours(site, chromium, ecran)
             etape: 7, victoires: 0, niveauOrdi: 12, parties: 14, flamme: {jours: 0, dernier: ''}, plateau: 'matatakmini'}))"""
     )
     await page.goto(site + "/jouer")
-    await page.locator(".choix-adv button:visible", has_text="Aventure").click()
+    await page.locator(".choix-adv button:visible, .mt-tab a[data-mode]:visible", has_text="Aventure").click()
     await page.wait_for_selector(".av-niveau.courant")
     await page.wait_for_timeout(400)
     # Le niveau en cours (13 : une case par partie ; phase 1 = 8 parties, puis 2 par niveau) est à l'écran, pas le haut de la route
@@ -330,7 +330,7 @@ async def test_revenir_sur_solo_montre_le_niveau_en_cours(site, chromium, ecran)
     # Les onglets restent visibles en faisant défiler toute la route
     await page.evaluate("window.scrollTo(0, 0)")
     await page.wait_for_timeout(200)
-    onglets = page.locator(".choix-adv:visible")
+    onglets = page.locator(".choix-adv:visible, .mt-tab:visible").first
     boite = await onglets.bounding_box()
     assert boite and 0 <= boite["y"] < hauteur, boite
     await capture(page, f"aventure-onglets-{ecran}")

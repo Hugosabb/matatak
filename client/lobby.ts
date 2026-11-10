@@ -3,7 +3,6 @@ import { ROIS, roiDuNiveau, saisonDuNiveau, Saison } from './rois';
 import { montrerEquipe, renderAventure } from './aventure/vue';
 import { classeeDebloquee, classeeForcee, draftDebloque, forcerClassee, lierPartie, lire as lireAventure, noterPartieDemandee, Partie as PartieAventure, prochainePartie, synchroniserAvecLeCompte } from './aventure/progression';
 import { WebsocketHeartbeatJs } from './socket/socket';
-import { installeur, ouvrirInstallation } from './installer';
 import { equipeMemorisee, fenPourCouleur } from './equipe';
 import { sound } from './sound';
 import { chargerPalmares, couronne, PalmaresInfos, rangTexte } from './palmares';
@@ -80,7 +79,6 @@ const CADENCES_AMI: Cadence[] = [
     { id: '15+10', label: '15 min', detail: '+10', min: 15, inc: 10 },
 ];
 // Cartes des menus : toujours en face sombre (règle d'Hugo, 26/10/2026)
-const IMG_SOMBRE = '/static/images/background/collection/sombre/';
 const IMG_ROI: Record<Saison, string> = { ete: '01-azar.webp', automne: '02-shans.webp', hiver: '03-karma.webp', printemps: '04-mojo.webp' };
 
 // Onglet « Classée » : réponse de GET /api/classee (server/classee.py)
@@ -118,38 +116,34 @@ function etapeTutoriel(): number {
     return Math.min(12, Number(lireStockage('matatak_tutoriel_etape')) || 0); // 13 étapes (tutorial_data.py)
 }
 
-// Bandeau « Installer l'appli » sous le panneau de /jouer : seulement si l'installation est possible sur cet
-// appareil, hors de l'appli installée, après une première partie terminée (roundCtrl.ts note
-// « matatak_partie_finie ») pour ne pas concurrencer le bouton doré d'un nouveau joueur, et plus
-// jamais une fois fermé.
-function bandeauInstallation(maj: () => void): VNode | null {
-    const i = installeur();
-    if (!i || i.installee() || !lireStockage('matatak_partie_finie') || lireStockage('matatak_installer') === 'ferme') return null;
-    const { appareil } = i.plateforme();
-    // Sur ordinateur, seuls Chrome et Edge installent (invitation native) ; sur téléphone, il y a
-    // toujours un geste à expliquer (Partager › Sur l'écran d'accueil, menu ⋮…).
-    if (!i.peutInviter() && appareil === 'ordinateur') return null;
-    const installer = async () => {
-        if (i.peutInviter()) {
-            if (await i.inviter() === 'indisponible') ouvrirInstallation();
-        } else ouvrirInstallation();
-        maj();
-    };
-    const fermer = () => {
-        try { localStorage.setItem('matatak_installer', 'ferme'); } catch { /* navigation privée */ }
-        maj();
-    };
-    return h('div.bandeau-installer', { attrs: { role: 'region', 'aria-label': "Installer l'appli" } }, [
-        h('button.installer', { attrs: { type: 'button' }, on: { click: installer } }, [
-            h('span.icone', { attrs: { 'aria-hidden': 'true' } }, [
-                h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } }, [
-                    h('path', { attrs: { d: 'M12 3v12M7 10l5 5 5-5M5 20h14' } }),
-                ]),
-            ]),
-            h('span.txt', [h('b', "Installer l'appli"), h('small', "En plein écran, depuis l'écran d'accueil")]),
-        ]),
-        h('button.fermer', { attrs: { type: 'button', 'aria-label': 'Ne plus proposer' }, on: { click: fermer } }, '×'),
-    ]);
+// Icônes Lucide des onglets Aventure · Défier un ami · Arène (https://lucide.dev, licence ISC :
+// static/icones/LICENCE-lucide.md) ; remplacent les petites cartes (Hugo, 03 et 10/11/2026). Mêmes
+// icônes que la barre du bas du téléphone (templates/template.html).
+const ICONES_MODE: Record<JouerAdversaire, [string, Record<string, string>][]> = {
+    ia: [['path', { d: 'M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z' }], ['path', { d: 'M15 5.764v15' }], ['path', { d: 'M9 3.236v15' }]],
+    ami: [['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: '9', cy: '7', r: '4' }], ['path', { d: 'M22 21v-2a4 4 0 0 0-3-3.87' }], ['path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }]],
+    classee: [['polyline', { points: '14.5 17.5 3 6 3 3 6 3 17.5 14.5' }], ['line', { x1: '13', x2: '19', y1: '19', y2: '13' }], ['line', { x1: '16', x2: '20', y1: '16', y2: '20' }], ['line', { x1: '19', x2: '21', y1: '21', y2: '19' }], ['polyline', { points: '14.5 6.5 18 3 21 3 21 6 17.5 9.5' }], ['line', { x1: '5', x2: '9', y1: '14', y2: '18' }], ['line', { x1: '7', x2: '4', y1: '17', y2: '20' }], ['line', { x1: '3', x2: '5', y1: '19', y2: '21' }]],
+};
+function iconeMode(adv: JouerAdversaire): VNode {
+    return h('svg.icone-mode', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } },
+        ICONES_MODE[adv].map(([tag, attrs]) => h(tag, { attrs })));
+}
+const ORDRE_DES_MODES: JouerAdversaire[] = ['ia', 'ami', 'classee'];
+
+/** Téléphone en portrait : la barre du bas porte les modes (templates/template.html). */
+function telephonePortrait(): boolean {
+    return window.matchMedia('(max-width: 760px) and (orientation: portrait)').matches;
+}
+
+/** Un geste qui part d'ici ne change pas d'onglet : champ, glisser-déposer, liste qui défile de côté, fenêtre. */
+function gesteReserve(cible: EventTarget | null): boolean {
+    let el = cible instanceof Element ? cible : null;
+    if (!el || el.closest('input, textarea, select, [draggable="true"], dialog, .mt-plus, .enclos, .av-equipe, .ed-carte, cg-board')) return true;
+    for (; el && el !== document.body; el = el.parentElement) {
+        const style = getComputedStyle(el);
+        if (/(auto|scroll)/.test(style.overflowX) && el.scrollWidth > el.clientWidth + 2) return true;
+    }
+    return false;
 }
 
 /** Ce que fait le cran choisi (règle du livret, crans cumulés). Positif : vous ; négatif : votre ami. */
@@ -294,6 +288,12 @@ export class LobbyController implements ChatController {
             this.dialogHeaderEl = document.getElementById('header-block') as HTMLElement;
 
             const jouerEl = document.querySelector('.jouer-page') as HTMLElement | null;
+            // Onglets de la barre du bas venus d'une autre page : /jouer?mode=ia|ami|classee
+            const mode = new URLSearchParams(window.location.search).get('mode') as JouerAdversaire | null;
+            if (jouerEl && mode && ORDRE_DES_MODES.includes(mode)) {
+                window.history.replaceState({}, '', window.location.pathname);
+                this.jouer.adv = mode;
+            }
             // « Nouvelle partie classée » en fin de partie : /jouer?classee=1 relance aussitôt la recherche
             if (jouerEl && new URLSearchParams(window.location.search).has('classee')) {
                 window.history.replaceState({}, '', window.location.pathname);
@@ -325,8 +325,8 @@ export class LobbyController implements ChatController {
             }
             if (jouerEl) {
                 this.jouerEl = patch(jouerEl, this.renderJouer(model));
-                // L'invitation d'installation du navigateur arrive après le chargement
-                installeur()?.surChangement(() => this.majJouer(model));
+                this.marquerLeMode();
+                this.brancherLesModes();
             }
 
             // challenge (or CREATE GAME from the main menu)
@@ -663,6 +663,51 @@ export class LobbyController implements ChatController {
         ecrireJouerChoix(this.jouer);
         if (model) this.jouerModel = model;
         if (this.jouerEl && this.jouerModel) this.jouerEl = patch(this.jouerEl, this.renderJouer(this.jouerModel));
+        this.marquerLeMode();
+    }
+
+    /** Onglet du mode en cours allumé dans la barre du bas du téléphone (templates/template.html). */
+    private marquerLeMode() {
+        document.querySelectorAll<HTMLElement>('.mt-tab a[data-mode]').forEach(a => a.classList.toggle('actif', a.dataset.mode === this.jouer.adv));
+    }
+
+    /** Aventure, Défier un ami ou Arène ; pendant une recherche classée, changer d'onglet l'annule. */
+    private changerDeMode(adv: JouerAdversaire, sens = 0) {
+        if (adv === this.jouer.adv) return;
+        if (this.classeeDebut && adv !== 'classee') this.annulerClassee();
+        this.jouer.adv = adv;
+        this.majJouer();
+        window.scrollTo({ top: 0 });
+        const page = document.querySelector<HTMLElement>('.jouer-page');
+        if (page && sens) {
+            page.classList.remove('arrive-droite', 'arrive-gauche');
+            void page.offsetWidth; // relance l'animation
+            page.classList.add(sens > 0 ? 'arrive-droite' : 'arrive-gauche');
+        }
+    }
+
+    /** Barre du bas (téléphone, portrait) : ses onglets de mode changent d'onglet sur place ; balayer à
+     *  gauche ou à droite passe au mode voisin (Hugo, 10/11/2026). */
+    private brancherLesModes() {
+        document.querySelectorAll<HTMLAnchorElement>('.mt-tab a[data-mode]').forEach(a => a.addEventListener('click', e => {
+            e.preventDefault();
+            this.changerDeMode(a.dataset.mode as JouerAdversaire);
+        }));
+        let depart: { x: number; y: number; t: number } | null = null;
+        document.addEventListener('touchstart', e => {
+            depart = e.touches.length === 1 && telephonePortrait() && !gesteReserve(e.target)
+                && !document.body.classList.contains('av-page')
+                ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() } : null;
+        }, { passive: true });
+        document.addEventListener('touchend', e => {
+            if (!depart || e.changedTouches.length !== 1) return;
+            const dx = e.changedTouches[0].clientX - depart.x, dy = e.changedTouches[0].clientY - depart.y;
+            const rapide = performance.now() - depart.t < 700;
+            depart = null;
+            if (!rapide || Math.abs(dx) < 70 || Math.abs(dx) < 1.8 * Math.abs(dy)) return;
+            const i = ORDRE_DES_MODES.indexOf(this.jouer.adv) + (dx < 0 ? 1 : -1);
+            if (i >= 0 && i < ORDRE_DES_MODES.length) this.changerDeMode(ORDRE_DES_MODES[i], dx < 0 ? 1 : -1);
+        }, { passive: true });
     }
 
     /** Classements du joueur pour l'onglet « Classée » (une fois par visite). */
@@ -982,15 +1027,11 @@ export class LobbyController implements ChatController {
         ].filter(x => x).join(' · ');
 
         // Pendant une recherche classée, changer d'onglet annule la recherche
-        const choisirAdv = (adv: JouerAdversaire) => {
-            if (this.classeeDebut && adv !== 'classee') this.annulerClassee();
-            c.adv = adv;
-            maj();
-        };
+        const choisirAdv = (adv: JouerAdversaire) => this.changerDeMode(adv);
         const onglets = () => h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
-            bouton(c.adv === 'ia', 'button', () => choisirAdv('ia'), [h('img', { attrs: { src: IMG_SOMBRE + IMG_ROI[saisonDuNiveau(c.level)], alt: '' } }), 'Aventure']), // noms des onglets : Hugo, 27/10/2026
-            bouton(c.adv === 'ami', 'button', () => choisirAdv('ami'), [h('img', { attrs: { src: IMG_SOMBRE + '11-frank.webp', alt: '' } }), 'Défier un ami']),
-            bouton(c.adv === 'classee', 'button', () => choisirAdv('classee'), [h('img', { attrs: { src: IMG_SOMBRE + '26-rokk.webp', alt: '' } }), 'Arène']),
+            bouton(c.adv === 'ia', 'button', () => choisirAdv('ia'), [iconeMode('ia'), 'Aventure']), // noms des onglets : Hugo, 27/10/2026
+            bouton(c.adv === 'ami', 'button', () => choisirAdv('ami'), [iconeMode('ami'), 'Défier un ami']),
+            bouton(c.adv === 'classee', 'button', () => choisirAdv('classee'), [iconeMode('classee'), 'Arène']),
         ]);
         const choixAdv = onglets();
         // Téléphone : les mêmes onglets, fixés en bas au-dessus de la navigation (le pouce y est) ;
@@ -1027,8 +1068,7 @@ export class LobbyController implements ChatController {
                     ? h('div.scene-txt', [h('b', v ? String(v.r) : '…'), h('span', v?.prov ? 'Classement provisoire' : 'Votre classement')])
                     : h('div.scene-txt', [h('b', 'Arène'), h('span', 'Gagnez des points, grimpez au classement')]),
             ]);
-            const installation = bandeauInstallation(maj);
-            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, blocPlateau('4 × 8 · rapide', this.classeeDebut > 0), nomPlateau), scene]), installation ?? '', ongletsDuBas]);
+            return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [this.renderClassee(choixAdv, blocPlateau('4 × 8 · rapide', this.classeeDebut > 0), nomPlateau), scene]), ongletsDuBas]);
         }
 
         // Solo = l'Aventure ; son niveau 0 est le tutoriel (Hugo, 26/10/2026)
@@ -1049,8 +1089,7 @@ export class LobbyController implements ChatController {
                     passer: () => { noterReglesConnues(); maj(); },
                 },
             };
-            const installation = bandeauInstallation(maj);
-            return h('div.jouer-page.aventure-page', [this.renderDefisRecus(), renderAventure(ctx), installation ?? '', ongletsDuBas]);
+            return h('div.jouer-page.aventure-page', [this.renderDefisRecus(), renderAventure(ctx), ongletsDuBas]);
         }
 
         const partie = h('section.panneau.partie', [
@@ -1120,10 +1159,9 @@ export class LobbyController implements ChatController {
                 h('div.scene-txt', [h('b', 'Entre amis')]),
             ]);
 
-        // Collection, Analyse et Éditeur sont rangés dans « Apprendre » ; « Installer l'appli » aussi,
-        // et dans le bandeau du bas (bandeauInstallation)
-        const installation = bandeauInstallation(maj);
-        return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [partie, scene]), installation ?? '', ongletsDuBas]);
+        // Collection, Analyse et Éditeur sont rangés dans « Apprendre » ; « Installer l'appli » est dans
+        // le panneau « Plus » de la barre du bas (client/navigation.ts)
+        return h('div.jouer-page', [this.renderDefisRecus(), h('div.grille', [partie, scene]), ongletsDuBas]);
     }
 
     renderSeekButtons() {

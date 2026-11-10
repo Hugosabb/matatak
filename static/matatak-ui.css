@@ -145,16 +145,42 @@ header.mt-haut #settings, header.mt-haut #notify-app { top: var(--site-header-he
     font: 800 11px 'Nunito', sans-serif; color: var(--mt-discret); text-decoration: none;
     -webkit-tap-highlight-color: transparent;
   }
-  .mt-tab a:active { transform: scale(.94); }
-  .mt-tab a.actif { color: var(--mt-or); }
+  .mt-tab button { border: 0; background: none; cursor: pointer; flex: 1; display: grid; place-items: center; gap: 3px; padding: 6px 0; min-height: 48px;
+    font: 800 11px 'Nunito', sans-serif; color: var(--mt-discret); -webkit-tap-highlight-color: transparent; }
+  .mt-tab a:active, .mt-tab button:active { transform: scale(.94); }
+  .mt-tab a.actif, .mt-tab button.actif, .mt-tab button[aria-expanded="true"] { color: var(--mt-or); }
   .mt-tab svg { width: 24px; height: 24px; }
-  .mt-tab a.actif svg { filter: drop-shadow(0 0 8px rgba(234, 196, 90, .5)); }
+  .mt-tab a.actif svg, .mt-tab button.actif svg { filter: drop-shadow(0 0 8px rgba(234, 196, 90, .5)); }
+  /* Portrait : Aventure · Défier un ami · Arène · Le jeu · Plus ; paysage : Jouer · Apprendre · Le jeu · Compte
+     (Hugo, 10/11/2026 : en paysage et sur ordinateur, rien ne change) */
+  .mt-tab .paysage { display: none; }
+  .mt-tab a, .mt-tab button { min-width: 0; white-space: nowrap; }
+  .mt-tab a[data-mode="ami"] { flex: 1.35; } /* « Défier un ami » : le libellé le plus long, tient jusqu'à 320 px */
+  @media (orientation: landscape) { .mt-tab .portrait { display: none; } .mt-tab .paysage { display: grid; } }
+  /* « Plus » : un petit panneau au-dessus de la barre (client/navigation.ts) */
+  .mt-plus-fond { position: fixed; inset: 0; z-index: 104; background: rgba(10, 8, 7, .5); }
+  .mt-plus { position: fixed; z-index: 106; right: 8px; bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom) + 8px);
+    width: min(320px, calc(100% - 16px)); box-sizing: border-box; display: grid; gap: 4px; padding: 8px;
+    border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 18px 40px rgba(0, 0, 0, .6);
+    transform-origin: bottom right; animation: mt-plus-ouvre .22s cubic-bezier(.16, 1, .3, 1); }
+  .mt-plus[hidden], .mt-plus-fond[hidden], .mt-plus [hidden] { display: none; }
+  @keyframes mt-plus-ouvre { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+  .mt-plus a, .mt-plus button { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 6px 12px; border: 0; border-radius: 12px;
+    background: none; cursor: pointer; text-align: left; text-decoration: none; color: var(--mt-encre); font: 800 16px 'Nunito', sans-serif;
+    -webkit-tap-highlight-color: transparent; }
+  .mt-plus a:active, .mt-plus button:active { background: var(--mt-surface-2); }
+  .mt-plus a.actif { color: var(--mt-or); }
+  .mt-plus svg { flex: none; width: 24px; height: 24px; color: var(--mt-or); }
+  .mt-plus span { display: grid; gap: 1px; min-width: 0; }
+  .mt-plus small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 12.5px; color: var(--mt-doux); }
+  @media (prefers-reduced-motion: reduce) { .mt-plus { animation: none; } }
   body:has(.mt-tab) { padding-bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom)); }
   /* Plus de barre du haut sur téléphone : la navigation est en bas (règle dans CLAUDE.md) */
   header.mt-haut { display: none; }
   /* Partie en cours (Draft compris) : rien autour du plateau, on sort par le menu ⋯ */
-  body.en-partie .mt-tab { display: none; }
+  body.en-partie .mt-tab, body.en-partie .mt-plus, body.en-partie .mt-plus-fond { display: none; }
 }
+@media (min-width: 761px) { .mt-plus, .mt-plus-fond { display: none !important; } }
 
 /* ===== Apparition au défilement ===== */
 .mt-apparait { opacity: 0; transform: translateY(26px); transition: opacity .9s, transform .9s cubic-bezier(.2, .8, .2, 1); }

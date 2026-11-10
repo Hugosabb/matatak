@@ -35,6 +35,7 @@ import { analysisView as bugAnalysisView } from "./bug/analysis.bug";
 import { devVariants, variantGroups, VARIANTS } from './variants';
 import { variantsIni } from './variantsIni';
 import { showUsernameDialog } from './usernameDialog';
+import { brancherLaNavigation } from './navigation';
 
 
 // redirect to correct URL except Heroku preview/dev apps
@@ -222,6 +223,8 @@ function start() {
     }
 
     if (model["embed"]) return;
+
+    brancherLaNavigation();
 
     document.querySelector('.hamburger')?.addEventListener('click', () => {
         const topnav = document.querySelector('.topnav');
