@@ -16,6 +16,31 @@ from pychess_global_app_state_utils import get_app_state
 from logger import log
 
 
+class Debit:
+    """Limite de débit d'une WebSocket (AUDIT P2-6, 10/11/2026) : au plus `nombre` messages par
+    fenêtre glissante de `secondes`. Très large pour une vraie partie (un coup, un clic de Draft…) ;
+    au-delà, les messages en trop sont ignorés : un script ne peut plus inonder le serveur."""
+
+    def __init__(self, nombre=40, secondes=5.0):
+        from collections import deque
+
+        self.nombre, self.secondes = nombre, secondes
+        self.instants = deque()
+        self.signale = False
+
+    def accepte(self, maintenant=None) -> bool:
+        import time
+
+        t = time.monotonic() if maintenant is None else maintenant
+        while self.instants and t - self.instants[0] > self.secondes:
+            self.instants.popleft()
+        if len(self.instants) >= self.nombre:
+            return False
+        self.instants.append(t)
+        self.signale = False
+        return True
+
+
 async def get_user(session: aiohttp_session.Session, request: web.Request) -> User:
     from users import NotInDbUsers
     from const import NONE_USER
@@ -107,6 +132,7 @@ async def process_ws(
         if init_msg is not None:
             await init_msg(app_state, ws, user)
         msg: WSMessage
+        debit = Debit()
         async for msg in ws:
             if app_state.shutdown:
                 break
@@ -118,6 +144,11 @@ async def process_ws(
                 elif msg.data == "/n":
                     await ws_send_str(ws, "/n")
                 else:
+                    if not debit.accepte():
+                        if not debit.signale:
+                            debit.signale = True
+                            log.warning("Trop de messages de %s : ignorés un moment", user.username)
+                        continue
                     data = json.loads(msg.data)
                     if not data["type"] == "pong":
                         log.debug("Websocket (%s) message: %s", id(ws), msg)
