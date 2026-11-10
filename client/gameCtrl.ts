@@ -24,6 +24,7 @@ import { selectMove } from './movelist';
 import { Api } from "chessgroundx/api";
 import { fogFen, Variant } from "./variants";
 import { CheckCounterSvg, Counter } from './glyphs';
+import { avertir } from './fenetre';
 
 export abstract class GameController extends ChessgroundController implements ChatController {
     sock: WebsocketHeartbeatJs;
@@ -655,12 +656,11 @@ export abstract class GameController extends ChessgroundController implements Ch
     }
 
     private onMsgGameNotFound = (msg: MsgGameNotFound) => {
-        alert(_("Requested game %1 not found!", msg['gameId']));
-        window.location.assign(this.home + '/jouer');
+        avertir(_("Requested game %1 not found!", msg['gameId'])).then(() => window.location.assign(this.home + '/jouer'));
     }
 
     private onMsgShutdown = (msg: MsgShutdown) => {
-        alert(msg.message);
+        avertir(msg.message);
     }
 
     protected onMessage(evt: MessageEvent) {

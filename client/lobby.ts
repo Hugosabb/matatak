@@ -30,6 +30,7 @@ import { handleOngoingGameEvents, Game, gameViewPlaying, compareGames } from './
 import { createWebsocket } from "@/socket/webSocketUtils";
 import { noterPlateauAuto, plateauAuto, plateauDeLEcran } from './plateauPrefere';
 import { choixPersosDraft, persosEnPlus } from './draftPersos';
+import { avertir, confirmer } from './fenetre';
 
 
 const autoPairingTCs: [number, number, number][] = [
@@ -1642,7 +1643,7 @@ export class LobbyController implements ChatController {
             this.doSend({ type: "delete_seek", seekID: seek["seekID"], player: this.username });
         } else {
             if (this.anon && seek.day !== 0) {
-                alert(_('You need an account to do that.'));
+                avertir(_('You need an account to do that.'));
                 return;
             }
             this.doSend({ type: "accept_seek", seekID: seek["seekID"], player: this.username });
@@ -2009,8 +2010,8 @@ export class LobbyController implements ChatController {
 
     private onMsgGameInProgress(msg: MsgGameInProgress) {
         // Une partie pas encore commencée est annulée par le serveur : ici, elle a vraiment commencé.
-        const response = confirm("Vous avez une partie en cours.\n\nOK : la reprendre.\nAnnuler : rester ici (pour en lancer une nouvelle, abandonnez-la d'abord).");
-        if (response) window.location.assign('/' + msg.gameId);
+        confirmer("Pour en lancer une nouvelle, abandonnez-la d'abord.", 'La reprendre', 'Rester ici', 'Vous avez une partie en cours')
+            .then(oui => { if (oui) window.location.assign('/' + msg.gameId); });
     }
 
     private onMsgUserConnected(msg: MsgUserConnected) {
@@ -2053,11 +2054,11 @@ export class LobbyController implements ChatController {
     }
 
     private onMsgError(msg: MsgError) {
-        alert(msg.message);
+        avertir(msg.message);
     }
 
     private onMsgShutdown(msg: MsgShutdown) {
-        alert(msg.message);
+        avertir(msg.message);
     }
 
     private onMsgGameCounter(msg: MsgCounter) {

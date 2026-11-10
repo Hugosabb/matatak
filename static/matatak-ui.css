@@ -589,3 +589,15 @@ svg.couronne { flex: none; width: 18px; height: 18px; color: var(--mt-or); filte
 @media (max-aspect-ratio: 4/5) {
   .frame-layer { transform: var(--feuilles-sens, scaleY(-1)); }
 }
+
+/* ===== Fenêtres du site (client/fenetre.ts) : à la place de alert() / confirm() du navigateur ===== */
+.mt-fenetre { position: fixed; inset: 0; margin: auto; height: fit-content; width: min(400px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 22px 20px 16px; border: 0; border-radius: 20px; text-align: center; background: var(--mt-surface); color: var(--mt-encre);
+  box-shadow: inset 0 0 0 1px var(--mt-filet), 0 30px 80px rgba(0, 0, 0, .7); font: 400 16px/1.5 'Nunito', system-ui, sans-serif; }
+.mt-fenetre::backdrop { background: rgba(10, 8, 7, .72); }
+.mt-fenetre h2 { margin: 0 0 8px; font: 400 24px/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
+.mt-fenetre p { margin: 0 0 18px; color: var(--mt-doux); white-space: pre-line; }
+.mt-fenetre-boutons { display: grid; gap: 6px; justify-items: center; }
+.mt-fenetre-boutons .mt-btn { width: min(100%, 300px); }
+.mt-fenetre-secondaire { min-height: 44px; padding: 0 16px; border: 0; background: none; cursor: pointer; font: 700 15px 'Nunito', sans-serif; color: var(--mt-doux); }
+.mt-fenetre-secondaire:hover, .mt-fenetre-secondaire:focus-visible { color: var(--mt-encre); }

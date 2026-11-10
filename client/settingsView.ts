@@ -7,6 +7,7 @@ import { patch, getDocumentData } from './document';
 import { _, translatedLanguage, languageSettings } from './i18n';
 import { volumeSettings, soundThemeSettings } from './sound';
 import { zenModeSettings } from './zen';
+import { confirmer } from './fenetre';
 
 export function settingsView(modelVariant: string) {
     const anon = getDocumentData('anon');
@@ -66,8 +67,7 @@ function userMenu() {
 }
 
 function logoutDialog() {
-    if (confirm(_("Are you sure you want to log out?")))
-        window.location.href = "/logout";
+    confirmer(_("Are you sure you want to log out?"), 'Se déconnecter').then(oui => { if (oui) window.location.href = "/logout"; });
 }
 
 function settingsMenu() {

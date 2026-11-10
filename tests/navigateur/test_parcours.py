@@ -675,3 +675,26 @@ async def test_puzzle_indice_montre_la_carte_sans_faire_recommencer(site, chromi
     assert 1 in resolus
     assert bon
     assert not page.erreurs, page.erreurs
+
+
+async def test_partie_en_cours_fenetre_du_site_et_pas_du_navigateur(site, chromium):
+    """Nettoyage (10/11/2026) : « Vous avez une partie en cours » est une fenêtre du site (client/fenetre.ts),
+    plus un confirm() du navigateur ; « La reprendre » ramène à la partie."""
+    page, game_id = await partie_solo(chromium, site, niveau=1, telephone=True)
+    page.on("dialog", lambda d: (_ for _ in ()).throw(AssertionError("fenêtre du navigateur : " + d.message)))
+    moi = await couleur_du_joueur(page)
+    if (await dernier_plateau(page))["fen"].split(" ")[1] != moi:
+        assert await attendre(page, "m => window.__msgs.some(x => x.type === 'board' && x.fen.split(' ')[1] === m)", 12000, moi)
+    await jouer_un_coup(page, game_id)
+    # Au moins deux coups : sinon la partie est annulée au lieu d'être signalée (wsl.abort_if_not_started)
+    assert await attendre(page, "() => window.__msgs.some(m => m.type === 'board' && m.ply >= 2)", 15000)
+    await page.goto(site + "/jouer?mode=classee")
+    fenetre = page.locator("dialog.mt-fenetre")
+    # Signalée dès l'arrivée, ou en lançant une recherche
+    if not await attendre(page, "() => !!document.querySelector('dialog.mt-fenetre[open]')", 3000):
+        await page.locator("button.lancer", has_text="Arène").click()
+    await fenetre.wait_for(timeout=5000)
+    assert "partie en cours" in (await fenetre.inner_text()).lower()
+    await fenetre.locator(".mt-btn-or", has_text="La reprendre").click()
+    await page.wait_for_url(f"**/{game_id}", timeout=5000)
+    assert not page.erreurs, page.erreurs

@@ -34,6 +34,7 @@ import { setPocketRowCssVars } from './pocketRow';
 import { updatePoint } from './info';
 import { CheckCounterSvg, Counter } from './glyphs';
 import { appliquerRois, saisonDuCamp, saisonDuNiveau } from './rois';
+import { avertir, confirmer } from './fenetre';
 
 const EVAL_REGEX = new RegExp(''
     + /^info depth (\d+) seldepth \d+ multipv (\d+) /.source
@@ -313,14 +314,14 @@ export class AnalysisController extends GameController {
 
         if (withRequest) {
             if (this.anon) {
-                alert(_('You need an account to do that.'));
+                avertir(_('You need an account to do that.'));
                 return;
             }
             //            if (!this.variantSupportedByFSF) {
             // We can't use FSF WASM detection here because users may use unsupported hardware
             // but server side analysis will work for them at the same time!
             if (this.variant.name === 'alice') {
-                alert(_('This variant is not supported by Fairy-Stockfish.'));
+                avertir(_('This variant is not supported by Fairy-Stockfish.'));
                 return;
             }
             this.doSend({ type: "analysis", username: this.username, gameId: this.gameId });
@@ -374,9 +375,9 @@ export class AnalysisController extends GameController {
     }
 
     private deleteGame() {
-        if (confirm(_('Are you sure you want to delete this game?'))) {
-            this.doSend({ type: "delete", gameId: this.gameId });
-        }
+        confirmer(_('Are you sure you want to delete this game?'), 'Supprimer').then(oui => {
+            if (oui) this.doSend({ type: "delete", gameId: this.gameId });
+        });
     }
 
     onMsgBoard(msg: MsgBoard) {
@@ -485,7 +486,7 @@ export class AnalysisController extends GameController {
                     this.fsfError.push('');
                     this.fsfError.push(suggestion);
                     const errorMsg = this.fsfError.join('\n');
-                    alert(errorMsg);
+                    avertir(errorMsg);
                     return;
                 }
             }
