@@ -268,7 +268,7 @@ function ecranRoute(p: Progression, ctx: ContexteAventure): VNode {
             h('div.av-guide', [
                 // Le Roi qui parle : sa tête détourée dans un rond, plus sa carte (Hugo, 03/11/2026) ;
                 // images tirées des PSD de ../jeu (assets/site/images/background/rois/)
-                h(`span.av-guide-roi.${SAISON_DU_ROI[p.roi]}`, [
+                h(`span.av-guide-roi.${SAISON_DU_ROI[p.roi]}.r-${p.roi.toLowerCase()}`, [
                     h('img', { attrs: {
                         src: `/static/images/background/rois/${p.roi.toLowerCase()}-tete-256.webp`,
                         srcset: `/static/images/background/rois/${p.roi.toLowerCase()}-tete-256.webp 1x, /static/images/background/rois/${p.roi.toLowerCase()}-tete-512.webp 2x`,

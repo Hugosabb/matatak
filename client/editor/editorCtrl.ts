@@ -308,12 +308,13 @@ export class EditorController extends ChessgroundController {
 
     private setChallengeAIFen = () => {
         const fen = this.parts.join('_').replace(/\+/g, '.');
-        window.location.assign(this.model["home"] + '/@/Fairy-Stockfish/play/' + this.model["variant"] + '?fen=' + fen);
+        // Le nouvel écran /jouer (Solo), plus l'ancien salon de pychess (Hugo, 10/11/2026)
+        window.location.assign(this.model["home"] + '/jouer?mode=ia&variant=' + this.model["variant"] + '&position=' + fen);
     }
 
     private setSeekFen = () => {
         const fen = this.parts.join('_').replace(/\+/g, '.');
-        window.location.assign(this.model["home"] + '/seek/' + this.model["variant"] + '?fen=' + fen);
+        window.location.assign(this.model["home"] + '/jouer?mode=ami&variant=' + this.model["variant"] + '&position=' + fen);
     }
 
     private onChangeFen = () => {

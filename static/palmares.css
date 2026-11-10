@@ -2,7 +2,7 @@
 #main-wrap { --main-max-width: 100%; }
 main.palmares { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1.5 'Nunito', system-ui, sans-serif; color: var(--mt-encre); }
 .palmares-page { width: min(640px, 100% - 32px); margin: 0 auto; padding: 28px 0 40px; display: grid; gap: 14px; }
-.palmares-page h1 { margin: 0; font: 400 clamp(30px, 4vw, 40px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); text-shadow: 0 2px 14px rgba(0, 0, 0, .9); }
+.palmares-page h1 { margin: 0; font: 400 clamp(26px, 3.4vw, 34px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); }
 .palmares-contenu { display: grid; gap: 14px; }
 
 .palmares .onglets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 5px; border-radius: 14px; background: var(--mt-nuit); }

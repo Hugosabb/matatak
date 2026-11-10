@@ -75,8 +75,10 @@ export class CampaignView {
         });
 
         return h("div.campagne", [
-            h("h1", "Campagne de puzzles"),
-            h("p.campagne-sous-titre", `${nomVariante(this.variant)} · ${total} niveaux, du plus simple au plus rusé.`),
+            h("header.mt-entete", [
+                h("h1", "Puzzles"),
+                h("p.campagne-sous-titre", `${nomVariante(this.variant)} · ${total} niveaux, du plus simple au plus rusé.`),
+            ]),
             h("div.campagne-progression", [
                 h("div.barre", { attrs: { role: "progressbar", "aria-valuemin": "0", "aria-valuemax": String(total), "aria-valuenow": String(resolus) } },
                     h("i", { style: { width: `${resolus / total * 100}%` } })),

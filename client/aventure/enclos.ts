@@ -251,6 +251,27 @@ const memeSource = (a: Source, b: Source) => a.de === 'enclos'
     ? b.de === 'enclos' && a.nom === b.nom
     : b.de === 'equipe' && a.place.rang === b.place.rang && a.place.index === b.place.index;
 
+/** Après un lâcher : la carte (dans l'enclos ou sur sa case de l'équipe) part du rectangle où on l'a
+ *  lâchée et glisse jusqu'à sa place, au lieu de refaire le trajet depuis sa case de départ. */
+function partirDe(nom: Perso, lachee: DOMRect) {
+    const el = document.querySelector<HTMLElement>(`.av-enclos [data-nom="${nom}"]`)
+        ?? document.querySelector<HTMLElement>(`.av-equipe .av-case[aria-label="${nom}"]`);
+    const img = el?.querySelector<HTMLElement>('img');
+    if (!el || !img || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    el.style.transition = 'none'; // la case de l'enclos saute à sa place ; l'image, elle, part du doigt
+    const arrivee = img.getBoundingClientRect();
+    void el.offsetWidth;
+    el.style.transition = '';
+    if (!arrivee.width) return;
+    const dx = lachee.left + lachee.width / 2 - (arrivee.left + arrivee.width / 2);
+    const dy = lachee.top + lachee.height / 2 - (arrivee.top + arrivee.height / 2);
+    const k = lachee.width / arrivee.width;
+    img.animate([
+        { transform: `translate(${dx}px, ${dy}px) scale(${k}) rotate(-4deg)` },
+        { transform: 'none' },
+    ], { duration: 260, easing: 'cubic-bezier(.2, .9, .3, 1)' });
+}
+
 /** Appui sur un Personnage : au-delà de 6 px, il suit le doigt (une copie de la carte) ; relâché sur une
  *  case autorisée de l'équipe, il y est posé. Sans mouvement, c'est un simple toucher. */
 function appuyer(e: PointerEvent, p: Progression, source: Source, maj: () => void) {
@@ -296,6 +317,9 @@ function appuyer(e: PointerEvent, p: Progression, source: Source, maj: () => voi
         document.removeEventListener('pointerup', lacher);
         document.removeEventListener('pointercancel', lacher);
         if (!fantome) { toucher(p, source, maj); return; }
+        // La carte repart de là où on l'a lâchée, pas de sa case de départ (Hugo, 10/11/2026)
+        const lachee = fantome.getBoundingClientRect();
+        const nom = source.de === 'enclos' ? source.nom : nomA(p, source.place);
         fantome.remove();
         ecran.classList.remove('glisse');
         [...cases, ...dalles, ...remplacants].forEach(c => c.classList.remove('accepte', 'dessous'));
@@ -306,6 +330,7 @@ function appuyer(e: PointerEvent, p: Progression, source: Source, maj: () => voi
         else if (sous && source.de === 'enclos') deplacerDansEnclos(source.nom, Number(sous.dataset.x), Number(sous.dataset.y));
         choix = null;
         maj();
+        if (nom) partirDe(nom, lachee);
     };
     document.addEventListener('pointermove', bouger);
     document.addEventListener('pointerup', lacher);

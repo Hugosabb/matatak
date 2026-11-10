@@ -1,4 +1,5 @@
 import { carteTournante, duoEchange } from './carteAnimee';
+import { EQUIPES_SAISON, libelleEquipe, ORDRE_SAISONS, SaisonEquipe, vignetteEquipe } from './equipesSaison';
 import { ROIS, roiDuNiveau, saisonDuNiveau, Saison } from './rois';
 import { montrerEquipe, renderAventure } from './aventure/vue';
 import { classeeDebloquee, classeeForcee, draftDebloque, forcerClassee, lierPartie, lire as lireAventure, noterPartieDemandee, Partie as PartieAventure, prochainePartie, synchroniserAvecLeCompte } from './aventure/progression';
@@ -123,7 +124,7 @@ function etapeTutoriel(): number {
 const ICONES_MODE: Record<JouerAdversaire, [string, Record<string, string>][]> = {
     ia: [['path', { d: 'M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z' }], ['path', { d: 'M15 5.764v15' }], ['path', { d: 'M9 3.236v15' }]],
     ami: [['path', { d: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' }], ['circle', { cx: '9', cy: '7', r: '4' }], ['path', { d: 'M22 21v-2a4 4 0 0 0-3-3.87' }], ['path', { d: 'M16 3.13a4 4 0 0 1 0 7.75' }]],
-    classee: [['polyline', { points: '14.5 17.5 3 6 3 3 6 3 17.5 14.5' }], ['line', { x1: '13', x2: '19', y1: '19', y2: '13' }], ['line', { x1: '16', x2: '20', y1: '16', y2: '20' }], ['line', { x1: '19', x2: '21', y1: '21', y2: '19' }], ['polyline', { points: '14.5 6.5 18 3 21 3 21 6 17.5 9.5' }], ['line', { x1: '5', x2: '9', y1: '14', y2: '18' }], ['line', { x1: '7', x2: '4', y1: '17', y2: '20' }], ['line', { x1: '3', x2: '5', y1: '19', y2: '21' }]],
+    classee: [['path', { d: 'M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978' }], ['path', { d: 'M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978' }], ['path', { d: 'M18 9h1.5a1 1 0 0 0 0-5H18' }], ['path', { d: 'M4 22h16' }], ['path', { d: 'M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z' }], ['path', { d: 'M6 9H4.5a1 1 0 0 1 0-5H6' }]],
 };
 function iconeMode(adv: JouerAdversaire): VNode {
     return h('svg.icone-mode', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } },
@@ -290,7 +291,18 @@ export class LobbyController implements ChatController {
 
             const jouerEl = document.querySelector('.jouer-page') as HTMLElement | null;
             // Onglets de la barre du bas venus d'une autre page : /jouer?mode=ia|ami|classee
-            const mode = new URLSearchParams(window.location.search).get('mode') as JouerAdversaire | null;
+            const params = new URLSearchParams(window.location.search);
+            const mode = params.get('mode') as JouerAdversaire | null;
+            // Position de l'éditeur (« Jouer en Solo », « Défier un ami ») : /jouer?mode=ia|ami&variant=…&position=…
+            // (Hugo, 10/11/2026 : plus de champ FEN à coller dans /jouer ; on part de l'éditeur)
+            const fenEditeur = params.get('position'); // pas « fen » : le serveur en fait l'ancien salon de pychess
+            if (jouerEl && fenEditeur && (mode === 'ia' || mode === 'ami')) {
+                this.jouerFen = fenEditeur.replace(/_/g, ' ').replace(/\./g, '+');
+                this.jouerDraft = false;
+                if (mode === 'ia') this.soloLibre = true; // la partie libre, pas l'Aventure
+                const variante = params.get('variant');
+                if (variante === 'matatak' || variante === 'matatakmini') this.jouer.variant = variante;
+            }
             if (jouerEl && mode && ORDRE_DES_MODES.includes(mode)) {
                 window.history.replaceState({}, '', window.location.pathname);
                 this.jouer.adv = mode;
@@ -358,7 +370,7 @@ export class LobbyController implements ChatController {
             }
 
             // Seek from Editor with custom start position
-            if (this.fen !== "" && this.profileid === "") {
+            if (this.fen !== "" && this.profileid === "" && !jouerEl) { // /jouer : la position de l'éditeur va dans le panneau
                 this.createGame(model.variant);
             }
 
@@ -781,11 +793,11 @@ export class LobbyController implements ChatController {
         const p = this.palmares;
         if (!p) return '';
         const podium = p.top.slice(0, 3);
+        // Moins de texte (Hugo, 10/11/2026) : rien tant que personne n'a joué cette semaine
+        if (!p.moi && !podium.length) return '';
         return h('div.palmares-semaine', [
             h('div.etiq', ['Palmarès de la semaine', h('a', { attrs: { href: '/palmares' } }, 'Voir tout')]),
-            p.moi
-                ? h('p.ma-place', [h('b', rangTexte(p.moi.rang)), ` sur ${p.joueurs} · ${p.moi.p} points`])
-                : h('p.ma-place', "Chaque partie de l'Arène rapporte des points, même perdue. Remise à zéro le lundi, couronne au premier."),
+            p.moi ? h('p.ma-place', [h('b', rangTexte(p.moi.rang)), ` sur ${p.joueurs} · ${p.moi.p} points`]) : '',
             podium.length ? h('ol', podium.map((l, i) => h('li', { class: { moi: l.u === this.username } }, [
                 h('span.rang', String(i + 1)),
                 h('span.nom', [p.couronne === l.u ? couronne() : '', l.u]),
@@ -795,7 +807,7 @@ export class LobbyController implements ChatController {
     }
 
     /** Joueurs connectés sur /jouer, les plus proches de son classement d'abord, à défier. */
-    private renderEnLigne(infos: ClasseeInfos, attente: boolean): VNode {
+    private renderEnLigne(infos: ClasseeInfos, attente: boolean): VNode | string {
         const c = this.jouer;
         const moi = (infos.classement ?? infos[c.variant])?.r ?? 1500;
         const tous = infos.en_ligne ?? [];
@@ -808,6 +820,8 @@ export class LobbyController implements ChatController {
             }, 'Défi envoyé…');
             return h('button.defi', { attrs: { type: 'button', disabled: attente || !!this.defiEnvoye }, on: { click: () => this.defier(j.u) } }, 'Défier');
         };
+        // Personne d'autre en ligne : la section disparaît (Hugo, 10/11/2026 : trop de texte)
+        if (!proches.length && !this.defiMessage) return '';
         return h('div.en-ligne', [
             h('div.etiq', ['Joueurs en ligne', tous.length ? h('b', String(tous.length)) : '']),
             proches.length
@@ -874,7 +888,6 @@ export class LobbyController implements ChatController {
             choixAdv,
             h('div.classee-regles', [
                 h('span', [h('b', 'Draft'), ` · ${v ? v.cadence.replace('+', ' min +') : ''}`]),
-                h('small', "Un seul classement pour les deux plateaux : si l'un des joueurs choisit le Mini, on joue sur le Mini. Si personne de votre niveau n'est en ligne, un adversaire d'entraînement prend la place."),
             ]),
             attente
                 ? h('div.classee-attente', [
@@ -888,14 +901,14 @@ export class LobbyController implements ChatController {
                 }, "Jouer dans l'Arène"),
             // Invité : sa progression reste sur cet appareil (texte d'Hugo, 03/11/2026)
             infos.invite ? h('small.classee-note.invite', [
-                'Ta progression reste sur cet appareil. ',
-                h('a', { attrs: { href: '/connexion' } }, 'Crée un compte pour la garder.'),
+                h('a', { attrs: { href: '/connexion' } }, 'Crée un compte'), ' pour garder ta progression.',
             ]) : '',
             h('button.plus', {
                 attrs: { type: 'button', 'aria-expanded': String(this.classeeOptions), 'aria-controls': 'plus-options-classee' },
                 on: { click: () => { this.classeeOptions = !this.classeeOptions; this.majJouer(); } },
             }, this.classeeOptions ? [h('span', "Moins d'options")] : [h('span', "Plus d'options"), h('small', `Plateau ${nomPlateau}`)]),
             this.classeeOptions ? h('div#plus-options-classee.plus-options', [
+                h('small.aide', "Un seul classement pour les deux plateaux : si l'un des joueurs choisit le Mini, on joue sur le Mini. Si personne de votre niveau n'est en ligne, un adversaire d'entraînement prend la place."),
                 blocPlateau,
                 choixPersosDraft(() => this.majJouer(), "Toujours les Personnages du jeu de base. Touche une carte pour en ajouter : il n'entre que si ton adversaire l'a aussi."),
             ]) : '',
@@ -967,24 +980,16 @@ export class LobbyController implements ChatController {
                 ? "Toujours les Personnages du jeu de base. Touche une carte pour en ajouter."
                 : "Toujours les Personnages du jeu de base. Touche une carte pour en ajouter : ton ami jouera avec les mêmes.") : '',
             // Coup de pouce (règle du livret) : entre amis seulement ; en Solo, on choisit un niveau plus facile
-            ia ? '' : h('div.bloc.pouce', { class: { inactif: this.jouerDraft } }, [
+            ia ? '' : h('div.bloc.pouce', [
                 h('div.etiq', [h('label', { attrs: { for: 'jouer-pouce' } }, 'Coup de pouce'),
-                    h('b', this.jouerDraft ? 'Sans effet en Draft' : boost === 0 ? 'Aucun' : `${boost > 0 ? 'Pour vous' : 'Pour votre ami'} · ${Math.abs(boost)}`)]),
+                    h('b', boost === 0 ? 'Aucun' : `${boost > 0 ? 'Pour vous' : 'Pour votre ami'} · ${Math.abs(boost)}`)]),
                 h('input#jouer-pouce', {
-                    props: { type: 'range', min: -4, max: 4, step: 1, value: boost, disabled: this.jouerDraft },
+                    props: { type: 'range', min: -4, max: 4, step: 1, value: boost },
                     style: { '--f': `${(boost + 4) / 8}` },
                     on: { input: (e: Event) => { this.jouerBoost = Number((e.target as HTMLInputElement).value); maj(); } },
                 }),
                 h('div.reperes-pouce', [h('span', 'Votre ami'), h('span', 'Équilibré'), h('span', 'Vous')]),
                 h('small.aide', texteCoupDePouce(boost)),
-            ]),
-            h('div.bloc', { class: { inactif: this.jouerDraft } }, [
-                h('label.etiq', { attrs: { for: 'jouer-fen' } }, 'Position de départ'),
-                h('input#jouer-fen', {
-                    props: { value: this.jouerFen, disabled: this.jouerDraft },
-                    attrs: { placeholder: 'Coller une FEN (vide : position tirée au hasard)', autocomplete: 'off', spellcheck: 'false' },
-                    on: { input: (e: Event) => { this.jouerFen = (e.target as HTMLInputElement).value; } },
-                }),
             ]),
         ]);
     }
@@ -995,7 +1000,8 @@ export class LobbyController implements ChatController {
         const ia = c.adv === 'ia';
         const maj = () => this.majJouer(model);
         // Plateau « Selon l'écran » par défaut (client/plateauPrefere.ts)
-        if (plateauAuto() && !this.classeeDebut) c.variant = plateauDeLEcran();
+        // Une position venue de l'éditeur garde son plateau
+        if (plateauAuto() && !this.classeeDebut && !this.jouerFen) c.variant = plateauDeLEcran();
         const cadences = ia ? CADENCES_IA : CADENCES_AMI;
         if (c.adv !== 'classee' && !cadences.some(x => x.id === c.tc)) c.tc = ia ? '0+0' : '5+3';
 
@@ -1032,7 +1038,7 @@ export class LobbyController implements ChatController {
             cadence.detail ? `${cadence.label} ${cadence.detail}` : cadence.label,
             c.color === 'w' ? 'vous commencez' : c.color === 'b' ? 'en second' : '',
             this.jouerDraft ? 'Draft' : '',
-            !ia && !this.jouerDraft && this.jouerBoost !== 0 ? `Coup de pouce ${this.jouerBoost > 0 ? 'pour vous' : 'pour votre ami'}` : '',
+            !ia && this.jouerBoost !== 0 ? `Coup de pouce ${this.jouerBoost > 0 ? 'pour vous' : 'pour votre ami'}` : '',
             !this.jouerDraft && this.jouerFen.trim() ? 'position choisie' : '',
         ].filter(x => x).join(' · ');
 
@@ -1104,17 +1110,22 @@ export class LobbyController implements ChatController {
 
         const partie = h('section.panneau.partie', [
             choixAdv,
+            // Position venue de l'éditeur : on la voit, on peut la retirer (plus de champ FEN à coller)
+            this.jouerFen ? h('div.position-editeur', [
+                h('span', [h('b', "Position de l'éditeur"), ` · ${c.variant === 'matatakmini' ? 'Mini' : '8×8'}`]),
+                h('button', { attrs: { type: 'button' }, on: { click: () => { this.jouerFen = ''; maj(); } } }, 'Retirer'),
+            ]) : '',
             // Partie libre contre l'ordinateur : le plateau reste visible ; entre amis, dans les options
-            ia ? blocPlateau('4 × 8 · rapide et facile') : '',
-            !ia && !this.jouerDraft ? h('div.bloc.equipe-ami', [
-                h('div.etiq', [h('span', 'Votre équipe'), h('b', this.jouerEquipe ? ROIS[this.jouerEquipe].nom : 'Au hasard')]),
-                h('div.choix-equipe', { attrs: { role: 'group', 'aria-label': 'Votre équipe' } }, [
+            ia && !this.jouerFen ? blocPlateau('4 × 8 · rapide et facile') : '', // la position de l'éditeur fixe le plateau
+            !ia && !this.jouerDraft && !this.jouerFen ? h('div.bloc.equipe-ami', [
+                // L'équipe d'une Saison (Roi, Champion, Pion), pas un Roi seul (Hugo, 10/11/2026)
+                h('div.etiq', [h('span', 'Équipe de Saison'), this.jouerEquipe ? h('b', `Équipe ${EQUIPES_SAISON[this.jouerEquipe as SaisonEquipe].nom}`) : '']),
+                h('div.choix-equipe', { attrs: { role: 'group', 'aria-label': 'Équipe de Saison' } }, [
                     bouton(this.jouerEquipe === '', 'button.choix-eq', () => { this.jouerEquipe = ''; maj(); }, [h('span.hasard'), h('small', 'Hasard')]),
-                    ...(['ete', 'automne', 'hiver', 'printemps'] as Saison[]).map(sa =>
+                    ...ORDRE_SAISONS.map(sa =>
                         bouton(this.jouerEquipe === sa, 'button.choix-eq', () => { this.jouerEquipe = sa; maj(); },
-                            [h('img', { attrs: { src: '/static/images/background/collection/sombre/' + IMG_ROI[sa], alt: '' } }), h('small', ROIS[sa].nom)])),
+                            [vignetteEquipe(sa), h('small', libelleEquipe(sa))])),
                 ]),
-                h('small.aide', "Votre ami choisit la sienne en ouvrant l'invitation."),
             ]) : '',
             ia ? h('div.niveau', [
                 h('div.etiq', [h('label', { attrs: { for: 'jouer-niveau' } }, 'Adversaire'), h('b', `${roiDuNiveau(c.level)} · Niveau ${c.level}`)]),

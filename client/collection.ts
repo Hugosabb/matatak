@@ -191,13 +191,13 @@ function notes(p: Personnage): string[] {
 }
 
 // ---------- Plateau de la fiche : déplacements, puis mini-jeu chronométré ----------
-const DUREE = 30; // secondes de jeu
+const DUREE = 20; // secondes de jeu (30 avant le 10/11/2026 : Hugo)
 const VIE = 4500; // ms : un adversaire non capturé repart
 const CADENCE = 1000; // ms entre deux apparitions
 const MAX_ENNEMIS = 4;
 
-const lireRecord = (nom: string) => { try { return Number(localStorage.getItem(`collection-record-${nom}`)) || 0; } catch { return 0; } };
-const ecrireRecord = (nom: string, v: number) => { try { localStorage.setItem(`collection-record-${nom}`, String(v)); } catch { /* navigation privée */ } };
+const lireRecord = (nom: string) => { try { return Number(localStorage.getItem(`collection-record20-${nom}`)) || 0; } catch { return 0; } };
+const ecrireRecord = (nom: string, v: number) => { try { localStorage.setItem(`collection-record20-${nom}`, String(v)); } catch { /* navigation privée */ } };
 
 /** Construit le plateau et le mini-jeu dans `zone` ; renvoie la fonction qui arrête le jeu. */
 function plateauEtJeu(p: Personnage, zone: HTMLElement): () => void {
@@ -532,7 +532,7 @@ function vueEquipes(d: Donnees): VNode {
     const parNom = new Map(d.personnages.map(p => [p.nom, p]));
     const ordre = EQUIPES.flatMap(e => e.persos.map(n => parNom.get(n)!).filter(Boolean));
     return h('div.collection-page.equipes-depart', [
-        h('header.tete', [
+        h('header.tete.mt-entete', [
             h('h1', 'Les équipes de départ'),
             h('p', 'Chaque joueur commence avec l\'une de ces 4 équipes : un Roi, un Champion et deux Pions. Touchez une carte pour voir comment le Personnage se déplace.'),
         ]),
@@ -582,7 +582,7 @@ function vue(): VNode {
     const ranger = (r: Rangement) => { rangement = r; localStorage.setItem(CLE_RANGEMENT, r); rendre(); };
     const nbBase = d.personnages.filter(p => p.boite === 'base').length;
     return h('div.collection-page', [
-        h('header.tete', [
+        h('header.tete.mt-entete', [
             h('h1', 'Collection'),
             h('p', `Les ${d.personnages.length} Personnages de MATATAK : ${nbBase} dans le jeu de base, les autres dans les extensions. Touchez une carte pour voir le Personnage, ses déplacements, et le mettre à l'épreuve.`),
         ]),

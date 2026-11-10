@@ -15,10 +15,9 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 @media (min-width: 901px) {
   body[data-view="jouer"] { margin-bottom: 0; } /* marge de site.css : défilement pour rien */
   .jouer-page { box-sizing: border-box; min-height: calc(100svh - var(--site-header-height, 60px) - var(--site-header-margin, 0px)); display: flex; flex-direction: column; justify-content: center; }
-  /* Même hauteur en Solo et Contre un ami (celle du Solo) : le panneau ne bouge plus quand on change
-     d'adversaire, le sélecteur reste sous la souris ; options et bouton principal restent en bas */
-  .panneau.partie { box-sizing: border-box; min-height: 498px; display: flex; flex-direction: column; }
-  .jouer-page .panneau.partie > .plus { margin-top: auto; }
+  /* Le panneau prend la hauteur de son contenu (Hugo, 10/11/2026 : « gros et vide ») ; les modes sont dans la
+     barre du bas, qui ne bouge pas : plus besoin d'une hauteur commune */
+  .panneau.partie { box-sizing: border-box; display: flex; flex-direction: column; }
 }
 
 /* ---------- L'adversaire en grand, à côté du panneau (ordinateur) ---------- */
@@ -196,9 +195,6 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 #jouer-pouce::-moz-range-thumb { width: 24px; height: 24px; background: var(--mt-or); border: 0; border-radius: 4px; transform: rotate(45deg); }
 #jouer-pouce:focus-visible { box-shadow: 0 0 0 3px rgba(234, 196, 90, .35); }
 .reperes-pouce { display: flex; justify-content: space-between; margin-top: 12px; font: 700 12.5px 'Nunito', sans-serif; color: var(--mt-discret); }
-#jouer-fen { box-sizing: border-box; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--mt-surface); box-shadow: inset 0 0 0 1.5px var(--mt-filet); color: var(--mt-encre); font: 600 14px ui-monospace, monospace; }
-#jouer-fen:focus { outline: none; box-shadow: inset 0 0 0 2px var(--mt-or); }
-#jouer-fen::placeholder { font-family: 'Nunito', sans-serif; color: var(--mt-discret); }
 @media (max-width: 760px) { .plus-options { padding: 14px 12px; margin-bottom: 18px; } }
 
 /* Nouveau joueur : « Je connais déjà les règles » sous le bouton doré */
@@ -286,6 +282,9 @@ body[data-view="jouer"] { --mt-choix: 68px; }
 @media (max-width: 760px) and (orientation: portrait) {
   body[data-view="jouer"] { --mt-choix: 0px; }
   .choix-adv-bas { display: none; }
+  /* Le geste de côté est pour le site (changer de mode) : le navigateur ne fait plus glisser la page de côté
+     ni ne la tire (barre du bas qui bougeait pendant le balayage, Hugo, 10/11/2026) */
+  body[data-view="jouer"] .jouer-page { touch-action: pan-y; overscroll-behavior-x: none; }
   /* fondu sur la page, glissement seulement sur la grille : un transform sur .jouer-page déplacerait ses
      éléments fixés (bouton « Affronter » de l'Aventure) */
   .jouer-page.arrive-droite, .jouer-page.arrive-gauche { animation: mode-fondu .28s ease-out; }
@@ -325,3 +324,8 @@ body[data-view="jouer"] { --mt-choix: 68px; }
 .dp-carte.base { cursor: default; opacity: .9; }
 .dp-carte.libre:hover img { filter: brightness(.6) saturate(.7); }
 .dp-carte:focus-visible { outline: 2px solid var(--mt-jaune); outline-offset: 2px; }
+
+/* Position venue de l'éditeur (lobby.ts, 10/11/2026) : une ligne, avec « Retirer » */
+.position-editeur { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; padding: 8px 8px 8px 14px; border-radius: 12px; background: var(--mt-nuit); box-shadow: inset 0 0 0 1px var(--mt-filet); font-size: 14px; color: var(--mt-doux); }
+.position-editeur b { color: var(--mt-encre); }
+.position-editeur button { min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: none; cursor: pointer; font: 800 14px 'Nunito', sans-serif; color: var(--mt-or); }

@@ -7,7 +7,7 @@ main.compte { width: 100%; padding: 24px 16px 48px; box-sizing: border-box; disp
 .compte-avatar { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: var(--mt-surface-2, #281e1b); box-shadow: inset 0 0 0 2px var(--mt-or); font: 400 30px/1 'Tribeca', 'Jost', sans-serif; color: var(--mt-or); }
 .compte-avatar { padding-top: var(--mt-tribeca, 0); }
 .compte-nom { min-width: 0; }
-.compte-nom h1 { margin: 0; padding: 0; display: flex; align-items: center; gap: 10px; font: 400 clamp(24px, 4vw, 32px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); overflow-wrap: anywhere; }
+.compte-nom h1 { margin: 0; padding: 0; display: flex; align-items: center; gap: 10px; font: 400 clamp(24px, 3.2vw, 30px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); overflow-wrap: anywhere; }
 .compte-nom .couronne { width: 26px; height: 26px; flex: none; color: var(--mt-jaune); }
 .compte-classement { margin: 4px 0 0; padding: 0; display: flex; align-items: baseline; gap: 8px; color: var(--mt-doux); }
 .compte-classement strong { font: 900 22px 'Nunito', sans-serif; font-variant-numeric: tabular-nums; color: var(--mt-encre); }

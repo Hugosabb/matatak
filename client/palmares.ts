@@ -115,7 +115,10 @@ export function palmaresView(model: PyChessModel): VNode[] {
     const maj = () => { if (el) el = patch(el, rendre()); };
 
     return [h('div.palmares-page', [
-        h('h1', 'Palmarès'),
+        h('header.mt-entete', [
+            h('h1', 'Palmarès'),
+            h('p', "Les meilleurs joueurs de l'Arène, cette semaine et depuis toujours."),
+        ]),
         h('div.palmares-contenu', {
             hook: {
                 insert: (vnode) => {

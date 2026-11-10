@@ -4,9 +4,9 @@ main.collection { grid-area: main; width: 100%; min-width: 0; font: 400 15.5px/1
 .collection-page { width: min(1320px, 100% - 32px); margin: 0 auto; padding: 28px 0 40px; text-align: left; }
 .collection-page .chargement { color: var(--mt-doux); text-align: center; padding: 60px 0; }
 
-.collection-page .tete { display: block; height: auto; z-index: auto; } /* site.css stylise tout <header> */
-.tete h1 { margin: 0 0 6px; font: 400 clamp(30px, 4vw, 42px)/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); text-shadow: 0 2px 14px rgba(0, 0, 0, .9); }
-.tete p { margin: 0 0 18px; padding: 0; max-width: min(62ch, 100%); color: var(--mt-encre); text-shadow: 0 2px 10px rgba(0, 0, 0, .9); }
+.collection-page .tete { height: auto; z-index: auto; } /* site.css stylise tout <header> */
+.tete h1 { margin: 0; font: 400 clamp(26px, 3.4vw, 34px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); }
+.tete p { padding: 0; }
 
 /* Filtres */
 .filtres-barre { display: flex; align-items: center; gap: 12px; padding-top: 10px; }

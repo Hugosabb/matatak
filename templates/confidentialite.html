@@ -3,8 +3,10 @@
 {# Doit rester vrai : à mettre à jour avec docs/RGPD.md à chaque nouvelle donnée gardée #}
 <main class="confidentialite">
     <article class="conf-page">
+        <header class="mt-entete">
         <h1>Confidentialité</h1>
         <p class="conf-resume">Le site de jeu MATATAK est gratuit et sans publicité. Nous gardons le minimum de données pour que vous puissiez jouer, et nous ne vendons ni ne partageons vos données.</p>
+        </header>
 
         <section>
             <h2>Qui s'occupe du site</h2>
@@ -56,4 +58,7 @@
         <p class="conf-date">Mis à jour le 26 octobre 2026.</p>
     </article>
 </main>
+{% endblock %}
+{% block js %}
+    <script src="{{ js }}"></script>
 {% endblock %}

@@ -151,36 +151,57 @@ header.mt-haut #settings, header.mt-haut #notify-app { top: var(--site-header-he
   .mt-tab a.actif, .mt-tab button.actif, .mt-tab button[aria-expanded="true"] { color: var(--mt-or); }
   .mt-tab svg { width: 24px; height: 24px; }
   .mt-tab a.actif svg, .mt-tab button.actif svg { filter: drop-shadow(0 0 8px rgba(234, 196, 90, .5)); }
-  /* Portrait : Aventure · Défier un ami · Arène · Le jeu · Plus ; paysage : Jouer · Apprendre · Le jeu · Compte
-     (Hugo, 10/11/2026 : en paysage et sur ordinateur, rien ne change) */
+  /* Portrait : Aventure · Défier un ami · Arène · Plus ; paysage : Jouer · Collection · Puzzles · Plus
+     (Hugo, 10/11/2026 ; plus de page Apprendre, « Le jeu » passé dans Plus) */
   .mt-tab .paysage { display: none; }
   .mt-tab a, .mt-tab button { min-width: 0; white-space: nowrap; }
   .mt-tab a[data-mode="ami"] { flex: 1.35; } /* « Défier un ami » : le libellé le plus long, tient jusqu'à 320 px */
   @media (orientation: landscape) { .mt-tab .portrait { display: none; } .mt-tab .paysage { display: grid; } }
-  /* « Plus » : un petit panneau au-dessus de la barre (client/navigation.ts) */
-  .mt-plus-fond { position: fixed; inset: 0; z-index: 104; background: rgba(10, 8, 7, .5); }
-  .mt-plus { position: fixed; z-index: 106; right: 8px; bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom) + 8px);
-    width: min(320px, calc(100% - 16px)); box-sizing: border-box; display: grid; gap: 4px; padding: 8px;
-    border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 18px 40px rgba(0, 0, 0, .6);
-    transform-origin: bottom right; animation: mt-plus-ouvre .22s cubic-bezier(.16, 1, .3, 1); }
-  .mt-plus[hidden], .mt-plus-fond[hidden], .mt-plus [hidden] { display: none; }
-  @keyframes mt-plus-ouvre { from { opacity: 0; transform: translateY(8px) scale(.96); } }
-  .mt-plus a, .mt-plus button { display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 6px 12px; border: 0; border-radius: 12px;
-    background: none; cursor: pointer; text-align: left; text-decoration: none; color: var(--mt-encre); font: 800 16px 'Nunito', sans-serif;
-    -webkit-tap-highlight-color: transparent; }
-  .mt-plus a:active, .mt-plus button:active { background: var(--mt-surface-2); }
-  .mt-plus a.actif { color: var(--mt-or); }
-  .mt-plus svg { flex: none; width: 24px; height: 24px; color: var(--mt-or); }
-  .mt-plus span { display: grid; gap: 1px; min-width: 0; }
-  .mt-plus small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 12.5px; color: var(--mt-doux); }
-  @media (prefers-reduced-motion: reduce) { .mt-plus { animation: none; } }
+  /* « Plus » au-dessus de la barre (styles communs plus bas) ; en paysage, Collection et Puzzles sont déjà dans la barre */
+  .mt-plus { right: 8px; bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom) + 8px); transform-origin: bottom right;
+    max-height: calc(100dvh - var(--mt-tab-h) - env(safe-area-inset-bottom) - 24px); }
+  @media (orientation: landscape) { .mt-plus .vu-paysage { display: none; } }
   body:has(.mt-tab) { padding-bottom: calc(var(--mt-tab-h) + env(safe-area-inset-bottom)); }
   /* Plus de barre du haut sur téléphone : la navigation est en bas (règle dans CLAUDE.md) */
   header.mt-haut { display: none; }
   /* Partie en cours (Draft compris) : rien autour du plateau, on sort par le menu ⋯ */
   body.en-partie .mt-tab, body.en-partie .mt-plus, body.en-partie .mt-plus-fond { display: none; }
 }
-@media (min-width: 761px) { .mt-plus, .mt-plus-fond { display: none !important; } }
+
+/* ===== Menu « Plus » : le même panneau partout (templates/template.html, client/navigation.ts) ===== */
+.mt-plus-fond { position: fixed; inset: 0; z-index: 104; background: rgba(10, 8, 7, .5); }
+.mt-plus { position: fixed; z-index: 106; width: min(300px, calc(100% - 16px)); box-sizing: border-box;
+  display: grid; gap: 2px; padding: 8px; overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 18px; background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet), 0 18px 40px rgba(0, 0, 0, .6);
+  animation: mt-plus-ouvre .22s cubic-bezier(.16, 1, .3, 1); font-family: 'Nunito', system-ui, sans-serif; }
+.mt-plus[hidden], .mt-plus-fond[hidden], .mt-plus [hidden] { display: none; }
+@keyframes mt-plus-ouvre { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+.mt-plus a, .mt-plus button { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 4px 12px; border: 0; border-radius: 12px;
+  background: none; cursor: pointer; text-align: left; text-decoration: none; color: var(--mt-encre); font: 800 16px 'Nunito', sans-serif;
+  -webkit-tap-highlight-color: transparent; }
+.mt-plus a:hover, .mt-plus button:hover, .mt-plus a:active, .mt-plus button:active { background: var(--mt-surface-2); }
+.mt-plus a.actif { color: var(--mt-or); }
+.mt-plus svg { flex: none; width: 22px; height: 22px; color: var(--mt-or); }
+.mt-plus span { display: grid; gap: 1px; min-width: 0; }
+.mt-plus small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 12.5px; color: var(--mt-doux); }
+.mt-plus hr { width: 100%; height: 1px; margin: 4px 0; border: 0; background: var(--mt-filet); }
+.mt-plus .mt-plus-discret { min-height: 40px; padding-left: 48px; font-size: 13.5px; font-weight: 700; color: var(--mt-discret); }
+@media (prefers-reduced-motion: reduce) { .mt-plus { animation: none; } }
+/* Ordinateur : menu déroulant sous « Plus » de l'en-tête (placé par client/navigation.ts), sans fond sombre */
+.mt-onglets .mt-plus-bouton { display: inline-flex; align-items: center; gap: 4px; padding: 8px 10px 8px 14px; border: 0; border-radius: 10px;
+  background: none; cursor: pointer; font: 800 15px 'Nunito', system-ui, sans-serif; color: var(--mt-doux); transition: color .2s, background .2s; }
+.mt-onglets .mt-plus-bouton svg { width: 16px; height: 16px; transition: transform .2s; }
+.mt-onglets .mt-plus-bouton:hover, .mt-onglets .mt-plus-bouton[aria-expanded="true"] { color: var(--mt-encre); }
+.mt-onglets .mt-plus-bouton[aria-expanded="true"] svg { transform: rotate(180deg); }
+.mt-onglets .mt-plus-bouton.actif { color: var(--mt-encre); background: var(--mt-surface-2); }
+@media (min-width: 761px) {
+  .mt-plus-fond { display: none !important; }
+  .mt-plus { transform-origin: top left; max-height: calc(100dvh - 90px); }
+  .mt-plus .vu-entete { display: none; }
+}
+/* Ordinateur étroit (761 à 1040 px) : Palmarès et Le jeu de société passent de l'en-tête au menu Plus */
+@media (max-width: 1040px) { .mt-onglets .large { display: none; } }
+@media (min-width: 1041px) { .mt-plus .vu-entete-large { display: none; } }
 
 /* ===== Apparition au défilement ===== */
 .mt-apparait { opacity: 0; transform: translateY(26px); transition: opacity .9s, transform .9s cubic-bezier(.2, .8, .2, 1); }
@@ -559,17 +580,32 @@ svg.couronne { flex: none; width: 18px; height: 18px; color: var(--mt-or); filte
 .choix-equipe input { position: absolute; opacity: 0; pointer-events: none; }
 .choix-equipe .choix-eq { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
   color: var(--mt-doux); font: 400 13px 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; -webkit-tap-highlight-color: transparent; }
-.choix-equipe .choix-eq img, .choix-equipe .choix-eq .hasard { width: 100%; aspect-ratio: 1; border-radius: 8%; display: block;
+.choix-equipe .choix-eq > img, .choix-equipe .choix-eq .hasard { width: 100%; aspect-ratio: 1; border-radius: 8%; display: block;
   filter: brightness(.72) saturate(.8); box-shadow: 0 14px 22px -12px rgba(0, 0, 0, .9); transition: transform .25s cubic-bezier(.3, 1.4, .5, 1), filter .2s, box-shadow .2s; }
 .choix-equipe .choix-eq .hasard { background: #1f1512 url('/static/images/background/vitrine/etoile.png') center / 78% auto no-repeat; box-shadow: inset 0 0 0 1.5px rgba(234, 196, 90, .55), 0 14px 22px -12px rgba(0, 0, 0, .9); }
-.choix-equipe .choix-eq:hover img, .choix-equipe .choix-eq:hover .hasard { filter: none; }
+.choix-equipe .choix-eq:hover > img, .choix-equipe .choix-eq:hover .hasard { filter: none; }
 .choix-equipe .choix-eq.on, .choix-equipe input:checked + .choix-eq { color: var(--mt-or); }
-.choix-equipe .choix-eq.on :is(img, .hasard), .choix-equipe input:checked + .choix-eq :is(img, .hasard) {
+.choix-equipe .choix-eq.on > :is(img, .hasard), .choix-equipe input:checked + .choix-eq > :is(img, .hasard) {
   filter: none; transform: translateY(-6px); box-shadow: 0 0 0 2px var(--mt-or), 0 0 24px rgba(234, 196, 90, .45), 0 18px 24px -12px rgba(0, 0, 0, .9); }
-.choix-equipe input:focus-visible + .choix-eq :is(img, .hasard), .choix-equipe .choix-eq:focus-visible :is(img, .hasard) { outline: 2px solid var(--mt-or); outline-offset: 3px; }
+.choix-equipe input:focus-visible + .choix-eq > :is(img, .hasard), .choix-equipe .choix-eq:focus-visible > :is(img, .hasard) { outline: 2px solid var(--mt-or); outline-offset: 3px; }
 .choix-equipe small { font: inherit; }
+.choix-equipe .choix-eq > :is(img, .hasard, .vignette-equipe) { width: 100%; }
+/* Équipe de Saison (client/equipesSaison.ts) : les 3 cartes en éventail, le Roi devant */
+.choix-equipe .vignette-equipe { position: relative; display: block; aspect-ratio: 1; border-radius: 8%;
+  transition: transform .25s cubic-bezier(.3, 1.4, .5, 1), filter .2s; filter: brightness(.72) saturate(.8); }
+.choix-equipe .choix-eq .vignette-equipe img { position: absolute; width: 66%; aspect-ratio: 1; border-radius: 10%; filter: none; transform: none; transition: transform .25s cubic-bezier(.3, 1.4, .5, 1);
+  box-shadow: 0 6px 12px -6px rgba(0, 0, 0, .9); }
+.choix-equipe .vignette-equipe .c1 { left: 0; top: 4%; rotate: -12deg; }
+.choix-equipe .vignette-equipe .c2 { right: 0; top: 4%; rotate: 12deg; }
+.choix-equipe .vignette-equipe .c0 { left: 17%; bottom: 0; z-index: 1; }
+.choix-equipe .choix-eq:hover .vignette-equipe { filter: none; }
+.choix-equipe .choix-eq.on .vignette-equipe, .choix-equipe input:checked + .choix-eq .vignette-equipe { filter: none; transform: translateY(-6px); }
+.choix-equipe .choix-eq.on .vignette-equipe .c0, .choix-equipe input:checked + .choix-eq .vignette-equipe .c0 { box-shadow: 0 0 0 2px var(--mt-or), 0 0 18px rgba(234, 196, 90, .45); }
+.choix-equipe .choix-eq.on .vignette-equipe .c1, .choix-equipe input:checked + .choix-eq .vignette-equipe .c1 { transform: translateX(-6%); }
+.choix-equipe .choix-eq.on .vignette-equipe .c2, .choix-equipe input:checked + .choix-eq .vignette-equipe .c2 { transform: translateX(6%); }
+.choix-equipe input:focus-visible + .choix-eq .vignette-equipe, .choix-equipe .choix-eq:focus-visible .vignette-equipe { outline: 2px solid var(--mt-or); outline-offset: 3px; }
 .equipe-ami .aide, .invite-equipe .aide { display: block; margin-top: 8px; color: var(--mt-discret); font-size: 12px; }
-@media (prefers-reduced-motion: reduce) { .choix-equipe .choix-eq :is(img, .hasard) { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .choix-equipe .choix-eq :is(img, .hasard, .vignette-equipe) { transition: none; } }
 
 /* ===== Choix du pseudo après la première connexion (client/usernameDialog.ts) ===== */
 #username-dialog.modal-overlay { inset: 0; left: 0; top: 0; transform: none; margin: 0; padding: 16px; background: rgba(10, 8, 7, .78); z-index: 1100; }
@@ -601,3 +637,17 @@ svg.couronne { flex: none; width: 18px; height: 18px; color: var(--mt-or); filte
 .mt-fenetre-boutons .mt-btn { width: min(100%, 300px); }
 .mt-fenetre-secondaire { min-height: 44px; padding: 0 16px; border: 0; background: none; cursor: pointer; font: 700 15px 'Nunito', sans-serif; color: var(--mt-doux); }
 .mt-fenetre-secondaire:hover, .mt-fenetre-secondaire:focus-visible { color: var(--mt-encre); }
+
+/* Feuilles atténuées sur tout le site (Hugo, 10/11/2026 : « les feuilles attirent trop l'attention ») ; la vitrine
+   (le jeu de société, templates/vitrine.html) a ses propres feuilles, en pleine lumière. */
+.frame-layer { opacity: .4; }
+
+/* En-tête des pages à lire (Collection, Palmarès, Puzzles, Confidentialité ; Hugo, 10/11/2026 : « le titre tout
+   seul flotte dans le vide ») : titre et phrase alignés sur le bord du contenu, fermés par un filet dont le début
+   est doré. Le titre garde son style de page (Tribeca or). */
+header.mt-entete { height: auto; z-index: auto; position: static; justify-content: initial; } /* site.css stylise tout <header> */
+.mt-entete { display: grid; gap: 8px; width: 100%; box-sizing: border-box; margin: 0 0 22px; padding: 0 0 18px; text-align: left;
+  background: linear-gradient(var(--mt-or), var(--mt-or)) left bottom / 56px 2px no-repeat,
+              linear-gradient(var(--mt-filet), var(--mt-filet)) left bottom / 100% 1px no-repeat; }
+.mt-entete h1 { margin: 0; padding: 0; } /* site.css donne 32 px de marge intérieure aux h1 */
+.mt-entete p { margin: 0; max-width: 58ch; font-size: 15.5px; line-height: 1.5; color: var(--mt-doux); }

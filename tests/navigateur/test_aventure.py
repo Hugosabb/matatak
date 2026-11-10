@@ -174,6 +174,33 @@ async def test_mon_equipe_un_seul_exemplaire_et_changer_de_roi(site, chromium, t
     assert not page.erreurs, page.erreurs
 
 
+async def test_mon_equipe_la_carte_lachee_part_du_doigt(site, chromium):
+    """Glisser-déposer de « Mon équipe » (Hugo, 10/11/2026) : la carte lâchée part de là où on l'a lâchée,
+    elle ne refait pas le trajet depuis sa case de départ."""
+    page = await ouvrir(chromium, site, telephone=True)
+    await page.evaluate(PHASE_2)
+    await page.goto(site + "/jouer")
+    await page.wait_for_selector(".av-route")
+    await page.locator(".av-apercu").click()
+    de = '.av-enclos [data-nom="BANJO"]'
+    vers = '.av-formation [data-rang="pion"][data-index="0"]'
+    await page.wait_for_selector(de)
+    await page.locator(de).scroll_into_view_if_needed()
+    a, b = await page.locator(de).bounding_box(), await page.locator(vers).bounding_box()
+    await page.mouse.move(a["x"] + a["width"] / 2, a["y"] + a["height"] / 2)
+    await page.mouse.down()
+    await page.mouse.move(a["x"] + a["width"] / 2 + 20, a["y"] + a["height"] / 2 + 20, steps=4)
+    lache = (b["x"] + b["width"] / 2 + 15, b["y"] + b["height"] / 2 + 10)
+    await page.mouse.move(*lache, steps=8)
+    await page.mouse.up()
+    # Juste après le lâcher : BANJO, sur sa nouvelle case, est encore près du point de lâcher
+    centre = await page.evaluate("""() => { const i = document.querySelector('.av-formation .av-case[aria-label="BANJO"] img');
+        const r = i.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2, i.getAnimations().length]; }""")
+    assert centre[2] >= 1, "pas d'animation depuis le doigt"
+    assert abs(centre[0] - lache[0]) < 25 and abs(centre[1] - lache[1]) < 25, (centre, lache)
+    assert not page.erreurs, page.erreurs
+
+
 @pytest.mark.parametrize("telephone", [False, True], ids=["ordinateur", "telephone"])
 async def test_collection_montre_les_personnages_debloques(site, chromium, telephone):
     page = await ouvrir(chromium, site, telephone)
@@ -242,15 +269,15 @@ async def test_entre_amis_chacun_choisit_son_equipe(site, chromium):
     hote = await ouvrir(chromium, site)
     await hote.evaluate("localStorage.setItem('jouer_choix', JSON.stringify({adv: 'ami', variant: 'matatak'}))")
     await hote.goto(site + "/jouer")
-    await hote.locator(".equipe-ami button.choix-eq", has_text="KARMA").click()
+    await hote.locator(".equipe-ami button.choix-eq", has_text="Hiver").click()  # équipe de Saison (10/11/2026)
     await capture(hote, "ami-equipe-pc")
     await hote.locator("button.lancer").dispatch_event("click")
     await hote.wait_for_url("**/invite/**", timeout=15000)
     ami = await ouvrir(chromium, site, telephone=True)
     await ami.goto(hote.url)
     await ami.wait_for_selector(".invite-equipe")
-    assert "joue l'équipe de KARMA" in await ami.locator(".invite-equipe").inner_text()
-    await ami.locator("label.choix-eq", has_text="MOJO").click()
+    assert "joue l'équipe Zigzag (Hiver)" in await ami.locator(".invite-equipe").inner_text()
+    await ami.locator("label.choix-eq", has_text="Printemps").click()
     await capture(ami, "ami-invitation-tel")
     await ami.click("text=Rejoindre la partie")
     for page in (hote, ami):

@@ -8,8 +8,8 @@ body[data-view="campaign"] #main-wrap { display: block; }
   width: min(760px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 40px;
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
-.campagne h1 { margin: 0; font: 400 34px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); }
-.campagne-sous-titre { margin: 8px 0 18px; font-size: 15.5px; color: var(--mt-doux); }
+.campagne h1 { margin: 0; font: 400 clamp(26px, 3.4vw, 34px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); }
+.campagne-sous-titre { margin: 0; }
 .campagne-progression { width: min(100%, 420px); display: grid; gap: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 700; color: var(--mt-doux); }
 .campagne .barre, .puzzle-campagne .barre { height: 8px; border-radius: 99px; background: var(--mt-filet); overflow: hidden; }
 .campagne .barre i, .puzzle-campagne .barre i { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--mt-or); }
@@ -48,7 +48,6 @@ body[data-view="campaign"] #main-wrap { display: block; }
 
 @media (max-width: 760px) {
   .campagne { padding-top: 20px; }
-  .campagne h1 { font-size: 27px; }
   .niveaux { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 4px 12px 14px; }
   .chapitre summary { padding: 0 14px; }
 }

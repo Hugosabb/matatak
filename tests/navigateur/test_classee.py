@@ -64,7 +64,7 @@ async def test_un_invite_joue_dans_l_arene_sans_compte(site, chromium, telephone
     await lancer.wait_for(timeout=5000)
     assert (await lancer.inner_text()).lower() == "jouer dans l'arène"
     note = page.locator(".classee-note.invite")
-    assert "Ta progression reste sur cet appareil." in await note.inner_text()
+    assert "pour garder ta progression" in await note.inner_text()  # texte raccourci (10/11/2026)
     assert await note.locator("a").get_attribute("href") == "/connexion"
     # Il lance la recherche : le serveur l'accepte (plus de « classee_annulee »)
     await lancer.click()

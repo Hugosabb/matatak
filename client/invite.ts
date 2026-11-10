@@ -1,4 +1,5 @@
 import { h, VNode } from 'snabbdom';
+import { EQUIPES_SAISON, libelleEquipe, ORDRE_SAISONS, SaisonEquipe, vignetteEquipe } from './equipesSaison';
 
 import { _ } from './i18n';
 import { VARIANTS } from './variants';
@@ -138,26 +139,21 @@ function cadence(model: PyChessModel): string {
     return base === 0 && inc === 0 ? 'Sans limite' : `${base} min${inc ? ` +${inc}` : ''}`;
 }
 
-// Saison de l'équipe de départ de l'invité (champ « equipe » du formulaire, server/views/invite.py)
-const SAISONS_EQUIPE: [string, string, string][] = [
-    ['ete', 'AZAR', '01-azar.webp'], ['automne', 'SHANS', '02-shans.webp'],
-    ['hiver', 'KARMA', '03-karma.webp'], ['printemps', 'MOJO', '04-mojo.webp'],
-];
-
+// Saison de l'équipe de départ de l'invité (champ « equipe » du formulaire, server/views/invite.py) :
+// l'équipe d'une Saison, pas un Roi seul (client/equipesSaison.ts, Hugo, 10/11/2026)
 function choixEquipe(hote: string, saisonHote: string): VNode {
-    const roiHote = SAISONS_EQUIPE.find(([s]) => s === saisonHote)?.[1];
+    const equipeHote = (ORDRE_SAISONS as string[]).includes(saisonHote) ? EQUIPES_SAISON[saisonHote as SaisonEquipe] : null;
     const choix = (valeur: string, id: string, contenu: VNode[]) => [
         h('input', { attrs: { type: 'radio', name: 'equipe', value: valeur, id, checked: valeur === '' } }),
         h('label.choix-eq', { attrs: { for: id } }, contenu),
     ];
     return h('div.invite-equipe', [
-        h('div.etiq', 'Votre équipe'),
-        h('div.choix-equipe', { attrs: { role: 'radiogroup', 'aria-label': 'Votre équipe' } }, [
+        h('div.etiq', 'Équipe de Saison'),
+        h('div.choix-equipe', { attrs: { role: 'radiogroup', 'aria-label': 'Équipe de Saison' } }, [
             ...choix('', 'equipe-hasard', [h('span.hasard'), h('small', 'Hasard')]),
-            ...SAISONS_EQUIPE.flatMap(([s, roi, image]) =>
-                choix(s, `equipe-${s}`, [h('img', { attrs: { src: `/static/images/background/collection/sombre/${image}`, alt: '' } }), h('small', roi)])),
+            ...ORDRE_SAISONS.flatMap(s => choix(s, `equipe-${s}`, [vignetteEquipe(s), h('small', libelleEquipe(s))])),
         ]),
-        h('small.aide', roiHote ? `${hote} joue l'équipe de ${roiHote}.` : `${hote} joue une équipe au hasard.`),
+        h('small.aide', equipeHote ? `${hote} joue l'équipe ${equipeHote.nom} (${equipeHote.saison}).` : `${hote} joue une équipe au hasard.`),
     ]);
 }
 

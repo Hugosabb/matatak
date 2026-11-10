@@ -25,7 +25,7 @@ pytestmark = pytest.mark.asyncio
 PAGES = [
     "/",
     "/jouer",
-    "/apprendre",
+    "/confidentialite",
     "/collection",
     "/palmares",
     "/tutorial/1",
@@ -146,6 +146,19 @@ async def test_pre_coup_contre_l_ordinateur(site, chromium):
     apres = [m for m in await page.evaluate("window.__msgs") if m.get("type") == "board" and m.get("ply") == reponse][-1]
     if coup in sf.legal_moves("matatakmini", apres["fen"], []):
         assert await attendre(page, f"window.__msgs.some(m => m.type === 'board' && m.ply === {reponse + 1})", 15000), "pré-coup non joué"
+    assert not page.erreurs, page.erreurs
+
+
+async def test_reglage_des_pre_coups_dans_le_menu(site, chromium):
+    """Pré-coups réglables dans le menu ⋯ (Hugo, 10/11/2026) ; le choix est gardé pour la partie suivante."""
+    page, _ = await partie_solo(chromium, site, niveau=1, telephone=True)
+    await page.locator('#barre-partie button[aria-haspopup="menu"]').tap()
+    reglage = page.locator(".barre-action.reglage")
+    await reglage.wait_for(state="visible", timeout=5000)
+    assert await reglage.get_attribute("aria-checked") == "true"  # pas d'Aventure commencée : activés
+    await reglage.tap()
+    assert await attendre(page, "document.querySelector('.barre-action.reglage')?.getAttribute('aria-checked') === 'false'", 3000)
+    assert await page.evaluate("localStorage.getItem('matatak_precoups')") == "non"
     assert not page.erreurs, page.erreurs
 
 
@@ -312,14 +325,14 @@ def id_partie_url(url):
 
 
 async def test_barre_du_bas_modes_balayage_et_plus(site, chromium):
-    """Téléphone en portrait (Hugo, 10/11/2026) : une rangée Aventure · Défier un ami · Arène · Le jeu ·
-    Plus ; les modes changent sur place, balayer passe au mode voisin, « Plus » ouvre Apprendre, le compte
-    et « Installer l'appli » (plus de bandeau dans /jouer)."""
+    """Téléphone en portrait (Hugo, 10/11/2026) : une rangée Aventure · Défier un ami · Arène · Plus ;
+    les modes changent sur place, balayer passe au mode voisin, « Plus » ouvre toutes les pages (plus de
+    page Apprendre ni de « Le jeu » dans la barre), le compte et « Installer l'appli »."""
     page = await ouvrir(chromium, site, telephone=True)
     await page.goto(site + "/jouer?mode=ami")
     await page.wait_for_selector(".jouer-page .grille")
     visibles = await page.evaluate("[...document.querySelectorAll('.mt-tab > *')].filter(e => e.offsetParent).map(e => e.textContent.trim())")
-    assert visibles == ["Aventure", "Défier un ami", "Arène", "Le jeu", "Plus"], visibles
+    assert visibles == ["Aventure", "Défier un ami", "Arène", "Plus"], visibles
     actif = "() => [...document.querySelectorAll('.mt-tab a.actif')].filter(e => e.offsetParent).map(e => e.dataset.mode)"
     assert await page.evaluate(actif) == ["ami"]
     assert await page.locator(".choix-adv-bas").is_hidden()  # plus de seconde rangée
@@ -337,18 +350,36 @@ async def test_barre_du_bas_modes_balayage_et_plus(site, chromium):
         t('touchstart', 60); t('touchend', 260); }""")
     assert await attendre(page, "() => document.querySelector('.mt-tab a[data-mode=ami]').classList.contains('actif')", 3000)
     # « Plus »
-    await page.locator(".mt-plus-bouton").tap()
+    await page.locator(".mt-tab .mt-plus-bouton").tap()
     panneau = page.locator("#mt-plus")
     await panneau.wait_for(state="visible", timeout=3000)
     texte = await panneau.inner_text()
-    assert "Apprendre" in texte and "Se connecter" in texte, texte
+    for mot in ("Tutoriel", "Collection", "Puzzles", "Palmarès", "Analyse", "Éditeur", "Le jeu de société", "Se connecter"):
+        assert mot in texte, (mot, texte)
+    assert "Apprendre" not in texte, texte
     await page.locator(".mt-plus-fond").tap(position={"x": 20, "y": 20})
     await panneau.wait_for(state="hidden", timeout=3000)
     # Depuis une autre page, l'onglet mène au bon mode de /jouer
-    await page.goto(site + "/apprendre")
+    await page.goto(site + "/collection")
     await page.locator('.mt-tab a[data-mode="classee"]').tap()
     await page.wait_for_url("**/jouer**")
     assert await attendre(page, "() => document.querySelector('.mt-tab a[data-mode=classee]')?.classList.contains('actif')", 5000)
+    assert not page.erreurs, page.erreurs
+
+
+@pytest.mark.parametrize("bouton,mode", [("#challengeAI", "ia"), ("#createseek", "ami")])
+async def test_editeur_vers_jouer_avec_la_position(site, chromium, bouton, mode):
+    """Plus de champ FEN dans /jouer (Hugo, 10/11/2026) : l'éditeur envoie sa position au nouvel écran
+    (avant : l'ancien salon de pychess, en anglais)."""
+    page = await ouvrir(chromium, site)
+    await page.goto(site + "/editor/matatakmini")
+    await page.wait_for_selector(".ed-carte")
+    await page.locator(bouton).click()
+    await page.wait_for_selector(".position-editeur", timeout=8000)
+    assert await page.locator("#jouer-fen").count() == 0
+    actif = f'.mt-onglets a.actif, .choix-adv button.on, .mt-tab a[data-mode="{mode}"].actif'
+    assert await page.locator(actif).count() >= 1
+    assert await page.locator(".jouer-page .lancer").count() >= 1
     assert not page.erreurs, page.erreurs
 
 

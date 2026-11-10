@@ -13,7 +13,8 @@
     const taille = (window.innerWidth * (window.devicePixelRatio || 1) > 900 && window.innerWidth > 700) ? 1100 : 720;
     const images = new Array(NB_IMAGES);
     let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0;
-    const FONDU = location.hash === '#fondu';
+    // Fondu entre deux images voisines : gardé par Hugo le 10/11/2026 (/#net pour le comparer sans)
+    const FONDU = location.hash !== '#net';
     scene.width = scene.height = taille;
     // Images décodées à l'avance (createImageBitmap) : sur téléphone, décoder un WebP au moment de le
     // dessiner, pendant le défilement, peut faire sauter des images (10/11/2026)
@@ -28,7 +29,7 @@
                     imageAffichee = k;
                     scene.parentElement.classList.add('pret');
                 }
-                // Essai « fondu » (/#fondu, 10/11/2026, à comparer par Hugo) : l'image suivante par-dessus,
+                // Fondu (choisi par Hugo le 10/11/2026) : l'image suivante par-dessus,
                 // d'autant plus visible qu'on approche d'elle, pour lisser les 72 images au défilement
                 if (FONDU && k === imageVoulue) {
                     const suivante = decodees[k + 1];

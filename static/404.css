@@ -5,7 +5,7 @@ main.introuvable { width: 100%; min-height: calc(100dvh - var(--site-header-heig
 .introuvable-carte { width: 200px; height: auto; border-radius: 8%; box-shadow: 0 14px 24px -10px rgba(0, 0, 0, .9); transform: rotate(-6deg); animation: introuvable-flotte 4s ease-in-out infinite alternate; }
 @keyframes introuvable-flotte { from { transform: rotate(-6deg) translateY(0); } to { transform: rotate(-3deg) translateY(-6px); } }
 .introuvable-code { margin: 10px 0 0; padding: 0; font: 400 15px/1 'Jost', sans-serif; font-weight: 900; letter-spacing: .3em; color: var(--mt-discret); }
-.introuvable-page h1 { margin: 0; padding: 0; font: 400 clamp(26px, 4vw, 34px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; color: var(--mt-or); text-shadow: 0 2px 14px rgba(0, 0, 0, .9); }
+.introuvable-page h1 { margin: 0; padding: 0; font: 400 clamp(26px, 3.4vw, 34px)/1.15 'Tribeca', 'Jost', sans-serif; letter-spacing: .06em; color: var(--mt-or); }
 .introuvable-texte { margin: 0 0 8px; padding: 0; color: var(--mt-doux); text-shadow: 0 1px 8px rgba(0, 0, 0, .9); }
 .introuvable-lien { min-height: 44px; display: inline-flex; align-items: center; font-weight: 800; color: var(--mt-doux); text-decoration: none; }
 .introuvable-lien:hover { color: var(--mt-encre); }
