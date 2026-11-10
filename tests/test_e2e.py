@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from playwright.async_api import async_playwright, expect
 from mongomock_motor import AsyncMongoMockClient
@@ -13,6 +15,9 @@ async def test_lobby_page(aiohttp_server):
 
     # Launch Playwright async
     async with async_playwright() as p:
+        if not os.path.exists(p.chromium.executable_path):
+            # Machine sans le Chromium de Playwright (session cloud au réseau filtré, par exemple)
+            pytest.skip("Chromium de Playwright absent : playwright install chromium")
         browser = await p.chromium.launch(headless=True)  # Headless for CI;set False to see browser
         context = await browser.new_context()
         page = await context.new_page()
