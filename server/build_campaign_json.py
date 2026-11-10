@@ -123,7 +123,7 @@ def build_campaign(epd_file: str, output_json: str, variant_name: str, max_level
 
 
 if __name__ == "__main__":
-    base_dir = "/home/hugo/github/matatak"
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     build_campaign(
         os.path.join(base_dir, "matatakmini_puzzles_01.epd"),
         os.path.join(base_dir, "server/campaign_matatakmini.json"),
