@@ -32,6 +32,10 @@ export class PuzzleController extends AnalysisController {
     moves: UCIMove[] = [];
     color: string;
     failed: boolean;
+    // Puzzles (Hugo, 03/11/2026) : un mauvais coup termine le puzzle (« Raté », le bon coup se joue tout
+    // seul avec une flèche) ; l'indice montre seulement la carte à jouer et ne fait pas recommencer
+    rate: string; // le bon coup (SAN) après un mauvais coup, sinon ''
+    indice: boolean;
     completed: boolean;
     posted: boolean;
     isRated: boolean;
@@ -64,6 +68,8 @@ export class PuzzleController extends AnalysisController {
         this.plyVari = 0;
         this.color = this.turnColor;
         this.failed = false;
+        this.rate = '';
+        this.indice = false;
         this.completed = false;
         this.posted = false;
         this.wrating = model.wrating;
@@ -149,10 +155,11 @@ export class PuzzleController extends AnalysisController {
         }
 
         function showHintAndSolution() {
-            const viewHintEl = document.querySelector('.view-hint') as HTMLElement;
-            patch(viewHintEl, h('div.view-hint', { class: { show: true } }));
-            const viewSolutionEl = document.querySelector('.view-solution') as HTMLElement;
-            patch(viewSolutionEl, h('div.view-solution', { class: { show: true } }));
+            // Plus là si le puzzle est déjà fini (le cadre de fin les remplace)
+            const viewHintEl = document.querySelector('.view-hint') as HTMLElement | null;
+            if (viewHintEl) patch(viewHintEl, h('div.view-hint', { class: { show: true } }));
+            const viewSolutionEl = document.querySelector('.view-solution') as HTMLElement | null;
+            if (viewSolutionEl) patch(viewSolutionEl, h('div.view-solution', { class: { show: true } }));
         }
         setTimeout(showHintAndSolution, 4000);
     }
@@ -167,7 +174,8 @@ export class PuzzleController extends AnalysisController {
                     diffEl = h('bad.rp', [h('span', { attrs: { "data-icon": '⬊' } }, ' '), diff]);
                 }
             }
-            const ratingEl = document.querySelector('.rating') as HTMLElement;
+            const ratingEl = document.querySelector('.rating') as HTMLElement | null;
+            if (!ratingEl) return; // pas de classement affiché sur la page refaite
             patch(ratingEl, h(`div.rating.${(diff)?'final':'rated'}`, [
                 h('strong', [
                     (color==="white") ? wrating : brating,
@@ -175,7 +183,8 @@ export class PuzzleController extends AnalysisController {
                 ]),
             ]));
         } else {
-            const ratingEl = document.querySelector('.rating') as HTMLElement;
+            const ratingEl = document.querySelector('.rating') as HTMLElement | null;
+            if (!ratingEl) return;
             patch(ratingEl, h('div.rating.casual',
                 _('Your puzzle rating will not change. Note that puzzles are not a competition. Ratings help select the best puzzles for your current skill.')
                 )
@@ -232,10 +241,12 @@ export class PuzzleController extends AnalysisController {
         this.puzzleComplete(false);
     }
 
+    /** L'indice : un cercle sur la carte à jouer, rien de plus ; le niveau compte quand même. */
     viewHint() {
-        this.failed = true;
-        const pv_move = uci2cg(this.solution[this.ply]);
-        this.shapeFromMove(0, pv_move, this.turnColor);
+        if (this.completed) return;
+        this.indice = true;
+        const orig = uci2cg(this.solution[this.ply]).slice(0, 2) as cg.Key;
+        this.chessground.setAutoShapes([{ orig, brush: 'paleGreen' }]);
     }
 
     doSendMove(move: string) {
@@ -259,11 +270,21 @@ export class PuzzleController extends AnalysisController {
                 };
             };
 
+            // La carte revient, puis le bon coup se joue tout seul, avec une flèche : « Raté »
             this.goPly(this.ply);
             this.ffishBoard.setFen(this.fullfen);
             this.setDests();
             const san = this.ffishBoard.sanMove(move, this.notationAsObject);
             this.notTheMove(san);
+            this.chessground.set({ movable: { color: undefined } });
+            const bon = this.solution[this.ply];
+            setTimeout(() => {
+                this.rate = this.ffishBoard.sanMove(bon, this.notationAsObject);
+                const couleur = this.turnColor;
+                this.makeMove(bon);
+                this.shapeFromMove(0, uci2cg(bon), couleur);
+                this.puzzleComplete(false);
+            }, 700);
             return;
         }
 
@@ -345,7 +366,7 @@ export class PuzzleController extends AnalysisController {
                 h('div.instruction', [
                     h('san', [san, h('span.fail', '?')]),
                     h('strong', 'Ce n\'est pas le bon coup'),
-                    h('em', 'Essayez autre chose.'),
+                    h('em', 'Voici le bon.'),
                 ]),
             ])
         );
@@ -374,7 +395,7 @@ export class PuzzleController extends AnalysisController {
         const reussi = success && !this.failed;
         if (reussi) {
             sound.victory();
-            this.postSuccess(true);
+            this.postSuccess(!this.indice); // le classement des puzzles ne monte pas avec un indice
             if (this.level !== undefined) {
                 const key = `matatak_campaign_solved_${this.variant.name}`;
                 try {
@@ -410,8 +431,14 @@ export class PuzzleController extends AnalysisController {
             const grille = `/puzzle/campaign/${this.variant.name}`;
             if (reussi) {
                 titre = 'Réussi !';
-                phrase = suivant <= total ? `Niveau ${this.level} terminé.` : 'Vous avez terminé la campagne !';
+                phrase = suivant <= total ? `Niveau ${this.level} terminé${this.indice ? ', avec un indice' : ''}.` : 'Vous avez terminé la campagne !';
                 principal = suivant <= total ? bouton(`Niveau ${suivant}`, aller(niveau + suivant)) : bouton('Tous les niveaux', aller(grille));
+            } else if (this.rate) {
+                // Raté : on passe au suivant ; ce niveau reste à refaire (pas coché dans la grille)
+                titre = 'Raté';
+                phrase = `Le bon coup : ${this.rate}. Ce niveau reste à refaire.`;
+                principal = suivant <= total ? bouton('Niveau suivant', aller(niveau + suivant)) : bouton('Tous les niveaux', aller(grille));
+                liens.push(lien('Réessayer', aller(niveau + this.level)));
             } else {
                 titre = success ? "Résolu, avec de l'aide" : 'Voici la solution';
                 phrase = 'Réessayez sans aide pour valider ce niveau.';
@@ -420,8 +447,9 @@ export class PuzzleController extends AnalysisController {
             }
             liens.push(lien('Tous les niveaux', aller(grille)));
         } else {
-            titre = reussi ? 'Réussi !' : success ? "Résolu, avec de l'aide" : 'Voici la solution';
-            phrase = reussi ? 'Bien joué.' : 'Rejouez les coups avec les flèches pour comprendre.';
+            titre = reussi ? 'Réussi !' : this.rate ? 'Raté' : success ? "Résolu, avec de l'aide" : 'Voici la solution';
+            phrase = reussi ? (this.indice ? 'Bien joué, avec un indice.' : 'Bien joué.')
+                : this.rate ? `Le bon coup : ${this.rate}.` : 'Rejouez les coups avec les flèches pour comprendre.';
             principal = bouton('Puzzle suivant', () => this.continueTraining(this.variant.name));
         }
 
@@ -512,10 +540,11 @@ export class PuzzleController extends AnalysisController {
                 if (response['error'] !== undefined) {
                     console.log(response['error']);
                 } else {
-                    patch(document.getElementById('puzzle-rated') as HTMLElement, h('input#puzzle-rated', {attrs: {disabled: true}}));
+                    const ratedEl = document.getElementById('puzzle-rated'); // absent de la page refaite
+                    if (ratedEl) patch(ratedEl, h('input#puzzle-rated', {attrs: {disabled: true}}));
                     if (isRated) {
-                        const hiddenEl = document.querySelector('.hidden') as HTMLElement;
-                        patch(hiddenEl, h('span.hidden', (color==="white") ? brating : wrating));
+                        const hiddenEl = document.querySelector('.hidden') as HTMLElement | null;
+                        if (hiddenEl) patch(hiddenEl, h('span.hidden', (color==="white") ? brating : wrating));
 
                         const diff = response[(color==="white" ? 0 : 1)]
                         renderRating(isRated, color, wrating, brating, success, diff);

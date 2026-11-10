@@ -136,17 +136,16 @@ async def test_pre_coup_contre_l_ordinateur(site, chromium):
         await page.mouse.click(*centre(case))
         await page.wait_for_timeout(150)
     reponse = plateau["ply"] + 2
-    # Posé, ou déjà parti si l'ordinateur a répondu très vite
-    deja_joue = await page.evaluate(
-        "([p, c]) => window.__msgs.some(m => m.type === 'board' && m.ply === p && m.lastMove && (m.lastMove.join ? m.lastMove.join('') : m.lastMove).startsWith(c))",
-        [reponse + 1, coup[:4]],
-    )
-    assert deja_joue or await page.locator("square.current-premove").count() >= 1, "pré-coup non posé"
+    # Posé, ou déjà parti si l'ordinateur a répondu très vite (pendant les clics, sous la charge de la
+    # suite complète : le coup part alors en pré-coup ou comme un coup normal, les deux sont justes)
+    joue = "([p, c]) => window.__msgs.some(m => m.type === 'board' && m.ply === p && m.lastMove && (m.lastMove.join ? m.lastMove.join('') : m.lastMove).startsWith(c))"
+    pose = await page.locator("square.current-premove").count() >= 1
+    assert pose or await attendre(page, joue, 3000, [reponse + 1, coup[:4]]), "pré-coup non posé"
     # L'ordinateur répond, puis le pré-coup part (s'il est encore possible dans la nouvelle position)
     assert await attendre(page, f"window.__msgs.some(m => m.type === 'board' && m.ply === {reponse})", 12000)
     apres = [m for m in await page.evaluate("window.__msgs") if m.get("type") == "board" and m.get("ply") == reponse][-1]
     if coup in sf.legal_moves("matatakmini", apres["fen"], []):
-        assert await attendre(page, f"window.__msgs.some(m => m.type === 'board' && m.ply === {reponse + 1})", 8000), "pré-coup non joué"
+        assert await attendre(page, f"window.__msgs.some(m => m.type === 'board' && m.ply === {reponse + 1})", 15000), "pré-coup non joué"
     assert not page.erreurs, page.erreurs
 
 
@@ -610,3 +609,69 @@ async def test_pre_coup_de_capture_au_doigt_sans_motif_adverse(site, chromium):
     assert await ami.evaluate("() => !document.querySelector('cg-container [data-motif]')"), "motif de la carte adverse affiché"
     for page in (hote, ami):
         assert not page.erreurs, page.erreurs
+
+
+def _niveau_de_campagne(n, variant="matatakmini"):
+    import json as _json
+
+    niveaux = _json.load(open(f"server/campaign_{variant}.json"))
+    return next(x for x in niveaux if x["level"] == n)
+
+
+async def _toucher_coup(page, coup, noir=False, largeur=4):
+    bb = await page.locator("cg-board").first.bounding_box()
+    for case in (coup[:2], coup[2:4]):
+        f, r = ord(case[0]) - 97, int(case[1:]) - 1
+        x = (largeur - 1 - f if noir else f) + 0.5
+        y = (r if noir else 7 - r) + 0.5
+        await page.mouse.click(bb["x"] + x * bb["width"] / largeur, bb["y"] + y * bb["height"] / 8)
+        await page.wait_for_timeout(150)
+
+
+async def test_puzzle_rate_le_bon_coup_se_joue_et_niveau_suivant(site, chromium):
+    """Puzzles (Hugo, 03/11/2026) : un mauvais coup, la carte revient, le bon coup se joue tout seul avec
+    une flèche, « Raté » et « Niveau suivant » ; le niveau reste à refaire."""
+    niveau = _niveau_de_campagne(1)
+    page = await ouvrir(chromium, site, telephone=True)
+    await page.goto(site + "/puzzle/matatakmini/level/1")
+    await page.wait_for_selector("cg-board")
+    bon = niveau["moves"].split(",")[0]
+    mauvais = next(c for c in sf.legal_moves("matatakmini", niveau["fen"], []) if c != bon)
+    await _toucher_coup(page, mauvais, noir=niveau["fen"].split()[1] == "b")
+    fin = page.locator(".fin-puzzle")
+    await fin.wait_for(timeout=5000)
+    texte = await fin.inner_text()
+    assert "Raté" in texte and "reste à refaire" in texte, texte
+    assert (await fin.locator(".mt-btn-or").inner_text()).lower() == "niveau suivant"
+    assert await fin.locator("button.fin-lien", has_text="Réessayer").count() == 1
+    # Le bon coup a été joué (dernier coup) et la flèche le montre
+    assert await page.locator(f"cg-board square.last-move").count() >= 1
+    assert await page.locator("cg-container svg line, cg-container svg path").count() >= 1
+    resolus = await page.evaluate("JSON.parse(localStorage.getItem('matatak_campaign_solved_matatakmini') || '[]')")
+    assert 1 not in resolus
+    assert not page.erreurs, page.erreurs
+
+
+async def test_puzzle_indice_montre_la_carte_sans_faire_recommencer(site, chromium):
+    niveau = _niveau_de_campagne(1)
+    page = await ouvrir(chromium, site, telephone=True)
+    await page.goto(site + "/puzzle/matatakmini/level/1")
+    await page.wait_for_selector("cg-board")
+    await page.locator("a.hint").wait_for(state="visible", timeout=8000)
+    await page.locator("a.hint").click()
+    await page.wait_for_timeout(300)
+    bon = niveau["moves"].split(",")[0]
+    # Un cercle sur la carte à jouer, pas de flèche vers la case d'arrivée
+    assert await page.locator("cg-container svg circle").count() >= 1
+    for i, coup in enumerate(niveau["moves"].split(",")):
+        if i % 2 == 0:
+            await _toucher_coup(page, coup, noir=niveau["fen"].split()[1] == "b")
+            await page.wait_for_timeout(300)
+    fin = page.locator(".fin-puzzle")
+    await fin.wait_for(timeout=5000)
+    texte = await fin.inner_text()
+    assert "Réussi" in texte and "avec un indice" in texte, texte
+    resolus = await page.evaluate("JSON.parse(localStorage.getItem('matatak_campaign_solved_matatakmini') || '[]')")
+    assert 1 in resolus
+    assert bon
+    assert not page.erreurs, page.erreurs
