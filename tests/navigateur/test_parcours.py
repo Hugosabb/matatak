@@ -383,6 +383,26 @@ async def test_editeur_vers_jouer_avec_la_position(site, chromium, bouton, mode)
     assert not page.erreurs, page.erreurs
 
 
+async def test_balayer_vers_l_arene_ne_fait_pas_bouger_la_barre_du_bas(site, chromium):
+    """La grille qui arrive par la droite débordait : la page s'élargissait et la barre fixée en bas descendait
+    le temps de l'animation, dans un seul sens (Hugo, 10/11/2026)."""
+    page = await ouvrir(chromium, site, telephone=True)
+    await page.goto(site + "/jouer?mode=ami")
+    await page.wait_for_selector(".jouer-page .grille")
+    await page.evaluate("""() => { window.__hauts = new Set(); const t = document.querySelector('.mt-tab');
+        const f = () => { window.__hauts.add(Math.round(t.getBoundingClientRect().top)); requestAnimationFrame(f); }; f(); }""")
+    await page.evaluate("""() => { const el = document.querySelector('.jouer-page');
+        const t = (type, x) => el.dispatchEvent(new TouchEvent(type, {bubbles: true,
+            touches: type === 'touchend' ? [] : [new Touch({identifier: 1, target: el, clientX: x, clientY: 300})],
+            changedTouches: [new Touch({identifier: 1, target: el, clientX: x, clientY: 300})]}));
+        t('touchstart', 300); t('touchend', 80); }""")
+    assert await attendre(page, "() => document.querySelector('.mt-tab a[data-mode=classee]').classList.contains('actif')", 3000)
+    await page.wait_for_timeout(700)
+    hauts = await page.evaluate("[...window.__hauts]")
+    assert len(hauts) == 1, hauts
+    assert not page.erreurs, page.erreurs
+
+
 async def test_editeur_toucher_pour_poser_et_gommer(site, chromium):
     page = await ouvrir(chromium, site, telephone=True)
     await page.goto(site + "/editor/matatakmini")

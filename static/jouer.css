@@ -285,6 +285,10 @@ body[data-view="jouer"] { --mt-choix: 68px; }
   /* Le geste de côté est pour le site (changer de mode) : le navigateur ne fait plus glisser la page de côté
      ni ne la tire (barre du bas qui bougeait pendant le balayage, Hugo, 10/11/2026) */
   body[data-view="jouer"] .jouer-page { touch-action: pan-y; overscroll-behavior-x: none; }
+  /* La grille qui arrivait par la droite (translate 40 px) débordait de l'écran : le navigateur élargissait la page et
+     la barre fixée en bas descendait le temps de l'animation (Hugo, 10/11/2026 : seulement dans un sens). Elle glisse
+     maintenant de 12 px, la marge de la page : rien ne dépasse, et rien n'est coupé (« overflow: clip » coupait le Roi
+     de la bulle, qui dépasse dans la marge) */
   /* fondu sur la page, glissement seulement sur la grille : un transform sur .jouer-page déplacerait ses
      éléments fixés (bouton « Affronter » de l'Aventure) */
   .jouer-page.arrive-droite, .jouer-page.arrive-gauche { animation: mode-fondu .28s ease-out; }
@@ -292,8 +296,8 @@ body[data-view="jouer"] { --mt-choix: 68px; }
   .jouer-page.arrive-gauche > .grille { animation: mode-arrive-gauche .28s cubic-bezier(.16, 1, .3, 1); }
 }
 @keyframes mode-fondu { from { opacity: .35; } }
-@keyframes mode-arrive-droite { from { translate: 40px 0; } }
-@keyframes mode-arrive-gauche { from { translate: -40px 0; } }
+@keyframes mode-arrive-droite { from { translate: 12px 0; } }
+@keyframes mode-arrive-gauche { from { translate: -12px 0; } }
 @media (prefers-reduced-motion: reduce) { .jouer-page.arrive-droite, .jouer-page.arrive-gauche, .jouer-page > .grille { animation: none !important; } }
 /* Téléphone (portrait ou paysage) : l'illustration en haut, plus petite, et le bouton doré collé au-dessus des onglets */
 @media (max-width: 760px), (max-height: 500px) and (orientation: landscape) {
