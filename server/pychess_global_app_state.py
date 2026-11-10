@@ -186,9 +186,12 @@ class PychessGlobalAppState:
                         log.warning("Failed to load tournament %s - user not found, skipping", doc["_id"])
             self.tournaments_loaded.set()
 
-            already_scheduled = await get_scheduled_tournaments(self)
-            new_tournaments_data = new_scheduled_tournaments(already_scheduled)
-            await create_scheduled_tournaments(self, new_tournaments_data)
+            # Plus de tournois pychess créés à chaque démarrage : ils portaient sur des variantes absentes du
+            # site (CLAUDE.md piège 9). MATATAK_TOURNOIS=1 pour les remettre.
+            if os.getenv("MATATAK_TOURNOIS") == "1":
+                already_scheduled = await get_scheduled_tournaments(self)
+                new_tournaments_data = new_scheduled_tournaments(already_scheduled)
+                await create_scheduled_tournaments(self, new_tournaments_data)
 
             asyncio.create_task(generate_shield(self), name="generate-shield")
 
@@ -467,11 +470,9 @@ class PychessGlobalAppState:
         return result
 
     def __init_discord(self):
-        if self.db is None:
-            self.discord = FakeDiscordBot()
-
-        # create Discord bot
-        if DEV:
+        # Bot Discord de pychess : seulement s'il a un jeton (en prod, DISCORD_TOKEN est vide : il démarrait
+        # quand même et remplissait les journaux d'erreurs, CLAUDE.md piège 9)
+        if self.db is None or DEV or not DISCORD_TOKEN:
             self.discord = FakeDiscordBot()
         else:
             bot = DiscordBot(self)
