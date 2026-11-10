@@ -63,6 +63,9 @@ class Users(UserDict):
                 user = User(self.app_state, username=username, title="LIA", anon=True)
             elif INVITE.match(username or ""):
                 user = User(self.app_state, username=username, anon=True)
+                from invites import charger
+
+                await charger(self.app_state, user)  # son classement de l'Arène, s'il en a un
             else:
                 raise
             self.data[username] = user

@@ -745,7 +745,8 @@ class Game:
         await self.bplayer.set_rating(self.variant, self.chess960, new_black_rating)
 
         w_nb = self.wplayer.perfs[cle_perf(self.variant, self.chess960)]["nb"]
-        if w_nb >= HIGHSCORE_MIN_GAMES and not self.wplayer.entrainement:
+        # Invités (Arène sans compte) : jamais au classement de tous les temps
+        if w_nb >= HIGHSCORE_MIN_GAMES and not self.wplayer.entrainement and not self.wplayer.anon:
             _id = "%s|%s" % (self.wplayer.username, self.wplayer.title)
             await self.set_highscore(
                 self.variant,
@@ -754,7 +755,7 @@ class Game:
             )
 
         b_nb = self.bplayer.perfs[cle_perf(self.variant, self.chess960)]["nb"]
-        if b_nb >= HIGHSCORE_MIN_GAMES and not self.bplayer.entrainement:
+        if b_nb >= HIGHSCORE_MIN_GAMES and not self.bplayer.entrainement and not self.bplayer.anon:
             _id = "%s|%s" % (self.bplayer.username, self.bplayer.title)
             await self.set_highscore(
                 self.variant,

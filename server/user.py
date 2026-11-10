@@ -214,7 +214,10 @@ class User:
         asyncio.create_task(silencio(), name="silence-%s" % self.username)
 
     async def set_rating(self, variant, chess960, rating):
-        if self.anon:
+        from invites import est_invite, enregistrer
+
+        invite = est_invite(self)  # Arène sans compte : classement gardé à part (invites.py)
+        if self.anon and not invite:
             return
         gl = {"r": rating.mu, "d": rating.phi, "v": rating.sigma}
         la = datetime.now(timezone.utc)
@@ -225,7 +228,9 @@ class User:
             "nb": nb + 1,
         }
 
-        if self.app_state.db is not None:
+        if invite:
+            await enregistrer(self.app_state, self)
+        elif self.app_state.db is not None:
             await self.app_state.db.user.find_one_and_update(
                 {"_id": self.username}, {"$set": {"perfs": self.perfs}}
             )

@@ -337,6 +337,11 @@ async def confirm_username(request):
         )
         print("db insert user result %s" % repr(result.inserted_id))
 
+        # Arène sans compte : l'invité qui crée son compte garde son classement et ses parties
+        from invites import reprendre_sur_le_compte
+
+        await reprendre_sur_le_compte(app_state, session.get("user_name"), username)
+
         # Set session username and clean up OAuth data
         session["user_name"] = username
         session.pop("oauth_id", None)

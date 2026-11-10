@@ -217,6 +217,8 @@ main.jouer { grid-area: main; width: 100%; min-width: 0; font: 400 16px/1.5 'Nun
 .classee-accueil b { font: 400 26px/1.1 'Tribeca', 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or); }
 .classee-accueil p { margin: 0; color: var(--mt-doux); font-size: 15px; line-height: 1.5; }
 .classee-note { display: block; margin-top: 10px; text-align: center; color: var(--mt-discret); font-size: 13px; }
+.classee-note.invite { color: var(--mt-doux); line-height: 1.45; }
+.classee-note.invite a { color: var(--mt-or); font-weight: 800; text-decoration: none; }
 .classee-regles { display: grid; gap: 4px; margin: -6px 0 20px; }
 .classee-regles span { font-weight: 800; color: var(--mt-encre); }
 .classee-regles b { color: var(--mt-or); }

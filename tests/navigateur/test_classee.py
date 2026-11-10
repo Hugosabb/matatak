@@ -52,16 +52,25 @@ async def connecter(page, site, nom=JOUEUR):
 
 
 @pytest.mark.parametrize("telephone", [False, True], ids=["ordinateur", "telephone"])
-async def test_un_invite_doit_se_connecter(site, chromium, telephone):
+async def test_un_invite_joue_dans_l_arene_sans_compte(site, chromium, telephone):
+    """Arène sans compte (Hugo, 03 et 10/11/2026) : l'invité joue ; un mot lui dit que sa progression
+    reste sur l'appareil, avec un lien pour créer un compte."""
     page = await ouvrir(chromium, site, telephone)
     await page.evaluate("localStorage.setItem('jouer_choix', JSON.stringify({adv: 'classee'}))")
     await page.goto(site + "/jouer")
-    await page.wait_for_selector(".classee-accueil")
     # Un seul jeu d'onglets visible : en bas sur ordinateur, dans la barre du bas sur téléphone (10/11/2026)
     assert await page.locator(".choix-adv button:visible, .mt-tab a[data-mode]:visible").count() == 3
-    lien = page.locator("a.lancer")
-    assert await lien.inner_text() == "Se connecter"
-    assert await lien.get_attribute("href") == "/connexion"
+    lancer = page.locator("button.lancer")
+    await lancer.wait_for(timeout=5000)
+    assert (await lancer.inner_text()).lower() == "jouer dans l'arène"
+    note = page.locator(".classee-note.invite")
+    assert "Ta progression reste sur cet appareil." in await note.inner_text()
+    assert await note.locator("a").get_attribute("href") == "/connexion"
+    # Il lance la recherche : le serveur l'accepte (plus de « classee_annulee »)
+    await lancer.click()
+    assert await attendre(page, "() => (document.querySelector('button.lancer')?.textContent || '').startsWith('Recherche')", 3000)
+    await page.wait_for_timeout(1200)
+    assert (await page.locator("button.lancer").inner_text()).startswith("Recherche")
     assert await page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
     assert not page.erreurs, page.erreurs
 

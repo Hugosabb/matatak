@@ -207,9 +207,11 @@ async def test_classee_verrouillee_pendant_la_phase_1(site, chromium, telephone)
     await page.wait_for_selector(".classee-accueil.verrou")
     await capture(page, f"aventure-classee-verrou-{'tel' if telephone else 'pc'}")
     await page.locator("button.deja", has_text="Jouer quand même").click()
-    await page.wait_for_selector(".classee-accueil:not(.verrou)")
+    # L'invité arrive dans l'Arène elle-même (Arène sans compte, 10/11/2026)
+    await page.wait_for_selector(".classee-regles")
+    assert await page.locator(".classee-accueil.verrou").count() == 0
     await page.reload()
-    await page.wait_for_selector(".classee-accueil:not(.verrou)")
+    await page.wait_for_selector(".classee-regles")
     assert not page.erreurs, page.erreurs
 
 

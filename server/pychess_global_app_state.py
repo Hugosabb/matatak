@@ -240,6 +240,11 @@ class PychessGlobalAppState:
             await self.db.game.create_index("by")
             await self.db.game.create_index("c")
 
+            # Arène sans compte : classement des invités, effacé après un an sans partie (invites.py)
+            from invites import creer_index
+
+            await creer_index(self.db)
+
             if "notify" not in db_collections:
                 await self.db.create_collection("notify")
             await self.db.notify.create_index("notifies")

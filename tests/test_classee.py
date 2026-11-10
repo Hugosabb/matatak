@@ -122,15 +122,81 @@ class ClasseeTestCase(BaseClassee):
         self.assertLessEqual(abs(BOTS[bot.username] - 1200), 100)
         self.assertEqual(game.level, niveau_du_bot(bot.username))
 
-    async def test_un_invite_ne_joue_pas_classe(self):
+    async def test_un_invite_joue_classe_et_garde_son_classement_a_part(self):
+        """Arène sans compte (Hugo, 03 et 10/11/2026) : l'invité joue classé ; son classement est gardé
+        dans la collection « invite » (effacée après un an sans partie), jamais au palmarès."""
         import classee
+        from wsr import handle_abort_resign_abandon_flag
 
         app_state = get_app_state(self.app)
         invite = self.joueur("Cool-Camel#000001", anon=True)
+        b = self.joueur("bruno", 1540)
         with patch("classee.ws_send_json", new=AsyncMock()) as envoi:
             await classee.chercher(app_state, invite, {"variant": "matatakmini"})
+            await classee.chercher(app_state, b, {"variant": "matatakmini"})
+        reponse = envoi.await_args.args[1]
+        self.assertEqual(reponse["type"], "new_game")
+        game = app_state.games[reponse["gameId"]]
+        self.assertEqual(game.rated, RATED)
+        game.draft = None
+        with patch("wsr.round_broadcast", new=AsyncMock()):
+            await handle_abort_resign_abandon_flag(
+                AsyncMock(), app_state.users, b, {"type": "resign"}, game
+            )
+        self.assertGreater(invite.get_rating_value("matatak", False), 1500)
+        doc = await app_state.db.invite.find_one({"_id": invite.username})
+        self.assertEqual(doc["perfs"]["matatak"]["nb"], 11)
+        self.assertIsNotNone(doc["vu"])
+        self.assertIsNone(await app_state.db.user.find_one({"_id": invite.username}))
+        # Jamais au classement de tous les temps
+        hs = await app_state.db.highscore.find_one({"_id": "matatak"}) or {}
+        self.assertFalse(any(k.startswith("Cool-Camel") for k in hs.get("scores", hs)))
+
+    async def test_l_ordinateur_du_solo_ne_joue_pas_dans_l_arene(self):
+        import classee
+
+        app_state = get_app_state(self.app)
+        ordi = self.joueur("Level 7", anon=True)
+        ordi.title = "LIA"
+        with patch("classee.ws_send_json", new=AsyncMock()) as envoi:
+            await classee.chercher(app_state, ordi, {"variant": "matatakmini"})
         self.assertEqual(envoi.await_args.args[1]["type"], "classee_annulee")
         self.assertEqual(classee.en_attente(app_state), 0)
+
+    async def test_invite_recree_apres_redemarrage_retrouve_son_classement(self):
+        from invites import creer_index
+
+        app_state = get_app_state(self.app)
+        perf = {"gl": {"r": 1720, "d": 70, "v": 0.06}, "la": None, "nb": 4}
+        await app_state.db.invite.insert_one({"_id": "Shy-Owl#123456", "perfs": {"matatak": perf}})
+        user = await app_state.users.get_joueur("Shy-Owl#123456")
+        self.assertTrue(user.anon)
+        self.assertEqual(user.get_rating_value("matatakmini", False), 1720)
+        # Effacé tout seul après un an sans partie
+        await creer_index(app_state.db)
+        index = await app_state.db.invite.index_information()
+        self.assertTrue(any(i.get("expireAfterSeconds") == 365 * 24 * 3600 for i in index.values()))
+
+    async def test_compte_cree_par_un_invite_reprend_classement_et_parties(self):
+        from invites import reprendre_sur_le_compte
+
+        app_state = get_app_state(self.app)
+        db = app_state.db
+        perf = {"gl": {"r": 1650, "d": 90, "v": 0.06}, "la": None, "nb": 3}
+        await db.invite.insert_one({"_id": "Shy-Owl#000009", "perfs": {"matatak": perf}})
+        await db.game.insert_one({"_id": "abcdefgh", "us": ["Shy-Owl#000009", "bruno"]})
+        await db.user.insert_one({"_id": "hibou", "perfs": {}})
+        self.assertTrue(await reprendre_sur_le_compte(app_state, "Shy-Owl#000009", "hibou"))
+        self.assertEqual((await db.user.find_one({"_id": "hibou"}))["perfs"]["matatak"]["nb"], 3)
+        self.assertEqual((await db.game.find_one({"_id": "abcdefgh"}))["us"], ["hibou", "bruno"])
+        self.assertIsNone(await db.invite.find_one({"_id": "Shy-Owl#000009"}))
+        # Sans partie classée : rien à reprendre, le compte part de 1500
+        await db.invite.insert_one(
+            {"_id": "Shy-Owl#000010", "perfs": {"matatak": dict(perf, nb=0)}}
+        )
+        await db.user.insert_one({"_id": "chouette", "perfs": {}})
+        self.assertFalse(await reprendre_sur_le_compte(app_state, "Shy-Owl#000010", "chouette"))
+        self.assertFalse(await reprendre_sur_le_compte(app_state, "bruno", "chouette"))
 
     async def partie_contre_un_bot(self, nom="alice", classement=1500):
         import classee
@@ -314,7 +380,8 @@ class DefiTestCase(BaseClassee):
         for u in (a, b, invite):
             app_state.lobby.lobbysockets[u.username] = u.lobby_sockets
         liste = classee.joueurs_en_ligne(app_state, a)
-        self.assertEqual([j["u"] for j in liste], ["bruno"])  # ni soi-même, ni les invités
+        # ni soi-même ; les invités aussi, on peut les défier (Hugo, 10/11/2026)
+        self.assertEqual([j["u"] for j in liste], ["bruno", "Cool-Camel#000002"])
         self.assertEqual(liste[0]["matatakmini"]["r"], 1620)
         self.assertFalse(liste[0]["en_partie"])
 
@@ -370,16 +437,24 @@ class DefiTestCase(BaseClassee):
         self.assertEqual(fins, ["refuse", "refuse", "annule", "annule", "expire", "expire"])
         self.assertEqual(classee._defis(app_state), {})
 
-    async def test_pas_de_defi_a_un_invite_ni_a_soi_meme(self):
+    async def test_defi_a_un_invite_mais_pas_a_soi_meme(self):
         import classee
 
         app_state = get_app_state(self.app)
         a = self.joueur("alice", 1500)
         self.joueur("Cool-Camel#000003", anon=True)
         with patch("classee.ws_send_json", new=AsyncMock()):
-            for nom in ("alice", "Cool-Camel#000003", "personne"):
+            for nom in ("alice", "personne"):
                 await classee.defier(app_state, a, {"variant": "matatakmini", "adversaire": nom})
-        self.assertEqual(classee._defis(app_state), {})
+            self.assertEqual(classee._defis(app_state), {})
+            await classee.defier(
+                app_state, a, {"variant": "matatakmini", "adversaire": "Cool-Camel#000003"}
+            )
+        self.assertEqual(
+            [d.a.username for d in classee._defis(app_state).values()], ["Cool-Camel#000003"]
+        )
+        for d in list(classee._defis(app_state).values()):
+            d.tache.cancel()
 
 
 class PersosDuDraftTestCase(BaseClassee):

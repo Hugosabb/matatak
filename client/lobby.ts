@@ -85,7 +85,7 @@ const IMG_ROI: Record<Saison, string> = { ete: '01-azar.webp', automne: '02-shan
 interface ClasseeVariante { r: number; prov: boolean; nb: number; cadence: string; }
 // Un seul classement pour les deux plateaux (server/classement_unique.py) : r, prov, nb à la racine
 interface JoueurEnLigne { u: string; en_partie: boolean; r: number; prov: boolean; nb: number; }
-interface ClasseeInfos { connecte: boolean; classement?: ClasseeVariante; matatak?: ClasseeVariante; matatakmini?: ClasseeVariante; en_ligne?: JoueurEnLigne[]; }
+interface ClasseeInfos { connecte: boolean; invite?: boolean; classement?: ClasseeVariante; matatak?: ClasseeVariante; matatakmini?: ClasseeVariante; en_ligne?: JoueurEnLigne[]; }
 // Défi reçu d'un joueur en ligne (server/classee.py defier)
 interface DefiRecu { id: string; de: string; r: number; prov: boolean; variant: 'matatak' | 'matatakmini'; cadence: string; }
 
@@ -298,7 +298,7 @@ export class LobbyController implements ChatController {
             if (jouerEl && new URLSearchParams(window.location.search).has('classee')) {
                 window.history.replaceState({}, '', window.location.pathname);
                 this.jouer.adv = 'classee';
-                if (!this.anon) {
+                {
                     this.classeeDebut = Date.now();
                     this.doSend({ type: 'classee_chercher', variant: this.jouer.variant, persos: persosEnPlus() });
                 }
@@ -308,7 +308,7 @@ export class LobbyController implements ChatController {
             if (jouerEl && aDefier) {
                 window.history.replaceState({}, '', window.location.pathname);
                 this.jouer.adv = 'classee';
-                if (!this.anon) this.defier(aDefier);
+                this.defier(aDefier);
             }
             // Joueur connecté : l'Aventure de son compte, si elle est plus loin que celle de cet appareil
             // (l'appli installée sur iPhone n'a pas le stockage de Safari)
@@ -715,10 +715,11 @@ export class LobbyController implements ChatController {
         // Classements, joueurs en ligne et palmarès de la semaine : à l'ouverture de l'onglet, puis
         // toutes les 10 s tant qu'il est ouvert (un seul minuteur pour la page)
         if (this.classee) return;
-        this.classee = { connecte: !this.anon };
+        // Invité aussi : il joue dans l'Arène sans compte (server/invites.py, Hugo, 10/11/2026)
+        this.classee = { connecte: true, invite: this.anon };
         const charger = () => {
             chargerPalmares().then(p => { this.palmares = p; this.majJouer(); }).catch(() => { /* hors ligne */ });
-            if (!this.anon) fetch('/api/classee', { credentials: 'same-origin' })
+            fetch('/api/classee', { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then((infos: ClasseeInfos) => { this.classee = infos; this.majJouer(); })
                 .catch(() => { /* hors ligne : on réessaiera au prochain rafraîchissement */ });
@@ -810,7 +811,10 @@ export class LobbyController implements ChatController {
             h('div.etiq', ['Joueurs en ligne', tous.length ? h('b', String(tous.length)) : '']),
             proches.length
                 ? h('ul', proches.map(j => h('li', [
-                    h('a.nom', { attrs: { href: '/@/' + j.u } }, [this.palmares?.couronne === j.u ? couronne() : '', j.u]),
+                    // Invité (« Cool-Camel#000002 ») : pas de page de profil, nom sans son numéro
+                    j.u.includes('#')
+                        ? h('span.nom', j.u.split('#')[0])
+                        : h('a.nom', { attrs: { href: '/@/' + j.u } }, [this.palmares?.couronne === j.u ? couronne() : '', j.u]),
                     h('span.r', texteClassement({ r: j.r, prov: j.prov, nb: j.nb, cadence: '' })),
                     action(j),
                 ])))
@@ -881,6 +885,11 @@ export class LobbyController implements ChatController {
                     attrs: { type: 'button' },
                     on: { click: () => this.chercherClassee() },
                 }, "Jouer dans l'Arène"),
+            // Invité : sa progression reste sur cet appareil (texte d'Hugo, 03/11/2026)
+            infos.invite ? h('small.classee-note.invite', [
+                'Ta progression reste sur cet appareil. ',
+                h('a', { attrs: { href: '/connexion' } }, 'Crée un compte pour la garder.'),
+            ]) : '',
             h('button.plus', {
                 attrs: { type: 'button', 'aria-expanded': String(this.classeeOptions), 'aria-controls': 'plus-options-classee' },
                 on: { click: () => { this.classeeOptions = !this.classeeOptions; this.majJouer(); } },

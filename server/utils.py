@@ -455,9 +455,12 @@ async def new_game(app_state: PychessGlobalAppState, seek, game_id=None):
 
     # print("new_game", game_id, seek.variant, seek.fen, wplayer, bplayer, seek.base, seek.inc, seek.level, seek.rated, seek.chess960)
     try:
-        # Un compte invité ne joue jamais classé ; un adversaire d'entraînement (anonyme lui aussi) si
+        # Un compte invité ne joue classé que dans l'Arène (invites.py, Hugo, 10/11/2026) ; un
+        # adversaire d'entraînement (anonyme lui aussi) si
+        from invites import est_invite
+
         def classable(p):
-            return (not p.anon) or p.entrainement
+            return (not p.anon) or p.entrainement or (getattr(seek, "arene", False) and est_invite(p))
 
         rated = RATED if (seek.rated and classable(wplayer) and classable(bplayer)) else CASUAL
 

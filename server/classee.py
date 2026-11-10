@@ -16,6 +16,7 @@ import time
 from bots_classes import choisir_bot, creer_bot, niveau_du_bot
 from classement_unique import cle_perf
 from draft import en_commun, nettoyer_en_plus
+from invites import est_invite, peut_jouer_en_arene
 from const import STARTED
 from logger import log
 from newid import new_id
@@ -96,6 +97,7 @@ async def _creer_partie(app_state, joueur, adversaire, variant, level=0, persos=
         isDraft=True,
         persos=persos,
     )
+    seek.arene = True  # un invité y joue classé (utils.new_game, invites.py)
     return await join_seek(app_state, adversaire, seek)
 
 
@@ -192,7 +194,7 @@ async def _apparier(app_state, a: Attente, b: Attente):
 async def chercher(app_state, user, data):
     """Message « classee_chercher » {variant} de la WebSocket du salon."""
     variant = data.get("variant")
-    if user.anon or variant not in CADENCES:
+    if not peut_jouer_en_arene(user) or variant not in CADENCES:
         await _envoyer(user, {"type": "classee_annulee"})
         return
     _retirer(app_state, user.username)
@@ -232,9 +234,10 @@ async def infos(request):
         user = await app_state.users.get(session.get("user_name"))
     except NotInDbUsers:
         user = None
-    if user is None or user.anon:
+    if not peut_jouer_en_arene(user):
         return web.json_response({"connecte": False})
-    reponse = {"connecte": True, "username": user.username}
+    # « connecte » : peut jouer dans l'Arène ; un invité aussi (invites.py), avec « invite » en plus
+    reponse = {"connecte": True, "invite": est_invite(user), "username": user.username}
     # Un seul classement ; gardé aussi sous chaque plateau pour les anciennes pages encore ouvertes
     reponse["classement"] = dict(classement(user, "matatak"), cadence="%d+%d" % CADENCES["matatak"])
     for variant, (minutes, inc) in CADENCES.items():
@@ -249,12 +252,13 @@ def classement(user, variant) -> dict:
 
 
 def joueurs_en_ligne(app_state, moi) -> list[dict]:
-    """Les joueurs connectés présents sur /jouer (WebSocket du salon), à défier : jamais les
-    invités ni les adversaires d'entraînement (ils ne se connectent pas), ni soi-même."""
+    """Les joueurs présents sur /jouer (WebSocket du salon), à défier : comptes et invités (Hugo,
+    10/11/2026), jamais l'ordinateur ni les adversaires d'entraînement (ils ne se connectent pas), ni
+    soi-même."""
     joueurs = []
     for username in list(app_state.lobby.lobbysockets):
         user = app_state.users.data.get(username)
-        if user is None or user is moi or user.anon or user.entrainement or not user.lobby_sockets:
+        if user is moi or not peut_jouer_en_arene(user) or not user.lobby_sockets:
             continue
         joueurs.append(
             {
@@ -310,12 +314,11 @@ async def defier(app_state, user, data):
     variant = data.get("variant")
     adversaire = app_state.users.data.get(data.get("adversaire") or "")
     if (
-        user.anon
+        not peut_jouer_en_arene(user)
         or variant not in CADENCES
         or adversaire is None
         or adversaire is user
-        or adversaire.anon
-        or adversaire.entrainement
+        or not peut_jouer_en_arene(adversaire)
         or not adversaire.lobby_sockets
         or adversaire.game_in_progress is not None
     ):
