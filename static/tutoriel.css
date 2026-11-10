@@ -10,7 +10,7 @@ body .tutorial-info {
   color: var(--mt-encre);
 }
 
-/* En bas du bloc : la progression et « Quitter » */
+/* En haut du bloc : la progression et « Quitter » (Hugo, 10/11/2026) */
 .tuto-pied { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 24px; }
 .tuto-num { font: 800 12px 'Nunito', sans-serif; color: var(--mt-discret); }
 .tuto-passer { min-height: 32px; padding: 0 4px; border: 0; background: none; cursor: pointer; font: 800 13px 'Nunito', sans-serif; color: var(--mt-discret); }
@@ -18,8 +18,9 @@ body .tutorial-info {
 
 /* Le Roi et son fil de discussion : tout ce qu'il a dit depuis le début, le plus récent en bas ; on fait
    défiler pour relire (Hugo, 27/10/2026) */
-.tuto-discussion { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 10px; align-items: end; }
-.tuto-discussion img { width: 50px; border-radius: 9%; box-shadow: 0 10px 18px -8px rgba(0, 0, 0, .9); }
+.tuto-discussion { display: grid; grid-template-columns: 60px minmax(0, 1fr); gap: 10px; align-items: end; }
+/* Le Roi qui parle : sa tête dans le rond, comme dans l'Aventure (client/teteRoi.ts, matatak-ui.css) */
+.tuto-discussion .tete-roi { margin-bottom: 2px; }
 .tuto-fil { display: flex; flex-direction: column; gap: 6px; height: 190px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
   -webkit-mask-image: linear-gradient(transparent, #000 22px); mask-image: linear-gradient(transparent, #000 22px); padding-top: 14px; }
 .tuto-fil > p { margin: 0; }
@@ -37,10 +38,10 @@ body .tutorial-info {
 .tuto-fil > :last-child { animation: tuto-message .3s ease; }
 @keyframes tuto-message { from { opacity: 0; transform: translateY(6px); } }
 
-/* La consigne : une barre à part, bien distincte du fil (losange or, fond nuit, une seule ligne) ;
-   grisée pendant que la partie avance toute seule */
+/* La consigne : une barre à part, bien distincte du fil (losange or, fond nuit), en bas du bloc, contre le plateau ;
+   sur deux lignes si elle est longue (avant : coupée, Hugo 10/11/2026) ; grisée pendant que la partie avance seule */
 .tuto-consigne { display: flex; align-items: center; justify-content: center; gap: 9px; margin: 0; padding: 8px 12px; border-radius: 12px;
-  background: var(--mt-nuit); box-shadow: inset 0 0 0 1px var(--mt-or-fonce); white-space: nowrap; overflow: hidden;
+  background: var(--mt-nuit); box-shadow: inset 0 0 0 1px var(--mt-or-fonce); text-align: center; text-wrap: balance;
   font: 800 15.5px/1.3 'Nunito', sans-serif; color: var(--mt-encre); transition: opacity .2s; }
 .tuto-consigne::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 2px; background: var(--mt-or); transform: rotate(45deg); }
 .tuto-consigne.attente { opacity: .4; }
@@ -53,15 +54,16 @@ body .tutorial-info {
 @media (max-width: 799px) and (orientation: portrait) {
   /* Téléphone : comme en partie, ni en-tête ni onglets (body.en-partie) ; un bandeau bas (titre, fil de
      3 lignes à faire défiler, consigne) pour un plateau presque aussi grand qu'en partie (Hugo) */
-  body[data-view="tutorial"].en-partie { --mt-reserve: 228px; }
-  body .tutorial-info { margin: 6px 6px calc(env(safe-area-inset-bottom, 0px) + 4px); padding: 8px 10px 4px; gap: 5px; border-radius: 14px; }
-  /* Plateau en haut, bloc du tutoriel en bas (sous le pouce) */
-  body[data-view="tutorial"] .tutorial-app.analysis-app { grid-template-areas: 'board' 'side' 'pocket-top' 'pocket-bot' 'tools' 'move-controls' 'ceval' 'pv' 'misc-info' 'vari' 'uboard' 'side-user' 'side-bot'; }
-  body[data-view="tutorial"] #mainboard { margin-top: calc(env(safe-area-inset-top, 0px) + 4px); }
+  body .tutorial-info { padding: 4px 10px 8px; gap: 5px; border-radius: 14px; }
+  /* Bloc du tutoriel en haut (on lit de haut en bas : le Roi, la consigne, puis le plateau ; Hugo, 10/11/2026) ;
+     le plateau, réduit d'autant, reste entier à l'écran */
+  body[data-view="tutorial"].en-partie { --mt-reserve: 262px; }
+  body[data-view="tutorial"] .tutorial-app.analysis-app { grid-template-areas: 'side' 'board' 'pocket-top' 'pocket-bot' 'tools' 'move-controls' 'ceval' 'pv' 'misc-info' 'vari' 'uboard' 'side-user' 'side-bot'; }
+  body .tutorial-info { margin: calc(env(safe-area-inset-top, 0px) + 6px) 6px 6px; }
   .tuto-pied { min-height: 20px; }
   .tuto-passer { min-height: 28px; font-size: 12.5px; }
-  .tuto-discussion { grid-template-columns: 34px minmax(0, 1fr); gap: 8px; }
-  .tuto-discussion img { width: 34px; }
+  .tuto-discussion { grid-template-columns: 46px minmax(0, 1fr); gap: 8px; }
+  .tuto-discussion .tete-roi { zoom: .76; }
   .tuto-fil { height: 108px; gap: 4px; padding-top: 8px; -webkit-mask-image: linear-gradient(transparent, #000 8px); mask-image: linear-gradient(transparent, #000 8px); }
   .tuto-bulle { padding: 5px 10px; font-size: 13.5px; line-height: 1.3; }
   .tuto-aide, .tuto-erreur, .tuto-bravo, .tuto-demo { font-size: 12.5px; }
@@ -77,3 +79,24 @@ body .tutorial-info {
 @media (prefers-reduced-motion: reduce) {
   .tutorial-app .cg-wrap.changement piece, .tuto-fil > :last-child { animation: none; }
 }
+
+/* La carte à jouer : un cadre doré qui rayonne autour d'elle (tutorialCtrl.marquerCases ; Hugo, 10/11/2026). Mêmes
+   proportions que la carte (piece::before de matatak.css : 90,9 % de la case, centrée) */
+.tutorial-app cg-board piece.a-jouer::after { content: ''; position: absolute; inset: 4.55%; border-radius: 8%; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--mt-or), 0 0 18px 4px rgba(234, 196, 90, .75); animation: tuto-rayonne 1.5s ease-in-out infinite; }
+@keyframes tuto-rayonne { 50% { box-shadow: 0 0 0 3px var(--mt-or), 0 0 6px 1px rgba(234, 196, 90, .35); } }
+@media (prefers-reduced-motion: reduce) { .tutorial-app cg-board piece.a-jouer::after { animation: none; } }
+
+/* Ordinateur : un bloc plus large pour lire à l'aise (Hugo, 10/11/2026 : « on lit pas si facilement ») */
+@media (min-width: 800px) {
+  body[data-view="tutorial"] .tutorial-app.analysis-app {
+    grid-template-columns: minmax(320px, 28vw) 3vmin minmax(calc(70vmin * var(--board-scale)), calc(100vh * var(--board-scale) - calc(var(--site-header-height) + var(--site-header-margin)) - 3rem)) var(--gauge-gap) minmax(0, 1fr);
+  }
+  .tuto-fil { height: 260px; }
+  .tuto-bulle { font-size: 16px; }
+  .tuto-consigne { font-size: 16.5px; padding: 10px 14px; }
+}
+
+/* « Suivant », « À toi ! », « Continuer » : le tutoriel attend le joueur (Hugo, 10/11/2026) */
+.tuto-continuer { --h: 46px; width: 100%; font-size: 16px; }
+@media (max-width: 799px) and (orientation: portrait) { .tuto-continuer { --h: 42px; } }

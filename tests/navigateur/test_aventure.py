@@ -304,7 +304,7 @@ async def test_le_tutoriel_est_le_niveau_0(site, chromium, telephone):
     # Le Roi choisi, le tutoriel commence tout de suite, guidé par ce Roi
     await page.wait_for_url(lambda url: url.endswith("/tutorial/1"), timeout=15000)
     await page.wait_for_selector(".tuto-bulle")
-    assert "AZAR" in await page.locator(".tuto-discussion img").get_attribute("alt")
+    assert "AZAR" in await page.locator(".tuto-discussion img").first.get_attribute("alt")
     # De retour sur Solo : niveau 0 en cours, le bouton mène au tutoriel, le niveau 1 attend
     await page.goto(site + "/jouer")
     await page.wait_for_selector(".av-route")
@@ -391,9 +391,15 @@ async def test_le_tutoriel_se_joue_jusqu_a_la_colline(site, chromium):
     coups = ["b2b4", "c2c3", "b1d3", "c1c2", "b4b6", "d3c4", "c4c5", "c5d6", "d6c7", "c7b7", "d3c3", "c2c3", "c3b4"]
     for n, coup in enumerate(coups, 1):
         # Les étapes s'enchaînent toutes seules ; à toi quand la consigne n'est plus grisée
-        await page.wait_for_function("n => document.querySelector('.tuto-num')?.textContent === n + ' / 13'", arg=n, timeout=15000)
+        # « Suivant » / « À toi ! » / « Continuer » : le tutoriel attend le joueur (10/11/2026)
+        for _ in range(60):
+            if await page.locator(".tuto-continuer").count():
+                await page.locator(".tuto-continuer").click()
+            elif await page.evaluate("n => document.querySelector('.tuto-num')?.textContent === n + ' / 13' && !!document.querySelector('.tuto-consigne:not(.attente)')", n):
+                break
+            await page.wait_for_timeout(250)
         await page.wait_for_selector(".tuto-consigne:not(.attente)", timeout=15000)
-        assert await page.locator(".tuto-discussion img").get_attribute("alt") == "KARMA"
+        assert await page.locator(".tuto-discussion img").first.get_attribute("alt") == "KARMA"
         if n == 6:  # s'interposer : refusé ici, avec la raison
             await toucher_case(page, "d3")
             await toucher_case(page, "c3")

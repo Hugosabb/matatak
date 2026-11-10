@@ -11,8 +11,9 @@ import * as cg from 'chessgroundx/types';
 import { updateMovelist } from './movelist';
 import { uci2LastMove, UCIMove } from './chess';
 import { appliquerRois } from './rois';
+import { teteRoi } from './teteRoi';
 import { sound } from './sound';
-import { IMAGE, Roi, SAISON_DU_ROI } from './aventure/personnages';
+import { Roi, SAISON_DU_ROI } from './aventure/personnages';
 import { lire as lireAventure, noterPartieDemandee, prochainePartie } from './aventure/progression';
 
 interface EtapeTutoriel {
@@ -26,12 +27,10 @@ type Bulle = string | string[]; // une liste = plusieurs messages à la suite
 type TypeMessage = 'roi' | 'aide' | 'erreur' | 'bravo' | 'demo' | 'etape';
 interface Message { type: TypeMessage; texte: string; teinte: string }
 
-const CARTES = '/static/images/background/collection/sombre/';
 // Le temps de lire (Hugo : « ça va un peu vite »)
 const PAUSE_AVANT = 1600; // entre deux coups joués tout seuls : le temps de voir la carte bouger
 const PAUSE_REPONSE = 1100; // la réponse de l'adversaire
 const PAUSE_SUITE = 1700; // après le bravo, avant l'étape suivante
-const PAUSE_DEMO = 2600; // chaque flèche de la démonstration
 const DELAI_MESSAGE = 1100; // entre deux messages du fil
 const TEINTES: Record<string, string> = { ete: '#9bc781', hiver: '#92c9e0', printemps: '#da98c7', automne: '#eb963f' };
 
@@ -180,21 +179,49 @@ export class TutorialController extends PuzzleController {
         this.phase = 'demo';
         this.direTout(this.etape.bulle_demo);
         this.renderInfos();
-        demo.forEach(([, teinte, legende], i) => this.plus(PAUSE_DEMO * i + 400, () => {
+        // Une flèche à la fois, au rythme du joueur : « Suivant », puis « À toi ! » (Hugo, 10/11/2026 : ça allait
+        // trop vite pour lire les trois façons de sortir de l'échec)
+        const montrer = (i: number) => {
+            const [, teinte, legende] = demo[i];
             this.chessground.setAutoShapes(demo.slice(0, i + 1).map(([c, t]) => ({ orig: c.slice(0, 2) as cg.Key, dest: c.slice(2, 4) as cg.Key, brush: t })));
             this.dire(legende, 'demo', teinte);
+            this.bouton = i + 1 < demo.length
+                ? { texte: 'Suivant', action: () => montrer(i + 1) }
+                : { texte: 'À toi\u00a0!', action: () => this.aToi() };
             this.renderInfos();
-        }));
-        this.plus(PAUSE_DEMO * demo.length, () => this.aToi());
+        };
+        this.plus(400, () => montrer(0));
     }
 
+    /** Bouton qui remplace la consigne quand le tutoriel attend le joueur pour continuer. */
+    private bouton: { texte: string; action: () => void } | null = null;
+
     private aToi() {
+        this.bouton = null;
         this.phase = 'joueur';
         this.direTout(this.etape.bulle);
         if (this.etape.aide) this.dire(this.etape.aide, 'aide');
         this.chessground.set({ turnColor: 'white', movable: { color: 'white' } });
         this.setDests();
+        this.montrerLaCarteAJouer();
         this.renderInfos();
+    }
+
+    /** La carte à jouer, entourée d'un cercle doré qui rayonne (Hugo, 10/11/2026 ; static/tutoriel.css) ;
+     *  rien quand n'importe quel coup gagnant convient (« * »). */
+    private montrerLaCarteAJouer() {
+        const attendu = this.attendus[this.rang] ?? [];
+        this.marquerCases([...new Set(attendu.filter(c => c !== '*').map(c => c.slice(0, 2)))]);
+    }
+
+    /** Un cadre doré autour de la carte : une classe sur la pièce elle-même (static/tutoriel.css), donc centré
+     *  sur la carte quelle que soit la taille du plateau (avant : un calque posé en %, mal centré, Hugo). */
+    private marquerCases(cases: string[]) {
+        document.querySelectorAll('.tutorial-app cg-board piece.a-jouer').forEach(e => e.classList.remove('a-jouer'));
+        if (!cases.length) return;
+        document.querySelectorAll<HTMLElement & { cgKey?: string }>('.tutorial-app cg-board piece').forEach(p => {
+            if (p.cgKey && cases.includes(p.cgKey)) p.classList.add('a-jouer');
+        });
     }
 
     /** Un coup joué par le tutoriel (adversaire, ou la partie qui avance), avec son bruit. */
@@ -215,6 +242,7 @@ export class TutorialController extends PuzzleController {
             return;
         }
         this.chessground.setAutoShapes([]);
+        this.marquerCases([]);
         this.makeMove(move);
         this.rang += 1;
         if (this.rang >= this.attendus.length) return this.reussite();
@@ -243,13 +271,14 @@ export class TutorialController extends PuzzleController {
         this.goPly(this.ply);
         this.ffishBoard.setFen(this.fullfen);
         if (this.phase !== 'joueur') this.chessground.set({ movable: { color: undefined } });
-        else this.setDests();
+        else { this.setDests(); this.montrerLaCarteAJouer(); }
     }
 
     /** Étape réussie : le bravo s'ajoute au fil et l'étape suivante enchaîne toute seule (Hugo : « génial
      *  de pas avoir à cliquer sur Suivant ») ; seule la dernière s'arrête, sur la victoire. */
     private reussite() {
         this.chessground.set({ movable: { color: undefined } });
+        this.marquerCases([]);
         const derniere = this.tutorialId >= this.total;
         noterProgression(this.tutorialId, derniere);
         this.direTout(this.etape.succes, 'bravo');
@@ -262,6 +291,12 @@ export class TutorialController extends PuzzleController {
             return;
         }
         this.phase = 'adversaire';
+        if (this.ffishBoard.result() === '1-0') {
+            // Échec et mat ou Colline : on savoure, l'étape suivante attend le joueur (Hugo, 10/11/2026)
+            this.bouton = { texte: 'Continuer', action: () => { this.bouton = null; this.renderInfos(); this.nextTutorial(); } };
+            this.renderInfos();
+            return;
+        }
         this.renderInfos();
         this.plus(PAUSE_SUITE, () => this.nextTutorial());
     }
@@ -303,21 +338,24 @@ export class TutorialController extends PuzzleController {
         const cible = this.vinfos ?? document.querySelector('.infos') as HTMLElement | null;
         if (!cible) return;
         const fini = this.phase === 'succes';
-        // La consigne d'abord, puis le fil du Roi, et en bas la progression et « Quitter » (sur téléphone, ce
-        // bloc est sous le plateau : le plateau ne bouge plus quand le texte change, Hugo 27/10/2026)
+        // En haut la progression et « Quitter », puis le fil du Roi (sa tête dans le rond, comme dans l'Aventure),
+        // et la consigne en bas du bloc, juste au-dessus du plateau (Hugo, 10/11/2026 ; sur téléphone le bloc est
+        // au-dessus du plateau, réduit pour que tout se voie)
         this.vinfos = patch(cible, h('div.infos.tutorial-info', { class: { fini } }, [
-            fini
-                ? h('h2.tuto-victoire', 'À nous le Mananas\u00a0!')
-                : h('p.tuto-consigne', { class: { attente: this.phase !== 'joueur' } }, this.texte(this.etape.consigne)),
-            h('div.tuto-discussion', [
-                h('img', { attrs: { src: CARTES + IMAGE[this.roi], alt: this.roi } }),
-                this.leFil(),
-            ]),
-            fini ? h('div.tuto-suite', [h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => lancerNiveau1() } }, 'Niveau 1')]) : '',
             h('div.tuto-pied', [
                 h('span.tuto-num', `${this.tutorialId} / ${this.total}`),
                 fini ? '' : h('button.tuto-passer', { attrs: { type: 'button' }, on: { click: () => this.quitter() } }, 'Quitter'),
             ]),
+            h('div.tuto-discussion', [
+                teteRoi(this.roi),
+                this.leFil(),
+            ]),
+            fini
+                ? h('h2.tuto-victoire', 'À nous le Mananas\u00a0!')
+                : this.bouton
+                    ? h('button.mt-btn.mt-btn-or.tuto-continuer', { attrs: { type: 'button' }, on: { click: () => { const b = this.bouton; this.bouton = null; b?.action(); } } }, this.bouton.texte)
+                    : h('p.tuto-consigne', { class: { attente: this.phase !== 'joueur' } }, this.texte(this.etape.consigne)),
+            fini ? h('div.tuto-suite', [h('button.mt-btn.mt-btn-or', { attrs: { type: 'button' }, on: { click: () => lancerNiveau1() } }, 'Niveau 1')]) : '',
         ]));
         this.recalerPlateau();
     }

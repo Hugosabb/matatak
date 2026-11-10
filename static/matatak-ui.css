@@ -651,3 +651,26 @@ header.mt-entete { height: auto; z-index: auto; position: static; justify-conten
               linear-gradient(var(--mt-filet), var(--mt-filet)) left bottom / 100% 1px no-repeat; }
 .mt-entete h1 { margin: 0; padding: 0; } /* site.css donne 32 px de marge intérieure aux h1 */
 .mt-entete p { margin: 0; max-width: 58ch; font-size: 15.5px; line-height: 1.5; color: var(--mt-doux); }
+
+/* ===== Le Roi qui parle (client/teteRoi.ts : bulle de l'Aventure et du tutoriel) =====
+   Le rond (fond + liseré de la Saison) ; la tête et les mains (calques superposés, même cadre) passent devant.
+   Masque = le rond + les arcs de passage (--passage, dégradé conique centré sur le rond, 0° = en haut) : dans un arc
+   ouvert l'image dépasse, ailleurs elle est coupée au bord du rond ; une main .devant n'est jamais coupée.
+   Réglages par Roi faits par Hugo avec son outil (10/11/2026) : --l largeur, --b décalage du bas, --x de côté. */
+.tete-roi { --r: 30px; display: block; position: relative; flex: none; width: calc(2 * var(--r)); height: calc(2 * var(--r)); }
+.tete-roi::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #3a2d27, var(--mt-nuit)); box-shadow: 0 0 0 2px var(--saison, var(--mt-or)), 0 10px 18px -8px rgba(0, 0, 0, .9); }
+.tete-roi.printemps { --saison: var(--mt-printemps); }
+.tete-roi.ete { --saison: var(--mt-ete); }
+.tete-roi.automne { --saison: var(--mt-automne); }
+.tete-roi.hiver { --saison: var(--mt-hiver); }
+.tete-roi img { --centre: calc(50% - var(--x)) calc(100% + var(--b) - var(--r));
+  --masque: radial-gradient(circle var(--r) at var(--centre), #000 calc(100% - .5px), transparent), conic-gradient(from 0deg at var(--centre), var(--passage));
+  position: absolute; left: 50%; bottom: var(--b); width: var(--l); max-width: none; height: auto; transform: translateX(calc(-50% + var(--x)));
+  -webkit-mask: var(--masque); mask: var(--masque); box-shadow: none; border-radius: 0; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .45)); pointer-events: none; }
+.tete-roi img.devant { -webkit-mask: none; mask: none; }
+.tete-roi { --l: 80px; --b: -6px; --x: 0px; --passage: #000 0deg 75deg, transparent 75deg 300deg, #000 300deg 360deg; }
+.tete-roi.r-azar { --l: 90px; --b: -5px; --x: 1px; --passage: #000 0deg 90deg, transparent 90deg 210deg, #000 210deg 360deg; }
+.tete-roi.r-shans { --l: 88px; --b: -7px; --x: -2px; --passage: #000 0deg 75deg, transparent 75deg 195deg, #000 195deg 360deg; }
+.tete-roi.r-karma { --l: 80px; --b: -6px; --x: 0px; --passage: #000 0deg 75deg, transparent 75deg 300deg, #000 300deg 360deg; }
+.tete-roi.r-mojo { --l: 82px; --b: -2px; --x: 0px; --passage: #000 0deg 150deg, transparent 150deg 255deg, #000 255deg 360deg; }

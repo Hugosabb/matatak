@@ -1,4 +1,5 @@
 // Écran de l'Aventure (onglet Solo de /jouer) : un escalier de losanges sur un damier, qui monte vers
+import { teteRoi } from '../teteRoi';
 // la Colline, avec la carte à débloquer de chaque niveau dans une case voisine ; le guide parle en haut,
 // un seul bouton en bas (Hugo, 26/10/2026, d'après l'Apprendre de chess.com).
 
@@ -268,13 +269,7 @@ function ecranRoute(p: Progression, ctx: ContexteAventure): VNode {
             h('div.av-guide', [
                 // Le Roi qui parle : sa tête détourée dans un rond, plus sa carte (Hugo, 03/11/2026) ;
                 // images tirées des PSD de ../jeu (assets/site/images/background/rois/)
-                h(`span.av-guide-roi.${SAISON_DU_ROI[p.roi]}.r-${p.roi.toLowerCase()}`, [
-                    h('img', { attrs: {
-                        src: `/static/images/background/rois/${p.roi.toLowerCase()}-tete-256.webp`,
-                        srcset: `/static/images/background/rois/${p.roi.toLowerCase()}-tete-256.webp 1x, /static/images/background/rois/${p.roi.toLowerCase()}-tete-512.webp 2x`,
-                        alt: p.roi,
-                    } }),
-                ]),
+                teteRoi(p.roi, 'span.av-guide-roi.tete-roi'),
                 h('p', phraseDuGuide(p, ctx.tutoriel)),
             ]),
         ]),
