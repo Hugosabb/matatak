@@ -1219,8 +1219,11 @@ export class RoundController extends GameController {
             if (statut && vientDeFinir) statut.textContent = msg.status === 0 ? 'Annulée' : 'Terminée';
             this.renderFin();
             if (vientDeFinir) {
-                const el = document.querySelector('.fin-partie');
-                if (el) setTimeout(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 300);
+                // Tout le cadre visible, petits liens sous le bouton doré compris : au-dessus des barres fixées
+                // en bas (coups, ‹ ›, onglets revenus) ; scrollIntoView les ignorait (Hugo, 10/11/2026).
+                // Deux fois : une image (recrue de l'Aventure) peut agrandir le cadre en arrivant.
+                setTimeout(() => this.montrerLaFin(), 300);
+                setTimeout(() => this.montrerLaFin(), 1000);
             }
 
             // clean up gating/promotion widget left over the ground while game ended by time out
@@ -1873,6 +1876,25 @@ export class RoundController extends GameController {
     }
 
     /** Joue le coup trouvé quand le temps visé est écoulé, si la partie n'a pas bougé entre-temps. */
+    /** Fait défiler pour que le bas du cadre de fin passe au-dessus des barres fixées en bas de l'écran. */
+    private montrerLaFin() {
+        const fin = document.querySelector('.fin-partie');
+        if (!fin) return;
+        const vue = window.visualViewport?.height ?? window.innerHeight; // Safari : sans sa barre du bas
+        let bas = vue;
+        for (const sel of ['.mt-tab', '#barre-partie', '.round-app .movelist-block']) {
+            const el = document.querySelector(sel);
+            if (!el || getComputedStyle(el).position !== 'fixed') continue;
+            const r = el.getBoundingClientRect();
+            if (r.height > 0 && r.top > vue / 2) bas = Math.min(bas, r.top);
+        }
+        const r = fin.getBoundingClientRect();
+        const ecart = r.bottom - (bas - 12);
+        // Le bas du cadre d'abord ; sans faire passer son titre sous le haut de l'écran si on peut l'éviter
+        const decalage = r.height + 24 <= bas ? Math.min(ecart, r.top - 12) : ecart;
+        if (ecart > 0 && decalage > 0) window.scrollBy({ top: decalage, behavior: 'smooth' });
+    }
+
     private jouerCoupOrdinateur(coup: string) {
         // Nombre de coups de la partie, pas `this.ply` : celui-ci suit le coup affiché, et reculer dans
         // les coups pendant que l'ordinateur réfléchit lui faisait jeter son coup pour toujours (Hugo, 03/11/2026)

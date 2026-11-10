@@ -4,7 +4,9 @@ import os
 
 import pytest
 
-from conftest import attendre, dernier_plateau, ecouter_partie, envoyer, id_partie, ouvrir
+import pyffish as sf
+
+from conftest import attendre, couleur_du_joueur, dernier_plateau, ecouter_partie, envoyer, id_partie, ouvrir
 
 pytestmark = pytest.mark.asyncio
 
@@ -401,4 +403,74 @@ async def test_l_intro_avant_le_choix_du_roi(site, chromium):
     await page.reload()
     await page.wait_for_selector(".av-rois")
     assert await page.locator(".av-intro").count() == 0
+    assert not page.erreurs, page.erreurs
+
+
+@pytest.mark.parametrize("hauteur", [568, 740])
+async def test_fin_de_victoire_visible_au_dessus_des_barres_du_bas(site, chromium, hauteur):
+    """Bug d'Hugo (10/11/2026) : sur téléphone, après une victoire, l'écran ne descendait pas assez : les
+    liens sous « Partie suivante » restaient sous la ligne des coups, la barre ‹ › et les onglets."""
+    page = await ouvrir(chromium, site, telephone=True)
+    await page.set_viewport_size({"width": 375, "height": hauteur})
+    page.on("dialog", lambda d: d.accept())
+    await page.evaluate(
+        """localStorage.setItem('jouer_choix', JSON.stringify({adv: 'ia', variant: 'matatakmini'}));
+        localStorage.setItem('matatak_aventure_plateau_auto', 'non');
+        localStorage.setItem('matatak_aventure', JSON.stringify({
+            version: 1, roi: 'AZAR', recrues: ['DYSKO', 'TAMTAM', 'SHASHA'], equipe: {champions: ['DYSKO'], pions: ['TAMTAM', 'SHASHA']},
+            etape: 0, victoires: 1, niveauOrdi: 1, parties: 10, flamme: {jours: 0, dernier: ''}, plateau: 'matatakmini'}))"""
+    )
+    await page.goto(site + "/jouer")
+    await page.wait_for_selector(".av-route")
+    await page.locator("button.lancer").click()
+    await page.wait_for_url(lambda url: "/jouer" not in url, timeout=15000)
+    gid = id_partie(page)
+    await ecouter_partie(page, gid)
+    assert await attendre(page, "() => window.__msgs.some(m => m.type === 'board')")
+    colline = {"b4", "c4", "b5", "c5"}
+    moi = await couleur_du_joueur(page)
+    lettre = "K" if moi == "w" else "k"
+    for _ in range(14):
+        p = await dernier_plateau(page)
+        if p["status"] >= 0:
+            break
+        coups = sf.legal_moves("matatakmini", p["fen"], [])
+        if p["fen"].split(" ")[1] != moi:
+            # coup de l'ordinateur, joué par le test : sans prise, le plus loin possible de la Colline
+            occ = set()
+            for r, rang in enumerate(p["fen"].split(" ")[0].split("/")):
+                f = 0
+                for c in rang:
+                    if c.isdigit(): f += int(c); continue
+                    occ.add(f"{chr(97+f)}{8-r}"); f += 1
+            calmes = [c for c in coups if c[2:4] not in occ and c[2:4] not in colline] or coups
+            n = len([m for m in await page.evaluate("window.__msgs") if m.get("type") == "board"])
+            await envoyer(page, {"type": "move", "gameId": gid, "move": calmes[-1], "clocks": [0, 0], "ply": p["ply"] + 1})
+            await attendre(page, "n => window.__msgs.filter(m => m.type === 'board').length > n", 5000, n)
+            continue
+        rangs = p["fen"].split(" ")[0].split("/")
+        roi = None
+        for r, rang in enumerate(rangs):
+            f = 0
+            for c in rang:
+                if c.isdigit(): f += int(c); continue
+                if c == lettre: roi = f"{chr(97+f)}{8-r}"
+                f += 1
+        def dist(case):
+            return min(max(abs(ord(case[0]) - ord(h[0])), abs(int(case[1:]) - int(h[1:]))) for h in colline)
+        du_roi = [c for c in coups if c[:2] == roi]
+        coup = min(du_roi, key=lambda c: dist(c[2:4])) if du_roi else coups[0]
+        n = len([m for m in await page.evaluate("window.__msgs") if m.get("type") == "board"])
+        await envoyer(page, {"type": "move", "gameId": gid, "move": coup, "clocks": [0, 0], "ply": p["ply"] + 1})
+        await attendre(page, "n => window.__msgs.filter(m => m.type === 'board').length > n", 12000, n)
+    await page.wait_for_selector(".fin-partie", timeout=10000)
+    await page.wait_for_timeout(2000)
+    r = await page.evaluate("""() => { const f = document.querySelector('.fin-partie').getBoundingClientRect();
+      const bas = ['.mt-tab', '#barre-partie', '.round-app .movelist-block'].map(s => document.querySelector(s))
+        .filter(e => e && getComputedStyle(e).position === 'fixed' && e.getBoundingClientRect().height > 0)
+        .map(e => e.getBoundingClientRect().top);
+      return {haut: f.top, bas: f.bottom, barres: Math.min(innerHeight, ...bas), texte: document.querySelector('.fin-partie').innerText}; }""")
+    assert "Victoire" in r["texte"] and "Équipe" in r["texte"], r["texte"]
+    assert r["bas"] <= r["barres"], r
+    assert r["haut"] >= 0, r
     assert not page.erreurs, page.erreurs
