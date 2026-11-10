@@ -18,9 +18,13 @@ etape "Bundle du navigateur (esbuild)"
 node esbuild.mjs dev >/dev/null || echecs+=("bundle")
 
 etape "Types (tsc) : seules les erreurs des fichiers Matatak comptent"
-nouvelles=$(./node_modules/typescript/bin/tsc --incremental false --noEmit 2>&1 \
-  | grep -E "client/(draft|carteAnimee|collection|apprendre|equipe|installer|rois|editor/)" || true)
-if [ -n "$nouvelles" ]; then echo "$nouvelles"; echecs+=("types"); else echo "ok"; fi
+if [ ! -x ./node_modules/typescript/bin/tsc ]; then
+  echo "tsc introuvable (node_modules manquant) : rien n'a été vérifié"; echecs+=("types")
+else
+  nouvelles=$(./node_modules/typescript/bin/tsc --incremental false --noEmit 2>&1 \
+    | grep -E "client/(draft|carteAnimee|collection|apprendre|equipe|installer|rois|editor/)" || true)
+  if [ -n "$nouvelles" ]; then echo "$nouvelles"; echecs+=("types"); else echo "ok"; fi
+fi
 
 etape "Tests du navigateur (Jest)"
 sortie=$(./node_modules/.bin/yarn --ignore-engines -s test 2>&1); code=$?
