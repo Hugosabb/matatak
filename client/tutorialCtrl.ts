@@ -211,16 +211,33 @@ export class TutorialController extends PuzzleController {
      *  rien quand n'importe quel coup gagnant convient (« * »). */
     private montrerLaCarteAJouer() {
         const attendu = this.attendus[this.rang] ?? [];
-        this.marquerCases([...new Set(attendu.filter(c => c !== '*').map(c => c.slice(0, 2)))]);
+        // « * » (n'importe quel coup qui gagne : mat, Colline) : les cartes qui ont un coup gagnant (Hugo)
+        const coups = attendu.includes('*')
+            ? this.ffishBoard.legalMoves().split(' ').filter(c => c && this.gagnant(c))
+            : attendu;
+        this.marquerCases([...new Set(coups.map(c => c.slice(0, 2)))]);
     }
 
     /** Un cadre doré autour de la carte : une classe sur la pièce elle-même (static/tutoriel.css), donc centré
      *  sur la carte quelle que soit la taille du plateau (avant : un calque posé en %, mal centré, Hugo). */
     private marquerCases(cases: string[]) {
-        document.querySelectorAll('.tutorial-app cg-board piece.a-jouer').forEach(e => e.classList.remove('a-jouer'));
-        if (!cases.length) return;
+        this.casesAJouer = cases;
+        this.appliquerCadre();
+        // Le plateau dessine les cartes à l'image suivante, et en recrée quand l'étape change (étapes 2 et 3 :
+        // SHASHA et DYSKO arrivent au moment où le joueur a la main ; Hugo) : on réapplique à chaque changement
+        const plateau = document.querySelector('.tutorial-app cg-board');
+        if (plateau && !this.observateurCadre) {
+            this.observateurCadre = new MutationObserver(() => this.appliquerCadre());
+            this.observateurCadre.observe(plateau, { childList: true });
+        }
+    }
+    private casesAJouer: string[] = [];
+    private observateurCadre: MutationObserver | null = null;
+
+    private appliquerCadre() {
         document.querySelectorAll<HTMLElement & { cgKey?: string }>('.tutorial-app cg-board piece').forEach(p => {
-            if (p.cgKey && cases.includes(p.cgKey)) p.classList.add('a-jouer');
+            const oui = !!p.cgKey && this.casesAJouer.includes(p.cgKey);
+            if (p.classList.contains('a-jouer') !== oui) p.classList.toggle('a-jouer', oui);
         });
     }
 

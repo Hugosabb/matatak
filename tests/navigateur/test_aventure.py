@@ -399,6 +399,9 @@ async def test_le_tutoriel_se_joue_jusqu_a_la_colline(site, chromium):
                 break
             await page.wait_for_timeout(250)
         await page.wait_for_selector(".tuto-consigne:not(.attente)", timeout=15000)
+        # La carte à jouer rayonne, à chaque étape (étapes 2 et 3 : les cartes arrivent juste avant, Hugo 10/11/2026)
+        # (10 et 13 : n'importe quel coup gagnant, « * » : les cartes qui en ont un rayonnent aussi)
+        await page.wait_for_selector("cg-board piece.a-jouer", timeout=3000)
         assert await page.locator(".tuto-discussion img").first.get_attribute("alt") == "KARMA"
         if n == 6:  # s'interposer : refusé ici, avec la raison
             await toucher_case(page, "d3")
