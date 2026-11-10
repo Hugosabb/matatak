@@ -89,12 +89,18 @@
 /* ---------- En haut (reste visible en défilant) : le Roi et sa bulle beige, posés sur les feuilles, sans
    panneau autour (Hugo, 27/10/2026) ---------- */
 .av-haut { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--site-header-height, 60px) + 28px); z-index: 4; margin: 16px 0 12px; } /* descendu (Hugo, 27/10/2026) : trop près de la barre de navigation */
-.av-guide img { box-shadow: 0 10px 18px -8px rgba(0, 0, 0, .9); }
+.av-guide > img { box-shadow: 0 10px 18px -8px rgba(0, 0, 0, .9); }
 .av-guide p { box-shadow: 0 10px 22px -10px rgba(0, 0, 0, .9); }
 @media (max-width: 760px) { .av-haut { top: calc(env(safe-area-inset-top, 0px) + 24px); } } /* pas d'en-tête sur téléphone */
 @media (min-width: 761px) and (max-height: 500px) and (orientation: landscape) { .av-haut { position: static; } } /* paysage : peu de hauteur, il défile avec la route */
 .av-guide { display: flex; gap: 10px; align-items: center; }
-.av-guide img { flex: none; width: 48px; border-radius: 9%; }
+.av-guide-roi { flex: none; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: end center;
+  background: radial-gradient(circle at 50% 35%, #3a2d27, var(--mt-nuit)); box-shadow: 0 0 0 2px var(--saison, var(--mt-or)), 0 10px 18px -8px rgba(0, 0, 0, .9); }
+.av-guide-roi.printemps { --saison: var(--mt-printemps); }
+.av-guide-roi.ete { --saison: var(--mt-ete); }
+.av-guide-roi.automne { --saison: var(--mt-automne); }
+.av-guide-roi.hiver { --saison: var(--mt-hiver); }
+.av-guide-roi img { width: 112%; max-width: none; margin-bottom: -10%; box-shadow: none; border-radius: 0; }
 .av-guide p { position: relative; margin: 0; padding: 9px 13px; border-radius: 14px; background: var(--mt-encre); color: var(--mt-nuit); font-weight: 700; font-size: 15px; line-height: 1.35; }
 .av-guide p::before { content: ''; position: absolute; left: -5px; top: 50%; width: 11px; height: 11px; background: var(--mt-encre); transform: translateY(-50%) rotate(45deg); }
 
