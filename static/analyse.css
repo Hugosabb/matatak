@@ -2,7 +2,7 @@
  * Chargée après analysis.css (extra_css de server/views/analysis.py).
  * Ordinateur : infos à gauche, plateau au centre à sa taille maximale (comme en partie), jauge
  * « qui mène » collée au plateau, moteur + coups + barre à droite. Téléphone : infos, plateau,
- * jauge horizontale, barre, moteur, coups. */
+ * jauge horizontale (debout à droite du Mini), barre, moteur, coups. */
 
 body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app { gap: 12px; padding: 0 16px 24px; }
 body:is([data-view="analysis"], [data-view="puzzle"]) under-left#spectators,
@@ -196,4 +196,16 @@ body:is([data-view="analysis"], [data-view="puzzle"]) under-board { display: non
   }
   body:is([data-view="analysis"], [data-view="puzzle"]) #gauge.flipped { transform: scaleX(-1); }
   body:is([data-view="analysis"], [data-view="puzzle"]) #movelist { max-height: none; }
+  /* Mini : le plateau est plus étroit que l'écran, la jauge se met debout à sa droite, comme sur
+     ordinateur (Hugo, 12/11/2026 : « plus parlant »). Le 8 × 8 prend toute la largeur : jauge couchée. */
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) { --plateau: min(100vw - 76px, calc((100svh - 300px) / 2)); grid-template-areas: 'side' 'board' 'move-controls' 'tools'; }
+  body[data-view="analysis"] .analysis-app:has(#mainboard.matatak4x8):has(.sidebar-first select#variant) { grid-template-areas: 'board' 'move-controls' 'tools' 'side'; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app #mainboard.matatak4x8 { width: var(--plateau); }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) #gauge {
+    grid-area: board; justify-self: center; align-self: start;
+    width: 12px; height: calc(var(--plateau) * 2); margin-left: calc(var(--plateau) + 32px);
+  }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) #gauge .black { width: 100%; height: var(--noirs, 50%) !important; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) #gauge::before { left: 0; right: 0; top: 50%; bottom: auto; width: auto; height: 2px; margin: -1px 0 0; }
+  body:is([data-view="analysis"], [data-view="puzzle"]) .analysis-app:has(#mainboard.matatak4x8) #gauge.flipped { transform: rotateX(180deg); }
 }

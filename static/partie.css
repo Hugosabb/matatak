@@ -153,6 +153,9 @@ body[data-anon="True"] .round #roundchat { display: none; }
      barres du bas, et les feuilles du fond se voient au-dessus et en dessous */
   body.en-partie .round-app { min-height: calc(100svh - var(--mt-bas, 0px) - var(--mt-coups, 0px) - 4px); align-content: center; }
   body.en-partie .round { padding-top: 4px; }
+  /* On écrit dans le chat : le clavier remonte les barres fixes du bas, qui cachaient l'écran
+     (Hugo, 12/11/2026). Elles reviennent dès qu'on quitte le champ. */
+  body:has(#chat-entry:focus) :is(.round-app .movelist-block, #barre-partie, .mt-tab) { display: none; }
 }
 
 /* Liste des coups repliée : le cadre ne garde que sa hauteur utile (résultat de fin de partie) */
