@@ -271,7 +271,7 @@ async def test_entre_amis_chacun_choisit_son_equipe(site, chromium):
     hote = await ouvrir(chromium, site)
     await hote.evaluate("localStorage.setItem('jouer_choix', JSON.stringify({adv: 'ami', variant: 'matatak'}))")
     await hote.goto(site + "/jouer")
-    await hote.locator(".equipe-ami button.choix-eq", has_text="Hiver").click()  # équipe de Saison (10/11/2026)
+    await hote.locator(".equipe-ami label.choix-eq", has_text="Hiver").click()  # équipe de Saison (10/11/2026)
     await capture(hote, "ami-equipe-pc")
     await hote.locator("button.lancer").dispatch_event("click")
     await hote.wait_for_url("**/invite/**", timeout=15000)

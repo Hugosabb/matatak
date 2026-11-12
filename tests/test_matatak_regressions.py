@@ -193,6 +193,34 @@ class PartieContreIATestCase(AioHTTPTestCase):
             self.assertEqual(pieces_ia, {pion.upper(), champion.upper()} if ia_blancs else {pion, champion}, niveau)
             joueur.game_in_progress = None
 
+    async def test_solo_equipe_choisie_par_le_joueur(self):
+        """Partie libre (12/11/2026) : le joueur choisit l'équipe de départ d'une Saison, comme entre
+        amis (Hiver : BONGO « l » et FRANK « w »), sur le Mini comme sur le 8×8."""
+        from user import User
+        from wsl import handle_create_ai_challenge
+
+        app_state = get_app_state(self.app)
+        joueur = User(app_state, username="Solo-Koala#000004", anon=True)
+        app_state.users[joueur.username] = joueur
+        for variante in ("matatakmini", "matatak"):
+            for couleur in ("w", "b", "r"):
+                data = {
+                    "variant": variante, "fen": "", "color": couleur, "minutes": 0, "increment": 0,
+                    "byoyomiPeriod": 0, "rated": False, "level": 3, "chess960": False,
+                    "rm": False, "draft": False, "boost": 0, "equipe": "hiver",
+                }
+                with patch("wsl.ws_send_json", new=AsyncMock()) as envoi:
+                    await handle_create_ai_challenge(app_state, AsyncMock(), joueur, data)
+                reponse = envoi.await_args.args[1]
+                game = app_state.games[reponse["gameId"]]
+                placement = game.initial_fen.split(" ")[0]
+                blancs = reponse["wplayer"] == joueur.username
+                miennes = {c.lower() for c in placement if c.isupper() == blancs and c.isalpha() and c.lower() != "k"}
+                self.assertTrue({"l", "w"} <= miennes, (variante, couleur, placement))
+                if variante == "matatakmini":
+                    self.assertEqual(miennes, {"l", "w"}, placement)
+                joueur.game_in_progress = None
+
 
 class CoupDePouceTestCase(AioHTTPTestCase):
     async def get_application(self):

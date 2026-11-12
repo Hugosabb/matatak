@@ -1,5 +1,5 @@
 import { carteTournante, duoEchange } from './carteAnimee';
-import { EQUIPES_SAISON, libelleEquipe, ORDRE_SAISONS, SaisonEquipe, vignetteEquipe } from './equipesSaison';
+import { choixEquipe, SaisonEquipe } from './equipesSaison';
 import { ROIS, roiDuNiveau, saisonDuNiveau, Saison } from './rois';
 import { montrerEquipe, renderAventure } from './aventure/vue';
 import { classeeDebloquee, classeeForcee, draftDebloque, forcerClassee, lierPartie, lire as lireAventure, noterPartieDemandee, Partie as PartieAventure, prochainePartie, synchroniserAvecLeCompte } from './aventure/progression';
@@ -500,8 +500,9 @@ export class LobbyController implements ChatController {
         });
     }
 
-    createAIChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, level: number, rm: boolean, chess960: boolean, rated: boolean, draft: boolean, boost: number, rois?: { white: Saison, black: Saison }) {
+    createAIChallengeMsg(variant: string, color: string, fen: string, minutes: number, increment: number, byoyomiPeriod: number, level: number, rm: boolean, chess960: boolean, rated: boolean, draft: boolean, boost: number, rois?: { white: Saison, black: Saison }, equipe = '') {
         this.doSend({
+            equipe: equipe, // partie libre : l'équipe de Saison du joueur ('' = au hasard)
             rois: rois ? { white: rois.white, black: rois.black } : null,
             type: "create_ai_challenge",
             rm: rm,
@@ -681,14 +682,21 @@ export class LobbyController implements ChatController {
 
     /** Onglet du mode en cours allumé dans la barre du bas du téléphone (templates/template.html). */
     private marquerLeMode() {
-        document.querySelectorAll<HTMLElement>('.mt-tab a[data-mode]').forEach(a => a.classList.toggle('actif', a.dataset.mode === this.jouer.adv));
+        document.querySelectorAll<HTMLElement>('.mt-tab a[data-mode]').forEach(a => a.classList.toggle('actif', a.dataset.mode === this.onglet()));
     }
 
     /** Aventure, Défier un ami ou Arène ; pendant une recherche classée, changer d'onglet l'annule. */
+    /** L'onglet affiché : la partie libre contre l'ordinateur est rangée dans « Défier un ami »
+     *  (Hugo, 12/11/2026 : elle était cachée dans l'Aventure, et les deux écrans se ressemblent). */
+    private onglet(): JouerAdversaire {
+        return this.jouer.adv === 'ia' && this.soloLibre ? 'ami' : this.jouer.adv;
+    }
+
     private changerDeMode(adv: JouerAdversaire, sens = 0) {
-        if (adv === this.jouer.adv) return;
+        if (adv === this.onglet()) return;
         if (this.classeeDebut && adv !== 'classee') this.annulerClassee();
         this.jouer.adv = adv;
+        this.soloLibre = false; // l'onglet « Défier un ami » s'ouvre sur l'ami, l'onglet Aventure sur l'Aventure
         this.majJouer();
         window.scrollTo({ top: 0 });
         const page = document.querySelector<HTMLElement>('.jouer-page');
@@ -718,7 +726,7 @@ export class LobbyController implements ChatController {
             const rapide = performance.now() - depart.t < 700;
             depart = null;
             if (!rapide || Math.abs(dx) < 70 || Math.abs(dx) < 1.8 * Math.abs(dy)) return;
-            const i = ORDRE_DES_MODES.indexOf(this.jouer.adv) + (dx < 0 ? 1 : -1);
+            const i = ORDRE_DES_MODES.indexOf(this.onglet()) + (dx < 0 ? 1 : -1);
             if (i >= 0 && i < ORDRE_DES_MODES.length) this.changerDeMode(ORDRE_DES_MODES[i], dx < 0 ? 1 : -1);
         }, { passive: true });
     }
@@ -952,7 +960,7 @@ export class LobbyController implements ChatController {
         }
         if (c.adv === 'ia') {
             this.createMode = 'playAI';
-            this.createAIChallengeMsg(c.variant, color, fen, tc.min, tc.inc, 0, c.level, false, false, false, this.jouerDraft, 0);
+            this.createAIChallengeMsg(c.variant, color, fen, tc.min, tc.inc, 0, c.level, false, false, false, this.jouerDraft, 0, undefined, fen ? '' : this.jouerEquipe);
         } else {
             this.createMode = 'playFriend';
             this.createInviteFriendMsg(c.variant, color, fen, tc.min, tc.inc, 0, 0, false, false, this.jouerDraft, boost, fen ? '' : this.jouerEquipe);
@@ -1034,7 +1042,7 @@ export class LobbyController implements ChatController {
         // Options repliées : on rappelle ce qui sera joué (cadence toujours, le reste seulement s'il a changé).
         const cadence = cadences.find(x => x.id === c.tc) ?? cadences[0];
         const resume = [
-            ia ? '' : (c.variant === 'matatakmini' ? 'Mini' : '8×8'),
+            c.variant === 'matatakmini' ? 'Mini' : '8×8',
             cadence.detail ? `${cadence.label} ${cadence.detail}` : cadence.label,
             c.color === 'w' ? 'vous commencez' : c.color === 'b' ? 'en second' : '',
             this.jouerDraft ? 'Draft' : '',
@@ -1045,8 +1053,8 @@ export class LobbyController implements ChatController {
         // Pendant une recherche classée, changer d'onglet annule la recherche
         const choisirAdv = (adv: JouerAdversaire) => this.changerDeMode(adv);
         const onglets = () => h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
-            bouton(c.adv === 'ia', 'button', () => choisirAdv('ia'), [iconeMode('ia'), 'Aventure']), // noms des onglets : Hugo, 27/10/2026
-            bouton(c.adv === 'ami', 'button', () => choisirAdv('ami'), [iconeMode('ami'), 'Défier un ami']),
+            bouton(this.onglet() === 'ia', 'button', () => choisirAdv('ia'), [iconeMode('ia'), 'Aventure']), // noms des onglets : Hugo, 27/10/2026
+            bouton(this.onglet() === 'ami', 'button', () => choisirAdv('ami'), [iconeMode('ami'), 'Défier un ami']),
             bouton(c.adv === 'classee', 'button', () => choisirAdv('classee'), [iconeMode('classee'), 'Arène']),
         ]);
         const choixAdv = onglets();
@@ -1108,25 +1116,24 @@ export class LobbyController implements ChatController {
             return h('div.jouer-page.aventure-page', [this.renderDefisRecus(), renderAventure(ctx), ongletsDuBas]);
         }
 
+        // Équipe de départ d'une Saison (Roi, Champion, Pion), pas un Roi seul (Hugo, 10/11/2026) ; en Solo
+        // aussi depuis le 12/11/2026. Le Draft et une position de l'éditeur fixent déjà les équipes.
+        const blocEquipe = !this.jouerDraft && !this.jouerFen ? h('div.bloc.equipe-ami', [
+            choixEquipe(this.jouerEquipe as SaisonEquipe | '', v => { this.jouerEquipe = v; maj(); }),
+        ]) : '';
         const partie = h('section.panneau.partie', [
             choixAdv,
+            // Dans « Défier un ami » : Ami (par défaut) ou Solo (la partie libre contre l'ordinateur)
+            h('div.contre', { attrs: { role: 'group', 'aria-label': 'Contre qui ?' } }, [
+                bouton(!ia, 'button', () => { c.adv = 'ami'; this.soloLibre = false; maj(); }, ['Ami']),
+                bouton(ia, 'button', () => { c.adv = 'ia'; this.soloLibre = true; maj(); }, ['Solo']),
+            ]),
             // Position venue de l'éditeur : on la voit, on peut la retirer (plus de champ FEN à coller)
             this.jouerFen ? h('div.position-editeur', [
                 h('span', [h('b', "Position de l'éditeur"), ` · ${c.variant === 'matatakmini' ? 'Mini' : '8×8'}`]),
                 h('button', { attrs: { type: 'button' }, on: { click: () => { this.jouerFen = ''; maj(); } } }, 'Retirer'),
             ]) : '',
-            // Partie libre contre l'ordinateur : le plateau reste visible ; entre amis, dans les options
-            ia && !this.jouerFen ? blocPlateau('4 × 8 · rapide et facile') : '', // la position de l'éditeur fixe le plateau
-            !ia && !this.jouerDraft && !this.jouerFen ? h('div.bloc.equipe-ami', [
-                // L'équipe d'une Saison (Roi, Champion, Pion), pas un Roi seul (Hugo, 10/11/2026)
-                h('div.etiq', [h('span', 'Équipe de Saison'), this.jouerEquipe ? h('b', `Équipe ${EQUIPES_SAISON[this.jouerEquipe as SaisonEquipe].nom}`) : '']),
-                h('div.choix-equipe', { attrs: { role: 'group', 'aria-label': 'Équipe de Saison' } }, [
-                    bouton(this.jouerEquipe === '', 'button.choix-eq', () => { this.jouerEquipe = ''; maj(); }, [h('span.hasard'), h('small', 'Hasard')]),
-                    ...ORDRE_SAISONS.map(sa =>
-                        bouton(this.jouerEquipe === sa, 'button.choix-eq', () => { this.jouerEquipe = sa; maj(); },
-                            [vignetteEquipe(sa), h('small', libelleEquipe(sa))])),
-                ]),
-            ]) : '',
+            blocEquipe,
             ia ? h('div.niveau', [
                 h('div.etiq', [h('label', { attrs: { for: 'jouer-niveau' } }, 'Adversaire'), h('b', `${roiDuNiveau(c.level)} · Niveau ${c.level}`)]),
                 h('div.curseur', [
@@ -1146,8 +1153,9 @@ export class LobbyController implements ChatController {
                 attrs: { type: 'button', 'aria-expanded': String(this.jouerOptions), 'aria-controls': 'plus-options' },
                 on: { click: () => { this.jouerOptions = !this.jouerOptions; maj(); } },
             }, this.jouerOptions ? [h('span', "Moins d'options")] : [h('span', "Plus d'options"), h('small', resume)]),
-            this.jouerOptions ? this.renderPlusOptions(maj, ia ? reglages : [blocPlateau('4 × 8 · rapide et facile'), ...reglages], ia) : '',
-            ia && this.soloLibre ? h('button.deja', { attrs: { type: 'button' }, on: { click: () => { this.soloLibre = false; maj(); } } }, "Retour à l'Aventure") : '',
+            // Ami comme Solo : on commence par l'équipe ; le plateau (selon l'écran par défaut) est dans les
+            // options (Hugo, 12/11/2026). La position de l'éditeur fixe le plateau.
+            this.jouerOptions ? this.renderPlusOptions(maj, this.jouerFen ? reglages : [blocPlateau('4 × 8 · rapide et facile'), ...reglages], ia) : '',
             // Nouveau joueur (tutoriel ni fini ni écarté sur cet appareil) : on apprend d'abord.
             // Contre un ami, on ne bloque pas : c'est l'ami qui peut montrer les règles.
             ...(ia && !reglesConnues() ? [

@@ -222,8 +222,10 @@ async def lancer_draft_solo(page, site):
         "localStorage.setItem('jouer_choix', JSON.stringify({adv: 'ia', variant: 'matatakmini', level: 2}))"
     )
     await page.goto(site + "/jouer")
-    # L'onglet Solo ouvre l'Aventure : le Draft contre l'ordinateur est dans « Partie libre »
-    await page.locator(".av-lien", has_text="Partie libre").click()
+    # La partie libre contre l'ordinateur est dans « Défier un ami » (Hugo, 12/11/2026)
+    await page.locator(".choix-adv button", has_text="Défier un ami").first.dispatch_event("click")
+    await page.locator(".contre button", has_text="Solo").click()
+    assert await page.locator(".choix-adv button.on", has_text="Défier un ami").count() >= 1
     await page.click("button.plus")
     await page.locator("label.interrupteur").first.click()
     await page.locator("button.lancer").dispatch_event("click")
@@ -354,7 +356,7 @@ async def test_barre_du_bas_modes_balayage_et_plus(site, chromium):
     panneau = page.locator("#mt-plus")
     await panneau.wait_for(state="visible", timeout=3000)
     texte = await panneau.inner_text()
-    for mot in ("Tutoriel", "Collection", "Puzzles", "Palmarès", "Analyse", "Éditeur", "Le jeu de société", "Se connecter"):
+    for mot in ("Tutoriel", "Collection", "Puzzles", "Palmarès", "Éditeur", "Le jeu de société", "Se connecter"):
         assert mot in texte, (mot, texte)
     assert "Apprendre" not in texte, texte
     await page.locator(".mt-plus-fond").tap(position={"x": 20, "y": 20})
@@ -679,27 +681,51 @@ async def _toucher_coup(page, coup, noir=False, largeur=4):
         await page.wait_for_timeout(150)
 
 
-async def test_puzzle_rate_le_bon_coup_se_joue_et_niveau_suivant(site, chromium):
-    """Puzzles (Hugo, 03/11/2026) : un mauvais coup, la carte revient, le bon coup se joue tout seul avec
-    une flèche, « Raté » et « Niveau suivant » ; le niveau reste à refaire."""
-    niveau = _niveau_de_campagne(1)
+async def test_puzzle_mauvais_coup_on_reessaie(site, chromium):
+    """Puzzles (Hugo, 12/11/2026) : un mauvais coup ne montre plus la solution (« c'est horrible ») ;
+    la carte revient et on réessaie. Le niveau résolu ensuite est validé."""
+    # Un niveau en plusieurs coups : au dernier coup, tout coup gagnant est accepté
+    import json as _json
+
+    niveaux = _json.load(open("server/campaign_matatakmini.json"))
+    niveau = next(x for x in niveaux if len(x["moves"].split(",")) >= 3)
+    n = niveau["level"]
+    page = await ouvrir(chromium, site, telephone=True)
+    await page.goto(site + f"/puzzle/matatakmini/level/{n}")
+    await page.wait_for_selector("cg-board")
+    noir = niveau["fen"].split()[1] == "b"
+    coups = niveau["moves"].split(",")
+    mauvais = next(c for c in sf.legal_moves("matatakmini", niveau["fen"], []) if c != coups[0])
+    await _toucher_coup(page, mauvais, noir=noir)
+    await page.wait_for_timeout(1500)
+    assert await page.locator(".fin-puzzle").count() == 0, "la solution ne doit pas se jouer toute seule"
+    assert "Essayez autre chose" in await page.locator(".feedback").inner_text()
+    assert await page.locator("cg-container svg line, cg-container svg path").count() == 0
+    for i, coup in enumerate(coups):
+        if i % 2 == 0:
+            await _toucher_coup(page, coup, noir=noir)
+            await page.wait_for_timeout(300)
+    fin = page.locator(".fin-puzzle")
+    await fin.wait_for(timeout=5000)
+    assert "Réussi" in await fin.inner_text()
+    resolus = await page.evaluate("JSON.parse(localStorage.getItem('matatak_campaign_solved_matatakmini') || '[]')")
+    assert n in resolus
+    assert not page.erreurs, page.erreurs
+
+
+async def test_puzzle_solution_vue_niveau_suivant_et_coche(site, chromium):
+    """Hugo, 12/11/2026 : on ne refait pas un puzzle dont on a vu la réponse."""
     page = await ouvrir(chromium, site, telephone=True)
     await page.goto(site + "/puzzle/matatakmini/level/1")
     await page.wait_for_selector("cg-board")
-    bon = niveau["moves"].split(",")[0]
-    mauvais = next(c for c in sf.legal_moves("matatakmini", niveau["fen"], []) if c != bon)
-    await _toucher_coup(page, mauvais, noir=niveau["fen"].split()[1] == "b")
+    await page.locator("a.solution").wait_for(state="visible", timeout=8000)
+    await page.locator("a.solution").click()
     fin = page.locator(".fin-puzzle")
     await fin.wait_for(timeout=5000)
-    texte = await fin.inner_text()
-    assert "Raté" in texte and "reste à refaire" in texte, texte
+    assert "Voici la solution" in await fin.inner_text()
     assert (await fin.locator(".mt-btn-or").inner_text()).lower() == "niveau suivant"
-    assert await fin.locator("button.fin-lien", has_text="Réessayer").count() == 1
-    # Le bon coup a été joué (dernier coup) et la flèche le montre
-    assert await page.locator(f"cg-board square.last-move").count() >= 1
-    assert await page.locator("cg-container svg line, cg-container svg path").count() >= 1
     resolus = await page.evaluate("JSON.parse(localStorage.getItem('matatak_campaign_solved_matatakmini') || '[]')")
-    assert 1 not in resolus
+    assert 1 in resolus
     assert not page.erreurs, page.erreurs
 
 

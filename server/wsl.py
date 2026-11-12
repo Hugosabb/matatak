@@ -186,10 +186,12 @@ async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
 
     fen, color = data["fen"], data["color"]
     # Solo sur le Mini : l'ordinateur joue l'équipe de la Saison du Roi de son palier de niveaux
-    # (AZAR / Été pour les niveaux 1 à 5…). Le joueur garde une équipe au hasard. Avec une position
-    # imposée, un Draft ou un Boost, rien ne change.
+    # (AZAR / Été pour les niveaux 1 à 5…). Le joueur a l'équipe de Saison qu'il a choisie en partie
+    # libre (« equipe », 12/11/2026), sinon une équipe au hasard ; sur le 8×8, l'ordinateur garde une
+    # équipe au hasard. Avec une position imposée, un Draft ou un Boost, rien ne change.
+    equipe = data.get("equipe") if data.get("equipe") in SAISONS else None
     if (
-        variant == "matatakmini"
+        (variant == "matatakmini" or (variant == "matatak" and equipe))
         and not fen
         and not data["draft"]
         and not data["rm"]
@@ -197,11 +199,12 @@ async def creer_partie_solo(app_state: PychessGlobalAppState, user, data):
     ):
         if color not in ("w", "b"):
             color = random.choice(("w", "b"))
-        saison = saison_du_niveau(int(data["level"]))
+        mini = variant == "matatakmini"
+        saison = saison_du_niveau(int(data["level"])) if mini else None
         fen = (
-            FairyBoard.matatak_mini_start(bseason=saison)
+            FairyBoard.matatak_saisons_start(mini, equipe, saison)
             if color == "w"
-            else FairyBoard.matatak_mini_start(wseason=saison)
+            else FairyBoard.matatak_saisons_start(mini, saison, equipe)
         )
 
     # Aventure (client/aventure) : le Roi de chaque camp est imposé. Une valeur inattendue est ignorée.

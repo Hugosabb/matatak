@@ -327,7 +327,6 @@ function ecranEquipe(p: Progression, ctx: ContexteAventure): VNode {
         erreur ? h('p.av-erreur', erreur) : '',
         h('div.av-bas', [reglagePlateau(ctx), h('div.av-liens', [
             h('a.av-lien', { attrs: { href: '/collection' } }, 'Voir la Collection'),
-            h('button.av-lien', { attrs: { type: 'button' }, on: { click: ctx.partieLibre } }, 'Partie libre'),
             confirmerEffacement
                 ? h('span.av-confirmer', [
                     'Tout effacer ? ',

@@ -571,40 +571,43 @@ bad { color: var(--mt-discret); }
 /* Couronne du premier du palmarès de la semaine passée (palmares.ts couronne) */
 svg.couronne { flex: none; width: 18px; height: 18px; color: var(--mt-or); filter: drop-shadow(0 0 6px rgba(234, 196, 90, .4)); }
 
-/* Contre un ami : chacun choisit l'équipe de départ d'une Saison (aussi sur la page d'invitation).
-   Comme dans la Collection : les cartes seules (face sombre), la carte choisie se soulève dans un halo or ;
-   « Hasard » est un dos de carte à l'étoile à 4 branches. */
+/* Équipe de départ d'une Saison (/jouer, Ami et Solo ; page d'invitation ; client/equipesSaison.ts).
+   Les 4 Saisons en 4 colonnes : 3 cartes en éventail (face sombre), le Roi devant ; l'équipe choisie
+   se soulève dans un halo or. « Au hasard » : petit bouton à droite du titre, allumé tant qu'aucune
+   équipe n'est choisie. Boutons radio, états par le CSS seul (Hugo, 12/11/2026). */
 .equipe-ami { margin-bottom: 20px; }
-.choix-equipe { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.choix-equipe { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 8px; }
 .choix-equipe input { position: absolute; opacity: 0; pointer-events: none; }
-.choix-equipe .choix-eq { display: grid; justify-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer;
-  color: var(--mt-doux); font: 400 13px 'Tribeca', 'Jost', sans-serif; letter-spacing: .05em; -webkit-tap-highlight-color: transparent; }
-.choix-equipe .choix-eq > img, .choix-equipe .choix-eq .hasard { width: 100%; aspect-ratio: 1; border-radius: 8%; display: block;
-  filter: brightness(.72) saturate(.8); box-shadow: 0 14px 22px -12px rgba(0, 0, 0, .9); transition: transform .25s cubic-bezier(.3, 1.4, .5, 1), filter .2s, box-shadow .2s; }
-.choix-equipe .choix-eq .hasard { background: #1f1512 url('/static/images/background/vitrine/etoile.png') center / 78% auto no-repeat; box-shadow: inset 0 0 0 1.5px rgba(234, 196, 90, .55), 0 14px 22px -12px rgba(0, 0, 0, .9); }
-.choix-equipe .choix-eq:hover > img, .choix-equipe .choix-eq:hover .hasard { filter: none; }
-.choix-equipe .choix-eq.on, .choix-equipe input:checked + .choix-eq { color: var(--mt-or); }
-.choix-equipe .choix-eq.on > :is(img, .hasard), .choix-equipe input:checked + .choix-eq > :is(img, .hasard) {
-  filter: none; transform: translateY(-6px); box-shadow: 0 0 0 2px var(--mt-or), 0 0 24px rgba(234, 196, 90, .45), 0 18px 24px -12px rgba(0, 0, 0, .9); }
-.choix-equipe input:focus-visible + .choix-eq > :is(img, .hasard), .choix-equipe .choix-eq:focus-visible > :is(img, .hasard) { outline: 2px solid var(--mt-or); outline-offset: 3px; }
-.choix-equipe small { font: inherit; }
-.choix-equipe .choix-eq > :is(img, .hasard, .vignette-equipe) { width: 100%; }
-/* Équipe de Saison (client/equipesSaison.ts) : les 3 cartes en éventail, le Roi devant */
-.choix-equipe .vignette-equipe { position: relative; display: block; aspect-ratio: 1; border-radius: 8%;
+.choix-equipe .etiq { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0; }
+.choix-equipe .eq-hasard { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; margin: -6px 0; padding: 0 12px; border-radius: 999px; cursor: pointer;
+  box-shadow: inset 0 0 0 1.5px var(--mt-filet); font: 800 12.5px 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; white-space: nowrap; color: var(--mt-doux);
+  -webkit-tap-highlight-color: transparent; transition: color .2s, box-shadow .2s; }
+.choix-equipe .eq-hasard i { font: 400 13px/1 sans-serif; opacity: .6; }
+.choix-equipe .eq-hasard i::before { content: '✦'; }
+.choix-equipe input.s-hasard:checked ~ .etiq .eq-hasard { box-shadow: inset 0 0 0 2px var(--mt-or); color: var(--mt-or); }
+.choix-equipe input.s-hasard:checked ~ .etiq .eq-hasard i { opacity: 1; }
+.choix-equipe input.s-hasard:focus-visible ~ .etiq .eq-hasard { outline: 2px solid var(--mt-or); outline-offset: 2px; }
+.choix-equipe .choix-eq { display: grid; justify-items: center; gap: 2px; padding: 0; cursor: pointer;
+  min-width: 0;
+  color: var(--mt-doux); font: 400 clamp(9.5px, 3vw, 13px) 'Tribeca', 'Jost', sans-serif; letter-spacing: .02em; -webkit-tap-highlight-color: transparent; }
+.choix-equipe .choix-eq small { font: inherit; margin-top: 5px; }
+.choix-equipe .choix-eq em { font: 700 11.5px 'Nunito', sans-serif; letter-spacing: 0; color: var(--mt-discret); }
+.choix-equipe input:checked + .choix-eq { color: var(--mt-or); }
+.choix-equipe .vignette-equipe { position: relative; display: block; width: 100%; aspect-ratio: 1;
   transition: transform .25s cubic-bezier(.3, 1.4, .5, 1), filter .2s; filter: brightness(.72) saturate(.8); }
-.choix-equipe .choix-eq .vignette-equipe img { position: absolute; width: 66%; aspect-ratio: 1; border-radius: 10%; filter: none; transform: none; transition: transform .25s cubic-bezier(.3, 1.4, .5, 1);
+.choix-equipe .vignette-equipe img { position: absolute; width: 62%; aspect-ratio: 1; border-radius: 10%; transition: transform .25s cubic-bezier(.3, 1.4, .5, 1);
   box-shadow: 0 6px 12px -6px rgba(0, 0, 0, .9); }
-.choix-equipe .vignette-equipe .c1 { left: 0; top: 4%; rotate: -12deg; }
-.choix-equipe .vignette-equipe .c2 { right: 0; top: 4%; rotate: 12deg; }
-.choix-equipe .vignette-equipe .c0 { left: 17%; bottom: 0; z-index: 1; }
+.choix-equipe .vignette-equipe .c1 { left: 3%; top: 4%; rotate: -10deg; }
+.choix-equipe .vignette-equipe .c2 { right: 3%; top: 4%; rotate: 10deg; }
+.choix-equipe .vignette-equipe .c0 { left: 19%; bottom: 0; z-index: 1; }
 .choix-equipe .choix-eq:hover .vignette-equipe { filter: none; }
-.choix-equipe .choix-eq.on .vignette-equipe, .choix-equipe input:checked + .choix-eq .vignette-equipe { filter: none; transform: translateY(-6px); }
-.choix-equipe .choix-eq.on .vignette-equipe .c0, .choix-equipe input:checked + .choix-eq .vignette-equipe .c0 { box-shadow: 0 0 0 2px var(--mt-or), 0 0 18px rgba(234, 196, 90, .45); }
-.choix-equipe .choix-eq.on .vignette-equipe .c1, .choix-equipe input:checked + .choix-eq .vignette-equipe .c1 { transform: translateX(-6%); }
-.choix-equipe .choix-eq.on .vignette-equipe .c2, .choix-equipe input:checked + .choix-eq .vignette-equipe .c2 { transform: translateX(6%); }
-.choix-equipe input:focus-visible + .choix-eq .vignette-equipe, .choix-equipe .choix-eq:focus-visible .vignette-equipe { outline: 2px solid var(--mt-or); outline-offset: 3px; }
+.choix-equipe input:checked + .choix-eq .vignette-equipe { filter: none; transform: translateY(-4px); }
+.choix-equipe input:checked + .choix-eq .vignette-equipe .c0 { box-shadow: 0 0 0 2px var(--mt-or), 0 0 18px rgba(234, 196, 90, .45); }
+.choix-equipe input:checked + .choix-eq .vignette-equipe .c1 { transform: translateX(-4%); }
+.choix-equipe input:checked + .choix-eq .vignette-equipe .c2 { transform: translateX(4%); }
+.choix-equipe input:focus-visible + .choix-eq .vignette-equipe { outline: 2px solid var(--mt-or); outline-offset: 3px; }
 .equipe-ami .aide, .invite-equipe .aide { display: block; margin-top: 8px; color: var(--mt-discret); font-size: 12px; }
-@media (prefers-reduced-motion: reduce) { .choix-equipe .choix-eq :is(img, .hasard, .vignette-equipe) { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .choix-equipe .vignette-equipe, .choix-equipe .vignette-equipe img { transition: none; } }
 
 /* ===== Choix du pseudo après la première connexion (client/usernameDialog.ts) ===== */
 #username-dialog.modal-overlay { inset: 0; left: 0; top: 0; transform: none; margin: 0; padding: 16px; background: rgba(10, 8, 7, .78); z-index: 1100; }
