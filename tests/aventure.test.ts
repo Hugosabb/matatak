@@ -2,7 +2,7 @@ import { beforeEach, expect, test } from '@jest/globals';
 
 import { PHASE_1, PHASES } from '../client/aventure/niveaux';
 import { PERSONNAGES, Roi, ROIS_DANS_L_ORDRE } from '../client/aventure/personnages';
-import { ajusterEquipe, apresPartie, classeeDebloquee, draftDebloque, changerRoi, commencer, enregistrer, erreurEquipe, lire, prochainePartie, roisDebloques } from '../client/aventure/progression';
+import { ajusterEquipe, allure, apresPartie, resteSurLePlateau, classeeDebloquee, draftDebloque, changerRoi, commencer, enregistrer, erreurEquipe, lire, prochainePartie, roisDebloques } from '../client/aventure/progression';
 import { composition, personnagesVus, positionDeDepart, route } from '../client/aventure/route';
 
 beforeEach(() => localStorage.clear());
@@ -82,15 +82,67 @@ test('phase 1 : 2 victoires contre le Printemps, l\'Automne, l\'Été, une par r
     expect(bilan.recrue).toBe(route('AZAR')[PHASE_1.niveaux.length].recrue); // 1re recrue de la phase 2
 });
 
-test('niveau caché : monte vite au début, puis +1 par victoire et −2 par défaite', () => {
+test('niveau caché : monte vite au début, puis par petits pas ; une seule défaite ne le baisse pas', () => {
     let p = commencer('MOJO', 'matatakmini');
     p = apresPartie(p, 'victoire').progression;
     expect(p.niveauOrdi).toBe(4); // départ au niveau 1, +3 pendant le placement
     p = { ...p, parties: 10 };
-    p = apresPartie(p, 'victoire').progression;
+    p = apresPartie(p, 'victoire').progression; // 4,4 : il faut plusieurs victoires pour un cran
+    expect(p.niveauOrdi).toBe(4);
+    p = apresPartie(p, 'victoire').progression; // 3e victoire d'affilée : pas plus grand (5,0)
     expect(p.niveauOrdi).toBe(5);
-    p = apresPartie(p, 'defaite').progression;
-    expect(p.niveauOrdi).toBe(3);
+    p = apresPartie(p, 'victoire').progression;
+    expect(p.niveauJoueur).toBeCloseTo(5.6);
+    expect(p.niveauOrdi).toBe(6);
+    p = apresPartie(p, 'defaite').progression; // 4,7
+    expect(p.niveauOrdi).toBe(6); // une défaite : on rejoue au même niveau
+    p = apresPartie(p, 'nulle').progression;
+    expect(p.niveauOrdi).toBe(6);
+    p = apresPartie(p, 'defaite').progression; // 3,8 : la 2e d'affilée le baisse
+    expect(p.niveauOrdi).toBe(4);
+    // Progression enregistrée avant le 12/11/2026 : le niveau du joueur part de celui de l'ordinateur
+    const { niveauJoueur, serie, ...ancienne } = { ...p, niveauOrdi: 9 };
+    const q = apresPartie(ancienne, 'defaite').progression;
+    expect(q.niveauOrdi).toBe(9);
+    expect(q.niveauJoueur).toBeCloseTo(8.1);
+});
+
+test('allure de la partie : la durée et ce qu\'il reste au vainqueur', () => {
+    expect(allure('victoire')).toBe('normale'); // aucun indice
+    expect(allure('victoire', 6)).toBe('ecrasante');
+    expect(allure('victoire', 35)).toBe('serree');
+    expect(allure('victoire', 15, { joueur: 5, ordi: 1 })).toBe('ecrasante');
+    expect(allure('victoire', 15, { joueur: 1, ordi: 4 })).toBe('serree'); // la Colline, avec moins de cartes
+    expect(allure('defaite', 15, { joueur: 0, ordi: 5 })).toBe('ecrasante');
+    expect(allure('defaite', 15, { joueur: 4, ordi: 3 })).toBe('serree');
+    expect(allure('victoire', 6, { joueur: 1, ordi: 4 })).toBe('normale'); // indices contraires
+    // Champion 3, Pion 1, Rois à part ; le joueur a les Noirs
+    expect(resteSurLePlateau('1kc1/1mm1/4/4/4/4/1F2/1CK1 w - - 0 1', 'b')).toEqual({ joueur: 5, ordi: 4 });
+});
+
+test('simulation : chaque joueur trouve son niveau en quelques parties et gagne environ 6 fois sur 10', () => {
+    // Joueurs fictifs : chance de gagner selon l'écart entre leur force et le niveau de l'ordinateur
+    const hasard = (graine: number) => () => (graine = (graine * 1664525 + 1013904223) % 4294967296) / 4294967296;
+    for (const force of [4, 8, 12, 16]) {
+        let victoires = 0, parties = 0, niveaux = 0;
+        for (let joueur = 0; joueur < 200; joueur++) {
+            const r = hasard(joueur * 7 + force);
+            let p = commencer('MOJO', 'matatakmini');
+            for (let i = 0; i < 80; i++) {
+                const ecart = force - p.niveauOrdi;
+                const gagne = r() < 1 / (1 + Math.exp(-ecart / 1.5));
+                const marge = (gagne ? ecart : -ecart) / 3 + (r() - 0.5) * 1.5;
+                const part = Math.min(0.95, Math.max(0.1, 0.55 + marge * 0.12));
+                const reste = gagne ? { joueur: part, ordi: 1 - part } : { joueur: 1 - part, ordi: part };
+                const coups = Math.round(Math.min(45, Math.max(4, 18 - marge * 5 + (r() - 0.5) * 10)));
+                p = apresPartie(p, gagne ? 'victoire' : 'defaite', new Date(), coups, reste).progression;
+                if (i >= 30) { parties++; niveaux += p.niveauOrdi; if (gagne) victoires++; }
+            }
+        }
+        expect(victoires / parties).toBeGreaterThan(0.55);
+        expect(victoires / parties).toBeLessThan(0.7);
+        expect(Math.abs(niveaux / parties - (force - 1))).toBeLessThan(1); // un peu sous sa force : il gagne plus souvent
+    }
 });
 
 test('victoire éclair au début (la Colline en 3 coups) : niveau 8 d\'un coup, pas ensuite (Hugo, 10/11/2026)', () => {

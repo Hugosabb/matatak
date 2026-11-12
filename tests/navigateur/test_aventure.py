@@ -90,7 +90,9 @@ async def test_une_partie_de_l_aventure_perdue_se_rejoue(site, chromium, telepho
     assert await principal.inner_text() == "Rejouer"
     await capture(page, f"aventure-fin-{'tel' if telephone else 'pc'}")
     progression = await page.evaluate("JSON.parse(localStorage.getItem('matatak_aventure'))")
-    assert progression["parties"] == 11 and progression["etape"] == 0 and progression["niveauOrdi"] == 10
+    assert progression["parties"] == 11 and progression["etape"] == 0
+    # Une seule défaite : l'ordinateur reste au même niveau (le niveau caché du joueur, lui, baisse)
+    assert progression["niveauOrdi"] == 12 and progression["serie"] == -1 and progression["niveauJoueur"] < 12
     # Recharger la page ne compte pas la défaite deux fois
     await page.reload()
     await page.wait_for_selector(".fin-partie")

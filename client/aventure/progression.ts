@@ -12,7 +12,9 @@ export interface Progression {
     equipe: Equipe; // l'équipe du joueur, sans son Roi
     etape: number; // index dans route(roi) ; route(roi).length = Aventure terminée
     victoires: number; // victoires sur l'étape en cours
-    niveauOrdi: number; // niveau Fairy-Stockfish (Level N), 1 à 20, ajusté après chaque partie
+    niveauOrdi: number; // niveau Fairy-Stockfish (Level N) de la prochaine partie, 1 à 20
+    niveauJoueur?: number; // niveau caché du joueur, à virgule (absent = niveauOrdi) : voir niveauApres
+    serie?: number; // victoires d'affilée (> 0) ou défaites d'affilée (< 0) ; absent = 0
     parties: number;
     flamme: { jours: number, dernier: string };
     plateau: Plateau;
@@ -29,6 +31,23 @@ const PARTIES_DE_PLACEMENT = 4;
 // environ) : il saute au niveau 8 d'un coup ; ensuite les pas restent petits, pour rester stable (Hugo, 10/11/2026)
 const COUPS_ECLAIR = 5;
 const NIVEAU_APRES_ECLAIR = 8;
+// Une fois le joueur placé, de petits pas selon l'allure de la partie (Hugo, 12/11/2026) : il faut plusieurs
+// victoires pour que l'ordinateur monte d'un cran, sinon on n'avance plus sur la route. Une défaite pèse
+// deux victoires : on vise 2 victoires sur 3.
+const PAS: Record<Exclude<Resultat, 'nulle'>, Record<Allure, number>> = {
+    victoire: { ecrasante: 0.8, normale: 0.4, serree: 0.2 },
+    defaite: { ecrasante: -1.2, normale: -0.9, serree: -0.5 },
+};
+const PAS_DE_PLACEMENT: Record<Allure, number> = { ecrasante: 3, normale: 3, serree: 1.5 };
+// À partir de 3 victoires d'affilée, l'ordinateur est trop bas : on monte plus vite (pas d'élan vers le bas :
+// deux défaites le font déjà baisser, et la simulation montrait des chutes de 3 niveaux)
+const SERIE = 3;
+const ELAN = 1.5;
+// Allure d'une partie : nombre de coups du joueur, et part du matériel resté au vainqueur
+const COUPS_RAPIDE = 8;
+const COUPS_LONGUE = 30;
+const PART_LARGE = 0.65;
+const PART_JUSTE = 0.45;
 
 export function lire(): Progression | null {
     try {
@@ -281,14 +300,65 @@ function flammeApres(flamme: Progression['flamme'], maintenant: Date): Progressi
     return { jours: flamme.dernier === hier ? flamme.jours + 1 : 1, dernier: aujourdhui };
 }
 
-/** Niveau caché : +1 par victoire, −2 par défaite (≈ 2 victoires sur 3), plus vite pendant le placement ;
- *  une victoire éclair (`coups` du joueur) pendant le placement envoie au moins au niveau 8. */
-export function niveauApres(niveau: number, resultat: Resultat, parties: number, coups = Infinity): number {
+export type Allure = 'ecrasante' | 'normale' | 'serree';
+
+/** Ce qu'il reste sur le plateau à la fin, Rois à part : un Champion compte 3, un Pion 1. */
+export interface Reste { joueur: number, ordi: number }
+
+const LETTRES_CHAMPIONS = 'cdhinorstwxyz';
+const LETTRES_PIONS = 'abefgjlmpq';
+
+export function resteSurLePlateau(fen: string, couleurDuJoueur: 'w' | 'b'): Reste {
+    let blancs = 0, noirs = 0;
+    for (const c of fen.split(' ')[0].split('[')[0]) {
+        const l = c.toLowerCase();
+        const valeur = LETTRES_CHAMPIONS.includes(l) ? 3 : LETTRES_PIONS.includes(l) ? 1 : 0;
+        if (c === l) noirs += valeur; else blancs += valeur;
+    }
+    return couleurDuJoueur === 'w' ? { joueur: blancs, ordi: noirs } : { joueur: noirs, ordi: blancs };
+}
+
+/** Plusieurs indices pour dire si la partie était trop facile ou trop dure : sa durée (`coups` du joueur)
+ *  et ce qu'il reste au vainqueur. Sans indice : normale. */
+export function allure(resultat: Resultat, coups = Infinity, reste?: Reste): Allure {
+    if (resultat === 'nulle') return 'normale';
+    let points = 0;
+    if (coups <= COUPS_RAPIDE) points++;
+    else if (coups >= COUPS_LONGUE && coups !== Infinity) points--;
+    if (reste && reste.joueur + reste.ordi > 0) {
+        const part = (resultat === 'victoire' ? reste.joueur : reste.ordi) / (reste.joueur + reste.ordi);
+        if (part >= PART_LARGE) points++;
+        else if (part <= PART_JUSTE) points--;
+    }
+    return points > 0 ? 'ecrasante' : points < 0 ? 'serree' : 'normale';
+}
+
+export function serieApres(serie: number, resultat: Resultat): number {
+    if (resultat === 'nulle') return serie;
+    return resultat === 'victoire' ? Math.max(serie, 0) + 1 : Math.min(serie, 0) - 1;
+}
+
+/** Niveau caché du joueur (à virgule) après une partie : grands pas pendant le placement, puis petits pas
+ *  selon l'allure, plus grands dans une série de victoires ; une victoire éclair pendant le placement envoie au moins
+ *  au niveau 8. `serie` = celle d'avant cette partie. L'équipe d'en face n'entre pas dans le calcul
+ *  (Hugo, 12/11/2026 : impossible à peser, les résultats s'en chargent). */
+export function niveauApres(niveau: number, resultat: Resultat, parties: number, coups = Infinity, reste?: Reste, serie = 0): number {
+    if (resultat === 'nulle') return niveau;
     const placement = parties < PARTIES_DE_PLACEMENT;
-    const pas = resultat === 'victoire' ? (placement ? 3 : 1) : resultat === 'defaite' ? -2 : 0;
+    const a = allure(resultat, coups, reste);
+    let pas = resultat === 'victoire' && placement ? PAS_DE_PLACEMENT[a] : PAS[resultat][a];
+    if (resultat === 'victoire' && !placement && serieApres(serie, resultat) >= SERIE) pas *= ELAN;
     let n = niveau + pas;
     if (resultat === 'victoire' && placement && coups <= COUPS_ECLAIR) n = Math.max(n, NIVEAU_APRES_ECLAIR);
     return Math.min(NIVEAU_MAX, Math.max(1, n));
+}
+
+/** Niveau joué par l'ordinateur à la prochaine partie : le niveau du joueur arrondi. Après une seule
+ *  défaite il ne baisse pas : on retente sa chance au même niveau (retour d'un joueur, 12/11/2026). */
+export function niveauOrdiApres(ordi: number, joueur: number, resultat: Resultat, serie: number): number {
+    if (resultat === 'nulle') return ordi;
+    const n = Math.min(NIVEAU_MAX, Math.max(1, Math.round(joueur)));
+    return resultat === 'defaite' && serie >= 0 ? Math.max(ordi, n) : n;
 }
 
 export interface Bilan {
@@ -300,11 +370,15 @@ export interface Bilan {
 }
 
 /** Applique le résultat d'une partie de l'étape en cours. Fonction pure : à enregistrer ensuite. */
-export function apresPartie(p: Progression, resultat: Resultat, maintenant = new Date(), coups = Infinity): Bilan {
+export function apresPartie(p: Progression, resultat: Resultat, maintenant = new Date(), coups = Infinity, reste?: Reste): Bilan {
     const etape = etapeEnCours(p);
+    const serie = p.serie ?? 0;
+    const niveauJoueur = niveauApres(p.niveauJoueur ?? p.niveauOrdi, resultat, p.parties, coups, reste, serie);
     let suite: Progression = {
         ...p,
-        niveauOrdi: niveauApres(p.niveauOrdi, resultat, p.parties, coups),
+        niveauJoueur,
+        niveauOrdi: niveauOrdiApres(p.niveauOrdi, niveauJoueur, resultat, serie),
+        serie: serieApres(serie, resultat),
         parties: p.parties + 1,
         flamme: flammeApres(p.flamme, maintenant),
     };
@@ -406,7 +480,7 @@ export function rivalDeLaPartie(gameId: string): Roi | null {
 }
 
 /** Fin d'une partie de l'Aventure : le résultat compte une fois (rechargement de la page compris). */
-export function compterPartie(gameId: string, resultat: Resultat, coups = Infinity): Bilan | null {
+export function compterPartie(gameId: string, resultat: Resultat, coups = Infinity, reste?: Reste): Bilan | null {
     const partie = lirePartie();
     const p = lire();
     if (!partie || partie.gameId !== gameId || !p) return null;
@@ -414,7 +488,7 @@ export function compterPartie(gameId: string, resultat: Resultat, coups = Infini
     if (partie.bilan) return { progression: p, ...partie.bilan };
     // La progression a changé entre-temps (autre onglet) : on ne compte pas une partie périmée
     if (partie.etape !== p.etape || partie.victoires !== p.victoires) return null;
-    const bilan = apresPartie(p, resultat, new Date(), coups);
+    const bilan = apresPartie(p, resultat, new Date(), coups, reste);
     enregistrer(bilan.progression);
     ecrirePartie({ ...partie, bilan: { recrue: bilan.recrue, placesEnPlus: bilan.placesEnPlus, finie: bilan.finie, resultat, debloque: bilan.debloque } });
     return bilan;

@@ -2,7 +2,7 @@ import { h, VNode } from 'snabbdom';
 import { memoriserEquipe } from './equipe';
 import { EcranDraft, EtatDraft } from './draft';
 import { appliquerRois, ROIS, roiDuNiveau, saisonDuCamp, saisonDuNiveau, Saison } from './rois';
-import { compterPartie, estPartieAventure, etapeEnCours, estPartieEnCours, estPartieRejouee, lierPartie, lire as lireAventure, noterPartieDemandee, prochainePartie } from './aventure/progression';
+import { compterPartie, estPartieAventure, etapeEnCours, estPartieEnCours, estPartieRejouee, lierPartie, lire as lireAventure, noterPartieDemandee, prochainePartie, resteSurLePlateau } from './aventure/progression';
 import { IMAGE } from './aventure/personnages';
 
 function stockage(cle: string): string | null {
@@ -1117,7 +1117,8 @@ export class RoundController extends GameController {
             if (suite) liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=1' } }, "Voir l'Aventure"));
             liens.push(h('a.fin-lien', { attrs: { href: this.home + '/jouer?aventure=equipe' } }, 'Équipe'));
         } else if (joueur && !this.corr && this.contreIA() && estPartieAventure(this.gameId)) {
-            const bilan = fin.status !== 0 ? compterPartie(this.gameId, gagne ? 'victoire' : perdu ? 'defaite' : 'nulle', Math.ceil((this.steps.length - 1) / 2)) : null;
+            const bilan = fin.status !== 0 ? compterPartie(this.gameId, gagne ? 'victoire' : perdu ? 'defaite' : 'nulle', Math.ceil((this.steps.length - 1) / 2),
+                resteSurLePlateau(this.steps[this.steps.length - 1].fen, this.mycolor === 'white' ? 'w' : 'b')) : null;
             if (bilan?.recrue) {
                 points = h('div.fin-recrue', [
                     h('img', { attrs: { src: `/static/images/background/collection/sombre/${IMAGE[bilan.recrue]}`, alt: '' } }),
