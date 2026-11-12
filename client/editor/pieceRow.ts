@@ -4,6 +4,7 @@ import * as cg from 'chessgroundx/types';
 
 import { patch } from '@/document';
 import { EditorController } from './editorCtrl';
+import { icone } from './icones';
 
 // Bac des Personnages de l'éditeur : un camp à la fois (Blancs / Noirs), plus une gomme.
 // Toucher une carte la sélectionne, puis chaque case touchée du plateau la reçoit (editorCtrl
@@ -68,9 +69,7 @@ function bacView(ctrl: EditorController): VNode {
                 attrs: { type: 'button', 'aria-pressed': String(sel === 'gomme'), title: 'Gomme' },
                 on: toucher(() => ctrl.choisir(sel === 'gomme' ? null : 'gomme')),
             }, [
-                h('svg', { attrs: { viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true' } }, [
-                    h('path', { attrs: { d: 'M7 21h10M3.5 14.5l8-8a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L11 19H7l-3.5-3.5a1 1 0 0 1 0-1z' } }),
-                ]),
+                icone('gomme'),
                 h('span', 'Gomme'),
             ]),
         ]),

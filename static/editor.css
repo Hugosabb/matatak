@@ -75,7 +75,6 @@
 .ed-variante, .ed-fen { display: grid; gap: 8px; }
 .ed-variante label, .ed-fen label { font: 900 12px 'Jost', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: var(--mt-encre); }
 .editor-button-container { display: flex; flex-flow: column; }
-.editor-button-container .icon:before { font-size: 18px; padding-right: 4px; }
 #turn-block { display: flex; flex-flow: column; width: max-content; }
 
 /* ---------- Ordinateur ---------- */

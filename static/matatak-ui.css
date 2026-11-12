@@ -185,7 +185,6 @@ header.mt-haut #settings, header.mt-haut #notify-app { top: var(--site-header-he
 .mt-plus span { display: grid; gap: 1px; min-width: 0; }
 .mt-plus small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 12.5px; color: var(--mt-doux); }
 .mt-plus hr { width: 100%; height: 1px; margin: 4px 0; border: 0; background: var(--mt-filet); }
-.mt-plus .mt-plus-discret { min-height: 40px; padding-left: 48px; font-size: 13.5px; font-weight: 700; color: var(--mt-discret); }
 @media (prefers-reduced-motion: reduce) { .mt-plus { animation: none; } }
 /* Ordinateur : menu déroulant sous « Plus » de l'en-tête (placé par client/navigation.ts), sans fond sombre */
 .mt-onglets .mt-plus-bouton { display: inline-flex; align-items: center; gap: 4px; padding: 8px 10px 8px 14px; border: 0; border-radius: 10px;
@@ -304,8 +303,8 @@ body[data-view="editor"] a.i-pgn {
   background: var(--mt-surface); box-shadow: inset 0 0 0 1px var(--mt-filet); text-decoration: none;
   transition: background .2s, box-shadow .2s;
 }
-body[data-view="editor"] a.i-pgn div { font: 700 14.5px 'Nunito', sans-serif; text-transform: none; color: var(--mt-encre); }
-body[data-view="editor"] a.i-pgn div::before { color: var(--mt-or); margin-right: 10px; }
+body[data-view="editor"] a.i-pgn div { display: flex; align-items: center; gap: 10px; font: 700 14.5px 'Nunito', sans-serif; text-transform: none; color: var(--mt-encre); }
+body[data-view="editor"] a.i-pgn svg { flex: none; width: 20px; height: 20px; color: var(--mt-or); }
 body[data-view="editor"] a.i-pgn:hover, body[data-view="editor"] a.i-pgn:active { background: var(--mt-surface-2); box-shadow: inset 0 0 0 1.5px var(--mt-or); }
 @media (max-width: 799px) {
   body[data-view="editor"] .editor-button-container { grid-template-columns: 1fr 1fr; padding: 10px; }

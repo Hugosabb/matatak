@@ -60,7 +60,6 @@
     <a href="/@/{{ username }}" role="menuitem" class="vu-entete {{ 'actif' if view == 'profile' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3"/><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"/></svg><span>Mon compte<small>{{ username }}</small></span></a>
     {% endif %}
     <button type="button" role="menuitem" class="mt-plus-installer" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg><span>Installer l'appli<small>En plein écran, depuis l'écran d'accueil</small></span></button>
-    <a href="/confidentialite" role="menuitem" class="mt-plus-discret {{ 'actif' if view == 'confidentialite' }}"><span>Confidentialité</span></a>
 </div>
 {% endif %}
 {% endblock %}

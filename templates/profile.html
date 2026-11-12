@@ -19,6 +19,7 @@
         <div class="compte-actions">
             {% if profile == username %}
             <a class="compte-lien" href="/logout">Se déconnecter</a>
+            <a class="compte-lien discret" href="/confidentialite">Confidentialité</a>
             <a class="compte-lien discret" href="mailto:{{ contact }}?subject=Supprimer%20mon%20compte%20{{ profile }}">Supprimer mon compte</a>
             {% elif not anon %}
             {% if can_challenge and profile_title != "BOT" %}
