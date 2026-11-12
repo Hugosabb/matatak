@@ -33,5 +33,4 @@ static/images/background/
 static/images/board/matatak*.png
 static/favicon/*.png
 static/favicon/favicon.ico
-!static/favicon/og-image.png
 *.egg-info/

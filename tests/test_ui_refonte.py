@@ -247,6 +247,13 @@ class PagesTestCase(AioHTTPTestCase):
         self.assertEqual(resp.status, 200)
         self.assertNotIn("text/html", resp.headers["Content-Type"])
 
+    async def test_image_d_apercu_en_adresse_complete(self):
+        # Bug (12/11/2026) : un lien matatak.org envoyé par message montrait le logo de pychess.
+        # L'image d'aperçu était celle du fork, et son adresse était relative sur la page d'accueil.
+        for page in ("/", "/jouer"):
+            html = await (await self.client.request("GET", page)).text()
+            self.assertRegex(html, r'og:image" content="https?://[^"]+/static/favicon/og-image\.png')
+
     async def test_manifest_a_une_icone_512_adaptable(self):
         resp = await self.client.request("GET", "/manifest.json")
         icones = json.loads(await resp.text())["icons"]
