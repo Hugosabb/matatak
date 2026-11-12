@@ -95,7 +95,7 @@ class Sounds {
 
     private buildSound(assetURL: string, soundTheme: string, trackName: string) {
         const soundTrack = (soundTheme === 'silent') ? 'Silence' : trackName;
-        // le thème Matatak ne contient que ses propres sons (outils/sons/construire.py) : le reste
+        // le thème Matatak ne contient que ses propres sons (../jeu/musique/construire.py) : le reste
         // vient du thème standard ; la promotion n'existe que dans Matatak, les autres l'empruntent
         if (soundTheme === 'matatak' && !MATATAK_TRACKS.has(trackName)) soundTheme = 'standard';
         else if ((trackName === 'Promotion' || trackName === 'Message') && soundTheme !== 'silent') soundTheme = 'matatak';

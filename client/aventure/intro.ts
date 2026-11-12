@@ -1,7 +1,7 @@
 // Intro de l'Aventure (maquette validée par Hugo le 27/10/2026) : à la première visite de l'onglet Solo,
 // avant le choix du Roi. « Touche pour commencer » (le toucher autorise le son), puis le texte du livret
 // s'écrit lettre par lettre sur les tambours qui se rapprochent (static/sound/matatak/Intro, composé par
-// outils/sons/intro.py) ; le texte finit juste avant le gros coup (pause), et « MATATAK ! » apparaît sur le
+// ../jeu/musique/intro.py) ; le texte finit juste avant le gros coup (pause), et « MATATAK ! » apparaît sur le
 // ta-ka-TA qui suit.
 
 import { h, VNode } from 'snabbdom';
@@ -9,7 +9,7 @@ import { h, VNode } from 'snabbdom';
 import { IMAGE, Roi } from './personnages';
 
 const CLE = 'matatak_intro_vue';
-const CRI = 14.15; // le ta-ka-TA, en secondes depuis le début de la musique (outils/sons/intro.py)
+const CRI = 14.15; // le ta-ka-TA, en secondes depuis le début de la musique (../jeu/musique/intro.py)
 const DEBUT = 0.4, FIN = 13.3, PAUSE = 0.35; // le texte s'écrit de 0,4 s à 13,3 s, une pause par paragraphe
 
 const COULEUR = { MOJO: 'printemps', AZAR: 'ete', SHANS: 'automne', KARMA: 'hiver' } as const;
