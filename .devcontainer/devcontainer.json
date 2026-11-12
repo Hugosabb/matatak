@@ -1,0 +1,19 @@
+{
+    // Codespaces : le site de test de MATATAK dans un navigateur, sans ordinateur.
+    // Les illustrations et le script du serveur de test viennent du dépôt privé voisin (cloné par installer.sh).
+    "name": "MATATAK, site de test",
+    "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+    "customizations": {
+        "codespaces": {
+            "repositories": {
+                "Hugosabb/matatak-site-prive": { "permissions": { "contents": "write" } }
+            }
+        }
+    },
+    "postCreateCommand": "bash .devcontainer/installer.sh",
+    "postAttachCommand": "bash .devcontainer/serveur.sh",
+    "forwardPorts": [8099],
+    "portsAttributes": {
+        "8099": { "label": "Site de test", "onAutoForward": "openBrowser" }
+    }
+}
