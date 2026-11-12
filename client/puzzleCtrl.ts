@@ -32,9 +32,9 @@ export class PuzzleController extends AnalysisController {
     moves: UCIMove[] = [];
     color: string;
     failed: boolean;
-    // Puzzles (Hugo, 03/11/2026) : un mauvais coup termine le puzzle (« Raté », le bon coup se joue tout
-    // seul avec une flèche) ; l'indice montre seulement la carte à jouer et ne fait pas recommencer
-    rate: string; // le bon coup (SAN) après un mauvais coup, sinon ''
+    // Puzzles (Hugo, 12/11/2026) : après un mauvais coup la carte revient et on réessaie (la solution
+    // qui se jouait toute seule, essai du 03/11, a été rejetée) ; l'indice montre seulement la carte à
+    // jouer. Dans les deux cas le niveau est validé, mais le classement des puzzles compte un échec.
     indice: boolean;
     completed: boolean;
     posted: boolean;
@@ -68,7 +68,6 @@ export class PuzzleController extends AnalysisController {
         this.plyVari = 0;
         this.color = this.turnColor;
         this.failed = false;
-        this.rate = '';
         this.indice = false;
         this.completed = false;
         this.posted = false;
@@ -270,21 +269,12 @@ export class PuzzleController extends AnalysisController {
                 };
             };
 
-            // La carte revient, puis le bon coup se joue tout seul, avec une flèche : « Raté »
+            // La carte revient : on réessaie
             this.goPly(this.ply);
             this.ffishBoard.setFen(this.fullfen);
             this.setDests();
             const san = this.ffishBoard.sanMove(move, this.notationAsObject);
             this.notTheMove(san);
-            this.chessground.set({ movable: { color: undefined } });
-            const bon = this.solution[this.ply];
-            setTimeout(() => {
-                this.rate = this.ffishBoard.sanMove(bon, this.notationAsObject);
-                const couleur = this.turnColor;
-                this.makeMove(bon);
-                this.shapeFromMove(0, uci2cg(bon), couleur);
-                this.puzzleComplete(false);
-            }, 700);
             return;
         }
 
@@ -366,7 +356,7 @@ export class PuzzleController extends AnalysisController {
                 h('div.instruction', [
                     h('san', [san, h('span.fail', '?')]),
                     h('strong', 'Ce n\'est pas le bon coup'),
-                    h('em', 'Voici le bon.'),
+                    h('em', 'Essayez autre chose.'),
                 ]),
             ])
         );
@@ -391,11 +381,13 @@ export class PuzzleController extends AnalysisController {
     }
 
     puzzleComplete(success: boolean) {
-        // Réussi seulement sans erreur ni indice : sinon le niveau n'est pas compté
-        const reussi = success && !this.failed;
-        if (reussi) {
-            sound.victory();
-            this.postSuccess(!this.indice); // le classement des puzzles ne monte pas avec un indice
+        // Réussi dès que le joueur a trouvé lui-même, même après une erreur ou un indice. Solution
+        // vue : le niveau est coché quand même, on ne refait pas un puzzle dont on a vu la réponse
+        // (Hugo, 12/11/2026) ; le classement des puzzles ne monte qu'au premier essai, sans indice.
+        const reussi = success;
+        if (reussi) sound.victory();
+        if (this._id !== '0') {
+            this.postSuccess(reussi && !this.indice && !this.failed);
             if (this.level !== undefined) {
                 const key = `matatak_campaign_solved_${this.variant.name}`;
                 try {
@@ -408,8 +400,6 @@ export class PuzzleController extends AnalysisController {
                     console.error("Erreur sauvegarde localStorage niveau:", e);
                 }
             }
-        } else if (this._id !== '0') {
-            this.postSuccess(false);
         }
         this.completed = true;
 
@@ -433,23 +423,16 @@ export class PuzzleController extends AnalysisController {
                 titre = 'Réussi !';
                 phrase = suivant <= total ? `Niveau ${this.level} terminé${this.indice ? ', avec un indice' : ''}.` : 'Vous avez terminé la campagne !';
                 principal = suivant <= total ? bouton(`Niveau ${suivant}`, aller(niveau + suivant)) : bouton('Tous les niveaux', aller(grille));
-            } else if (this.rate) {
-                // Raté : on passe au suivant ; ce niveau reste à refaire (pas coché dans la grille)
-                titre = 'Raté';
-                phrase = `Le bon coup : ${this.rate}. Ce niveau reste à refaire.`;
+            } else {
+                titre = 'Voici la solution';
+                phrase = 'Rejouez les coups avec les flèches pour comprendre.';
                 principal = suivant <= total ? bouton('Niveau suivant', aller(niveau + suivant)) : bouton('Tous les niveaux', aller(grille));
                 liens.push(lien('Réessayer', aller(niveau + this.level)));
-            } else {
-                titre = success ? "Résolu, avec de l'aide" : 'Voici la solution';
-                phrase = 'Réessayez sans aide pour valider ce niveau.';
-                principal = bouton('Réessayer', aller(niveau + this.level));
-                if (suivant <= total) liens.push(lien('Niveau suivant', aller(niveau + suivant)));
             }
             liens.push(lien('Tous les niveaux', aller(grille)));
         } else {
-            titre = reussi ? 'Réussi !' : this.rate ? 'Raté' : success ? "Résolu, avec de l'aide" : 'Voici la solution';
-            phrase = reussi ? (this.indice ? 'Bien joué, avec un indice.' : 'Bien joué.')
-                : this.rate ? `Le bon coup : ${this.rate}.` : 'Rejouez les coups avec les flèches pour comprendre.';
+            titre = reussi ? 'Réussi !' : 'Voici la solution';
+            phrase = reussi ? (this.indice ? 'Bien joué, avec un indice.' : 'Bien joué.') : 'Rejouez les coups avec les flèches pour comprendre.';
             principal = bouton('Puzzle suivant', () => this.continueTraining(this.variant.name));
         }
 
