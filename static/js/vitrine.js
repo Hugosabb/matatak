@@ -251,6 +251,7 @@
     const freinsLi = [...freins.querySelectorAll('.liste-freins li')];
     const freinsTitre = freins.querySelector('.titre');
     const freinsReponse = freins.querySelector('.reponse');
+    const freinsPlateaux = freins.querySelector('.plateaux');
     const offre = fermeture.querySelector('.offre');
 
     const avance = (section) => {
@@ -388,6 +389,9 @@
                 li.style.setProperty('--x', part.toFixed(3));
             });
             freinsTitre.style.opacity = 1 - part;
+            // derrière : les flèches couvrent l'échiquier pendant qu'on lit les freins, puis le plateau de MATATAK arrive
+            freinsPlateaux.style.setProperty('--fl', lisse(0.04, 0.62, pr).toFixed(3));
+            freinsPlateaux.style.setProperty('--m', lisse(0.66, 0.84, pr).toFixed(3));
             freinsReponse.style.setProperty('--r', lisse(0.78, 0.92, pr).toFixed(3));
         }
 
