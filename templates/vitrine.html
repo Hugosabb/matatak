@@ -41,23 +41,17 @@
 <link rel="icon" href="{{ static('favicon/favicon.ico') }}" type="image/x-icon">
 </head>
 <body>
-{#- Lien du bouton « sortie » : Instagram tant que le jeu n'est pas en vente ; à remplacer par la page de
-    précommande ou de financement participatif le jour venu (un seul endroit à changer). -#}
-{%- set sortie_url = "https://www.instagram.com/playmatatak/" -%}
-{%- set sortie_texte = "Être prévenu de la sortie" -%}
+{#- Bouton d'achat : tant que precommande_url est vide, il mène à Instagram (« Être prévenu de la sortie ») ;
+    le jour de l'ouverture des précommandes, mettre l'adresse ici et tous les boutons deviennent « Précommander ». -#}
+{%- set precommande_url = "" -%}
+{%- set sortie_url = precommande_url or "https://www.instagram.com/playmatatak/" -%}
+{%- set sortie_texte = "Précommander MATATAK" if precommande_url else "Être prévenu de la sortie" -%}
 {%- set v = "/static/images/background/vitrine" -%}
 {%- set c = "/static/images/background/collection" -%}
-{%- macro boite3d(classe) -%}
-<div class="boite3d {{ classe }}" aria-hidden="true">
-  <div class="b-objet">
-    <div class="b-cote b-avant"><img src="{{ v }}/boite/face.webp" alt="" draggable="false"></div>
-    <div class="b-cote b-arriere"><img src="{{ v }}/boite/dos.webp" alt="" loading="lazy" draggable="false"></div>
-    <div class="b-tranche b-haut"><img src="{{ v }}/boite/tranche-haut.webp" alt="" draggable="false"></div>
-    <div class="b-tranche b-bas"><img src="{{ v }}/boite/tranche-bas.webp" alt="" loading="lazy" draggable="false"></div>
-    <div class="b-tranche b-gauche"><img src="{{ v }}/boite/tranche-gauche.webp" alt="" draggable="false"></div>
-    <div class="b-tranche b-droite"><img src="{{ v }}/boite/tranche-droite.webp" alt="" draggable="false"></div>
-  </div>
-  <div class="b-ombre"></div>
+{%- macro scene3d(nom, texte) -%}
+<div class="scene3d" data-scene="{{ nom }}" role="img" aria-label="{{ texte }}"
+     data-images='{"face": "{{ v }}/boite/face.webp", "haut": "{{ v }}/boite/tranche-haut.webp", "bas": "{{ v }}/boite/tranche-bas.webp", "gauche": "{{ v }}/boite/tranche-gauche.webp", "droite": "{{ v }}/boite/tranche-droite.webp", "paroi": "{{ v }}/boite/fond-paroi.webp", "plateau": "/static/images/board/matatak8x8.png", "cartes": "{{ c }}"}'>
+  <img class="repli" src="{{ v }}/boite/face.webp" alt="">
 </div>
 {%- endmacro -%}
 <div class="mt-barre-safari" aria-hidden="true"></div>
@@ -76,27 +70,30 @@
   </div>
 </nav>
 
-<!-- 1. Héros : la boîte en 3D (elle flotte, se tourne au doigt et au défilement) et la promesse du dos de la boîte -->
-<header class="heros" id="heros">
-  <div class="fond" id="fond"></div>
-  <div class="voile"></div>
-  <div class="lucioles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <div class="contenu">
-    <div class="scene-boite" id="boite-heros">
-      {{ boite3d("heros-boite") }}
-      <span class="tourner" aria-hidden="true">Tournez-la</span>
-    </div>
+<!-- 1. Héros : la boîte en 3D, puis elle s'ouvre au défilement : le plateau se déplie et les 4 équipes se placent -->
+<header class="ouverture" id="heros">
+  <div class="collant">
+    <div class="fond" id="fond"></div>
+    <div class="voile"></div>
+    <div class="lucioles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    {{ scene3d("ouverture", "La boîte de MATATAK s'ouvre : le plateau se déplie et quatre équipes de Personnages se placent") }}
     <div class="promesse">
       <h1 class="mt-tribeca"><span class="mot">Le plaisir des échecs,</span> <span class="mot or">enfin accessible</span></h1>
       <p class="accroche">Un combat tactique sauvage !</p>
       <div class="infos"><span><i class="mt-losange"></i>2 à 4 joueurs</span><span><i class="mt-losange"></i>30 minutes</span><span><i class="mt-losange"></i>Dès 7 ans</span></div>
       <div class="actions">
         <a class="mt-btn mt-btn-or" href="/jouer">Essayer gratuitement</a>
-        <a class="mt-btn mt-btn-ligne" href="#boite">Découvrir la boîte</a>
+        <a class="mt-btn mt-btn-ligne" href="#boite">{{ "Précommander" if precommande_url else "Découvrir la boîte" }}</a>
       </div>
     </div>
+    <div class="legendes" aria-hidden="true">
+      <p data-de=".27" data-a=".47">Ouvrez la jungle…</p>
+      <p data-de=".49" data-a=".65"><b>Un grand plateau</b> de 47 cm, la Colline au centre</p>
+      <p data-de=".66" data-a=".88"><b>84 cartes Personnages</b>, recto verso</p>
+      <p data-de=".89" data-a="1.1"><b>4 Personnages chacun</b>, et c'est parti&nbsp;!</p>
+    </div>
+    <a class="defiler" href="#freins" aria-label="Défiler"><span></span></a>
   </div>
-  <a class="defiler" href="#freins" aria-label="Défiler"><span></span></a>
 </header>
 
 <!-- 2. Le problème : les freins des échecs, barrés un à un au défilement -->
@@ -201,38 +198,7 @@
   </div>
 </section>
 
-<!-- 6. La boîte : elle se retourne au défilement, comme en magasin -->
-<section class="bloc" id="boite">
-  <div class="mt-wrap produit">
-    <div class="scene-boite grande" id="boite-produit" data-p>
-      <div class="halo"></div>
-      {{ boite3d("produit-boite") }}
-      <span class="tourner" aria-hidden="true">Tournez-la</span>
-    </div>
-    <div>
-      <div class="statut mt-apparait">Le jeu de société arrive</div>
-      <h2 class="mt-tribeca mt-apparait">Dans la boîte</h2>
-      <ul class="contenu mt-apparait">
-        <li><i class="mt-losange"></i><span><b>Un grand plateau</b> de 8 × 8 cases, la Colline au centre</span></li>
-        <li><i class="mt-losange"></i><span><b>84 cartes Personnages</b> recto verso, avec les 6 déplacements des échecs et 12 nouveaux</span></li>
-        <li><i class="mt-losange"></i><span><b>4 cartes d'aide</b> et un livret de règles illustré</span></li>
-      </ul>
-      <div class="pictos mt-apparait">
-        <div class="picto" style="--c:var(--mt-hiver)"><i><b>30'</b></i>minutes</div>
-        <div class="picto" style="--c:var(--mt-automne)"><i><b>2-4</b></i>joueurs</div>
-        <div class="picto" style="--c:var(--mt-printemps)"><i><b>7+</b></i>ans</div>
-      </div>
-      <p class="origine mt-apparait"><i class="mt-losange"></i>Conçu en France, fabriqué en Europe</p>
-      <div class="suivre mt-apparait">
-        <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
-        <a class="mt-btn mt-btn-ligne" href="{{ v }}/boite/dos-1600.webp" target="_blank">Voir le dos de la boîte</a>
-      </div>
-      <p class="mention mt-apparait">Les nouvelles du jeu sont annoncées d'abord sur Instagram et <a href="https://discord.gg/ctGQa2WJjh" rel="noopener" target="_blank">Discord</a>.</p>
-    </div>
-  </div>
-</section>
-
-<!-- 7. Essayer tout de suite : le pont vers le site de jeu -->
+<!-- 6. Essayer tout de suite : le pont vers le site de jeu -->
 <section class="bloc essayer" id="essayer">
   <div class="mt-wrap avant">
     <div class="rois" data-p aria-hidden="true">
@@ -247,7 +213,7 @@
   </div>
 </section>
 
-<!-- 8. Confiance : l'équipe et les objections -->
+<!-- 7. Confiance : l'équipe et les objections -->
 <section class="bloc" id="questions">
   <div class="mt-wrap confiance">
     <div class="mt-apparait">
@@ -270,7 +236,7 @@
   </div>
 </section>
 
-<!-- 9. Final : l'intro du dos de la boîte, les yeux dans le noir -->
+<!-- 8. Récit : l'intro du dos de la boîte, les yeux dans le noir, puis la question -->
 <section class="final">
   <img class="coin hd" src="{{ v }}/coin-hg.webp" alt="" loading="lazy">
   <div class="lucioles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -281,9 +247,31 @@
     </div>
     <p class="recit mt-apparait">La nuit tombe sur la jungle. Entre les feuilles, deux yeux brillent. Ici, les Saisons ne se succèdent pas&nbsp;: elles se disputent. Printemps, Été, Automne, Hiver&nbsp;: chaque Roi veut imposer la sienne. Au loin, les tambours résonnent de plus en plus fort… <b>MATATAK&nbsp;!</b></p>
     <h2 class="question mt-apparait">Quel sera votre prochain coup de génie&nbsp;?</h2>
-    <div class="actions mt-apparait">
-      <a class="mt-btn mt-btn-or" href="/jouer">Jouer gratuitement</a>
-      <a class="mt-btn mt-btn-ligne" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
+  </div>
+</section>
+
+<!-- 9. Tout rentre dans la boîte, qui se referme ; l'offre -->
+<section class="fermeture" id="boite">
+  <div class="collant">
+    {{ scene3d("fermeture", "Le plateau se replie et les cartes rentrent dans la boîte de MATATAK, qui se referme") }}
+    <div class="offre">
+      <div class="statut">{{ "Précommandes ouvertes" if precommande_url else "Le jeu de société arrive" }}</div>
+      <h2 class="mt-tribeca">Emportez la jungle chez vous</h2>
+      <ul class="contenu">
+        <li><i class="mt-losange"></i><span><b>Un grand plateau</b> de 8 × 8 cases, la Colline au centre</span></li>
+        <li><i class="mt-losange"></i><span><b>84 cartes Personnages</b> recto verso, avec les 6 déplacements des échecs et 12 nouveaux</span></li>
+        <li><i class="mt-losange"></i><span><b>4 cartes d'aide</b> et un livret de règles illustré</span></li>
+      </ul>
+      <div class="pictos">
+        <div class="picto" style="--c:var(--mt-hiver)"><i><b>30'</b></i>minutes</div>
+        <div class="picto" style="--c:var(--mt-automne)"><i><b>2-4</b></i>joueurs</div>
+        <div class="picto" style="--c:var(--mt-printemps)"><i><b>7+</b></i>ans</div>
+      </div>
+      <p class="origine"><i class="mt-losange"></i>Conçu en France, fabriqué en Europe</p>
+      <div class="suivre">
+        <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
+      </div>
+      <p class="mention">Les nouvelles du jeu sont annoncées d'abord sur Instagram et <a href="https://discord.gg/ctGQa2WJjh" rel="noopener" target="_blank">Discord</a>.</p>
     </div>
   </div>
 </section>

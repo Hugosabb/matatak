@@ -1,5 +1,6 @@
 // Vitrine (page de vente) : tout ce qui vit au défilement.
-// - la boîte en 3D : elle arrive en tournant, flotte, se tourne au doigt (balayage horizontal) et au défilement ;
+// - la boîte en 3D (héros) : elle arrive en tournant, flotte, se tourne au doigt ; au défilement elle se couche,
+//   s'ouvre, le plateau sort et se déplie, les 4 équipes se placent ; en bas de page, tout rentre et elle se referme ;
 // - [data-p] : progression 0 → 1 posée en variable CSS --p quand l'élément traverse l'écran (freins barrés,
 //   éventails des Saisons, cartes qui se retournent, Rois qui montent) ;
 // - la partie en 72 images de la section collante.
@@ -8,21 +9,257 @@
     const nav = document.getElementById('nav');
     const collante = document.getElementById('collante');
     const fond = document.getElementById('fond');
-    const heros = document.getElementById('heros');
-    const film = document.getElementById('film') || document.getElementById('comment');
-    const scene = document.getElementById('scene');
-    const ctx = scene.getContext('2d');
+    const film = document.getElementById('comment');
+    const canvas = document.getElementById('scene');
+    const ctx = canvas.getContext('2d');
     const borne = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
     const lisse = (a, b, x) => { const t = borne((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+    const mix = (a, b, t) => a + (b - a) * t;
+    const etroit = () => window.innerWidth <= 820;
 
-    // ---------- Partie en images (rendue avec Remotion) : le défilement fait avancer la partie ----------
+    // ======================= Scène 3D : la boîte, le plateau, les cartes =======================
+    // Mesures réelles en mm : boîte 245 × 245 × 45, fond 241 × 43, plateau 470 plié en 4, cartes 50.
+    const BOITE = 245, HAUT = 45, FOND = 241, HFOND = 43, PLATEAU = 470, Q = PLATEAU / 2, CASE = PLATEAU / 8, CARTE = 50;
+    // Les 4 équipes de départ (3-4 joueurs : Champion à droite du Roi, Pions en d2 e2), vues par chaque joueur ;
+    // les alliés se font face : faces claires au Sud et au Nord, sombres à l'Est et à l'Ouest.
+    const EQUIPES = [
+        { angle: 0, face: 'clair', cartes: [['04-mojo', 4, 0], ['13-dysko', 5, 0], ['19-banjo', 3, 1], ['19-banjo', 4, 1]] },
+        { angle: -90, face: 'sombre', cartes: [['03-karma', 4, 0], ['11-frank', 5, 0], ['34-bongo', 3, 1], ['34-bongo', 4, 1]] },
+        { angle: 180, face: 'clair', cartes: [['01-azar', 4, 0], ['10-krak', 5, 0], ['35-tamtam', 3, 1], ['35-tamtam', 4, 1]] },
+        { angle: 90, face: 'sombre', cartes: [['02-shans', 4, 0], ['26-rokk', 5, 0], ['33-shasha', 3, 1], ['33-shasha', 4, 1]] },
+    ];
+
+    function creerScene(el) {
+        const img = JSON.parse(el.dataset.images);
+        const monde = div('monde');
+        el.appendChild(monde);
+        const s = { el, monde, u: 1, doigt: 0, vitesse: 0, tenue: false, t: 0, planes: [] };
+
+        function div(cls, parent) {
+            const d = document.createElement('div');
+            d.className = cls;
+            if (parent) parent.appendChild(d);
+            return d;
+        }
+        // Un plan de l × h mm, centré sur l'origine de son parent, posé par la fonction pose(u) → transform
+        function plan(parent, l, h, cls, fond, pose) {
+            const d = div('plan ' + (cls || ''), parent);
+            if (fond) d.style.backgroundImage = `url("${fond}")`;
+            s.planes.push({ d, l, h, pose });
+            return d;
+        }
+        const pivot = (parent) => div('pivot', parent);
+        // Les 4 parois d'une boîte de côté c, hauteur h : le bord du haut de chaque image touche le dessus
+        function parois(parent, c, h, images, cls, dedans) {
+            const r = c / 2, z = h / 2;
+            const cotes = [
+                ['bas', (u) => `translate3d(0,${r * u}px,${z * u}px) rotateX(-90deg)`],
+                ['haut', (u) => `translate3d(0,${-r * u}px,${z * u}px) rotateX(90deg) rotateZ(180deg)`],
+                ['droite', (u) => `translate3d(${r * u}px,0,${z * u}px) rotateY(90deg) rotateZ(-90deg)`],
+                ['gauche', (u) => `translate3d(${-r * u}px,0,${z * u}px) rotateY(-90deg) rotateZ(90deg)`],
+            ];
+            // vue de l'intérieur : la paroi du bas se voit comme celle du haut retournée, etc.
+            const inverse = { bas: 'haut', haut: 'bas', droite: 'gauche', gauche: 'droite' };
+            cotes.forEach(([nom]) => {
+                const pose = dedans
+                    ? (u) => cotes.find((x) => x[0] === inverse[nom])[1](u).replace(/translate3d\(([^)]*)\)/, () => {
+                        const sx = nom === 'droite' ? r : nom === 'gauche' ? -r : 0, sy = nom === 'bas' ? r : nom === 'haut' ? -r : 0;
+                        return `translate3d(${sx * u}px,${sy * u}px,${z * u}px)`;
+                    })
+                    : cotes.find((x) => x[0] === nom)[1];
+                const d = plan(parent, c, h, cls, images && images[nom], pose);
+                if (!dedans) d.style.setProperty('--sombre', { haut: .12, bas: .5, droite: .45, gauche: .3 }[nom]);
+            });
+        }
+
+        // Ombre sur la table
+        s.ombre = plan(monde, PLATEAU * 1.12, PLATEAU * 1.12, 'ombre', null, null);
+
+        // Fond de boîte : intérieur sombre, parois de feuilles
+        s.fond = pivot(monde);
+        plan(s.fond, FOND - 4, FOND - 4, 'fond-dedans', null, (u) => `translate3d(0,0,${0.3 * u}px)`);
+        parois(s.fond, FOND, HFOND, { bas: img.paroi, haut: img.paroi, droite: img.paroi, gauche: img.paroi }, 'paroi');
+        parois(s.fond, FOND - 4, HFOND, null, 'dedans', true);
+
+        // Cartes : 4 piles dans le fond de la boîte, puis sur leurs cases
+        s.cartes = [];
+        EQUIPES.forEach((eq, e) => eq.cartes.forEach(([nom, col, rang], k) => {
+            const d = plan(monde, CARTE, CARTE, 'carte', `${img.cartes}/${eq.face}/${nom}.webp`, null);
+            // case vue par le joueur Sud, puis tournée vers le joueur de l'équipe
+            const x0 = (col - 3.5) * CASE, y0 = (3.5 - rang) * CASE;
+            const a = eq.angle * Math.PI / 180;
+            s.cartes.push({
+                d, angle: eq.angle, ordre: e * 4 + k,
+                x: x0 * Math.cos(a) - y0 * Math.sin(a), y: x0 * Math.sin(a) + y0 * Math.cos(a),
+                px: (e % 2 ? 1 : -1) * 55, py: (e < 2 ? -1 : 1) * 55, pz: 2 + k * 0.9,
+            });
+        }));
+
+        // Plateau plié en 4 : colonne de droite repliée sur la gauche, quarts du bas repliés sur ceux du haut
+        s.plateau = pivot(monde);
+        const quart = (parent, qx, qy) => {
+            const pos = `${qx > 0 ? 100 : 0}% ${qy > 0 ? 100 : 0}%`;
+            const avant = plan(parent, Q, Q, 'quart', img.plateau, (u) => `translate3d(${qx * Q / 2 * u}px,${qy * Q / 2 * u}px,0)`);
+            avant.style.backgroundSize = '200% 200%';
+            avant.style.backgroundPosition = pos;
+            plan(parent, Q, Q, 'verso-plateau', null, (u) => `translate3d(${qx * Q / 2 * u}px,${qy * Q / 2 * u}px,${-0.2 * u}px) rotateY(180deg)`);
+        };
+        s.colG = pivot(s.plateau);
+        quart(s.colG, -1, -1);
+        s.basG = pivot(s.colG);
+        quart(s.basG, -1, 1);
+        s.colD = pivot(s.plateau);
+        quart(s.colD, 1, -1);
+        s.basD = pivot(s.colD);
+        quart(s.basD, 1, 1);
+
+        // Couvercle : le dessus (face de la boîte) et ses 4 tranches
+        s.couvercle = pivot(monde);
+        s.dessus = plan(s.couvercle, BOITE, BOITE, 'reflet', img.face, (u) => `translate3d(0,0,${(HAUT + 0.5) * u}px)`);
+        parois(s.couvercle, BOITE, HAUT, img, 'tranche');
+
+        // Le doigt tourne la boîte (balayage horizontal ; le défilement vertical reste à la page)
+        if (!calme) {
+            let x0 = 0, t0 = 0;
+            el.addEventListener('pointerdown', (e) => { s.tenue = true; s.vitesse = 0; x0 = e.clientX; t0 = performance.now(); });
+            el.addEventListener('pointermove', (e) => {
+                if (!s.tenue) return;
+                const dx = e.clientX - x0, t = performance.now();
+                if (Math.abs(dx) > 3 && !el.hasPointerCapture(e.pointerId)) el.setPointerCapture(e.pointerId);
+                s.doigt += dx * 0.6;
+                s.vitesse = (dx * 0.6) / Math.max(8, t - t0) * 16;
+                x0 = e.clientX; t0 = t;
+            });
+            const lacher = () => { s.tenue = false; };
+            el.addEventListener('pointerup', lacher);
+            el.addEventListener('pointercancel', lacher);
+        }
+        new IntersectionObserver((es) => { s.visible = es[0].isIntersecting; }).observe(el);
+        el.classList.add('prete');
+        return s;
+    }
+
+    // Côté de la boîte au repos, et où elle se pose (à gauche du texte sur ordinateur, au-dessus sur téléphone)
+    function repos(nom) {
+        const w = window.innerWidth, h = window.innerHeight;
+        if (etroit()) {
+            const S = nom === 'fermeture' ? Math.min(0.5 * w, 0.22 * h, 220) : Math.min(0.62 * w, 0.3 * h, 300);
+            return { S, x: 0, y: (nom === 'fermeture' ? 78 : 72) + S * 0.62 - h / 2 };
+        }
+        const S = Math.min(420, 0.3 * w, 0.5 * h);
+        return { S, x: -Math.min(1120, w - 32) / 4, y: 0 };
+    }
+
+    // Pose toute la scène pour t ∈ [0, 1] : 0 = boîte fermée, 1 = partie prête
+    function poser(s, t, temps) {
+        const w = window.innerWidth, h = window.innerHeight;
+        const r = repos(s.el.dataset.scene);
+        const u = r.S / BOITE;
+        if (u !== s.u || !s.pose) {
+            s.u = u; s.pose = true;
+            s.planes.forEach((p) => {
+                p.d.style.width = p.l * u + 'px';
+                p.d.style.height = p.h * u + 'px';
+                p.d.style.left = -p.l * u / 2 + 'px';
+                p.d.style.top = -p.h * u / 2 + 'px';
+                if (p.pose) p.d.style.transform = p.pose(u);
+            });
+            s.el.parentElement.style.setProperty('--S', r.S + 'px');
+            s.el.style.perspective = Math.max(w, h) * 1.7 + 'px';
+        }
+        // Caméra : debout de trois quarts → couchée sur la table → recul pour voir tout le plateau
+        const couche = lisse(0.08, 0.26, t);
+        const boiteAplat = Math.min(w * 0.82, h * 0.62) / (BOITE * u);
+        const plateauAplat = Math.min(w * 0.98 / 1.1, (h - (etroit() ? 150 : 170)) / 0.85) / (PLATEAU * u);
+        let k = mix(1, boiteAplat, couche);
+        k = mix(k, plateauAplat, lisse(0.46, 0.64, t));
+        const debout = 1 - couche;
+        const balance = calme ? 0 : debout;
+        let ay = mix(0, -28, debout) + s.doigt * debout + Math.sin(temps / 1.7) * 6 * balance;
+        const ax = mix(etroit() ? 38 : 50, -14, debout) + Math.sin(temps / 2.3) * 2.5 * balance;
+        const az = mix(-8, 0, debout) + s.doigt * (1 - debout) * 0.3;
+        // arrivée de la boîte en tournant, au chargement
+        if (s.el.dataset.scene === 'ouverture' && !calme) ay -= 200 * (1 - lisse(0, 1, temps / 1.6));
+        const flotte = calme ? 0 : Math.sin(temps / 1.9) * 7 * debout;
+        const ox = r.x * debout, oy = r.y * debout + (etroit() ? 6 : -10) * couche + flotte;
+        s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
+        const zc = HAUT / 2 * debout * u;
+        s.monde.style.transform = `translate(${ox}px,${oy}px) scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`;
+        s.dessus.style.setProperty('--reflet', 50 + ay * 1.2 + '%');
+
+        // Couvercle : il se soulève, puis part vers le fond
+        const leve = lisse(0.26, 0.36, t), part = lisse(0.32, 0.44, t);
+        s.couvercle.style.transform = `translate3d(0,${-900 * part * u}px,${(200 * leve + 120 * part) * u}px) rotateX(${-25 * part}deg)`;
+        s.couvercle.style.visibility = part >= 1 ? 'hidden' : '';
+
+        // Plateau : il sort du fond, se pose au centre et se déplie (droite d'abord, puis le bas)
+        const monte = lisse(0.38, 0.48, t), pose = lisse(0.5, 0.62, t);
+        const u1 = lisse(0.52, 0.6, t), u2 = lisse(0.58, 0.66, t);
+        const decal = Q / 2 * (1 - pose);
+        const bz = mix(mix(HFOND - 12, 90, monte), 0.5, pose);
+        const recule = -300 * monte * (1 - pose);
+        s.plateau.style.transform = `translate3d(${decal * u}px,${(decal + recule) * u}px,${bz * u}px) rotateX(${-12 * monte * (1 - pose)}deg)`;
+        s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
+        s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
+        s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
+
+        // Fond de boîte : il glisse hors de l'écran une fois vidé
+        const sort = lisse(0.46, 0.58, t);
+        s.fond.style.transform = `translate3d(0,${1100 * sort * u}px,${-160 * sort * u}px)`;
+        s.fond.style.visibility = sort >= 1 ? 'hidden' : '';
+
+        // Ombre : sous la boîte, puis sous le plateau
+        const taille = mix(BOITE * 1.25, PLATEAU * 1.12, pose);
+        s.ombre.style.transform = `translate3d(0,0,${-1 * u}px) scale(${taille / (PLATEAU * 1.12)})`;
+        s.ombre.style.opacity = mix(0.9, 0.75, pose);
+
+        // Cartes : elles montent de leurs piles, attendent au-dessus de la table, puis vont sur leurs cases
+        const sortent = lisse(0.4, 0.48, t);
+        s.cartes.forEach((c) => {
+            const debut = 0.65 + c.ordre * 0.0135, f = lisse(debut, debut + 0.075, t);
+            const hx = c.px * 1.15, hy = c.py * 1.15, hz = 75 + c.ordre * 1.2;
+            const x = mix(mix(c.px, hx, sortent), c.x, f), y = mix(mix(c.py, hy, sortent), c.y, f);
+            const z = mix(mix(c.pz, hz, sortent), 1.2, f) + Math.sin(Math.PI * f) * 70;
+            const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 25;
+            c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
+            // dans la boîte fermée, seules les cartes du dessus de chaque pile ont besoin d'être dessinées
+            c.d.style.visibility = t < 0.27 ? 'hidden' : '';
+        });
+    }
+
+    const scenes = [...document.querySelectorAll('.scene3d')].map(creerScene);
+    const sceneOuverture = scenes.find((s) => s.el.dataset.scene === 'ouverture');
+    const sceneFermeture = scenes.find((s) => s.el.dataset.scene === 'fermeture');
+    const ouverture = document.getElementById('heros');
+    const fermeture = document.getElementById('boite');
+    const promesse = ouverture.querySelector('.promesse');
+    const defiler = ouverture.querySelector('.defiler');
+    const legendes = [...ouverture.querySelectorAll('.legendes p')];
+    const offre = fermeture.querySelector('.offre');
+
+    const avance = (section) => {
+        const r = section.getBoundingClientRect();
+        return borne(-r.top / Math.max(1, r.height - window.innerHeight));
+    };
+    const debut = performance.now();
+    function animer(now) {
+        const temps = (now - debut) / 1000;
+        scenes.forEach((s) => {
+            if (s.visible === false) return;
+            if (!s.tenue) { s.doigt += s.vitesse; s.vitesse *= 0.94; if (Math.abs(s.vitesse) < 0.01) s.vitesse = 0; }
+            poser(s, s.t, temps);
+        });
+        if (!calme) requestAnimationFrame(animer);
+    }
+
+    // ======================= Partie en images (rendue avec Remotion) =======================
     const NB_IMAGES = 72;
     const taille = (window.innerWidth * (window.devicePixelRatio || 1) > 900 && window.innerWidth > 700) ? 1100 : 720;
     const images = new Array(NB_IMAGES);
     let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0;
     // Fondu entre deux images voisines : gardé par Hugo le 10/11/2026 (/#net pour le comparer sans)
     const FONDU = location.hash !== '#net';
-    scene.width = scene.height = taille;
+    canvas.width = canvas.height = taille;
     // Images décodées à l'avance (createImageBitmap) : sur téléphone, décoder un WebP au moment de le
     // dessiner, pendant le défilement, peut faire sauter des images (10/11/2026)
     const decodees = new Array(NB_IMAGES);
@@ -33,7 +270,7 @@
                 if (k !== imageAffichee) {
                     ctx.drawImage(im, 0, 0, taille, taille);
                     imageAffichee = k;
-                    scene.parentElement.classList.add('pret');
+                    canvas.parentElement.classList.add('pret');
                 }
                 if (FONDU && k === imageVoulue) {
                     const suivante = decodees[k + 1];
@@ -72,104 +309,58 @@
     const progression = film.querySelector('.progression');
     const remplissage = film.querySelector('.progression b');
 
-    // ---------- Progression des éléments [data-p] ----------
+    // ======================= Progression des éléments [data-p] =======================
     // 0 quand le centre de l'élément entre par le bas de l'écran, 1 quand il atteint le milieu.
     const suivis = new Set();
-    const ioP = new IntersectionObserver((es) => {
-        es.forEach((e) => { if (e.isIntersecting) suivis.add(e.target); else suivis.delete(e.target); });
-        if (!calme) progressions(window.innerHeight);
-    }, { rootMargin: '10% 0px' });
-    document.querySelectorAll('[data-p]').forEach((el) => ioP.observe(el));
     function progressions(h) {
         suivis.forEach((el) => {
             const r = el.getBoundingClientRect();
-            const centre = r.top + r.height / 2;
-            const p = borne((h * 0.95 - centre) / (h * 0.42));
-            const ancien = el._p;
-            if (ancien === undefined || Math.abs(ancien - p) > 0.002) {
+            const p = borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
+            if (el._p === undefined || Math.abs(el._p - p) > 0.002) {
                 el._p = p;
                 el.style.setProperty('--p', p.toFixed(3));
             }
         });
     }
+    const ioP = new IntersectionObserver((es) => {
+        es.forEach((e) => { if (e.isIntersecting) suivis.add(e.target); else suivis.delete(e.target); });
+        if (!calme) progressions(window.innerHeight);
+    }, { rootMargin: '10% 0px' });
+    document.querySelectorAll('[data-p]').forEach((el) => ioP.observe(el));
 
-    // ---------- Boîtes en 3D ----------
-    // Angle = base (défilement) + balancement + inclinaison du téléphone + ce que le doigt a tourné.
-    let incliX = 0, incliY = 0;
-    const boites = [...document.querySelectorAll('.scene-boite')].map((sc) => {
-        const el = sc.querySelector('.boite3d');
-        const b = { sc, el, doigt: 0, vitesse: 0, tenue: false, visible: true, base: { rx: -14, ry: -28 } };
-        if (!calme) {
-            let x0 = 0, t0 = 0;
-            el.addEventListener('pointerdown', (e) => {
-                b.tenue = true; b.vitesse = 0; x0 = e.clientX; t0 = performance.now();
-                el.classList.add('tenue'); sc.classList.add('touchee');
-            });
-            el.addEventListener('pointermove', (e) => {
-                if (!b.tenue) return;
-                const dx = e.clientX - x0, t = performance.now();
-                if (Math.abs(dx) > 3 && !el.hasPointerCapture(e.pointerId)) el.setPointerCapture(e.pointerId);
-                b.doigt += dx * 0.6;
-                b.vitesse = (dx * 0.6) / Math.max(8, t - t0) * 16;
-                x0 = e.clientX; t0 = t;
-            });
-            const lacher = () => { b.tenue = false; el.classList.remove('tenue'); };
-            el.addEventListener('pointerup', lacher);
-            el.addEventListener('pointercancel', lacher);
-        }
-        new IntersectionObserver((es) => { b.visible = es[0].isIntersecting; }).observe(sc);
-        return b;
-    });
-    const [boiteHeros, boiteProduit] = boites;
-    // Inclinaison du téléphone (Android : sans autorisation ; l'iPhone en demande une, on s'en passe)
-    if (!calme) {
-        window.addEventListener('deviceorientation', (e) => {
-            if (e.gamma == null) return;
-            incliY = borne(e.gamma, -30, 30) * 0.35;
-            incliX = borne((e.beta || 45) - 45, -30, 30) * -0.15;
-        }, { passive: true });
-    }
-    const debut = performance.now();
-    function animerBoites(t) {
-        const temps = (t - debut) / 1000;
-        boites.forEach((b) => {
-            if (!b.visible) return;
-            if (!b.tenue) {
-                b.doigt += b.vitesse;
-                b.vitesse *= 0.94;
-                if (Math.abs(b.vitesse) < 0.01) b.vitesse = 0;
-            }
-            let ry = b.base.ry + b.doigt + incliY, rx = b.base.rx + incliX;
-            if (!calme) {
-                ry += Math.sin(temps / 1.7) * 6;
-                rx += Math.sin(temps / 2.3) * 2.5;
-                // Arrivée : la boîte tourne sur elle-même au chargement de la page
-                if (b === boiteHeros) ry -= 200 * (1 - lisse(0, 1, temps / 1.6));
-            }
-            b.el.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-            b.el.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-        });
-        requestAnimationFrame(animerBoites);
-    }
-
-    // ---------- Défilement ----------
+    // ======================= Défilement =======================
     let attente = false;
     function maj() {
         attente = false;
         const y = window.scrollY, h = window.innerHeight;
         nav.classList.toggle('plein', y > 40);
-        collante.classList.toggle('visible', y > h * 0.8);
-        if (!calme && y < h * 1.2) fond.style.transform = `translateY(${y * 0.25}px) scale(${1 + y / 5000})`;
+        // la barre « Jouer » du bas attend la fin de l'ouverture de la boîte (elle cacherait les légendes)
+        collante.classList.toggle('visible', y > ouverture.offsetTop + ouverture.offsetHeight - h * 0.5 && y < fermeture.offsetTop - h * 0.3);
 
-        // Boîte du héros : elle pivote en partant
-        const ph = borne(y / Math.max(1, heros.offsetHeight));
-        boiteHeros.base = { ry: -28 + ph * 50, rx: -14 - ph * 16 };
-        // Boîte du produit : face au début, puis elle se retourne pour montrer son dos, comme en magasin
-        if (boiteProduit) {
-            const r = boiteProduit.sc.getBoundingClientRect();
-            const pt = borne((h - r.top) / (h + r.height));
-            boiteProduit.base = { ry: -24 + 180 * lisse(0.3, 0.72, pt), rx: -10 - 8 * lisse(0, 1, pt) };
-        }
+        // Ouverture de la boîte
+        const po = calme ? 0 : avance(ouverture);
+        if (sceneOuverture) sceneOuverture.t = po;
+        const cache = lisse(0.03, 0.12, po);
+        promesse.style.opacity = 1 - cache;
+        promesse.style.transform = `translateY(${-40 * cache}px)`;
+        promesse.style.visibility = cache >= 1 ? 'hidden' : '';
+        if (defiler) defiler.style.opacity = po > 0.02 ? 0 : '';
+        fond.style.opacity = 1 - 0.55 * lisse(0.1, 0.3, po);
+        if (!calme) fond.style.transform = `scale(${1 + po * 0.12})`;
+        legendes.forEach((l) => {
+            const a = +l.dataset.de, b = +l.dataset.a;
+            const o = Math.min(lisse(a, a + 0.04, po), 1 - lisse(b - 0.04, b, po));
+            l.style.opacity = o;
+            l.style.transform = `translateY(${(1 - o) * 12}px)`;
+        });
+
+        // Fermeture : tout rentre, la boîte se referme, puis l'offre apparaît
+        const pf = calme ? 1 : avance(fermeture);
+        if (sceneFermeture) sceneFermeture.t = 1 - lisse(0.04, 0.74, pf);
+        const montre = lisse(0.7, 0.86, pf);
+        offre.style.opacity = montre;
+        offre.style.transform = `translateY(${(1 - montre) * 30}px)`;
+        offre.classList.toggle('visible', montre > 0.5);
 
         // Section collante de la partie
         const r = film.getBoundingClientRect();
@@ -185,15 +376,16 @@
         if (progression) progression.classList.toggle('fini', p > 0.98);
 
         if (!calme) progressions(h);
+        if (calme) animer(performance.now());
     }
     window.addEventListener('scroll', () => {
         if (!attente) { attente = true; requestAnimationFrame(maj); }
     }, { passive: true });
-    window.addEventListener('resize', maj, { passive: true });
+    window.addEventListener('resize', () => { scenes.forEach((s) => { s.pose = false; }); maj(); }, { passive: true });
     maj();
-    requestAnimationFrame(() => { maj(); requestAnimationFrame(animerBoites); });
+    requestAnimationFrame(animer);
 
-    // ---------- Apparition des blocs ----------
+    // ======================= Apparition des blocs =======================
     const tout = document.querySelectorAll('.mt-apparait');
     const io = new IntersectionObserver((es) => es.forEach((e) => {
         if (e.isIntersecting) { e.target.classList.add('vu'); io.unobserve(e.target); }
