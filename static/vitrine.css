@@ -38,13 +38,14 @@ h1, h2, h3 { font-weight: 400; }
 .monde .tranche::after, .monde .paroi::after { content: ""; position: absolute; inset: 0; background: rgba(8, 6, 5, var(--sombre, .35)); }
 .monde .dedans { background: linear-gradient(#0c0907, #1c1511); }
 .monde .fond-dedans { background: radial-gradient(circle, #241b16, #0e0b09); }
-.monde .verso-plateau { background: #1a1512; box-shadow: inset 0 0 0 3px rgba(234, 196, 90, .35); }
+.monde .verso-plateau { background-color: #0b0c10; background-size: 200% 200%; }
+.monde .dessous { background-color: #0d0a08; }
 .monde .carte { border-radius: 6%; background-size: cover; }
 .monde .reflet::before { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 38%, rgba(255, 240, 200, .14) 47%, transparent 56%) var(--reflet, 50%) 0 / 300% 100% no-repeat; }
 
 /* ---------- Héros : la boîte qui s'ouvre (section collante ; vitrine.js pose --S = côté de la boîte au repos) ---------- */
-.ouverture { position: relative; height: 470vh; }
-.ouverture .collant { position: sticky; top: 0; height: 100svh; overflow: hidden; isolation: isolate; }
+.ouverture { position: relative; }
+.ouverture .collant { position: relative; height: 100svh; min-height: 560px; overflow: hidden; isolation: isolate; }
 .ouverture .fond { position: absolute; inset: -6%; z-index: -3; background: url('images/background/vitrine/leaves.webp') center / cover no-repeat; will-change: transform, opacity; }
 .ouverture .voile { position: absolute; inset: 0; z-index: -2; background: radial-gradient(ellipse 55% 55% at 50% 50%, rgba(18, 16, 14, .92) 0 40%, rgba(18, 16, 14, .5) 75%, rgba(18, 16, 14, .15)), linear-gradient(transparent 72%, var(--mt-nuit)); }
 .promesse { position: absolute; z-index: 3; left: 50%; top: 50%; width: min(520px, 44vw); translate: 2% -50%; will-change: opacity, transform; }
@@ -59,6 +60,8 @@ h1, h2, h3 { font-weight: 400; }
 .legendes { position: absolute; z-index: 3; left: 0; right: 0; bottom: calc(26px + env(safe-area-inset-bottom)); height: 3.2em; text-align: center; pointer-events: none; font-size: clamp(17px, 2.2vw, 22px); }
 .legendes p { position: absolute; inset: 0 16px; margin: 0; opacity: 0; color: var(--mt-encre); text-shadow: 0 2px 12px #000, 0 0 30px #000; }
 .legendes b { color: var(--mt-or); font-weight: 900; }
+/* Ordinateur : légendes à gauche du plateau (en bas, elles passaient sous les piles de cartes) */
+@media (min-width: 821px) { .legendes { left: max(24px, 50% - 640px); right: auto; top: 50%; bottom: auto; width: min(300px, 22vw); height: 6em; translate: 0 -50%; text-align: left; } .legendes p { inset: 0; } .legendes b { display: block; font-size: 1.3em; } }
 .defiler { position: absolute; z-index: 3; bottom: calc(14px + env(safe-area-inset-bottom)); left: 50%; translate: -50% 0; width: 44px; height: 44px; display: grid; place-items: center; transition: opacity .3s; }
 .defiler span { width: 12px; height: 12px; border: solid var(--mt-or); border-width: 0 2px 2px 0; transform: rotate(45deg); animation: rebond 2s infinite; }
 @keyframes rebond { 0%, 100% { translate: 0 -4px; opacity: .5; } 50% { translate: 0 4px; opacity: 1; } }
@@ -181,7 +184,7 @@ h1, h2, h3 { font-weight: 400; }
 @media (max-width: 700px) { .rangee-echecs { grid-template-columns: repeat(3, 1fr); gap: 22px 14px; width: min(400px, 100% - 40px); } }
 
 /* ---------- Fermeture : tout rentre dans la boîte, puis l'offre ---------- */
-.fermeture { position: relative; height: 360vh; }
+.fermeture { position: relative; height: 650vh; }
 .fermeture .collant { position: sticky; top: 0; height: 100svh; overflow: hidden; background: radial-gradient(ellipse 60% 50% at 30% 50%, #1b1610, transparent 70%); }
 .offre { position: absolute; z-index: 3; left: 50%; top: 50%; width: min(520px, 44vw); translate: 2% -50%; opacity: 0; pointer-events: none; will-change: opacity, transform; }
 .offre.visible { pointer-events: auto; }

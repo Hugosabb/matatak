@@ -1,6 +1,7 @@
 // Vitrine (page de vente) : tout ce qui vit au défilement.
-// - la boîte en 3D (héros) : elle arrive en tournant, flotte, se tourne au doigt ; au défilement elle se couche,
-//   s'ouvre, le plateau sort et se déplie, les 4 équipes se placent ; en bas de page, tout rentre et elle se referme ;
+// - la boîte en 3D du héros : elle arrive en tournant, flotte, se tourne au doigt (on y voit aussi son dos) ;
+// - la même boîte en bas de page : au défilement elle se retourne (son dos), se couche, s'ouvre, le plateau sort et
+//   se déplie, les 4 équipes se placent, puis tout rentre, elle se referme et l'offre apparaît ;
 // - [data-p] : progression 0 → 1 posée en variable CSS --p quand l'élément traverse l'écran (freins barrés,
 //   éventails des Saisons, cartes qui se retournent, Rois qui montent) ;
 // - la partie en 72 images de la section collante.
@@ -80,6 +81,7 @@
         plan(s.fond, FOND - 4, FOND - 4, 'fond-dedans', null, (u) => `translate3d(0,0,${0.3 * u}px)`);
         parois(s.fond, FOND, HFOND, { bas: img.paroi, haut: img.paroi, droite: img.paroi, gauche: img.paroi }, 'paroi');
         parois(s.fond, FOND - 4, HFOND, null, 'dedans', true);
+        plan(s.fond, BOITE - 1, BOITE - 1, 'dessous', img.dos, (u) => `translate3d(0,0,${-0.3 * u}px) rotateY(180deg)`);
 
         // Cartes : 4 piles dans le fond de la boîte, puis sur leurs cases
         s.cartes = [];
@@ -92,6 +94,8 @@
                 d, angle: eq.angle, ordre: e * 4 + k,
                 x: x0 * Math.cos(a) - y0 * Math.sin(a), y: x0 * Math.sin(a) + y0 * Math.cos(a),
                 px: (e % 2 ? 1 : -1) * 55, py: (e < 2 ? -1 : 1) * 55, pz: 2 + k * 0.9,
+                // pile d'attente, hors du plateau déplié (bord à 235 mm) : Sud et Est en bas, Nord et Ouest en haut
+                ex: [-70, 70, 70, -70][e], ey: [1, 1, -1, -1][e] * (Q + 42), ez: 1 + k * 0.9,
             });
         }));
 
@@ -102,7 +106,9 @@
             const avant = plan(parent, Q, Q, 'quart', img.plateau, (u) => `translate3d(${qx * Q / 2 * u}px,${qy * Q / 2 * u}px,0)`);
             avant.style.backgroundSize = '200% 200%';
             avant.style.backgroundPosition = pos;
-            plan(parent, Q, Q, 'verso-plateau', null, (u) => `translate3d(${qx * Q / 2 * u}px,${qy * Q / 2 * u}px,${-0.2 * u}px) rotateY(180deg)`);
+            const dos = plan(parent, Q, Q, 'verso-plateau', img.verso, (u) => `translate3d(${qx * Q / 2 * u}px,${qy * Q / 2 * u}px,${-0.2 * u}px) rotateY(180deg)`);
+            dos.style.backgroundSize = '200% 200%';
+            dos.style.backgroundPosition = `${qx < 0 ? 100 : 0}% ${qy > 0 ? 100 : 0}%`;
         };
         s.colG = pivot(s.plateau);
         quart(s.colG, -1, -1);
@@ -117,6 +123,7 @@
         s.couvercle = pivot(monde);
         s.dessus = plan(s.couvercle, BOITE, BOITE, 'reflet', img.face, (u) => `translate3d(0,0,${(HAUT + 0.5) * u}px)`);
         parois(s.couvercle, BOITE, HAUT, img, 'tranche');
+        plan(s.couvercle, BOITE - 1, BOITE - 1, 'dessous', null, (u) => `translate3d(0,0,${(HAUT - 0.5) * u}px) rotateY(180deg)`);
 
         // Le doigt tourne la boîte (balayage horizontal ; le défilement vertical reste à la page)
         if (!calme) {
@@ -143,7 +150,7 @@
     function repos(nom) {
         const w = window.innerWidth, h = window.innerHeight;
         if (etroit()) {
-            const S = nom === 'fermeture' ? Math.min(0.5 * w, 0.22 * h, 220) : Math.min(0.62 * w, 0.3 * h, 300);
+            const S = nom === 'fermeture' ? Math.min(0.54 * w, 0.24 * h, 230) : Math.min(0.62 * w, 0.3 * h, 300);
             return { S, x: 0, y: (nom === 'fermeture' ? 78 : 72) + S * 0.62 - h / 2 };
         }
         const S = Math.min(420, 0.3 * w, 0.5 * h);
@@ -170,16 +177,17 @@
         // Caméra : debout de trois quarts → couchée sur la table → recul pour voir tout le plateau
         const couche = lisse(0.08, 0.26, t);
         const boiteAplat = Math.min(w * 0.82, h * 0.62) / (BOITE * u);
-        const plateauAplat = Math.min(w * 0.98 / 1.1, (h - (etroit() ? 150 : 170)) / 0.85) / (PLATEAU * u);
+        // le plateau et les piles de cartes posées au Nord et au Sud (≈ 600 mm de profondeur) doivent tenir dans l'écran
+        const plateauAplat = Math.min(w * 0.98 / (1.1 * PLATEAU), (h - (etroit() ? 150 : 190)) / (etroit() ? 0.85 * PLATEAU : 0.78 * 600)) / u;
         let k = mix(1, boiteAplat, couche);
-        k = mix(k, plateauAplat, lisse(0.46, 0.64, t));
+        k = mix(k, plateauAplat, lisse(0.44, 0.62, t));
         const debout = 1 - couche;
         const balance = calme ? 0 : debout;
-        let ay = mix(0, -28, debout) + s.doigt * debout + Math.sin(temps / 1.7) * 6 * balance;
+        let ay = mix(0, -28, debout) + (s.doigt + (s.tour || 0)) * debout + Math.sin(temps / 1.7) * 6 * balance;
         const ax = mix(etroit() ? 38 : 50, -14, debout) + Math.sin(temps / 2.3) * 2.5 * balance;
         const az = mix(-8, 0, debout) + s.doigt * (1 - debout) * 0.3;
         // arrivée de la boîte en tournant, au chargement
-        if (s.el.dataset.scene === 'ouverture' && !calme) ay -= 200 * (1 - lisse(0, 1, temps / 1.6));
+        if (s.el.dataset.scene === 'heros' && !calme) ay -= 200 * (1 - lisse(0, 1, temps / 1.6));
         const flotte = calme ? 0 : Math.sin(temps / 1.9) * 7 * debout;
         const ox = r.x * debout, oy = r.y * debout + (etroit() ? 6 : -10) * couche + flotte;
         s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
@@ -192,20 +200,20 @@
         s.couvercle.style.transform = `translate3d(0,${-900 * part * u}px,${(200 * leve + 120 * part) * u}px) rotateX(${-25 * part}deg)`;
         s.couvercle.style.visibility = part >= 1 ? 'hidden' : '';
 
-        // Plateau : il sort du fond, se pose au centre et se déplie (droite d'abord, puis le bas)
-        const monte = lisse(0.38, 0.48, t), pose = lisse(0.5, 0.62, t);
-        const u1 = lisse(0.52, 0.6, t), u2 = lisse(0.58, 0.66, t);
+        // Plateau : il sort du fond et recule, puis (les cartes sorties) se pose au centre et se déplie : droite, puis bas
+        const monte = lisse(0.36, 0.46, t), pose = lisse(0.52, 0.64, t);
+        const u1 = lisse(0.54, 0.61, t), u2 = lisse(0.6, 0.67, t);
         const decal = Q / 2 * (1 - pose);
-        const bz = mix(mix(HFOND - 12, 90, monte), 0.5, pose);
-        const recule = -300 * monte * (1 - pose);
+        const bz = mix(mix(HFOND - 12, 95, monte), 0.5, pose);
+        const recule = -210 * monte * (1 - pose);
         s.plateau.style.transform = `translate3d(${decal * u}px,${(decal + recule) * u}px,${bz * u}px) rotateX(${-12 * monte * (1 - pose)}deg)`;
         s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
         s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
         s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
 
-        // Fond de boîte : il glisse hors de l'écran une fois vidé
-        const sort = lisse(0.46, 0.58, t);
-        s.fond.style.transform = `translate3d(0,${1100 * sort * u}px,${-160 * sort * u}px)`;
+        // Fond de boîte : vidé, il glisse sur le côté (il ne croise ni les piles ni le plateau)
+        const sort = lisse(0.5, 0.58, t);
+        s.fond.style.transform = `translate3d(${1000 * sort * u}px,0,0)`;
         s.fond.style.visibility = sort >= 1 ? 'hidden' : '';
 
         // Ombre : sous la boîte, puis sous le plateau
@@ -213,28 +221,24 @@
         s.ombre.style.transform = `translate3d(0,0,${-1 * u}px) scale(${taille / (PLATEAU * 1.12)})`;
         s.ombre.style.opacity = mix(0.9, 0.75, pose);
 
-        // Cartes : elles montent de leurs piles, attendent au-dessus de la table, puis vont sur leurs cases
-        const sortent = lisse(0.4, 0.48, t);
+        // Cartes : du fond de la boîte à 4 piles posées hors du plateau, puis, le plateau déplié, sur leurs cases
+        const sortent = lisse(0.42, 0.52, t);
         s.cartes.forEach((c) => {
-            const debut = 0.65 + c.ordre * 0.0135, f = lisse(debut, debut + 0.075, t);
-            const hx = c.px * 1.15, hy = c.py * 1.15, hz = 75 + c.ordre * 1.2;
-            const x = mix(mix(c.px, hx, sortent), c.x, f), y = mix(mix(c.py, hy, sortent), c.y, f);
-            const z = mix(mix(c.pz, hz, sortent), 1.2, f) + Math.sin(Math.PI * f) * 70;
-            const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 25;
+            const debut = 0.68 + c.ordre * 0.0135, f = lisse(debut, debut + 0.07, t);
+            const x = mix(mix(c.px, c.ex, sortent), c.x, f), y = mix(mix(c.py, c.ey, sortent), c.y, f);
+            const z = mix(mix(c.pz, c.ez, sortent), 1.2, f) + Math.sin(Math.PI * sortent) * 50 + Math.sin(Math.PI * f) * 35;
+            const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 20;
             c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
-            // dans la boîte fermée, seules les cartes du dessus de chaque pile ont besoin d'être dessinées
+            // boîte fermée : inutile de dessiner les cartes
             c.d.style.visibility = t < 0.27 ? 'hidden' : '';
         });
     }
 
     const scenes = [...document.querySelectorAll('.scene3d')].map(creerScene);
-    const sceneOuverture = scenes.find((s) => s.el.dataset.scene === 'ouverture');
+    const sceneHeros = scenes.find((s) => s.el.dataset.scene === 'heros');
     const sceneFermeture = scenes.find((s) => s.el.dataset.scene === 'fermeture');
-    const ouverture = document.getElementById('heros');
     const fermeture = document.getElementById('boite');
-    const promesse = ouverture.querySelector('.promesse');
-    const defiler = ouverture.querySelector('.defiler');
-    const legendes = [...ouverture.querySelectorAll('.legendes p')];
+    const legendes = [...fermeture.querySelectorAll('.legendes p')];
     const offre = fermeture.querySelector('.offre');
 
     const avance = (section) => {
@@ -334,30 +338,26 @@
         attente = false;
         const y = window.scrollY, h = window.innerHeight;
         nav.classList.toggle('plein', y > 40);
-        // la barre « Jouer » du bas attend la fin de l'ouverture de la boîte (elle cacherait les légendes)
-        collante.classList.toggle('visible', y > ouverture.offsetTop + ouverture.offsetHeight - h * 0.5 && y < fermeture.offsetTop - h * 0.3);
+        // la barre « Jouer » du bas se cache pendant l'animation de la boîte (elle cacherait les légendes et l'offre)
+        collante.classList.toggle('visible', y > h * 0.8 && y < fermeture.offsetTop - h * 0.3);
+        if (!calme && y < h * 1.2) fond.style.transform = `translateY(${y * 0.25}px) scale(${1 + y / 5000})`;
+        if (sceneHeros) sceneHeros.t = 0;
 
-        // Ouverture de la boîte
-        const po = calme ? 0 : avance(ouverture);
-        if (sceneOuverture) sceneOuverture.t = po;
-        const cache = lisse(0.03, 0.12, po);
-        promesse.style.opacity = 1 - cache;
-        promesse.style.transform = `translateY(${-40 * cache}px)`;
-        promesse.style.visibility = cache >= 1 ? 'hidden' : '';
-        if (defiler) defiler.style.opacity = po > 0.02 ? 0 : '';
-        fond.style.opacity = 1 - 0.55 * lisse(0.1, 0.3, po);
-        if (!calme) fond.style.transform = `scale(${1 + po * 0.12})`;
-        legendes.forEach((l) => {
-            const a = +l.dataset.de, b = +l.dataset.a;
-            const o = Math.min(lisse(a, a + 0.04, po), 1 - lisse(b - 0.04, b, po));
-            l.style.opacity = o;
-            l.style.transform = `translateY(${(1 - o) * 12}px)`;
-        });
-
-        // Fermeture : tout rentre, la boîte se referme, puis l'offre apparaît
+        // Fin de page : la boîte se retourne (son dos), s'ouvre, la partie se met en place, puis tout rentre
         const pf = calme ? 1 : avance(fermeture);
-        if (sceneFermeture) sceneFermeture.t = 1 - lisse(0.04, 0.74, pf);
-        const montre = lisse(0.7, 0.86, pf);
+        if (sceneFermeture) {
+            sceneFermeture.tour = 180 * lisse(0.03, 0.1, pf) + 180 * lisse(0.15, 0.21, pf);
+            const ouvre = borne((pf - 0.22) / 0.36), referme = borne((pf - 0.64) / 0.24);
+            sceneFermeture.t = pf < 0.61 ? ouvre : 1 - referme;
+            const ouvert = pf < 0.61;
+            legendes.forEach((l) => {
+                const a = +l.dataset.de, b = +l.dataset.a;
+                const o = ouvert ? Math.min(lisse(a, a + 0.04, ouvre), 1 - lisse(b - 0.04, b, ouvre)) : 0;
+                l.style.opacity = o;
+                l.style.transform = `translateY(${(1 - o) * 12}px)`;
+            });
+        }
+        const montre = lisse(0.87, 0.95, pf);
         offre.style.opacity = montre;
         offre.style.transform = `translateY(${(1 - montre) * 30}px)`;
         offre.classList.toggle('visible', montre > 0.5);

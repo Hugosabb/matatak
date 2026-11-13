@@ -50,7 +50,7 @@
 {%- set c = "/static/images/background/collection" -%}
 {%- macro scene3d(nom, texte) -%}
 <div class="scene3d" data-scene="{{ nom }}" role="img" aria-label="{{ texte }}"
-     data-images='{"face": "{{ v }}/boite/face.webp", "haut": "{{ v }}/boite/tranche-haut.webp", "bas": "{{ v }}/boite/tranche-bas.webp", "gauche": "{{ v }}/boite/tranche-gauche.webp", "droite": "{{ v }}/boite/tranche-droite.webp", "paroi": "{{ v }}/boite/fond-paroi.webp", "plateau": "/static/images/board/matatak8x8.png", "cartes": "{{ c }}"}'>
+     data-images='{"face": "{{ v }}/boite/face.webp", "haut": "{{ v }}/boite/tranche-haut.webp", "bas": "{{ v }}/boite/tranche-bas.webp", "gauche": "{{ v }}/boite/tranche-gauche.webp", "droite": "{{ v }}/boite/tranche-droite.webp", "paroi": "{{ v }}/boite/fond-paroi.webp", "dos": "{{ v }}/boite/dos.webp", "verso": "{{ v }}/boite/plateau-verso.webp", "plateau": "/static/images/board/matatak8x8.png", "cartes": "{{ c }}"}'>
   <img class="repli" src="{{ v }}/boite/face.webp" alt="">
 </div>
 {%- endmacro -%}
@@ -70,13 +70,13 @@
   </div>
 </nav>
 
-<!-- 1. Héros : la boîte en 3D, puis elle s'ouvre au défilement : le plateau se déplie et les 4 équipes se placent -->
+<!-- 1. Héros : la boîte en 3D (elle arrive en tournant, flotte, se tourne au doigt) et la promesse du dos de la boîte -->
 <header class="ouverture" id="heros">
   <div class="collant">
     <div class="fond" id="fond"></div>
     <div class="voile"></div>
     <div class="lucioles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    {{ scene3d("ouverture", "La boîte de MATATAK s'ouvre : le plateau se déplie et quatre équipes de Personnages se placent") }}
+    {{ scene3d("heros", "La boîte de MATATAK, à tourner du doigt") }}
     <div class="promesse">
       <h1 class="mt-tribeca"><span class="mot">Le plaisir des échecs,</span> <span class="mot or">enfin accessible</span></h1>
       <p class="accroche">Un combat tactique sauvage !</p>
@@ -85,12 +85,6 @@
         <a class="mt-btn mt-btn-or" href="/jouer">Essayer gratuitement</a>
         <a class="mt-btn mt-btn-ligne" href="#boite">{{ "Précommander" if precommande_url else "Découvrir la boîte" }}</a>
       </div>
-    </div>
-    <div class="legendes" aria-hidden="true">
-      <p data-de=".27" data-a=".47">Ouvrez la jungle…</p>
-      <p data-de=".49" data-a=".65"><b>Un grand plateau</b> de 47 cm, la Colline au centre</p>
-      <p data-de=".66" data-a=".88"><b>84 cartes Personnages</b>, recto verso</p>
-      <p data-de=".89" data-a="1.1"><b>4 Personnages chacun</b>, et c'est parti&nbsp;!</p>
     </div>
     <a class="defiler" href="#freins" aria-label="Défiler"><span></span></a>
   </div>
@@ -250,10 +244,16 @@
   </div>
 </section>
 
-<!-- 9. Tout rentre dans la boîte, qui se referme ; l'offre -->
+<!-- 9. La boîte se retourne (le dos), s'ouvre, la partie se met en place, puis tout rentre et l'offre apparaît -->
 <section class="fermeture" id="boite">
   <div class="collant">
-    {{ scene3d("fermeture", "Le plateau se replie et les cartes rentrent dans la boîte de MATATAK, qui se referme") }}
+    {{ scene3d("fermeture", "La boîte de MATATAK se retourne, s'ouvre : le plateau se déplie, quatre équipes se placent, puis tout rentre dans la boîte") }}
+    <div class="legendes" aria-hidden="true">
+      <p data-de=".24" data-a=".46">Ouvrez la jungle…</p>
+      <p data-de=".48" data-a=".66"><b>Un grand plateau</b> de 47 cm, la Colline au centre</p>
+      <p data-de=".67" data-a=".9"><b>84 cartes Personnages</b> recto verso</p>
+      <p data-de=".91" data-a="1.1"><b>4 Personnages chacun</b> et c'est parti&nbsp;!</p>
+    </div>
     <div class="offre">
       <div class="statut">{{ "Précommandes ouvertes" if precommande_url else "Le jeu de société arrive" }}</div>
       <h2 class="mt-tribeca">Emportez la jungle chez vous</h2>
