@@ -45,11 +45,12 @@
     le jour de l'ouverture des précommandes, mettre l'adresse ici et tous les boutons deviennent « Précommander ». -#}
 {%- set precommande_url = "" -%}
 {%- set sortie_url = precommande_url or "https://www.instagram.com/playmatatak/" -%}
-{%- set sortie_texte = "Précommander MATATAK" if precommande_url else "Être prévenu de la sortie" -%}
+{%- set sortie_texte = "Précommander" -%}
 {#- Témoignage de Gartin591 : la section n'apparaît que quand la vidéo (fichier dans static/, depuis le dépôt privé)
     et sa phrase exacte sont renseignées. -#}
 {%- set gartin_video = "" -%}
 {%- set gartin_phrase = "" -%}
+{%- set julien_video = "" -%}
 {%- set v = "/static/images/background/vitrine" -%}
 {%- set c = "/static/images/background/collection" -%}
 {%- macro scene3d(nom, texte) -%}
@@ -82,43 +83,76 @@
     {{ scene3d("heros", "La boîte de MATATAK") }}
     <div class="promesse">
       <h1><span class="mot">Le plaisir des échecs,</span> <span class="mot or">enfin accessible</span></h1>
-      <p class="accroche">Un combat tactique sauvage&nbsp;!</p>
       <div class="infos"><span><i class="mt-losange"></i>2 à 4 joueurs</span><span><i class="mt-losange"></i>30 minutes</span><span><i class="mt-losange"></i>Dès 7 ans</span></div>
       <div class="actions">
-        <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ "Précommander" if precommande_url else sortie_texte }}</a>
+        <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
         <a class="mt-btn mt-btn-ligne" href="/jouer">Essayer gratuitement</a>
       </div>
     </div>
   </div>
 </header>
 
-<!-- 2. Le problème (section collante) : les 5 freins des échecs arrivent un à un, sont barrés, s'en vont ; derrière,
-     l'échiquier gris se couvre de flèches puis laisse la place au plateau de MATATAK ; reste la phrase du dos de la boîte -->
+<!-- 2. Le problème (section collante) : au-dessus, l'échiquier gris se couvre de flèches puis laisse la place au plateau
+     de MATATAK ; dessous, les 5 freins (des ressentis) arrivent un à un, sont barrés, s'en vont ; reste la phrase du dos -->
 <section class="freins" id="freins">
   <div class="collant">
-    <div class="plateaux"><svg class="echiquier" viewBox="0 0 800 800" aria-hidden="true"><defs><marker id="pointe" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z"/></marker></defs><rect x="0" y="0" width="100" height="100" class="c"/><rect x="100" y="0" width="100" height="100" class="f"/><rect x="200" y="0" width="100" height="100" class="c"/><rect x="300" y="0" width="100" height="100" class="f"/><rect x="400" y="0" width="100" height="100" class="c"/><rect x="500" y="0" width="100" height="100" class="f"/><rect x="600" y="0" width="100" height="100" class="c"/><rect x="700" y="0" width="100" height="100" class="f"/><rect x="0" y="100" width="100" height="100" class="f"/><rect x="100" y="100" width="100" height="100" class="c"/><rect x="200" y="100" width="100" height="100" class="f"/><rect x="300" y="100" width="100" height="100" class="c"/><rect x="400" y="100" width="100" height="100" class="f"/><rect x="500" y="100" width="100" height="100" class="c"/><rect x="600" y="100" width="100" height="100" class="f"/><rect x="700" y="100" width="100" height="100" class="c"/><rect x="0" y="200" width="100" height="100" class="c"/><rect x="100" y="200" width="100" height="100" class="f"/><rect x="200" y="200" width="100" height="100" class="c"/><rect x="300" y="200" width="100" height="100" class="f"/><rect x="400" y="200" width="100" height="100" class="c"/><rect x="500" y="200" width="100" height="100" class="f"/><rect x="600" y="200" width="100" height="100" class="c"/><rect x="700" y="200" width="100" height="100" class="f"/><rect x="0" y="300" width="100" height="100" class="f"/><rect x="100" y="300" width="100" height="100" class="c"/><rect x="200" y="300" width="100" height="100" class="f"/><rect x="300" y="300" width="100" height="100" class="c"/><rect x="400" y="300" width="100" height="100" class="f"/><rect x="500" y="300" width="100" height="100" class="c"/><rect x="600" y="300" width="100" height="100" class="f"/><rect x="700" y="300" width="100" height="100" class="c"/><rect x="0" y="400" width="100" height="100" class="c"/><rect x="100" y="400" width="100" height="100" class="f"/><rect x="200" y="400" width="100" height="100" class="c"/><rect x="300" y="400" width="100" height="100" class="f"/><rect x="400" y="400" width="100" height="100" class="c"/><rect x="500" y="400" width="100" height="100" class="f"/><rect x="600" y="400" width="100" height="100" class="c"/><rect x="700" y="400" width="100" height="100" class="f"/><rect x="0" y="500" width="100" height="100" class="f"/><rect x="100" y="500" width="100" height="100" class="c"/><rect x="200" y="500" width="100" height="100" class="f"/><rect x="300" y="500" width="100" height="100" class="c"/><rect x="400" y="500" width="100" height="100" class="f"/><rect x="500" y="500" width="100" height="100" class="c"/><rect x="600" y="500" width="100" height="100" class="f"/><rect x="700" y="500" width="100" height="100" class="c"/><rect x="0" y="600" width="100" height="100" class="c"/><rect x="100" y="600" width="100" height="100" class="f"/><rect x="200" y="600" width="100" height="100" class="c"/><rect x="300" y="600" width="100" height="100" class="f"/><rect x="400" y="600" width="100" height="100" class="c"/><rect x="500" y="600" width="100" height="100" class="f"/><rect x="600" y="600" width="100" height="100" class="c"/><rect x="700" y="600" width="100" height="100" class="f"/><rect x="0" y="700" width="100" height="100" class="f"/><rect x="100" y="700" width="100" height="100" class="c"/><rect x="200" y="700" width="100" height="100" class="f"/><rect x="300" y="700" width="100" height="100" class="c"/><rect x="400" y="700" width="100" height="100" class="f"/><rect x="500" y="700" width="100" height="100" class="c"/><rect x="600" y="700" width="100" height="100" class="f"/><rect x="700" y="700" width="100" height="100" class="c"/><g class="pieces"><text x="50" y="774" class="b">♖&#xFE0E;</text><text x="150" y="774" class="b">♘&#xFE0E;</text><text x="250" y="774" class="b">♗&#xFE0E;</text><text x="350" y="774" class="b">♕&#xFE0E;</text><text x="450" y="774" class="b">♔&#xFE0E;</text><text x="550" y="774" class="b">♗&#xFE0E;</text><text x="650" y="774" class="b">♘&#xFE0E;</text><text x="750" y="774" class="b">♖&#xFE0E;</text><text x="50" y="674" class="b">♙&#xFE0E;</text><text x="150" y="674" class="b">♙&#xFE0E;</text><text x="250" y="674" class="b">♙&#xFE0E;</text><text x="350" y="674" class="b">♙&#xFE0E;</text><text x="450" y="674" class="b">♙&#xFE0E;</text><text x="550" y="674" class="b">♙&#xFE0E;</text><text x="650" y="674" class="b">♙&#xFE0E;</text><text x="750" y="674" class="b">♙&#xFE0E;</text><text x="50" y="174" class="n">♟&#xFE0E;</text><text x="150" y="174" class="n">♟&#xFE0E;</text><text x="250" y="174" class="n">♟&#xFE0E;</text><text x="350" y="174" class="n">♟&#xFE0E;</text><text x="450" y="174" class="n">♟&#xFE0E;</text><text x="550" y="174" class="n">♟&#xFE0E;</text><text x="650" y="174" class="n">♟&#xFE0E;</text><text x="750" y="174" class="n">♟&#xFE0E;</text><text x="50" y="74" class="n">♜&#xFE0E;</text><text x="150" y="74" class="n">♞&#xFE0E;</text><text x="250" y="74" class="n">♝&#xFE0E;</text><text x="350" y="74" class="n">♛&#xFE0E;</text><text x="450" y="74" class="n">♚&#xFE0E;</text><text x="550" y="74" class="n">♝&#xFE0E;</text><text x="650" y="74" class="n">♞&#xFE0E;</text><text x="750" y="74" class="n">♜&#xFE0E;</text></g><g class="fleches"><line x1="150" y1="750" x2="250" y2="550" style="--k:0.000" marker-end="url(#pointe)"/><line x1="650" y1="750" x2="550" y2="550" style="--k:0.045" marker-end="url(#pointe)"/><line x1="150" y1="750" x2="50" y2="550" style="--k:0.091" marker-end="url(#pointe)"/><line x1="650" y1="750" x2="750" y2="550" style="--k:0.136" marker-end="url(#pointe)"/><line x1="450" y1="650" x2="450" y2="450" style="--k:0.182" marker-end="url(#pointe)"/><line x1="350" y1="650" x2="350" y2="450" style="--k:0.227" marker-end="url(#pointe)"/><line x1="250" y1="650" x2="250" y2="450" style="--k:0.273" marker-end="url(#pointe)"/><line x1="550" y1="650" x2="550" y2="550" style="--k:0.318" marker-end="url(#pointe)"/><line x1="250" y1="750" x2="550" y2="450" style="--k:0.364" marker-end="url(#pointe)"/><line x1="550" y1="750" x2="150" y2="350" style="--k:0.409" marker-end="url(#pointe)"/><line x1="350" y1="750" x2="50" y2="450" style="--k:0.455" marker-end="url(#pointe)"/><line x1="350" y1="750" x2="750" y2="350" style="--k:0.500" marker-end="url(#pointe)"/><line x1="150" y1="50" x2="250" y2="250" style="--k:0.545" marker-end="url(#pointe)"/><line x1="650" y1="50" x2="550" y2="250" style="--k:0.591" marker-end="url(#pointe)"/><line x1="450" y1="150" x2="450" y2="350" style="--k:0.636" marker-end="url(#pointe)"/><line x1="350" y1="150" x2="350" y2="350" style="--k:0.682" marker-end="url(#pointe)"/><line x1="250" y1="50" x2="650" y2="450" style="--k:0.727" marker-end="url(#pointe)"/><line x1="550" y1="50" x2="150" y2="450" style="--k:0.773" marker-end="url(#pointe)"/><line x1="350" y1="50" x2="750" y2="450" style="--k:0.818" marker-end="url(#pointe)"/><line x1="250" y1="150" x2="250" y2="350" style="--k:0.864" marker-end="url(#pointe)"/><line x1="650" y1="150" x2="650" y2="250" style="--k:0.909" marker-end="url(#pointe)"/><line x1="150" y1="150" x2="150" y2="350" style="--k:0.955" marker-end="url(#pointe)"/></g></svg><div class="plateau-mt" aria-hidden="true"><img src="{{ c }}/clair/04-mojo.webp" alt="" loading="lazy" style="left:50.9%;top:88.4%;"><img src="{{ c }}/clair/13-dysko.webp" alt="" loading="lazy" style="left:63.4%;top:88.4%;"><img src="{{ c }}/clair/19-banjo.webp" alt="" loading="lazy" style="left:38.4%;top:75.9%;"><img src="{{ c }}/clair/19-banjo.webp" alt="" loading="lazy" style="left:50.9%;top:75.9%;"><img src="{{ c }}/sombre/01-azar.webp" alt="" loading="lazy" style="left:38.4%;top:0.9%;rotate:180deg;"><img src="{{ c }}/sombre/10-krak.webp" alt="" loading="lazy" style="left:25.9%;top:0.9%;rotate:180deg;"><img src="{{ c }}/sombre/35-tamtam.webp" alt="" loading="lazy" style="left:38.4%;top:13.4%;rotate:180deg;"><img src="{{ c }}/sombre/35-tamtam.webp" alt="" loading="lazy" style="left:50.9%;top:13.4%;rotate:180deg;"></div></div>
     <div class="mt-wrap etroit">
       <div class="surtitre"><i class="mt-losange"></i>Pourquoi MATATAK<i class="mt-losange"></i></div>
       <h2 class="titre">Les échecs vous font envie, mais…</h2>
-      <ul class="liste-freins">
-        <li>Des ouvertures à apprendre par cœur</li>
-        <li>Seize pièces et des calculs à chaque coup</li>
-        <li>Perdre, et se sentir nul</li>
-        <li>Impossible de jouer avec plus fort ou moins fort que soi</li>
-        <li>Un univers austère et sérieux</li>
-      </ul>
-      <p class="reponse"><img src="{{ v }}/logo.png" alt="MATATAK"><b>Pour rassembler ceux qui adorent les échecs et ceux qui n'ont jamais osé</b></p>
+      <div class="plateaux"><svg class="echiquier" viewBox="0 0 800 800" aria-hidden="true"><defs><marker id="pointe" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z"/></marker></defs><rect x="0" y="0" width="100" height="100" class="c"/><rect x="100" y="0" width="100" height="100" class="f"/><rect x="200" y="0" width="100" height="100" class="c"/><rect x="300" y="0" width="100" height="100" class="f"/><rect x="400" y="0" width="100" height="100" class="c"/><rect x="500" y="0" width="100" height="100" class="f"/><rect x="600" y="0" width="100" height="100" class="c"/><rect x="700" y="0" width="100" height="100" class="f"/><rect x="0" y="100" width="100" height="100" class="f"/><rect x="100" y="100" width="100" height="100" class="c"/><rect x="200" y="100" width="100" height="100" class="f"/><rect x="300" y="100" width="100" height="100" class="c"/><rect x="400" y="100" width="100" height="100" class="f"/><rect x="500" y="100" width="100" height="100" class="c"/><rect x="600" y="100" width="100" height="100" class="f"/><rect x="700" y="100" width="100" height="100" class="c"/><rect x="0" y="200" width="100" height="100" class="c"/><rect x="100" y="200" width="100" height="100" class="f"/><rect x="200" y="200" width="100" height="100" class="c"/><rect x="300" y="200" width="100" height="100" class="f"/><rect x="400" y="200" width="100" height="100" class="c"/><rect x="500" y="200" width="100" height="100" class="f"/><rect x="600" y="200" width="100" height="100" class="c"/><rect x="700" y="200" width="100" height="100" class="f"/><rect x="0" y="300" width="100" height="100" class="f"/><rect x="100" y="300" width="100" height="100" class="c"/><rect x="200" y="300" width="100" height="100" class="f"/><rect x="300" y="300" width="100" height="100" class="c"/><rect x="400" y="300" width="100" height="100" class="f"/><rect x="500" y="300" width="100" height="100" class="c"/><rect x="600" y="300" width="100" height="100" class="f"/><rect x="700" y="300" width="100" height="100" class="c"/><rect x="0" y="400" width="100" height="100" class="c"/><rect x="100" y="400" width="100" height="100" class="f"/><rect x="200" y="400" width="100" height="100" class="c"/><rect x="300" y="400" width="100" height="100" class="f"/><rect x="400" y="400" width="100" height="100" class="c"/><rect x="500" y="400" width="100" height="100" class="f"/><rect x="600" y="400" width="100" height="100" class="c"/><rect x="700" y="400" width="100" height="100" class="f"/><rect x="0" y="500" width="100" height="100" class="f"/><rect x="100" y="500" width="100" height="100" class="c"/><rect x="200" y="500" width="100" height="100" class="f"/><rect x="300" y="500" width="100" height="100" class="c"/><rect x="400" y="500" width="100" height="100" class="f"/><rect x="500" y="500" width="100" height="100" class="c"/><rect x="600" y="500" width="100" height="100" class="f"/><rect x="700" y="500" width="100" height="100" class="c"/><rect x="0" y="600" width="100" height="100" class="c"/><rect x="100" y="600" width="100" height="100" class="f"/><rect x="200" y="600" width="100" height="100" class="c"/><rect x="300" y="600" width="100" height="100" class="f"/><rect x="400" y="600" width="100" height="100" class="c"/><rect x="500" y="600" width="100" height="100" class="f"/><rect x="600" y="600" width="100" height="100" class="c"/><rect x="700" y="600" width="100" height="100" class="f"/><rect x="0" y="700" width="100" height="100" class="f"/><rect x="100" y="700" width="100" height="100" class="c"/><rect x="200" y="700" width="100" height="100" class="f"/><rect x="300" y="700" width="100" height="100" class="c"/><rect x="400" y="700" width="100" height="100" class="f"/><rect x="500" y="700" width="100" height="100" class="c"/><rect x="600" y="700" width="100" height="100" class="f"/><rect x="700" y="700" width="100" height="100" class="c"/><g class="pieces"><text x="50" y="774" class="b">♖&#xFE0E;</text><text x="150" y="774" class="b">♘&#xFE0E;</text><text x="250" y="774" class="b">♗&#xFE0E;</text><text x="350" y="774" class="b">♕&#xFE0E;</text><text x="450" y="774" class="b">♔&#xFE0E;</text><text x="550" y="774" class="b">♗&#xFE0E;</text><text x="650" y="774" class="b">♘&#xFE0E;</text><text x="750" y="774" class="b">♖&#xFE0E;</text><text x="50" y="674" class="b">♙&#xFE0E;</text><text x="150" y="674" class="b">♙&#xFE0E;</text><text x="250" y="674" class="b">♙&#xFE0E;</text><text x="350" y="674" class="b">♙&#xFE0E;</text><text x="450" y="674" class="b">♙&#xFE0E;</text><text x="550" y="674" class="b">♙&#xFE0E;</text><text x="650" y="674" class="b">♙&#xFE0E;</text><text x="750" y="674" class="b">♙&#xFE0E;</text><text x="50" y="174" class="n">♟&#xFE0E;</text><text x="150" y="174" class="n">♟&#xFE0E;</text><text x="250" y="174" class="n">♟&#xFE0E;</text><text x="350" y="174" class="n">♟&#xFE0E;</text><text x="450" y="174" class="n">♟&#xFE0E;</text><text x="550" y="174" class="n">♟&#xFE0E;</text><text x="650" y="174" class="n">♟&#xFE0E;</text><text x="750" y="174" class="n">♟&#xFE0E;</text><text x="50" y="74" class="n">♜&#xFE0E;</text><text x="150" y="74" class="n">♞&#xFE0E;</text><text x="250" y="74" class="n">♝&#xFE0E;</text><text x="350" y="74" class="n">♛&#xFE0E;</text><text x="450" y="74" class="n">♚&#xFE0E;</text><text x="550" y="74" class="n">♝&#xFE0E;</text><text x="650" y="74" class="n">♞&#xFE0E;</text><text x="750" y="74" class="n">♜&#xFE0E;</text></g><g class="fleches"><line x1="150" y1="750" x2="250" y2="550" style="--k:0.000" marker-end="url(#pointe)"/><line x1="650" y1="750" x2="550" y2="550" style="--k:0.045" marker-end="url(#pointe)"/><line x1="150" y1="750" x2="50" y2="550" style="--k:0.091" marker-end="url(#pointe)"/><line x1="650" y1="750" x2="750" y2="550" style="--k:0.136" marker-end="url(#pointe)"/><line x1="450" y1="650" x2="450" y2="450" style="--k:0.182" marker-end="url(#pointe)"/><line x1="350" y1="650" x2="350" y2="450" style="--k:0.227" marker-end="url(#pointe)"/><line x1="250" y1="650" x2="250" y2="450" style="--k:0.273" marker-end="url(#pointe)"/><line x1="550" y1="650" x2="550" y2="550" style="--k:0.318" marker-end="url(#pointe)"/><line x1="250" y1="750" x2="550" y2="450" style="--k:0.364" marker-end="url(#pointe)"/><line x1="550" y1="750" x2="150" y2="350" style="--k:0.409" marker-end="url(#pointe)"/><line x1="350" y1="750" x2="50" y2="450" style="--k:0.455" marker-end="url(#pointe)"/><line x1="350" y1="750" x2="750" y2="350" style="--k:0.500" marker-end="url(#pointe)"/><line x1="150" y1="50" x2="250" y2="250" style="--k:0.545" marker-end="url(#pointe)"/><line x1="650" y1="50" x2="550" y2="250" style="--k:0.591" marker-end="url(#pointe)"/><line x1="450" y1="150" x2="450" y2="350" style="--k:0.636" marker-end="url(#pointe)"/><line x1="350" y1="150" x2="350" y2="350" style="--k:0.682" marker-end="url(#pointe)"/><line x1="250" y1="50" x2="650" y2="450" style="--k:0.727" marker-end="url(#pointe)"/><line x1="550" y1="50" x2="150" y2="450" style="--k:0.773" marker-end="url(#pointe)"/><line x1="350" y1="50" x2="750" y2="450" style="--k:0.818" marker-end="url(#pointe)"/><line x1="250" y1="150" x2="250" y2="350" style="--k:0.864" marker-end="url(#pointe)"/><line x1="650" y1="150" x2="650" y2="250" style="--k:0.909" marker-end="url(#pointe)"/><line x1="150" y1="150" x2="150" y2="350" style="--k:0.955" marker-end="url(#pointe)"/></g></svg><div class="plateau-mt" aria-hidden="true"><img src="{{ c }}/clair/04-mojo.webp" alt="" loading="lazy" style="left:50.9%;top:88.4%;"><img src="{{ c }}/clair/13-dysko.webp" alt="" loading="lazy" style="left:38.4%;top:88.4%;"><img src="{{ c }}/clair/19-banjo.webp" alt="" loading="lazy" style="left:38.4%;top:75.9%;"><img src="{{ c }}/clair/19-banjo.webp" alt="" loading="lazy" style="left:50.9%;top:75.9%;"><img src="{{ c }}/sombre/01-azar.webp" alt="" loading="lazy" style="left:38.4%;top:0.9%;rotate:180deg;"><img src="{{ c }}/sombre/10-krak.webp" alt="" loading="lazy" style="left:50.9%;top:0.9%;rotate:180deg;"><img src="{{ c }}/sombre/35-tamtam.webp" alt="" loading="lazy" style="left:38.4%;top:13.4%;rotate:180deg;"><img src="{{ c }}/sombre/35-tamtam.webp" alt="" loading="lazy" style="left:50.9%;top:13.4%;rotate:180deg;"></div></div>
+      <div class="freins-texte">
+        <ul class="liste-freins">
+          <li>Trop de coups possibles, on se sent perdu</li>
+          <li>Des ouvertures à réviser avant d'oser jouer</li>
+          <li>Perdre, et se sentir nul</li>
+          <li>Face à plus fort que soi, aucune chance</li>
+          <li>Un univers froid qui ne fait pas rêver</li>
+        </ul>
+        <p class="reponse"><b>Pour rassembler ceux qui adorent les échecs et ceux qui n'ont jamais osé</b></p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- 2 bis. Courbe d'apprentissage (pitch du prêt d'honneur) : le sentiment de bien jouer arrive vite avec MATATAK -->
-<section class="bloc courbe" id="courbe">
+{% if gartin_video or julien_video %}
+<!-- 2 bis. Ils y ont joué : Gartin591 (il a aimé et va l'acheter), Julien Song (vlog de Cannes) ; vidéos muettes, en boucle -->
+<section class="bloc temoins" id="temoins">
   <div class="mt-wrap avant">
-    <div class="surtitre mt-apparait"><i class="mt-losange"></i>Le plaisir de bien jouer<i class="mt-losange"></i></div>
-    <h2 class="titre mt-apparait">Des coups de génie dès les premières parties</h2>
-    <p class="sous mt-apparait">Aux échecs, il faut des années avant de sentir qu'on joue bien. Avec MATATAK, ce plaisir arrive tout de suite, et on continue de progresser.</p>
-    <figure class="graphe" data-p>
+    <div class="surtitre mt-apparait"><i class="mt-losange"></i>Ils y ont joué<i class="mt-losange"></i></div>
+    <div class="temoins-grille">
+      {%- if gartin_video %}
+      <figure class="mt-apparait"><video src="{{ gartin_video }}" autoplay muted loop playsinline preload="metadata" aria-label="Gartin591 joue à MATATAK"></video>
+        <figcaption>{% if gartin_phrase %}<q>{{ gartin_phrase }}</q>{% endif %}<b>Gartin591</b><span>créateur de vidéos d'échecs</span></figcaption></figure>
+      {%- endif %}
+      {%- if julien_video %}
+      <figure class="mt-apparait"><video src="{{ julien_video }}" autoplay muted loop playsinline preload="metadata" aria-label="Julien Song joue à MATATAK au Festival international des jeux de Cannes"></video>
+        <figcaption><b>Julien Song</b><span>Maître international d'échecs, au Festival des jeux de Cannes</span></figcaption></figure>
+      {%- endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- 3. Le jeu en 4 points : le texte entier du dos de la boîte, chaque point avec son illustration animée -->
+<section class="points" id="comment">
+  <div class="mt-wrap">
+    <div class="surtitre mt-apparait"><i class="mt-losange"></i>Le jeu en 4 points<i class="mt-losange"></i></div>
+  </div>
+  <article class="point" style="--c:var(--mt-printemps)">
+    <div class="mt-wrap point-grille">
+      <div class="point-visuel carte-mojo" data-p>
+        <div class="carte-rv">
+          <img class="recto" src="{{ c }}/clair-720/04-mojo.webp" alt="" loading="lazy">
+          <img class="verso" src="{{ c }}/sombre-720/04-mojo.webp" alt="MOJO, Roi du Printemps : ses déplacements sont dessinés autour de la carte" loading="lazy">
+        </div>
+        <div class="reperes" aria-hidden="true"><i style="--x:50%;--y:6%;--a:0deg"></i><i style="--x:89%;--y:11%;--a:45deg"></i><i style="--x:93.5%;--y:50%;--a:90deg"></i><i style="--x:89%;--y:89%;--a:135deg"></i><i style="--x:50%;--y:93.5%;--a:180deg"></i><i style="--x:11%;--y:89%;--a:225deg"></i><i style="--x:6.5%;--y:50%;--a:270deg"></i><i style="--x:11%;--y:11%;--a:315deg"></i></div>
+      </div>
+      <div class="point-texte mt-apparait"><i class="num"><b>1</b></i><h3>Lancez-vous en douceur</h3><p>Rien à retenir, les déplacements de vos 4 Personnages sont indiqués sur leur carte&nbsp;!</p></div>
+    </div>
+  </article>
+  <article class="point inverse" style="--c:var(--mt-hiver)">
+    <div class="mt-wrap point-grille">
+      <div class="point-visuel"><figure class="graphe" data-p>
       <svg viewBox="0 0 800 420" role="img" aria-label="Niveau en fonction du temps de jeu : MATATAK dépasse vite le sentiment de bien jouer, les échecs l'atteignent très tard">
         <path class="axe" d="M60 30V380H770"/>
         <line class="seuil" x1="60" y1="190" x2="770" y2="190"/>
@@ -131,55 +165,21 @@
         <text class="axe-nom" x="770" y="406">Temps de jeu</text>
         <text class="axe-nom" x="70" y="24" text-anchor="start">Niveau</text>
       </svg>
-    </figure>
-  </div>
-</section>
-
-{% if gartin_video %}
-<!-- 2 ter. Témoignage : Gartin591 (vidéo courte, muette, en boucle) -->
-<section class="bloc temoin" id="temoin">
-  <div class="mt-wrap temoin-grille">
-    <video src="{{ gartin_video }}" autoplay muted loop playsinline preload="metadata" aria-label="Gartin591 joue à MATATAK"></video>
-    <blockquote class="mt-apparait"><p>«&nbsp;{{ gartin_phrase }}&nbsp;»</p><footer><b>Gartin591</b> joueur et créateur de vidéos d'échecs</footer></blockquote>
-  </div>
-</section>
-{% endif %}
-
-<!-- 3. Le jeu en 4 points (les arguments du dos de la boîte), à côté d'une partie à 4 qui se joue toute seule -->
-<section class="bloc points" id="comment">
-  <div class="mt-wrap points-grille">
-    <div class="partie" data-p>
+    </figure></div>
+      <div class="point-texte mt-apparait"><i class="num"><b>2</b></i><h3>Suivez votre intuition</h3><p>Nouveau but simple&nbsp;: amener votre Roi au centre&nbsp;! Ou tenter le classique échec et mat.</p></div>
+    </div>
+  </article>
+  <article class="point" style="--c:var(--mt-automne)">
+    <div class="mt-wrap point-grille">
+      <div class="point-visuel"><div class="partie" data-p>
       <img id="scene-affiche" src="{{ v }}/partie/p720-00.webp" alt="Une partie de MATATAK à 4 joueurs, la Colline au centre du plateau" loading="lazy">
       <canvas id="scene" width="1100" height="1100" aria-hidden="true"></canvas>
+    </div></div>
+      <div class="point-texte mt-apparait"><i class="num"><b>3</b></i><h3>Défiez ceux que vous aimez</h3><p>Le jeu s'adapte au niveau de chacun&nbsp;: jouez à 2, ou en équipe à 3 ou 4&nbsp;!</p></div>
     </div>
-    <div>
-      <div class="surtitre gauche mt-apparait"><i class="mt-losange"></i>Le jeu en 4 points</div>
-      <ol class="liste-points">
-        {%- for titre, texte, couleur in [
-          ("Lancez-vous en douceur", "4 Personnages chacun, leurs déplacements sur la carte.", "printemps"),
-          ("Suivez votre intuition", "Un but simple : amener votre Roi au centre.", "hiver"),
-          ("Défiez ceux que vous aimez", "À 2, ou en équipe à 3 ou 4 : tous niveaux ensemble.", "automne"),
-          ("Surprenez vos adversaires", "Composez votre équipe, déchaînez les pouvoirs des Saisons.", "ete"),
-        ] %}
-        <li class="mt-apparait" style="--c:var(--mt-{{ couleur }})"><i><b>{{ loop.index }}</b></i><div><h3>{{ titre }}</h3><p>{{ texte }}</p></div></li>
-        {%- endfor %}
-      </ol>
-    </div>
-  </div>
-</section>
-
-<!-- 4. Les Personnages : des rangées de cartes qui glissent au défilement, une carte vedette qui se retourne -->
-<section class="bloc vitrine-cartes" id="saisons">
-  <div class="mt-wrap avant">
-    <div class="surtitre mt-apparait"><i class="mt-losange"></i>24 Personnages, 4 Saisons<i class="mt-losange"></i></div>
-    <h2 class="titre mt-apparait">Choisissez votre camp</h2>
-    <div class="saisons-noms mt-apparait">
-      <span style="--c:var(--mt-printemps)"><b>Printemps</b>Charmeurs</span>
-      <span style="--c:var(--mt-ete)"><b>Été</b>Combattants</span>
-      <span style="--c:var(--mt-automne)"><b>Automne</b>Chill</span>
-      <span style="--c:var(--mt-hiver)"><b>Hiver</b>Glacials</span>
-    </div>
-  </div>
+  </article>
+  <article class="point point-cartes" style="--c:var(--mt-ete)">
+    <div class="mt-wrap"><div class="point-texte centre mt-apparait"><i class="num"><b>4</b></i><h3>Surprenez vos adversaires</h3><p>Une fois à l'aise, composez votre équipe et déchaînez les pouvoirs des Saisons&nbsp;!</p></div></div>
   {%- set rangees = [
     ["04-mojo", "13-dysko", "24-salsa", "30-dub", "19-banjo", "42-zag", "01-azar", "10-krak"],
     ["14-folk", "35-tamtam", "37-marakas", "39-zyg", "02-shans", "26-rokk", "18-jazz", "33-shasha"],
@@ -192,34 +192,20 @@
     </div>
     {%- endfor %}
   </div>
-  <div class="vedette" data-p>
-    <div class="carte-rv grande">
-      <img class="recto" src="{{ c }}/clair-720/13-dysko.webp" alt="" loading="lazy">
-      <img class="verso" src="{{ c }}/sombre-720/13-dysko.webp" alt="DYSKO, le Léopard" loading="lazy">
-      <span class="brillance"></span>
-    </div>
-    <p class="note-rv">Chaque carte est recto verso&nbsp;: une face par camp.</p>
-  </div>
-  <div class="voir-tout mt-apparait"><a class="mt-btn mt-btn-ligne" href="/collection">Voir tous les Personnages</a></div>
+    <div class="voir-tout mt-apparait"><a class="mt-btn mt-btn-ligne" href="/collection">Voir tous les Personnages</a></div>
+  </article>
 </section>
 
-<!-- 5. Les échecs dans la boîte : l'argument qui rassure (joueurs d'échecs, cadeau) -->
-<section class="bloc echecs" id="echecs">
-  <div class="mt-wrap avant">
-    <div class="surtitre mt-apparait"><i class="mt-losange"></i>En bonus<i class="mt-losange"></i></div>
-    <h2 class="titre mt-apparait">Jouez aussi aux échecs avec les cartes</h2>
-    <p class="sous mt-apparait">Chaque carte porte son équivalent aux échecs&nbsp;: tout est dans la boîte pour une partie classique.</p>
-  </div>
-  <div class="rangee-echecs" data-p>
-    {%- for piece, symbole, carte in [("Roi", "♚", "03-karma"), ("Dame", "♛", "07-funk"), ("Tour", "♜", "26-rokk"), ("Fou", "♝", "14-folk"), ("Cavalier", "♞", "24-salsa"), ("Pion", "♟", "39-zyg")] %}
-    <figure style="--i:{{ loop.index0 }}">
-      <div class="carte-rv">
-        <div class="recto piece"><span>{{ symbole }}&#xFE0E;</span></div>
-        <img class="verso" src="{{ c }}/sombre/{{ carte }}.webp" alt="{{ carte[3:]|upper }}" loading="lazy">
-      </div>
-      <figcaption>{{ piece }}</figcaption>
-    </figure>
-    {%- endfor %}
+<!-- 5. Les échecs dans la boîte (section collante) : les 32 cartes se posent sur le plateau tourné d'un quart de tour,
+     puis les premiers coups d'une partie classique se jouent -->
+<section class="echecs" id="echecs">
+  <div class="collant">
+    <div class="mt-wrap avant">
+      <div class="surtitre"><i class="mt-losange"></i>En bonus<i class="mt-losange"></i></div>
+      <h2 class="titre">Jouez aussi aux échecs avec les cartes</h2>
+      <p class="sous">Chaque carte porte son équivalent aux échecs&nbsp;: tout est dans la boîte pour une partie classique.</p>
+    </div>
+    <div class="echiquier-mt" data-cartes="{{ c }}" role="img" aria-label="Les cartes de MATATAK placées pour une partie d'échecs, puis les premiers coups"></div>
   </div>
 </section>
 
@@ -259,19 +245,6 @@
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.2-.4-1.1.3-2.3 1.6-2.3H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="7.5" cy="11" r="1.3"/><circle cx="10.5" cy="7.2" r="1.3"/><circle cx="15" cy="7.6" r="1.3"/></svg><b>Olivier Jamet</b><span>Illustrateur</span></li>
       </ul>
     </div>
-  </div>
-</section>
-
-<!-- 8. Récit : l'intro du dos de la boîte, les yeux dans le noir -->
-<section class="final">
-  <img class="coin hd" src="{{ v }}/coin-hg.webp" alt="" loading="lazy">
-  <div class="lucioles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-  <div class="mt-wrap avant">
-    <div class="yeux-bloc" aria-hidden="true">
-      <img class="etoile" src="{{ v }}/etoile.png" alt="" loading="lazy">
-      <img class="yeux" src="{{ v }}/yeux-2.png" alt="" loading="lazy">
-    </div>
-    <p class="recit mt-apparait">La nuit tombe sur la jungle. Entre les feuilles, deux yeux brillent. Ici, les Saisons ne se succèdent pas&nbsp;: elles se disputent. Printemps, Été, Automne, Hiver&nbsp;: chaque Roi veut imposer la sienne. Au loin, les tambours résonnent de plus en plus fort… <b>MATATAK&nbsp;!</b></p>
   </div>
 </section>
 
@@ -322,11 +295,8 @@
 </footer>
 
 <div class="collante" id="collante">
-  {%- if precommande_url %}
-  <a class="mt-btn mt-btn-petit mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">Précommander</a>
-  {%- else %}
-  <a class="mt-btn mt-btn-petit mt-btn-or" href="/jouer">Jouer gratuitement</a>
-  {%- endif %}
+  <a class="mt-btn mt-btn-petit mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
+  <a class="mt-btn mt-btn-petit mt-btn-ligne" href="/jouer">Jouer</a>
 </div>
 
 <script src="{{ static('js/vitrine.js') }}" defer></script>

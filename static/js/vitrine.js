@@ -23,6 +23,7 @@
     // ======================= Scène 3D : la boîte, le plateau, les cartes =======================
     // Mesures réelles en mm : boîte 245 × 245 × 45, fond 241 × 43, plateau 470 plié en 4, cartes 50.
     const BOITE = 245, HAUT = 45, FOND = 241, HFOND = 43, PLATEAU = 470, Q = PLATEAU / 2, CASE = PLATEAU / 8, CARTE = 50;
+    const EPAISSEUR = 0.7; // une carte, en mm (un peu plus que la vraie, pour que les piles se voient)
     // Les 4 équipes de départ (3-4 joueurs : Champion à droite du Roi, Pions en d2 e2), vues par chaque joueur ;
     // les alliés se font face : faces claires au Sud et au Nord, sombres à l'Est et à l'Ouest.
     const EQUIPES = [
@@ -85,7 +86,27 @@
         parois(s.fond, FOND - 4, HFOND, null, 'dedans', true);
         plan(s.fond, BOITE - 1, BOITE - 1, 'dessous', img.dos, (u) => `translate3d(0,0,${-0.3 * u}px) rotateY(180deg)`);
 
-        // Cartes : 4 piles dans le fond de la boîte, puis sur leurs cases
+        // Cale en carton qui divise le fond en 9 cases (prototype de Fabryka), et les piles de cartes rangées dedans
+        s.contenu = pivot(s.fond);
+        const L = FOND - 4, C = L / 3, HC = 28;
+        [-C / 2, C / 2].forEach((d) => {
+            plan(s.contenu, L, HC, 'cale', img.paroi, (u) => `translate3d(0,${d * u}px,${HC / 2 * u}px) rotateX(-90deg)`);
+            plan(s.contenu, L, HC, 'cale', img.paroi, (u) => `translate3d(${d * u}px,0,${HC / 2 * u}px) rotateY(90deg) rotateZ(90deg)`);
+        });
+        const DESSUS = ['26-rokk', '13-dysko', '33-shasha', '11-frank', '01-azar', '34-bongo', '24-salsa', '18-jazz', '07-funk'];
+        s.cases = [];
+        for (let i = 0; i < 9; i++) {
+            const cx = ((i % 3) - 1) * C, cy = (Math.floor(i / 3) - 1) * C, n = i % 2 ? 7 : 8, h = n * EPAISSEUR;
+            s.cases.push({ cx, cy, h });
+            plan(s.contenu, CARTE, CARTE, 'carte', `${img.cartes}/sombre/${DESSUS[i]}.webp`, (u) => `translate3d(${cx * u}px,${cy * u}px,${(h + 0.2) * u}px)`);
+            const r = CARTE / 2;
+            [[0, r, -90, 'X'], [0, -r, 90, 'X'], [r, 0, 90, 'Y'], [-r, 0, -90, 'Y']].forEach(([dx, dy, a, axe]) => {
+                const tour = axe === 'X' ? `rotateX(${a}deg)` : `rotateY(${a}deg) rotateZ(90deg)`;
+                plan(s.contenu, CARTE, h, 'tranche-cartes', null, (u) => `translate3d(${(cx + dx) * u}px,${(cy + dy) * u}px,${h / 2 * u}px) ${tour}`);
+            });
+        }
+
+        // Cartes de la partie : sur les piles des 9 cases, puis en 4 piles hors du plateau, puis sur leurs cases
         s.cartes = [];
         EQUIPES.forEach((eq, e) => eq.cartes.forEach(([nom, col, rang], k) => {
             const d = plan(monde, CARTE, CARTE, 'carte', `${img.cartes}/${eq.face}/${nom}.webp`, null);
@@ -95,7 +116,8 @@
             s.cartes.push({
                 d, angle: eq.angle, ordre: e * 4 + k,
                 x: x0 * Math.cos(a) - y0 * Math.sin(a), y: x0 * Math.sin(a) + y0 * Math.cos(a),
-                px: (e % 2 ? 1 : -1) * 55, py: (e < 2 ? -1 : 1) * 55, pz: 2 + k * 0.9,
+                px: s.cases[(e * 4 + k) % 9].cx, py: s.cases[(e * 4 + k) % 9].cy,
+                pz: s.cases[(e * 4 + k) % 9].h + (e * 4 + k >= 9 ? EPAISSEUR : 0) + 0.6,
                 // pile d'attente, hors du plateau déplié (bord à 235 mm) : Sud et Est en bas, Nord et Ouest en haut
                 ex: [-70, 70, 70, -70][e], ey: [1, 1, -1, -1][e] * (Q + 42), ez: 1 + k * 0.9,
             });
@@ -217,6 +239,7 @@
         s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
         // boîte fermée : le plateau plié reste caché (sinon son dos passait parfois devant le couvercle)
         s.plateau.style.visibility = t < 0.3 ? 'hidden' : '';
+        s.contenu.style.visibility = t < 0.27 ? 'hidden' : '';
         s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
         s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
 
@@ -231,11 +254,11 @@
         s.ombre.style.opacity = mix(0.9, 0.75, pose);
 
         // Cartes : du fond de la boîte à 4 piles posées hors du plateau, puis, le plateau déplié, sur leurs cases
-        const sortent = lisse(0.42, 0.52, t);
+        const monteC = lisse(0.42, 0.455, t), vaC = lisse(0.45, 0.52, t), poseC = lisse(0.49, 0.52, t);
         s.cartes.forEach((c) => {
             const debut = 0.68 + c.ordre * 0.0135, f = lisse(debut, debut + 0.07, t);
-            const x = mix(mix(c.px, c.ex, sortent), c.x, f), y = mix(mix(c.py, c.ey, sortent), c.y, f);
-            const z = mix(mix(c.pz, c.ez, sortent), 1.2, f) + Math.sin(Math.PI * sortent) * 50 + Math.sin(Math.PI * f) * 35;
+            const x = mix(mix(c.px, c.ex, vaC), c.x, f), y = mix(mix(c.py, c.ey, vaC), c.y, f);
+            const z = mix(mix(mix(c.pz, 62, monteC), c.ez, poseC), 1.2, f) + Math.sin(Math.PI * f) * 35;
             const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 20;
             c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
             // boîte fermée : inutile de dessiner les cartes
@@ -359,6 +382,50 @@
     }, { rootMargin: '10% 0px' });
     document.querySelectorAll('[data-p]').forEach((el) => ioP.observe(el));
 
+    // ======================= Échecs : les cartes se posent, puis une ouverture se joue =======================
+    const echecs = document.getElementById('echecs');
+    const echiquier = echecs && echecs.querySelector('.echiquier-mt');
+    let piecesEchecs = [];
+    if (echiquier) {
+        const dossier = echiquier.dataset.cartes;
+        // Roi MOJO / KARMA, Dame FUNK, Tours ROKK, Fous FOLK, Cavaliers SALSA, Pions les Suricates (livret, page 11)
+        const ligne = ['26-rokk', '24-salsa', '14-folk', '07-funk', null, '14-folk', '24-salsa', '26-rokk'];
+        const ajouter = (nom, face, col, rang, i) => {
+            const im = document.createElement('img');
+            im.src = `${dossier}/${face}/${nom}.webp`; im.alt = ''; im.loading = 'lazy';
+            echiquier.appendChild(im);
+            piecesEchecs.push({ im, col, rang, i, noir: face === 'sombre' });
+        };
+        for (let col = 0; col < 8; col++) {
+            ajouter(ligne[col] || '04-mojo', 'clair', col, 0, col);
+            ajouter(col % 2 ? '42-zag' : '39-zyg', 'clair', col, 1, 8 + col);
+            ajouter(col % 2 ? '40-zwang' : '41-zug', 'sombre', col, 6, 16 + col);
+            ajouter(ligne[col] || '03-karma', 'sombre', col, 7, 24 + col);
+        }
+    }
+    // 1. e4 e5 2. Cf3 Cc6 3. Fc4
+    const COUPS = [[4, 1, 4, 3], [4, 6, 4, 4], [6, 0, 5, 2], [1, 7, 2, 5], [5, 0, 2, 3]];
+    function poserEchecs(pe) {
+        piecesEchecs.forEach((pc) => {
+            let col = pc.col, rang = pc.rang, saut = 0;
+            COUPS.forEach(([c0, r0, c1, r1], k) => {
+                if (col === c0 && rang === r0) {
+                    const f = lisse(0.6 + k * 0.07, 0.66 + k * 0.07, pe);
+                    col = mix(c0, c1, f); rang = mix(r0, r1, f); saut = Math.max(saut, Math.sin(Math.PI * f));
+                    if (f >= 1) { col = c1; rang = r1; }
+                }
+            });
+            const arrive = lisse(0.04 + pc.i * 0.014, 0.12 + pc.i * 0.014, pe);
+            // les cartes arrivent de leur côté du plateau (Blancs en bas, Noirs en haut)
+            const dy = (1 - arrive) * (pc.noir ? -260 : 260);
+            pc.im.style.left = `${col * 12.5 + 0.75}%`;
+            pc.im.style.top = `${(7 - rang) * 12.5 + 0.75}%`;
+            pc.im.style.opacity = arrive;
+            pc.im.style.transform = `translateY(${dy}%) rotate(${(pc.noir ? 180 : 0) + (1 - arrive) * (pc.noir ? -40 : 40)}deg) scale(${1 + saut * 0.25})`;
+            pc.im.style.zIndex = saut > 0 ? 2 : 1;
+        });
+    }
+
     // ======================= Défilement =======================
     let attente = false;
     function maj() {
@@ -369,6 +436,8 @@
         collante.classList.toggle('visible', y > h * 0.8 && y < fermeture.offsetTop - h * 0.3);
         if (!calme && y < h * 1.2) fond.style.transform = `translateY(${y * 0.25}px) scale(${1 + y / 5000})`;
         if (sceneHeros) sceneHeros.t = 0;
+
+        if (echiquier) poserEchecs(calme ? 0.6 : avance(echecs));
 
         // Fin de page : la partie est en place, puis tout rentre dans la boîte, qui se referme
         const pf = calme ? 1 : avance(fermeture);
