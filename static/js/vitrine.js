@@ -1,10 +1,11 @@
 // Vitrine (page de vente) : tout ce qui vit au défilement.
 // - la boîte en 3D du héros : elle arrive en tournant, flotte, se tourne au doigt (on y voit aussi son dos) ;
-// - la même boîte en bas de page : au défilement elle se retourne (son dos), se couche, s'ouvre, le plateau sort et
-//   se déplie, les 4 équipes se placent, puis tout rentre, elle se referme et l'offre apparaît ;
+// - en bas de page, la partie est en place sur le plateau ; au défilement les cartes rentrent, le plateau se replie,
+//   la boîte se referme et l'offre apparaît ;
 // - [data-p] : progression 0 → 1 posée en variable CSS --p quand l'élément traverse l'écran (freins barrés,
 //   éventails des Saisons, cartes qui se retournent, Rois qui montent) ;
-// - la partie en 72 images de la section collante.
+// - la partie en 72 images de la section collante : l'image affichée rejoint en douceur celle que demande le défilement
+//   (elle continue de glisser entre deux mouvements du doigt), avec un fondu entre deux images voisines.
 (function () {
     const calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const nav = document.getElementById('nav');
@@ -238,7 +239,6 @@
     const sceneHeros = scenes.find((s) => s.el.dataset.scene === 'heros');
     const sceneFermeture = scenes.find((s) => s.el.dataset.scene === 'fermeture');
     const fermeture = document.getElementById('boite');
-    const legendes = [...fermeture.querySelectorAll('.legendes p')];
     const offre = fermeture.querySelector('.offre');
 
     const avance = (section) => {
@@ -246,8 +246,18 @@
         return borne(-r.top / Math.max(1, r.height - window.innerHeight));
     };
     const debut = performance.now();
+    let avant = 0;
     function animer(now) {
         const temps = (now - debut) / 1000;
+        // la partie rattrape le défilement en ~0,15 s : plus de saut d'une image à l'autre
+        const dt = Math.min(0.1, (now - (avant || now)) / 1000);
+        avant = now;
+        if (FONDU && !calme && Math.abs(positionCible - positionVoulue) > 0.002) {
+            positionVoulue += (positionCible - positionVoulue) * (1 - Math.exp(-dt * 14));
+            if (Math.abs(positionCible - positionVoulue) < 0.004) positionVoulue = positionCible;
+            imageVoulue = Math.floor(positionVoulue);
+            dessiner();
+        }
         scenes.forEach((s) => {
             if (s.visible === false) return;
             if (!s.tenue) { s.doigt += s.vitesse; s.vitesse *= 0.94; if (Math.abs(s.vitesse) < 0.01) s.vitesse = 0; }
@@ -260,7 +270,7 @@
     const NB_IMAGES = 72;
     const taille = (window.innerWidth * (window.devicePixelRatio || 1) > 900 && window.innerWidth > 700) ? 1100 : 720;
     const images = new Array(NB_IMAGES);
-    let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0;
+    let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0, positionCible = 0;
     // Fondu entre deux images voisines : gardé par Hugo le 10/11/2026 (/#net pour le comparer sans)
     const FONDU = location.hash !== '#net';
     canvas.width = canvas.height = taille;
@@ -343,21 +353,10 @@
         if (!calme && y < h * 1.2) fond.style.transform = `translateY(${y * 0.25}px) scale(${1 + y / 5000})`;
         if (sceneHeros) sceneHeros.t = 0;
 
-        // Fin de page : la boîte se retourne (son dos), s'ouvre, la partie se met en place, puis tout rentre
+        // Fin de page : la partie est en place, puis tout rentre dans la boîte, qui se referme
         const pf = calme ? 1 : avance(fermeture);
-        if (sceneFermeture) {
-            sceneFermeture.tour = 180 * lisse(0.03, 0.1, pf) + 180 * lisse(0.15, 0.21, pf);
-            const ouvre = borne((pf - 0.22) / 0.36), referme = borne((pf - 0.64) / 0.24);
-            sceneFermeture.t = pf < 0.61 ? ouvre : 1 - referme;
-            const ouvert = pf < 0.61;
-            legendes.forEach((l) => {
-                const a = +l.dataset.de, b = +l.dataset.a;
-                const o = ouvert ? Math.min(lisse(a, a + 0.04, ouvre), 1 - lisse(b - 0.04, b, ouvre)) : 0;
-                l.style.opacity = o;
-                l.style.transform = `translateY(${(1 - o) * 12}px)`;
-            });
-        }
-        const montre = lisse(0.87, 0.95, pf);
+        if (sceneFermeture) sceneFermeture.t = 1 - lisse(0.04, 0.74, pf);
+        const montre = lisse(0.72, 0.86, pf);
         offre.style.opacity = montre;
         offre.style.transform = `translateY(${(1 - montre) * 30}px)`;
         offre.classList.toggle('visible', montre > 0.5);
@@ -365,9 +364,8 @@
         // Section collante de la partie
         const r = film.getBoundingClientRect();
         const p = borne(-r.top / (r.height - h));
-        positionVoulue = p * (NB_IMAGES - 1);
-        imageVoulue = FONDU ? Math.floor(positionVoulue) : Math.round(positionVoulue);
-        dessiner();
+        positionCible = p * (NB_IMAGES - 1);
+        if (calme || !FONDU) { positionVoulue = positionCible; imageVoulue = Math.round(positionVoulue); dessiner(); }
         const i = Math.min(etapes.length - 1, Math.floor(p * etapes.length));
         etapes.forEach((e, k) => e.classList.toggle('active', k === i));
         // Une seule barre qui se remplit, et une flèche vers le bas tant qu'il reste à voir : trois points
