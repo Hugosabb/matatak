@@ -13,4 +13,4 @@ async def vitrine(request):
     """
     if request.query_string:
         raise web.HTTPFound("/jouer?" + request.query_string)
-    return {"lang": LOCALE.get(), "title": "MATATAK · Le jeu de société qui réinvente les échecs"}
+    return {"lang": LOCALE.get(), "title": "MATATAK · Le plaisir des échecs, enfin accessible"}
