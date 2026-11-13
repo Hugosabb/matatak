@@ -266,11 +266,11 @@ details p { margin: -6px 0 20px; color: var(--mt-doux); }
   .suivre .mt-btn { flex: 1; }
 }
 
-footer { border-top: 1px solid var(--mt-filet); padding: 34px 0 calc(34px + env(safe-area-inset-bottom)); font-size: 14px; color: var(--mt-discret); }
-footer .mt-wrap { display: flex; justify-content: space-between; gap: 18px 30px; flex-wrap: wrap; align-items: center; }
-footer nav { display: flex; gap: 8px 22px; flex-wrap: wrap; }
-footer a { padding: 6px 0; }
-footer a:hover { color: var(--mt-or); }
+body > footer { border-top: 1px solid var(--mt-filet); padding: 34px 0 calc(34px + env(safe-area-inset-bottom)); font-size: 14px; color: var(--mt-discret); }
+body > footer .mt-wrap { display: flex; justify-content: space-between; gap: 18px 30px; flex-wrap: wrap; align-items: center; }
+body > footer nav { display: flex; gap: 8px 22px; flex-wrap: wrap; }
+body > footer a { padding: 6px 0; }
+body > footer a:hover { color: var(--mt-or); }
 
 /* ---------- Barre collante (téléphone) ---------- */
 .collante { display: none; }
@@ -278,7 +278,7 @@ footer a:hover { color: var(--mt-or); }
   .collante { display: flex; position: fixed; z-index: 60; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(18, 16, 14, .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 -1px 0 var(--mt-filet); transform: translateY(110%); transition: transform .35s; }
   .collante.visible { transform: none; }
   .collante .mt-btn { flex: 1; }
-  footer { padding-bottom: 100px; }
+  body > footer { padding-bottom: 100px; }
 }
 @media (max-width: 420px) { .mt-btn:not(.mt-btn-petit) { padding: 0 22px; font-size: 15.5px; } }
 
