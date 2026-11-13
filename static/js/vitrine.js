@@ -1,11 +1,12 @@
 // Vitrine (page de vente) : tout ce qui vit au défilement.
-// - la boîte en 3D du héros : elle arrive en tournant, flotte, se tourne au doigt (on y voit aussi son dos) ;
+// - la boîte en 3D du héros : elle flotte et se penche au doigt (un peu seulement : on ne montre pas son dos) ;
 // - en bas de page, la partie est en place sur le plateau ; au défilement les cartes rentrent, le plateau se replie,
 //   la boîte se referme et l'offre apparaît ;
 // - [data-p] : progression 0 → 1 posée en variable CSS --p quand l'élément traverse l'écran (freins barrés,
 //   éventails des Saisons, cartes qui se retournent, Rois qui montent) ;
-// - la partie en 72 images de la section collante : l'image affichée rejoint en douceur celle que demande le défilement
-//   (elle continue de glisser entre deux mouvements du doigt), avec un fondu entre deux images voisines.
+// - les freins des échecs (section collante) : ils arrivent un à un, sont barrés, s'en vont, la promesse reste ;
+// - la partie en 72 images, qui se joue toute seule quand elle est à l'écran, avec un fondu entre images voisines ;
+// - la carte vedette, qui suit le doigt ou l'inclinaison du téléphone.
 (function () {
     const calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const nav = document.getElementById('nav');
@@ -154,6 +155,11 @@
             const S = nom === 'fermeture' ? Math.min(0.54 * w, 0.24 * h, 230) : Math.min(0.62 * w, 0.3 * h, 300);
             return { S, x: 0, y: (nom === 'fermeture' ? 78 : 72) + S * 0.62 - h / 2 };
         }
+        if (nom === 'heros') {
+            // ordinateur : la boîte au centre, la promesse dessous
+            const S = Math.min(360, 0.38 * h);
+            return { S, x: 0, y: 80 + S * 0.62 - h / 2 };
+        }
         const S = Math.min(420, 0.3 * w, 0.5 * h);
         return { S, x: -Math.min(1120, w - 32) / 4, y: 0 };
     }
@@ -187,8 +193,8 @@
         let ay = mix(0, -28, debout) + (s.doigt + (s.tour || 0)) * debout + Math.sin(temps / 1.7) * 6 * balance;
         const ax = mix(etroit() ? 38 : 50, -14, debout) + Math.sin(temps / 2.3) * 2.5 * balance;
         const az = mix(-8, 0, debout) + s.doigt * (1 - debout) * 0.3;
-        // arrivée de la boîte en tournant, au chargement
-        if (s.el.dataset.scene === 'heros' && !calme) ay -= 200 * (1 - lisse(0, 1, temps / 1.6));
+        // arrivée : la boîte pivote doucement d'un huitième de tour
+        if (s.el.dataset.scene === 'heros' && !calme) ay -= 45 * (1 - lisse(0, 1, temps / 1.4));
         const flotte = calme ? 0 : Math.sin(temps / 1.9) * 7 * debout;
         const ox = r.x * debout, oy = r.y * debout + (etroit() ? 6 : -10) * couche + flotte;
         s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
@@ -209,6 +215,8 @@
         const recule = -210 * monte * (1 - pose);
         s.plateau.style.transform = `translate3d(${decal * u}px,${(decal + recule) * u}px,${bz * u}px) rotateX(${-12 * monte * (1 - pose)}deg)`;
         s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
+        // boîte fermée : le plateau plié reste caché (sinon son dos passait parfois devant le couvercle)
+        s.plateau.style.visibility = t < 0.3 ? 'hidden' : '';
         s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
         s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
 
@@ -239,6 +247,10 @@
     const sceneHeros = scenes.find((s) => s.el.dataset.scene === 'heros');
     const sceneFermeture = scenes.find((s) => s.el.dataset.scene === 'fermeture');
     const fermeture = document.getElementById('boite');
+    const freins = document.getElementById('freins');
+    const freinsLi = [...freins.querySelectorAll('.liste-freins li')];
+    const freinsTitre = freins.querySelector('.titre');
+    const freinsReponse = freins.querySelector('.reponse');
     const offre = fermeture.querySelector('.offre');
 
     const avance = (section) => {
@@ -249,18 +261,23 @@
     let avant = 0;
     function animer(now) {
         const temps = (now - debut) / 1000;
-        // la partie rattrape le défilement en ~0,15 s : plus de saut d'une image à l'autre
         const dt = Math.min(0.1, (now - (avant || now)) / 1000);
         avant = now;
-        if (FONDU && !calme && Math.abs(positionCible - positionVoulue) > 0.002) {
-            positionVoulue += (positionCible - positionVoulue) * (1 - Math.exp(-dt * 14));
-            if (Math.abs(positionCible - positionVoulue) < 0.004) positionVoulue = positionCible;
-            imageVoulue = Math.floor(positionVoulue);
-            dessiner();
+        // la partie avance à 8 images par seconde, fondu compris (9 s), s'arrête 2 s sur la fin, puis reprend
+        if (partieVisible && !calme) {
+            pause -= dt;
+            if (pause <= 0) {
+                positionVoulue += dt * 8;
+                if (positionVoulue >= NB_IMAGES - 1) { positionVoulue = 0; pause = 2; imageVoulue = NB_IMAGES - 1; }
+                else imageVoulue = Math.floor(positionVoulue);
+                dessiner();
+            }
         }
         scenes.forEach((s) => {
             if (s.visible === false) return;
-            if (!s.tenue) { s.doigt += s.vitesse; s.vitesse *= 0.94; if (Math.abs(s.vitesse) < 0.01) s.vitesse = 0; }
+            // la boîte se penche au doigt (au plus 35°, son dos ne se voit pas) et revient d'elle-même
+            if (!s.tenue) { s.doigt *= Math.exp(-dt * 3); s.vitesse = 0; }
+            s.doigt = borne(s.doigt, -35, 35);
             poser(s, s.t, temps);
         });
         if (!calme) requestAnimationFrame(animer);
@@ -270,7 +287,7 @@
     const NB_IMAGES = 72;
     const taille = (window.innerWidth * (window.devicePixelRatio || 1) > 900 && window.innerWidth > 700) ? 1100 : 720;
     const images = new Array(NB_IMAGES);
-    let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0, positionCible = 0;
+    let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0, pause = 0.6, partieVisible = false;
     // Fondu entre deux images voisines : gardé par Hugo le 10/11/2026 (/#net pour le comparer sans)
     const FONDU = location.hash !== '#net';
     canvas.width = canvas.height = taille;
@@ -319,9 +336,7 @@
         for (let k = 0; k < NB_IMAGES; k++) if (!images[k]) charger(k);
     }, { rootMargin: '800px 0px' });
     ioFilm.observe(film);
-    const etapes = [...film.querySelectorAll('.etape')];
-    const progression = film.querySelector('.progression');
-    const remplissage = film.querySelector('.progression b');
+    new IntersectionObserver((es) => { partieVisible = es[0].isIntersecting; }, { threshold: 0.3 }).observe(canvas);
 
     // ======================= Progression des éléments [data-p] =======================
     // 0 quand le centre de l'élément entre par le bas de l'écran, 1 quand il atteint le milieu.
@@ -329,7 +344,8 @@
     function progressions(h) {
         suivis.forEach((el) => {
             const r = el.getBoundingClientRect();
-            const p = borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
+            const p = el.dataset.p === 'traverse' ? borne((h - r.top) / (h + r.height))
+                : borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
             if (el._p === undefined || Math.abs(el._p - p) > 0.002) {
                 el._p = p;
                 el.style.setProperty('--p', p.toFixed(3));
@@ -361,20 +377,22 @@
         offre.style.transform = `translateY(${(1 - montre) * 30}px)`;
         offre.classList.toggle('visible', montre > 0.5);
 
-        // Section collante de la partie
-        const r = film.getBoundingClientRect();
-        const p = borne(-r.top / (r.height - h));
-        positionCible = p * (NB_IMAGES - 1);
-        if (calme || !FONDU) { positionVoulue = positionCible; imageVoulue = Math.round(positionVoulue); dessiner(); }
-        const i = Math.min(etapes.length - 1, Math.floor(p * etapes.length));
-        etapes.forEach((e, k) => e.classList.toggle('active', k === i));
-        // Une seule barre qui se remplit, et une flèche vers le bas tant qu'il reste à voir : trois points
-        // côte à côte faisaient croire à un carrousel à balayer de côté (Hugo, 03/11/2026)
-        if (remplissage) remplissage.style.transform = `scaleX(${p})`;
-        if (progression) progression.classList.toggle('fini', p > 0.98);
+        // Freins : ils arrivent un à un (0 → 0,36), sont barrés un à un (0,4 → 0,64), s'en vont ensemble
+        // (0,68 → 0,8), puis la promesse prend la place (0,78 → 0,92)
+        if (!calme) {
+            const pr = avance(freins);
+            const part = lisse(0.68, 0.8, pr);
+            freinsLi.forEach((li, i) => {
+                li.style.setProperty('--a', lisse(0.02 + i * 0.07, 0.09 + i * 0.07, pr).toFixed(3));
+                li.style.setProperty('--s', lisse(0.4 + i * 0.05, 0.46 + i * 0.05, pr).toFixed(3));
+                li.style.setProperty('--x', part.toFixed(3));
+            });
+            freinsTitre.style.opacity = 1 - part;
+            freinsReponse.style.setProperty('--r', lisse(0.78, 0.92, pr).toFixed(3));
+        }
 
         if (!calme) progressions(h);
-        if (calme) animer(performance.now());
+        if (calme) { animer(performance.now()); if (imageAffichee < 0) dessiner(); }
     }
     window.addEventListener('scroll', () => {
         if (!attente) { attente = true; requestAnimationFrame(maj); }
@@ -382,6 +400,21 @@
     window.addEventListener('resize', () => { scenes.forEach((s) => { s.pose = false; }); maj(); }, { passive: true });
     maj();
     requestAnimationFrame(animer);
+
+    // ======================= Carte vedette =======================
+    const vedette = document.querySelector('.vedette .carte-rv');
+    if (vedette && !calme) {
+        const pencher = (x, y) => { vedette.style.setProperty('--tx', x.toFixed(1)); vedette.style.setProperty('--ty', y.toFixed(1)); };
+        vedette.parentElement.addEventListener('pointermove', (e) => {
+            const r = vedette.getBoundingClientRect();
+            pencher(((e.clientX - r.left) / r.width - 0.5) * 30, -((e.clientY - r.top) / r.height - 0.5) * 24);
+        });
+        vedette.parentElement.addEventListener('pointerleave', () => pencher(0, 0));
+        window.addEventListener('deviceorientation', (e) => {
+            if (e.gamma == null) return;
+            pencher(borne(e.gamma, -30, 30) * 0.6, borne((e.beta || 45) - 45, -30, 30) * -0.4);
+        }, { passive: true });
+    }
 
     // ======================= Apparition des blocs =======================
     const tout = document.querySelectorAll('.mt-apparait');

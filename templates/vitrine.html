@@ -62,115 +62,105 @@
     <ul>
       <li><a href="#comment">Le jeu</a></li>
       <li><a href="#saisons">Personnages</a></li>
-      <li><a href="#echecs">Échecs</a></li>
-      <li><a href="#boite">La boîte</a></li>
+      <li><a href="#en-ligne">En ligne</a></li>
       <li><a href="#questions">Questions</a></li>
     </ul>
     <a class="mt-btn mt-btn-petit mt-btn-ligne" href="/jouer">Jouer en ligne</a>
   </div>
 </nav>
 
-<!-- 1. Héros : la boîte en 3D (elle arrive en tournant, flotte, se tourne au doigt) et la promesse du dos de la boîte -->
+<!-- 1. Héros : la boîte en 3D (elle flotte, se penche au doigt) et la promesse du dos de la boîte -->
 <header class="ouverture" id="heros">
   <div class="collant">
     <div class="fond" id="fond"></div>
     <div class="voile"></div>
     <div class="lucioles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    {{ scene3d("heros", "La boîte de MATATAK, à tourner du doigt") }}
+    {{ scene3d("heros", "La boîte de MATATAK") }}
     <div class="promesse">
       <h1><span class="mot">Le plaisir des échecs,</span> <span class="mot or">enfin accessible</span></h1>
-      <p class="accroche">Un combat tactique sauvage !</p>
+      <p class="accroche">Un combat tactique sauvage&nbsp;!</p>
       <div class="infos"><span><i class="mt-losange"></i>2 à 4 joueurs</span><span><i class="mt-losange"></i>30 minutes</span><span><i class="mt-losange"></i>Dès 7 ans</span></div>
       <div class="actions">
-        <a class="mt-btn mt-btn-or" href="/jouer">Essayer gratuitement</a>
-        <a class="mt-btn mt-btn-ligne" href="#boite">{{ "Précommander" if precommande_url else "Découvrir la boîte" }}</a>
+        <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ "Précommander" if precommande_url else sortie_texte }}</a>
+        <a class="mt-btn mt-btn-ligne" href="/jouer">Essayer gratuitement</a>
       </div>
     </div>
-    <a class="defiler" href="#freins" aria-label="Défiler"><span></span></a>
   </div>
 </header>
 
-<!-- 2. Le problème : les freins des échecs, barrés un à un au défilement -->
-<section class="bloc freins" id="freins">
-  <div class="mt-wrap freins-grille">
-    <div class="freins-tete mt-apparait">
-      <div class="surtitre gauche"><i class="mt-losange"></i>Pourquoi MATATAK</div>
+<!-- 2. Le problème (section collante) : les 5 freins des échecs arrivent un à un, sont barrés, s'en vont ; la promesse reste -->
+<section class="freins" id="freins">
+  <div class="collant">
+    <div class="mt-wrap etroit">
+      <div class="surtitre"><i class="mt-losange"></i>Pourquoi MATATAK<i class="mt-losange"></i></div>
       <h2 class="titre">Les échecs vous font envie, mais…</h2>
+      <ul class="liste-freins">
+        <li>Des ouvertures à apprendre par cœur</li>
+        <li>Seize pièces et des calculs à chaque coup</li>
+        <li>Perdre, et se sentir nul</li>
+        <li>Impossible de jouer avec plus fort ou moins fort que soi</li>
+        <li>Un univers austère et sérieux</li>
+      </ul>
+      <p class="reponse">MATATAK en garde le meilleur&nbsp;:<b>le frisson d'un coup de génie</b></p>
     </div>
-    <ul class="liste-freins">
-      <li data-p><span>Des ouvertures à apprendre par cœur</span></li>
-      <li data-p><span>Des dizaines de coups à calculer</span></li>
-      <li data-p><span>Un seul but, l'échec et mat, si dur au début</span></li>
-      <li data-p><span>Plus fort que vous en face&nbsp;? C'est joué d'avance</span></li>
-      <li data-p><span>Un univers austère, en noir et blanc</span></li>
-    </ul>
   </div>
-  <p class="reponse" data-p>MATATAK en garde le meilleur&nbsp;:<b>le frisson d'un coup de génie</b></p>
 </section>
 
-<!-- 3. Comment on joue : les arguments du dos de la boîte sur une partie à 4 qui avance au défilement -->
-<section class="film" id="comment">
-  <div class="collant">
-    <div class="scene">
+<!-- 3. Le jeu en 4 points (les arguments du dos de la boîte), à côté d'une partie à 4 qui se joue toute seule -->
+<section class="bloc points" id="comment">
+  <div class="mt-wrap points-grille">
+    <div class="partie" data-p>
       <img id="scene-affiche" src="{{ v }}/partie/p720-00.webp" alt="Une partie de MATATAK à 4 joueurs, la Colline au centre du plateau" loading="lazy">
       <canvas id="scene" width="1100" height="1100" aria-hidden="true"></canvas>
     </div>
-    <div class="texte">
-      <div class="etapes">
-        <div class="etape active" style="--c:var(--mt-printemps)">
-          <div class="num"><i></i>01</div>
-          <h2>Lancez-vous en douceur</h2>
-          <p>Rien à retenir&nbsp;: les déplacements de vos 4 Personnages sont dessinés sur leur carte. Vous jouez dès la première minute.</p>
-        </div>
-        <div class="etape" style="--c:var(--mt-hiver)">
-          <div class="num"><i></i>02</div>
-          <h2>Suivez votre intuition</h2>
-          <p>Un but simple&nbsp;: amener votre Roi au centre, sur la Colline. Ou tenter le classique échec et mat.</p>
-        </div>
-        <div class="etape" style="--c:var(--mt-automne)">
-          <div class="num"><i></i>03</div>
-          <h2>Défiez ceux que vous aimez</h2>
-          <p>Le jeu s'adapte au niveau de chacun&nbsp;: jouez à 2, ou en équipe à 3 ou 4, les alliés face à face.</p>
-        </div>
-      </div>
-      <div class="progression" aria-hidden="true"><span class="piste"><b></b></span><span class="vers-le-bas"></span></div>
+    <div>
+      <div class="surtitre gauche mt-apparait"><i class="mt-losange"></i>Le jeu en 4 points</div>
+      <ol class="liste-points">
+        {%- for titre, texte, couleur in [
+          ("Lancez-vous en douceur", "4 Personnages chacun, leurs déplacements sur la carte.", "printemps"),
+          ("Suivez votre intuition", "Un but simple : amener votre Roi au centre.", "hiver"),
+          ("Défiez ceux que vous aimez", "À 2, ou en équipe à 3 ou 4 : tous niveaux ensemble.", "automne"),
+          ("Surprenez vos adversaires", "Composez votre équipe, déchaînez les pouvoirs des Saisons.", "ete"),
+        ] %}
+        <li class="mt-apparait" style="--c:var(--mt-{{ couleur }})"><i><b>{{ loop.index }}</b></i><div><h3>{{ titre }}</h3><p>{{ texte }}</p></div></li>
+        {%- endfor %}
+      </ol>
     </div>
   </div>
 </section>
 
-<!-- 4. Surprenez vos adversaires : les Saisons, leurs pouvoirs, des cartes recto verso qui se retournent -->
-<section class="bloc" id="saisons">
-  <img class="coin hg" src="{{ v }}/coin-hg.webp" alt="" loading="lazy">
-  <img class="coin bd" src="{{ v }}/coin-hg.webp" alt="" loading="lazy">
+<!-- 4. Les Personnages : des rangées de cartes qui glissent au défilement, une carte vedette qui se retourne -->
+<section class="bloc vitrine-cartes" id="saisons">
   <div class="mt-wrap avant">
-    <div class="surtitre mt-apparait" style="--c:var(--mt-ete)"><i class="mt-losange"></i>04 · Surprenez vos adversaires<i class="mt-losange"></i></div>
-    <h2 class="titre mt-apparait">Quatre Saisons, quatre caractères</h2>
-    <p class="sous mt-apparait">Une fois à l'aise, composez votre équipe en Draft et déchaînez les pouvoirs des Saisons. Jamais deux parties pareilles.</p>
+    <div class="surtitre mt-apparait"><i class="mt-losange"></i>24 Personnages, 4 Saisons<i class="mt-losange"></i></div>
+    <h2 class="titre mt-apparait">Choisissez votre camp</h2>
+    <div class="saisons-noms mt-apparait">
+      <span style="--c:var(--mt-printemps)"><b>Printemps</b>Charmeurs</span>
+      <span style="--c:var(--mt-ete)"><b>Été</b>Combattants</span>
+      <span style="--c:var(--mt-automne)"><b>Automne</b>Chill</span>
+      <span style="--c:var(--mt-hiver)"><b>Hiver</b>Glacials</span>
+    </div>
   </div>
-  <div class="saisons">
-    {%- for nom, couleur, cartes, caractere, pouvoir, regle in [
-      ("Printemps", "printemps", ["19-banjo", "13-dysko", "04-mojo"], "Charmeurs, ils attirent.", "Attraction", "Qui peut le capturer doit le faire pour bouger."),
-      ("Été", "ete", ["35-tamtam", "10-krak", "01-azar"], "Combattants, prêts à tout.", "Venin", "Capturé en diagonale, il emporte l'attaquant."),
-      ("Automne", "automne", ["26-rokk", "33-shasha", "02-shans"], "Chill et mobiles.", "Danse", "Il échange sa place avec un voisin de son camp."),
-      ("Hiver", "hiver", ["11-frank", "34-bongo", "03-karma"], "Froids, ils paralysent.", "Gel", "Il gèle les adversaires sur ses 4 côtés."),
-    ] %}
-    <div class="saison" data-p style="--c:var(--mt-{{ couleur }})">
-      <div class="lumiere"></div>
-      <div class="pile">
-        <img src="{{ c }}/sombre/{{ cartes[0] }}.webp" alt="{{ cartes[0][3:]|upper }}" loading="lazy">
-        <img src="{{ c }}/sombre/{{ cartes[1] }}.webp" alt="{{ cartes[1][3:]|upper }}" loading="lazy">
-        <div class="carte-rv">
-          <img class="recto" src="{{ c }}/clair/{{ cartes[2] }}.webp" alt="" loading="lazy">
-          <img class="verso" src="{{ c }}/sombre/{{ cartes[2] }}.webp" alt="{{ cartes[2][3:]|upper }}, Roi de la Saison" loading="lazy">
-        </div>
-      </div>
-      <h3 class="mt-tribeca">{{ nom }}</h3>
-      <p class="caractere">{{ caractere }}</p>
-      <p class="pouvoir"><b>{{ pouvoir }}</b>{{ regle }}</p>
+  {%- set rangees = [
+    ["04-mojo", "13-dysko", "24-salsa", "30-dub", "19-banjo", "42-zag", "01-azar", "10-krak"],
+    ["14-folk", "35-tamtam", "37-marakas", "39-zyg", "02-shans", "26-rokk", "18-jazz", "33-shasha"],
+    ["38-gong", "40-zwang", "03-karma", "07-funk", "11-frank", "34-bongo", "31-bass", "41-zug"],
+  ] %}
+  <div class="rangees" data-p="traverse" aria-hidden="true">
+    {%- for rangee in rangees %}
+    <div class="rangee" style="--sens:{{ 1 if loop.index0 is even else -1 }}">
+      {%- for carte in rangee + rangee[:3] %}<img src="{{ c }}/sombre/{{ carte }}.webp" alt="" loading="lazy">{% endfor %}
     </div>
     {%- endfor %}
   </div>
-  <p class="note-rv mt-apparait">Chaque carte est recto verso&nbsp;: une face claire, une face sombre, pour reconnaître les camps d'un coup d'œil.</p>
+  <div class="vedette" data-p>
+    <div class="carte-rv grande">
+      <img class="recto" src="{{ c }}/clair-720/13-dysko.webp" alt="" loading="lazy">
+      <img class="verso" src="{{ c }}/sombre-720/13-dysko.webp" alt="DYSKO, le Léopard" loading="lazy">
+      <span class="brillance"></span>
+    </div>
+    <p class="note-rv">Chaque carte est recto verso&nbsp;: une face par camp.</p>
+  </div>
   <div class="voir-tout mt-apparait"><a class="mt-btn mt-btn-ligne" href="/collection">Voir tous les Personnages</a></div>
 </section>
 
@@ -179,7 +169,7 @@
   <div class="mt-wrap avant">
     <div class="surtitre mt-apparait"><i class="mt-losange"></i>En bonus<i class="mt-losange"></i></div>
     <h2 class="titre mt-apparait">Jouez aussi aux échecs avec les cartes</h2>
-    <p class="sous mt-apparait">Chaque carte porte son équivalent aux échecs. Le plateau et les cartes suffisent pour une partie classique&nbsp;: de quoi convaincre les joueurs d'échecs… et ceux qui offrent le jeu.</p>
+    <p class="sous mt-apparait">Chaque carte porte son équivalent aux échecs&nbsp;: tout est dans la boîte pour une partie classique.</p>
   </div>
   <div class="rangee-echecs" data-p>
     {%- for piece, symbole, carte in [("Roi", "♚", "03-karma"), ("Dame", "♛", "07-funk"), ("Tour", "♜", "26-rokk"), ("Fou", "♝", "14-folk"), ("Cavalier", "♞", "24-salsa"), ("Pion", "♟", "39-zyg")] %}
@@ -194,19 +184,27 @@
   </div>
 </section>
 
-<!-- 6. Essayer tout de suite : le pont vers le site de jeu -->
-<section class="bloc essayer" id="essayer">
+<!-- 6. Le site de jeu : ce qu'on y fait, avec de vraies vues -->
+<section class="bloc en-ligne" id="en-ligne">
   <div class="mt-wrap avant">
-    <div class="rois" data-p aria-hidden="true">
-      {%- for roi, couleur in [("mojo", "printemps"), ("azar", "ete"), ("shans", "automne"), ("karma", "hiver")] %}
-      <span style="--c:var(--mt-{{ couleur }}); --i:{{ loop.index0 }}"><img src="/static/images/background/rois/{{ roi }}-tete-256.webp" alt="" loading="lazy"></span>
-      {%- endfor %}
-    </div>
-    <div class="surtitre mt-apparait"><i class="mt-losange"></i>Pas encore la boîte&nbsp;?<i class="mt-losange"></i></div>
-    <h2 class="titre mt-apparait">Jouez dès ce soir</h2>
-    <p class="sous mt-apparait">Gratuit et sans inscription&nbsp;: partez à l'Aventure contre les quatre Rois, défiez un ami ou grimpez au classement.</p>
-    <div class="actions mt-apparait"><a class="mt-btn mt-btn-or" href="/jouer">Jouer gratuitement</a></div>
+    <div class="surtitre mt-apparait"><i class="mt-losange"></i>Et aussi sur matatak.org<i class="mt-losange"></i></div>
+    <h2 class="titre mt-apparait">Jouez, apprenez, analysez en ligne</h2>
+    <p class="sous mt-apparait">Gratuit et sans inscription, sur téléphone comme sur ordinateur.</p>
   </div>
+  <div class="telephones" data-p>
+    {%- for image, titre, texte in [
+      ("tutoriel", "Apprenez en jouant", "Un Roi vous guide, coup par coup, sur une vraie partie."),
+      ("aventure", "Partez à l'Aventure", "Battez les quatre Rois et recrutez de nouveaux Personnages : l'ordinateur s'adapte à votre niveau."),
+      ("analyse", "Analysez vos parties", "Le moteur Fairy-Stockfish vous montre les meilleurs coups."),
+    ] %}
+    <figure style="--i:{{ loop.index0 }}">
+      <div class="ecran"><img src="{{ v }}/site/{{ image }}.webp" alt="" loading="lazy"></div>
+      <figcaption><h3>{{ titre }}</h3><p>{{ texte }}</p></figcaption>
+    </figure>
+    {%- endfor %}
+  </div>
+  <p class="aussi mt-apparait">Défiez aussi vos amis par un simple lien, ou grimpez dans l'Arène classée.</p>
+  <div class="actions mt-apparait"><a class="mt-btn mt-btn-or" href="/jouer">Jouer gratuitement</a></div>
 </section>
 
 <!-- 7. Confiance : l'équipe et les objections -->
@@ -215,7 +213,7 @@
     <div class="mt-apparait">
       <div class="surtitre gauche"><i class="mt-losange"></i>Qui sommes-nous</div>
       <h2>Un jeu indépendant, fait avec soin</h2>
-      <p class="intro">MATATAK est né pour rassembler ceux qui adorent les échecs et ceux qui n'ont jamais osé.</p>
+      <p class="intro">Conçu en France, fabriqué en Europe, illustré à la main.</p>
       <ul class="equipe">
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 2v5.5M12 16.5V22M2 12h5.5M16.5 12H22M4.9 4.9l3.9 3.9M15.2 15.2l3.9 3.9M4.9 19.1l3.9-3.9M15.2 8.8l3.9-3.9"/></svg><b>Hugo Sabatier</b><span>Auteur</span></li>
         <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L16.6 4a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M14.5 6.1l3.4 3.4"/></svg><b>Samuel Boniface</b><span>Illustrateur</span></li>
@@ -226,13 +224,13 @@
       <details open><summary>Faut-il connaître les échecs&nbsp;?</summary><p>Non. Chaque carte montre les déplacements de son Personnage et vous commencez avec 4 Personnages&nbsp;: une partie suffit pour apprendre.</p></details>
       <details><summary>Est-ce un jeu pour les enfants&nbsp;?</summary><p>Dès 7 ans, et pour toute la famille. Les plus jeunes visent la Colline, les plus grands cherchent l'échec et mat, et le Coup de pouce rééquilibre les équipes entre joueurs de niveaux différents.</p></details>
       <details><summary>Et pour un joueur d'échecs&nbsp;?</summary><p>Il retrouve la tactique qu'il aime, avec de nouveaux déplacements, le Draft pour composer son équipe et les pouvoirs des Saisons. Et la boîte permet aussi de jouer aux échecs classiques.</p></details>
-      <details><summary>Peut-on jouer en ligne&nbsp;?</summary><p>Oui, gratuitement et sans inscription, à 2 joueurs&nbsp;: l'Aventure contre les Rois de la jungle, des parties contre un ami ou classées, un tutoriel et l'analyse de vos parties.</p></details>
+      <details><summary>Peut-on jouer en ligne&nbsp;?</summary><p>Oui, à 2 joueurs&nbsp;: l'Aventure contre les Rois de la jungle, des parties contre un ami ou classées, un tutoriel et l'analyse de vos parties.</p></details>
       <details><summary>Quand le jeu sera-t-il disponible&nbsp;?</summary><p>La date n'est pas encore fixée. Suivez-nous sur Instagram ou Discord pour être prévenu en premier.</p></details>
     </div>
   </div>
 </section>
 
-<!-- 8. Récit : l'intro du dos de la boîte, les yeux dans le noir, puis la question -->
+<!-- 8. Récit : l'intro du dos de la boîte, les yeux dans le noir -->
 <section class="final">
   <img class="coin hd" src="{{ v }}/coin-hg.webp" alt="" loading="lazy">
   <div class="lucioles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -242,32 +240,22 @@
       <img class="yeux" src="{{ v }}/yeux-2.png" alt="" loading="lazy">
     </div>
     <p class="recit mt-apparait">La nuit tombe sur la jungle. Entre les feuilles, deux yeux brillent. Ici, les Saisons ne se succèdent pas&nbsp;: elles se disputent. Printemps, Été, Automne, Hiver&nbsp;: chaque Roi veut imposer la sienne. Au loin, les tambours résonnent de plus en plus fort… <b>MATATAK&nbsp;!</b></p>
-    <h2 class="question mt-apparait">Quel sera votre prochain coup de génie&nbsp;?</h2>
   </div>
 </section>
 
-<!-- 9. La partie est en place sur le plateau ; au défilement tout rentre dans la boîte, qui se referme, puis l'offre apparaît -->
+<!-- 9. La boîte : la partie en place se range dans la boîte, qui se referme ; puis la phrase du bas du dos et l'achat -->
 <section class="fermeture" id="boite">
   <div class="collant">
     {{ scene3d("fermeture", "Une partie de MATATAK en place sur le plateau ; les cartes et le plateau rentrent dans la boîte, qui se referme") }}
     <div class="offre">
       <div class="statut">{{ "Précommandes ouvertes" if precommande_url else "Le jeu de société arrive" }}</div>
-      <h2>Emportez la jungle chez vous</h2>
-      <ul class="contenu">
-        <li><i class="mt-losange"></i><span><b>Un grand plateau</b> de 8 × 8 cases, la Colline au centre</span></li>
-        <li><i class="mt-losange"></i><span><b>84 cartes Personnages</b> recto verso, avec les 6 déplacements des échecs et 12 nouveaux</span></li>
-        <li><i class="mt-losange"></i><span><b>4 cartes d'aide</b> et un livret de règles illustré</span></li>
-      </ul>
-      <div class="pictos">
-        <div class="picto" style="--c:var(--mt-hiver)"><i><b>30'</b></i>minutes</div>
-        <div class="picto" style="--c:var(--mt-automne)"><i><b>2-4</b></i>joueurs</div>
-        <div class="picto" style="--c:var(--mt-printemps)"><i><b>7+</b></i>ans</div>
-      </div>
-      <p class="origine"><i class="mt-losange"></i>Conçu en France, fabriqué en Europe</p>
+      <p class="rassembler">Pour rassembler ceux qui adorent les échecs et ceux qui n'ont jamais osé.</p>
+      <h2 class="question">Quel sera votre prochain coup de génie&nbsp;?</h2>
       <div class="suivre">
         <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
       </div>
-      <p class="mention">Les nouvelles du jeu sont annoncées d'abord sur Instagram et <a href="https://discord.gg/ctGQa2WJjh" rel="noopener" target="_blank">Discord</a>.</p>
+      <p class="contenu"><b>Dans la boîte</b> 1 plateau de 8 × 8 cases · 84 cartes Personnages · 4 cartes d'aide · 1 livret de règles</p>
+      <p class="contenu"><span>2 à 4 joueurs</span> · <span>30 minutes</span> · <span>dès 7 ans</span> · <span>conçu en France, fabriqué en Europe</span></p>
     </div>
   </div>
 </section>
@@ -288,7 +276,11 @@
 </footer>
 
 <div class="collante" id="collante">
+  {%- if precommande_url %}
+  <a class="mt-btn mt-btn-petit mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">Précommander</a>
+  {%- else %}
   <a class="mt-btn mt-btn-petit mt-btn-or" href="/jouer">Jouer gratuitement</a>
+  {%- endif %}
 </div>
 
 <script src="{{ static('js/vitrine.js') }}" defer></script>
