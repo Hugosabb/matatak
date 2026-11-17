@@ -472,7 +472,9 @@
                 if (el._p === undefined || Math.abs(el._p - pa) > 0.002) { el._p = pa; el.style.setProperty('--p', pa.toFixed(3)); }
                 return;
             }
-            const p = el.dataset.p === 'traverse' ? borne((h - r.top) / (h + r.height))
+            // « genese » : de l'entrée de son haut par le bas de l'écran jusqu'à sa place (centré, ou à 10 % du haut s'il est grand)
+            const p = el.dataset.p === 'genese' ? borne((h - r.top) / (h - Math.max(h * 0.1, (h - r.height) / 2)))
+                : el.dataset.p === 'traverse' ? borne((h - r.top) / (h + r.height))
                 : el.dataset.p === 'lent' ? borne((h - r.top) / (h * 0.75))
                 : borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
             if (el._p === undefined || Math.abs(el._p - p) > 0.002) {
@@ -710,6 +712,58 @@
         void pivote.offsetWidth; // relance l'animation si on retouche la carte pendant son tour
         pivote.classList.add('en-tour');
     }));
+
+    // ======================= Ils y ont joué : boucles muettes, son au choix =======================
+    // Une seule vidéo parle à la fois ; activer le son la reprend au début. Hors de l'écran, elle s'arrête.
+    // ======================= Genèse : le texte s'écrit mot à mot au défilement (--p de data-p="genese") =======================
+    const genese = document.querySelector('.genese');
+    if (genese) {
+        let n = 0;
+        const couper = (noeud) => [...noeud.childNodes].forEach((c) => {
+            if (c.nodeType === 3) {
+                const frag = document.createDocumentFragment();
+                c.textContent.split(/(\s+)/).forEach((m) => {
+                    if (!m) return;
+                    if (/^\s+$/.test(m)) { frag.append(m); return; }
+                    const sp = document.createElement('span');
+                    sp.className = 'mot-g'; sp.style.setProperty('--k', n++); sp.textContent = m;
+                    frag.append(sp);
+                });
+                c.replaceWith(frag);
+            } else if (c.nodeType === 1) couper(c);
+        });
+        genese.querySelectorAll('p, footer').forEach(couper);
+        genese.style.setProperty('--n', n);
+    }
+
+    const videos = [...document.querySelectorAll('.temoins video')];
+    const ecouter = (v, oui) => {
+        v.muted = !oui;
+        const b = v.parentElement.querySelector('.son');
+        b.setAttribute('aria-pressed', String(oui));
+        b.setAttribute('aria-label', oui ? 'Couper le son' : 'Activer le son');
+    };
+    videos.forEach((v) => {
+        v.parentElement.querySelector('.son').addEventListener('click', () => {
+            const oui = v.muted;
+            videos.forEach((w) => ecouter(w, false));
+            if (oui) { ecouter(v, true); v.currentTime = 0; v.play(); }
+        });
+        // sous-titres dessinés par la page (même style partout) ; la piste du navigateur reste cachée
+        const st = v.parentElement.querySelector('.sous-titre');
+        const piste = v.textTracks[0];
+        if (piste && st) {
+            piste.mode = 'hidden';
+            piste.addEventListener('cuechange', () => {
+                const c = piste.activeCues && piste.activeCues[0];
+                st.textContent = c ? c.text : '';
+            });
+        }
+        new IntersectionObserver((es) => {
+            if (es[0].isIntersecting) v.play().catch(() => {});
+            else { v.pause(); ecouter(v, false); }
+        }, { threshold: 0.25 }).observe(v);
+    });
 
     // ======================= Apparition des blocs =======================
     const tout = document.querySelectorAll('.mt-apparait');
