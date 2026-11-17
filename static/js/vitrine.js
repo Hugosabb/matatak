@@ -5,16 +5,15 @@
 // - [data-p] : progression 0 → 1 posée en variable CSS --p quand l'élément traverse l'écran (freins barrés,
 //   éventails des Saisons, cartes qui se retournent, Rois qui montent) ;
 // - les freins des échecs (section collante) : ils arrivent un à un, sont barrés, s'en vont, la promesse reste ;
-// - la partie en 72 images, qui se joue toute seule quand elle est à l'écran, avec un fondu entre images voisines ;
+// - la partie à 4 du point 3, vue de dessus (cartes posées sur le plateau), jouée au défilement ;
+// - les cartes du point 4 font un tour sur elles-mêmes quand on les touche ;
 // - la carte vedette, qui suit le doigt ou l'inclinaison du téléphone.
 (function () {
     const calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const nav = document.getElementById('nav');
     const collante = document.getElementById('collante');
+    const feuilles = document.querySelector('.feuilles-cote');
     const fond = document.getElementById('fond');
-    const film = document.getElementById('comment');
-    const canvas = document.getElementById('scene');
-    const ctx = canvas.getContext('2d');
     const borne = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
     const lisse = (a, b, x) => { const t = borne((x - a) / (b - a)); return t * t * (3 - 2 * t); };
     const mix = (a, b, t) => a + (b - a) * t;
@@ -86,23 +85,57 @@
         parois(s.fond, FOND - 4, HFOND, null, 'dedans', true);
         plan(s.fond, BOITE - 1, BOITE - 1, 'dessous', img.dos, (u) => `translate3d(0,0,${-0.3 * u}px) rotateY(180deg)`);
 
-        // Cale en carton qui divise le fond en 9 cases (prototype de Fabryka), et les piles de cartes rangées dedans
+        // Inlay de la boîte (gabarit Fabryka, habillage retenu par Hugo le 16/11/2026) : ses panneaux en mm, pliés comme
+        // dans la vue Remotion (jeu/video/src/Inlay.tsx), chargés à part (vitrine/inlay/panneaux.json + feuille.webp).
+        // 9 cases de 53 mm séparées par des couloirs de 19 mm : les piles de cartes sont rangées dedans.
         s.contenu = pivot(s.fond);
-        const L = FOND - 4, C = L / 3, HC = 28;
-        [-C / 2, C / 2].forEach((d) => {
-            plan(s.contenu, L, HC, 'cale', img.paroi, (u) => `translate3d(0,${d * u}px,${HC / 2 * u}px) rotateX(-90deg)`);
-            plan(s.contenu, L, HC, 'cale', img.paroi, (u) => `translate3d(${d * u}px,0,${HC / 2 * u}px) rotateY(90deg) rotateZ(90deg)`);
-        });
-        const DESSUS = ['26-rokk', '13-dysko', '33-shasha', '11-frank', '01-azar', '34-bongo', '24-salsa', '18-jazz', '07-funk'];
+        const C = 72;
+        if (img.inlay) {
+            fetch(`${img.inlay}/panneaux.json`).then((r) => r.json()).then((g) => {
+                const [FW, FH] = g.feuille, X = 98.5; // centre du fond des cases (197 mm)
+                const LUM = [-0.35, -0.55, 0.76];
+                g.panneaux.forEach((pn) => {
+                    const [x0, y0, x1, y1] = pn.r, l = x1 - x0, hh = y1 - y0, U = pn.U, V = pn.V;
+                    const n = [U[1] * V[2] - U[2] * V[1], U[2] * V[0] - U[0] * V[2], U[0] * V[1] - U[1] * V[0]];
+                    const c = [0, 1, 2].map((k) => pn.O[k] + U[k] * l / 2 + V[k] * hh / 2 - (k < 2 ? X : 0));
+                    const d = plan(s.contenu, l, hh, 'inlay', `${img.inlay}/feuille.webp`,
+                        (u) => `matrix3d(${U.join(',')},0,${V.join(',')},0,${n.join(',')},0,${c[0] * u},${c[1] * u},${c[2] * u},1)`);
+                    d.style.backgroundSize = `${FW / l * 100}% ${FH / hh * 100}%`;
+                    d.style.backgroundPosition = `${x0 / (FW - l) * 100}% ${y0 / (FH - hh) * 100}%`;
+                    const e = 0.5 + 0.5 * Math.max(0, n[0] * LUM[0] + n[1] * LUM[1] + n[2] * LUM[2]);
+                    d.style.filter = `brightness(${e.toFixed(3)})`;
+                });
+                s.pose = false; // tailler les nouveaux panneaux au prochain dessin
+            }, () => {});
+        }
+        // La boîte est vide au départ (toutes les cartes sont sur la table, Hugo 16/11) : chaque carte qui rentre se pose
+        // sur la pile de sa case ; place() donne la prochaine hauteur libre
         s.cases = [];
-        for (let i = 0; i < 9; i++) {
-            const cx = ((i % 3) - 1) * C, cy = (Math.floor(i / 3) - 1) * C, n = i % 2 ? 7 : 8, h = n * EPAISSEUR;
-            s.cases.push({ cx, cy, h });
-            plan(s.contenu, CARTE, CARTE, 'carte', `${img.cartes}/sombre/${DESSUS[i]}.webp`, (u) => `translate3d(${cx * u}px,${cy * u}px,${(h + 0.2) * u}px)`);
-            const r = CARTE / 2;
-            [[0, r, -90, 'X'], [0, -r, 90, 'X'], [r, 0, 90, 'Y'], [-r, 0, -90, 'Y']].forEach(([dx, dy, a, axe]) => {
-                const tour = axe === 'X' ? `rotateX(${a}deg)` : `rotateY(${a}deg) rotateZ(90deg)`;
-                plan(s.contenu, CARTE, h, 'tranche-cartes', null, (u) => `translate3d(${(cx + dx) * u}px,${(cy + dy) * u}px,${h / 2 * u}px) ${tour}`);
+        for (let i = 0; i < 9; i++) s.cases.push({ cx: ((i % 3) - 1) * C, cy: (Math.floor(i / 3) - 1) * C, n: 0 });
+        const place = (i) => { const c = s.cases[i % 9]; c.n += 1; return { px: c.cx, py: c.cy, pz: 0.6 + (c.n - 1) * EPAISSEUR }; };
+
+        // Les 72 autres cartes de la boîte (84 Personnages + 4 cartes d'aide, moins les 16 de la partie), en vrac sur la
+        // table au nord et au sud du plateau (fin de page seulement) : elles se rangent les premières
+        s.vrac = [];
+        if (el.dataset.scene === 'fermeture') {
+            // boîte de base (cartes.json, « boite: base ») : 4 Rois, 20 Personnages en 4 exemplaires
+            const RESTE = { '07-funk': 4, '10-krak': 3, '11-frank': 3, '13-dysko': 3, '14-folk': 4, '18-jazz': 4, '19-banjo': 2,
+                '24-salsa': 4, '26-rokk': 3, '30-dub': 4, '31-bass': 4, '33-shasha': 2, '34-bongo': 2, '35-tamtam': 2,
+                '37-marakas': 4, '38-gong': 4, '39-zyg': 4, '40-zwang': 4, '41-zug': 4, '42-zag': 4, aide: 4 };
+            const liste = [];
+            Object.entries(RESTE).forEach(([nom, n]) => { for (let k = 0; k < n; k++) liste.push(nom); });
+            let graine = 11;
+            const hasard = () => { graine = (graine * 16807) % 2147483647; return graine / 2147483647; };
+            for (let k = liste.length - 1; k > 0; k--) { const m = Math.floor(hasard() * (k + 1)); [liste[k], liste[m]] = [liste[m], liste[k]]; }
+            liste.forEach((nom, k) => {
+                const src = nom === 'aide' ? `${img.aide}` : `${img.cartes}/${hasard() < 0.5 ? 'clair' : 'sombre'}/${nom}.webp`;
+                const d = plan(monde, CARTE, CARTE, 'carte', src, null);
+                const cote = k % 2 ? 1 : -1;
+                s.vrac.push(Object.assign({
+                    d, ordre: k,
+                    // en tas autour de quelques points, au nord et au sud (bord du plateau à 235 mm), certaines débordent dessus
+                    x: -235 + hasard() * 470, y: cote * (228 + hasard() * 74), z: 0.6 + k * 0.08, rz: hasard() * 360 - 180,
+                }, place(k)));
             });
         }
 
@@ -116,8 +149,7 @@
             s.cartes.push({
                 d, angle: eq.angle, ordre: e * 4 + k,
                 x: x0 * Math.cos(a) - y0 * Math.sin(a), y: x0 * Math.sin(a) + y0 * Math.cos(a),
-                px: s.cases[(e * 4 + k) % 9].cx, py: s.cases[(e * 4 + k) % 9].cy,
-                pz: s.cases[(e * 4 + k) % 9].h + (e * 4 + k >= 9 ? EPAISSEUR : 0) + 0.6,
+                ...place(e * 4 + k),
                 // pile d'attente, hors du plateau déplié (bord à 235 mm) : Sud et Est en bas, Nord et Ouest en haut
                 ex: [-70, 70, 70, -70][e], ey: [1, 1, -1, -1][e] * (Q + 42), ez: 1 + k * 0.9,
             });
@@ -155,6 +187,9 @@
             el.addEventListener('pointerdown', (e) => { s.tenue = true; s.vitesse = 0; x0 = e.clientX; t0 = performance.now(); });
             el.addEventListener('pointermove', (e) => {
                 if (!s.tenue) return;
+                // souris relâchée ailleurs (sur le texte, hors de la fenêtre) : la boîte restait « tenue » et suivait la
+                // souris, tournée et plus bas que celle du haut (Hugo, 17/11)
+                if (e.pointerType === 'mouse' && !(e.buttons & 1)) { s.tenue = false; return; }
                 const dx = e.clientX - x0, t = performance.now();
                 if (Math.abs(dx) > 3 && !el.hasPointerCapture(e.pointerId)) el.setPointerCapture(e.pointerId);
                 s.doigt += dx * 0.6;
@@ -162,33 +197,60 @@
                 x0 = e.clientX; t0 = t;
             });
             const lacher = () => { s.tenue = false; };
-            el.addEventListener('pointerup', lacher);
-            el.addEventListener('pointercancel', lacher);
+            // relâchée n'importe où dans la page, pas seulement sur la boîte
+            window.addEventListener('pointerup', lacher);
+            window.addEventListener('pointercancel', lacher);
+            window.addEventListener('blur', lacher);
         }
         new IntersectionObserver((es) => { s.visible = es[0].isIntersecting; }).observe(el);
         el.classList.add('prete');
         return s;
     }
 
-    // Côté de la boîte au repos, et où elle se pose (à gauche du texte sur ordinateur, au-dessus sur téléphone)
+    // Côté de la boîte au repos, et où elle se pose (au-dessus du texte)
+    // Hauteur de référence figée : sur téléphone, la barre d'adresse qui se replie au défilement change innerHeight,
+    // et la boîte puis le titre sautaient au tout début (Hugo, 16/11) ; elle ne change qu'avec la largeur (rotation)
+    let largeurRef = 0, hauteurRef = 0;
+    // Sur ordinateur, pas de barre d'adresse qui bouge : la hauteur réelle, sinon une fenêtre redimensionnée après le
+    // chargement décalait la boîte (et la boîte du bas ne tombait plus à la place de celle du haut : Hugo, 17/11)
+    const ecranTactile = window.matchMedia('(hover: none), (pointer: coarse)');
+    function hauteurStable() {
+        if (!ecranTactile.matches) return window.innerHeight;
+        if (window.innerWidth !== largeurRef || !hauteurRef) { largeurRef = window.innerWidth; hauteurRef = window.innerHeight; }
+        return hauteurRef;
+    }
     function repos(nom) {
-        const w = window.innerWidth, h = window.innerHeight;
+        const w = window.innerWidth, h = hauteurStable();
         if (etroit()) {
             const S = nom === 'fermeture' ? Math.min(0.54 * w, 0.24 * h, 230) : Math.min(0.62 * w, 0.3 * h, 300);
             return { S, x: 0, y: (nom === 'fermeture' ? 78 : 72) + S * 0.62 - h / 2 };
         }
-        if (nom === 'heros') {
-            // ordinateur : la boîte au centre, la promesse dessous
-            const S = Math.min(360, 0.38 * h);
-            return { S, x: 0, y: 80 + S * 0.62 - h / 2 };
-        }
-        const S = Math.min(420, 0.3 * w, 0.5 * h);
-        return { S, x: -Math.min(1120, w - 32) / 4, y: 0 };
+        // ordinateur : la boîte au centre, le texte dessous ; en fin de page exactement la même boîte qu'au début
+        // (même taille, même place, donc même vue : Hugo, 17/11)
+        // la boîte rapetisse sur un écran bas pour que le texte et ses boutons restent visibles
+        const S = Math.max(200, Math.min(360, 0.38 * h, (h - 440) / 1.3));
+        return { S, x: 0, y: 80 + S * 0.62 - h / 2 };
     }
+
+    // Pièce cachée = retirée de la 3D (display), pas seulement invisible : la scène du bas a ~200 plans (cartes en vrac,
+    // inlay) ; invisibles mais présents, ils faisaient mal dessiner la boîte fermée par Firefox sur le PC d'Hugo (17/11)
+    function cacher(el, oui) {
+        if (el._cache === oui) return;
+        el._cache = oui;
+        el.style.display = oui ? 'none' : '';
+    }
+
+    // Où mettre la perspective (Hugo, 17/11) :
+    // - Firefox : dans la transformation de la boîte. Avec la propriété perspective sur le conteneur, dans la section
+    //   collante du bas, Firefox (rendu par la carte graphique) plaçait l'œil à la position non collée de la section,
+    //   bien plus haut : la boîte du bas était vue d'au-dessus. Même image : translate puis perspective.
+    // - WebKit et Chrome : sur le conteneur (perspective + perspective-origin) ; WebKit dessine mal la boîte avec
+    //   perspective() dans sa transformation (en haut à gauche, ou noire).
+    const PERSP_DANS_BOITE = CSS.supports('-moz-appearance', 'none');
 
     // Pose toute la scène pour t ∈ [0, 1] : 0 = boîte fermée, 1 = partie prête
     function poser(s, t, temps) {
-        const w = window.innerWidth, h = window.innerHeight;
+        const w = window.innerWidth, h = hauteurStable();
         const r = repos(s.el.dataset.scene);
         const u = r.S / BOITE;
         if (u !== s.u || !s.pose) {
@@ -201,7 +263,8 @@
                 if (p.pose) p.d.style.transform = p.pose(u);
             });
             s.el.parentElement.style.setProperty('--S', r.S + 'px');
-            s.el.style.perspective = Math.max(w, h) * 1.7 + 'px';
+            s.persp = Math.max(w, h) * 1.7;
+            if (!PERSP_DANS_BOITE) s.el.style.perspective = s.persp + 'px';
         }
         // Caméra : debout de trois quarts → couchée sur la table → recul pour voir tout le plateau
         const couche = lisse(0.08, 0.26, t);
@@ -212,22 +275,24 @@
         k = mix(k, plateauAplat, lisse(0.44, 0.62, t));
         const debout = 1 - couche;
         const balance = calme ? 0 : debout;
-        let ay = mix(0, -28, debout) + (s.doigt + (s.tour || 0)) * debout + Math.sin(temps / 1.7) * 6 * balance;
-        const ax = mix(etroit() ? 38 : 50, -14, debout) + Math.sin(temps / 2.3) * 2.5 * balance;
+        // de face (Hugo, 17/11 : elle rend mieux pile de face), penchée vers nous de 18° pour montrer la tranche du
+        // haut ; on la tourne au doigt
+        let ay = (s.doigt + (s.tour || 0)) * debout + Math.sin(temps / 1.7) * 4 * balance;
+        const ax = mix(etroit() ? 38 : 50, -18, debout) + Math.sin(temps / 2.3) * 2.5 * balance;
         const az = mix(-8, 0, debout) + s.doigt * (1 - debout) * 0.3;
         // arrivée : la boîte pivote doucement d'un huitième de tour
         if (s.el.dataset.scene === 'heros' && !calme) ay -= 45 * (1 - lisse(0, 1, temps / 1.4));
         const flotte = calme ? 0 : Math.sin(temps / 1.9) * 7 * debout;
         const ox = r.x * debout, oy = r.y * debout + (etroit() ? 6 : -10) * couche + flotte;
-        s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
+        if (!PERSP_DANS_BOITE) s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
         const zc = HAUT / 2 * debout * u;
-        s.monde.style.transform = `translate(${ox}px,${oy}px) scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`;
+        s.monde.style.transform = `translate(${ox}px,${oy}px)${PERSP_DANS_BOITE ? ` perspective(${s.persp}px)` : ''} scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`;
         s.dessus.style.setProperty('--reflet', 50 + ay * 1.2 + '%');
 
         // Couvercle : il se soulève, puis part vers le fond
         const leve = lisse(0.26, 0.36, t), part = lisse(0.32, 0.44, t);
         s.couvercle.style.transform = `translate3d(0,${-900 * part * u}px,${(200 * leve + 120 * part) * u}px) rotateX(${-25 * part}deg)`;
-        s.couvercle.style.visibility = part >= 1 ? 'hidden' : '';
+        cacher(s.couvercle, part >= 1);
 
         // Plateau : il sort du fond et recule, puis (les cartes sorties) se pose au centre et se déplie : droite, puis bas
         const monte = lisse(0.36, 0.46, t), pose = lisse(0.52, 0.64, t);
@@ -238,15 +303,15 @@
         s.plateau.style.transform = `translate3d(${decal * u}px,${(decal + recule) * u}px,${bz * u}px) rotateX(${-12 * monte * (1 - pose)}deg)`;
         s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
         // boîte fermée : le plateau plié reste caché (sinon son dos passait parfois devant le couvercle)
-        s.plateau.style.visibility = t < 0.3 ? 'hidden' : '';
-        s.contenu.style.visibility = t < 0.27 ? 'hidden' : '';
+        cacher(s.plateau, t < 0.3);
+        cacher(s.contenu, t < 0.27);
         s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
         s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
 
         // Fond de boîte : vidé, il glisse sur le côté (il ne croise ni les piles ni le plateau)
         const sort = lisse(0.5, 0.58, t);
         s.fond.style.transform = `translate3d(${1000 * sort * u}px,0,0)`;
-        s.fond.style.visibility = sort >= 1 ? 'hidden' : '';
+        cacher(s.fond, sort >= 1);
 
         // Ombre : sous la boîte, puis sous le plateau
         const taille = mix(BOITE * 1.25, PLATEAU * 1.12, pose);
@@ -262,7 +327,16 @@
             const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 20;
             c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
             // boîte fermée : inutile de dessiner les cartes
-            c.d.style.visibility = t < 0.27 ? 'hidden' : '';
+            cacher(c.d, t < 0.27);
+        });
+        // Cartes en vrac : elles s'envolent une à une dans les cases, une fois le fond de boîte arrivé
+        s.vrac.forEach((c) => {
+            const debut = 0.47 - c.ordre * 0.0006, f = 1 - lisse(debut, debut + 0.03, t); // tout est rangé avant t = 0,5 : la boîte est là
+            const x = mix(c.x, c.px, f), y = mix(c.y, c.py, f);
+            const z = mix(c.z, c.pz, f) + Math.sin(Math.PI * f) * 70;
+            const rz = mix(c.rz, 0, f);
+            c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
+            cacher(c.d, t < 0.27);
         });
     }
 
@@ -271,10 +345,34 @@
     const sceneFermeture = scenes.find((s) => s.el.dataset.scene === 'fermeture');
     const fermeture = document.getElementById('boite');
     const freins = document.getElementById('freins');
+    const enLigne = document.getElementById('en-ligne');
+    const vueAventure = enLigne.querySelector('.vue-tel.aventure'), bandeTel = enLigne.querySelector('.bande');
+    const ongletsTel = [...enLigne.querySelectorAll('.onglets img')], sujetsEnLigne = [...enLigne.querySelectorAll('.sujets li')];
+    if (calme) sujetsEnLigne[0].classList.add('actif');
     const freinsLi = [...freins.querySelectorAll('.liste-freins li')];
-    const freinsTitre = freins.querySelector('.titre');
-    const freinsReponse = freins.querySelector('.reponse');
-    const freinsPlateaux = freins.querySelector('.plateaux');
+    const freinsTitres = freins.querySelector('.titres');
+    const freinsPoint1 = freins.querySelector('.point-1');
+    const freinsVue = freins.querySelector('.plateau-mt .vue');
+    const freinsScene = freins.querySelector('.scene-freins');
+    const freinsEchiquier = freins.querySelector('.echiquier');
+    const freinsMt = freins.querySelector('.plateau-mt');
+    // chaque pièce porte la liste de ses cases, une par position : data-c="e2 e4 e4 …"
+    const piecesFreins = [...freins.querySelectorAll('.echiquier .pieces > g')].map((el) => ({ el, c: el.dataset.c.split(' ') }));
+    const coupsFreins = [...freins.querySelectorAll('.echiquier .coups')];
+    const versCase = (s) => [s.charCodeAt(0) - 97, +s[1] - 1];
+    // position continue f (2,4 = entre la position 2 et la 3) → colonne, rangée
+    const surChemin = (c, f) => {
+        const k = Math.min(c.length - 1, Math.floor(f)), k2 = Math.min(c.length - 1, k + 1), t = f - k;
+        const [x0, y0] = versCase(c[k]), [x1, y1] = versCase(c[k2]);
+        return [mix(x0, x1, t), mix(y0, y1, t)];
+    };
+    // n coups joués entre t0 et t0 + n·d : chaque coup tient sa position, puis glisse vers la suivante
+    const etape = (pr, t0, d, n) => {
+        const x = (pr - t0) / d;
+        if (x <= 0) return 0;
+        const k = Math.floor(x);
+        return k >= n ? n : k + lisse(0.3, 0.9, x - k);
+    };
     const offre = fermeture.querySelector('.offre');
 
     const avance = (section) => {
@@ -287,80 +385,77 @@
         const temps = (now - debut) / 1000;
         const dt = Math.min(0.1, (now - (avant || now)) / 1000);
         avant = now;
-        // la partie avance à 8 images par seconde, fondu compris (9 s), s'arrête 2 s sur la fin, puis reprend
-        if (partieVisible && !calme) {
-            pause -= dt;
-            if (pause <= 0) {
-                positionVoulue += dt * 8;
-                if (positionVoulue >= NB_IMAGES - 1) { positionVoulue = 0; pause = 2; imageVoulue = NB_IMAGES - 1; }
-                else imageVoulue = Math.floor(positionVoulue);
-                dessiner();
-            }
+        // la partie à 4 suit le défilement (jamais au temps : Hugo 16/11) et rattrape la position voulue en douceur
+        if (partie4 && !calme && Math.abs(p4Cible - p4Vue) > 0.0005) {
+            p4Vue += (p4Cible - p4Vue) * (1 - Math.exp(-dt * (molette.matches ? 6 : 14)));
+            if (Math.abs(p4Cible - p4Vue) < 0.001) p4Vue = p4Cible;
+            poserPartie4(p4Vue);
         }
         scenes.forEach((s) => {
             if (s.visible === false) return;
-            // la boîte se penche au doigt (au plus 35°, son dos ne se voit pas) et revient d'elle-même
+            // la boîte se tourne au doigt ou à la souris (45° de chaque côté ; son dos ne se voit pas) et revient
+            // d'elle-même de face
             if (!s.tenue) { s.doigt *= Math.exp(-dt * 3); s.vitesse = 0; }
-            s.doigt = borne(s.doigt, -35, 35);
+            s.doigt = borne(s.doigt, -45, 45);
             poser(s, s.t, temps);
         });
         if (!calme) requestAnimationFrame(animer);
     }
 
-    // ======================= Partie en images (rendue avec Remotion) =======================
-    const NB_IMAGES = 72;
-    const taille = (window.innerWidth * (window.devicePixelRatio || 1) > 900 && window.innerWidth > 700) ? 1100 : 720;
-    const images = new Array(NB_IMAGES);
-    let imageVoulue = 0, imageAffichee = -1, positionVoulue = 0, pause = 0.6, partieVisible = false;
-    // Fondu entre deux images voisines : gardé par Hugo le 10/11/2026 (/#net pour le comparer sans)
-    const FONDU = location.hash !== '#net';
-    canvas.width = canvas.height = taille;
-    // Images décodées à l'avance (createImageBitmap) : sur téléphone, décoder un WebP au moment de le
-    // dessiner, pendant le défilement, peut faire sauter des images (10/11/2026)
-    const decodees = new Array(NB_IMAGES);
-    function dessiner() {
-        for (let k = imageVoulue; k >= 0; k--) {
-            const im = decodees[k] || images[k];
-            if (im && (decodees[k] || (im.complete && im.naturalWidth))) {
-                if (k !== imageAffichee) {
-                    ctx.drawImage(im, 0, 0, taille, taille);
-                    imageAffichee = k;
-                    canvas.parentElement.classList.add('pret');
-                }
-                if (FONDU && k === imageVoulue) {
-                    const suivante = decodees[k + 1];
-                    const part = positionVoulue - k;
-                    if (suivante && part > 0.02) {
-                        ctx.globalAlpha = part;
-                        ctx.drawImage(suivante, 0, 0, taille, taille);
-                        ctx.globalAlpha = 1;
-                    }
-                    imageAffichee = -2; // le mélange change à chaque mouvement : toujours redessiner
-                }
-                return;
-            }
-        }
+    // ======================= Point 3 : une partie à 4, vue de dessus =======================
+    // Même vue que les échecs (Hugo, 17/11 : la partie filmée qui tournait se lisait mal). Les équipes de départ et
+    // les 7 coups de ../jeu/video/src/Partie.tsx (Sud, Ouest, Nord, Est), puis « MATATAK ! » : KRAK met SHANS en échec.
+    // [id, carte, face, col (0 = a), rang (0 = 1), rotation vers son joueur]
+    const DEPART4 = [
+        ['mojo', '04-mojo', 'clair', 4, 0, 0], ['dysko', '13-dysko', 'clair', 5, 0, 0],
+        ['banjo-d', '19-banjo', 'clair', 3, 1, 0], ['banjo-e', '19-banjo', 'clair', 4, 1, 0],
+        ['azar', '01-azar', 'clair', 3, 7, 180], ['krak', '10-krak', 'clair', 2, 7, 180],
+        ['tamtam-e', '35-tamtam', 'clair', 4, 6, 180], ['tamtam-d', '35-tamtam', 'clair', 3, 6, 180],
+        ['shans', '02-shans', 'sombre', 0, 3, 90], ['rokk', '26-rokk', 'sombre', 0, 2, 90],
+        ['shasha-b5', '33-shasha', 'sombre', 1, 4, 90], ['shasha-b4', '33-shasha', 'sombre', 1, 3, 90],
+        ['karma', '03-karma', 'sombre', 7, 4, -90], ['frank', '11-frank', 'sombre', 7, 5, -90],
+        ['bongo-g4', '34-bongo', 'sombre', 6, 3, -90], ['bongo-g5', '34-bongo', 'sombre', 6, 4, -90],
+    ];
+    // [id, col, rang, carte prise]
+    const COUPS4 = [
+        ['banjo-e', 5, 2], ['shasha-b4', 2, 3], ['tamtam-e', 4, 4], ['bongo-g4', 4, 5],
+        ['dysko', 3, 2], ['rokk', 3, 2, 'dysko'], ['krak', 2, 3, 'shasha-b4'],
+    ];
+    const partie4 = document.querySelector('.partie4');
+    const pointPartie = partie4 && partie4.closest('.point-partie'), blocPartie = pointPartie && pointPartie.querySelector('.mt-wrap');
+    const molette = window.matchMedia('(hover: hover)');
+    const pieces4 = [];
+    let p4Cible = 0, p4Vue = 0;
+    if (partie4) {
+        DEPART4.forEach(([id, carte, face, col, rang, rot]) => {
+            const im = document.createElement('img');
+            im.src = `${partie4.dataset.cartes}/${face}/${carte}.webp`; im.alt = ''; im.loading = 'lazy';
+            partie4.insertBefore(im, partie4.firstChild);
+            pieces4.push({ id, im, col, rang, rot });
+        });
     }
-    function charger(k) {
-        const im = new Image();
-        im.decoding = 'async';
-        im.onload = () => {
-            const pret = () => { if (Math.abs(k - imageVoulue) < 3 || imageAffichee < 0) dessiner(); };
-            if (window.createImageBitmap) {
-                createImageBitmap(im).then((b) => { decodees[k] = b; pret(); }, pret);
-            } else pret();
-        };
-        im.src = `/static/images/background/vitrine/partie/p${taille}-${String(k).padStart(2, '0')}.webp`;
-        images[k] = im;
+    function poserPartie4(t) {
+        const etat = new Map(pieces4.map((pc) => [pc.id, { col: pc.col, rang: pc.rang, saut: 0, envol: 0 }]));
+        COUPS4.forEach(([id, c1, r1, prise], k) => {
+            const a = 0.04 + k * 0.11;
+            const f = lisse(a, a + 0.08, t), e = etat.get(id);
+            e.col = mix(e.col, c1, f); e.rang = mix(e.rang, r1, f);
+            e.saut = Math.max(e.saut, Math.sin(Math.PI * f));
+            // la carte prise s'envole quand l'attaquant arrive
+            if (prise) etat.get(prise).envol = lisse(a + 0.05, a + 0.09, t);
+        });
+        pieces4.forEach((pc) => {
+            const e = etat.get(pc.id), st = pc.im.style;
+            st.left = `${e.col * 12.5 + 0.75}%`;
+            st.top = `${(7 - e.rang) * 12.5 + 0.75}%`;
+            st.opacity = (1 - e.envol).toFixed(3);
+            st.visibility = e.envol >= 1 ? 'hidden' : '';
+            st.transform = `translateY(${-90 * e.envol}%) rotate(${pc.rot + 25 * e.envol}deg) scale(${(1 + e.saut * 0.25 + e.envol * 0.3).toFixed(3)})`;
+            st.zIndex = e.saut > 0 || e.envol > 0 ? 2 : 1;
+        });
+        partie4.parentElement.style.setProperty('--cri', lisse(0.84, 0.9, t).toFixed(3));
     }
-    const ioFilm = new IntersectionObserver((es) => {
-        if (!es.some((e) => e.isIntersecting)) return;
-        ioFilm.disconnect();
-        for (let k = 0; k < NB_IMAGES; k += 6) charger(k);
-        for (let k = 0; k < NB_IMAGES; k++) if (!images[k]) charger(k);
-    }, { rootMargin: '800px 0px' });
-    ioFilm.observe(film);
-    new IntersectionObserver((es) => { partieVisible = es[0].isIntersecting; }, { threshold: 0.3 }).observe(canvas);
+    if (partie4) poserPartie4(0);
 
     // ======================= Progression des éléments [data-p] =======================
     // 0 quand le centre de l'élément entre par le bas de l'écran, 1 quand il atteint le milieu.
@@ -368,7 +463,17 @@
     function progressions(h) {
         suivis.forEach((el) => {
             const r = el.getBoundingClientRect();
+            // « lent » (le graphique du point 2) : de son entrée par le bas jusqu'au tiers haut de l'écran
+            // dans un sujet qui s'arrête : de l'arrivée (un quart d'écran avant) à la fin de l'arrêt
+            const art = el.closest('.arret');
+            if (art) {
+                const ra = art.getBoundingClientRect(), bloc = art.querySelector('.arret-bloc');
+                const pa = borne((h * 0.25 - ra.top) / (ra.height - bloc.offsetHeight + h * 0.25));
+                if (el._p === undefined || Math.abs(el._p - pa) > 0.002) { el._p = pa; el.style.setProperty('--p', pa.toFixed(3)); }
+                return;
+            }
             const p = el.dataset.p === 'traverse' ? borne((h - r.top) / (h + r.height))
+                : el.dataset.p === 'lent' ? borne((h - r.top) / (h * 0.75))
                 : borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
             if (el._p === undefined || Math.abs(el._p - p) > 0.002) {
                 el._p = p;
@@ -441,36 +546,134 @@
 
         // Fin de page : la partie est en place, puis tout rentre dans la boîte, qui se referme
         const pf = calme ? 1 : avance(fermeture);
+        // feuilles fixes : claires en haut (ordinateur), assombries pendant la page, claires à la toute fin
+        const finF = lisse(0.55, 0.9, avance(fermeture));
+        // le vignettage aussi : la fin répond au début (Hugo, 17/11)
+        const sombre = lisse(0, h * 0.9, y);
+        feuilles.style.opacity = (etroit() ? finF : mix(mix(1, 0.4, sombre), 1, finF)).toFixed(3);
+        feuilles.style.setProperty('--v', (etroit() ? finF : mix(1 - sombre, 1, finF)).toFixed(3));
         if (sceneFermeture) sceneFermeture.t = 1 - lisse(0.04, 0.74, pf);
         const montre = lisse(0.72, 0.86, pf);
         offre.style.opacity = montre;
         offre.style.transform = `translateY(${(1 - montre) * 30}px)`;
         offre.classList.toggle('visible', montre > 0.5);
 
-        // Freins : ils arrivent un à un (0 → 0,36), sont barrés un à un (0,4 → 0,64), s'en vont ensemble
-        // (0,68 → 0,8), puis la promesse prend la place (0,78 → 0,92)
+        // Freins (repères en part de la section) :
+        // 0,03 → 0,42 une ouverture d'échecs, toutes les flèches des coups possibles à chaque position ;
+        // les 3 freins arrivent (0,05 / 0,17 / 0,29), sont barrés (0,40 → 0,49), s'en vont (0,5 → 0,54) ;
+        // 0,5 → 0,62 le plateau de MATATAK arrive de la droite et pousse l'échiquier, qui part en tournoyant ;
+        // le logo remplace le titre et le point 1 arrive (0,58) ; MOJO avance (0,62), zoom sur sa carte (0,64 → 0,73),
+        // on recule (0,79 → 0,9) et les flèches sortent de ses symboles (0,79 → 0,92).
         if (!calme) {
             const pr = avance(freins);
-            const part = lisse(0.68, 0.8, pr);
+            const part = lisse(0.5, 0.54, pr);
             freinsLi.forEach((li, i) => {
-                li.style.setProperty('--a', lisse(0.02 + i * 0.07, 0.09 + i * 0.07, pr).toFixed(3));
-                li.style.setProperty('--s', lisse(0.4 + i * 0.05, 0.46 + i * 0.05, pr).toFixed(3));
+                li.style.setProperty('--a', lisse(0.05 + i * 0.12, 0.09 + i * 0.12, pr).toFixed(3));
+                li.style.setProperty('--s', lisse(0.4 + i * 0.03, 0.43 + i * 0.03, pr).toFixed(3));
                 li.style.setProperty('--x', part.toFixed(3));
             });
-            freinsTitre.style.opacity = 1 - part;
-            // derrière : les flèches couvrent l'échiquier pendant qu'on lit les freins, puis le plateau de MATATAK arrive
-            freinsPlateaux.style.setProperty('--fl', lisse(0.04, 0.62, pr).toFixed(3));
-            freinsPlateaux.style.setProperty('--m', lisse(0.66, 0.84, pr).toFixed(3));
-            freinsReponse.style.setProperty('--r', lisse(0.78, 0.92, pr).toFixed(3));
+            const fe = etape(pr, 0.03, 0.065, 6);
+            const vues = lisse(0.01, 0.06, pr);
+            // fondu long entre deux positions : les flèches de l'une laissent la place à celles de la suivante sans à-coup
+            coupsFreins.forEach((g, j) => { g.style.opacity = (vues * borne(1 - Math.abs(fe - j) * 1.6)).toFixed(3); });
+            piecesFreins.forEach((p) => {
+                const [x, y] = surChemin(p.c, fe);
+                p.el.setAttribute('transform', `translate(${(x * 100).toFixed(1)} ${((7 - y) * 100).toFixed(1)})`);
+            });
+            // MATATAK glisse depuis la droite jusqu'au centre en se redressant ; il touche l'échiquier, puis le pousse
+            // et lui donne de l'élan : l'échiquier part vers la gauche en tournant et en tombant.
+            // Départ juste hors de l'écran, quelle que soit sa largeur (en % de la largeur du plateau).
+            const u = lisse(0.5, 0.62, pr);
+            const lp = freinsMt.offsetWidth || 1;
+            const xm = Math.max(130, ((window.innerWidth + lp) / 2 + 60) / lp * 100) * (1 - u);
+            freinsMt.style.transform = `translateX(${xm.toFixed(2)}%) rotate(${(14 * (1 - u)).toFixed(2)}deg)`;
+            const choc = borne((100 - xm) / 100);
+            const vol = choc * (1 + choc * 0.9);
+            freinsEchiquier.style.transform = `translate(${(-100 * vol).toFixed(2)}%, ${(18 * choc * choc).toFixed(2)}%) rotate(${(-38 * vol).toFixed(2)}deg)`;
+            freinsEchiquier.style.opacity = (1 - lisse(0.75, 1, choc)).toFixed(3);
+            freinsTitres.style.setProperty('--t', lisse(0.5, 0.55, pr).toFixed(3));
+            // dès que MATATAK est là : le logo et le point 1 (sur ordinateur, le plateau glisse à gauche, le texte à droite) ;
+            // les autres cartes s'effacent, MOJO avance de e1 à e2, on zoome sur sa carte (× 9 : on ne voit presque plus que lui, Hugo 16/11 ; régulier en échelle log),
+            // puis on recule (× 2,6) pendant que des flèches sortent de ses symboles jusqu'à ses 8 cases
+            freinsTitres.style.setProperty('--m', lisse(0.57, 0.62, pr).toFixed(3));
+            freinsPoint1.style.setProperty('--r', lisse(0.58, 0.64, pr).toFixed(3));
+            freinsScene.style.setProperty('--g', lisse(0.58, 0.66, pr).toFixed(3));
+            const v = freinsVue.style;
+            v.setProperty('--o', lisse(0.6, 0.65, pr).toFixed(3));
+            v.setProperty('--av', lisse(0.62, 0.67, pr).toFixed(3));
+            const zin = lisse(0.64, 0.73, pr);
+            v.setProperty('--f', zin.toFixed(3));
+            v.setProperty('--s', Math.exp(Math.log(9) * zin + (Math.log(2.6) - Math.log(9)) * lisse(0.82, 0.92, pr)).toFixed(3));
+            // les flèches poussent pendant qu'on recule
+            v.setProperty('--t', lisse(0.84, 0.95, pr).toFixed(3));
+            // les symboles de la carte brillent trois fois (ils clignotent), puis les flèches en sortent
+            v.setProperty('--p', Math.abs(Math.sin(3 * Math.PI * lisse(0.72, 0.85, pr))).toFixed(3));
         }
 
+        // jeu en ligne : l'Aventure défile dans le téléphone, puis Défier, puis l'Arène (le sujet actif en or)
+        if (enLigne && !calme) {
+            const q = avance(enLigne);
+            vueAventure.style.setProperty('--a', lisse(0.04, 0.4, q).toFixed(4));
+            const g = lisse(0.42, 0.5, q) + lisse(0.7, 0.78, q);
+            bandeTel.style.setProperty('--g', g.toFixed(4));
+            // la barre d'onglets ne bouge pas : l'onglet suivant apparaît en fondu, au milieu du glissement
+            ongletsTel[1].style.opacity = borne(Math.min(g - 0.5, 1.5 - g) * 4 + 0.5).toFixed(3);
+            ongletsTel[2].style.opacity = borne((g - 1.5) * 4 + 0.5).toFixed(3);
+            const actif = g < 0.5 ? 0 : g < 1.5 ? 1 : 2;
+            sujetsEnLigne.forEach((li, k) => li.classList.toggle('actif', k === actif));
+        }
+
+        // partie à 4 (point 3) : toute la partie se joue pendant que le point 3 est arrêté à l'écran (son bloc
+        // collé en haut), avec un peu d'avance à l'arrivée
+        if (partie4) {
+            const ra = pointPartie.getBoundingClientRect();
+            const colle = parseFloat(getComputedStyle(blocPartie).top) || 0;
+            const cs = getComputedStyle(pointPartie), hautP = parseFloat(cs.paddingTop), basP = parseFloat(cs.paddingBottom);
+            const debutP = colle - hautP + h * 0.25;
+            const courseP = Math.max(1, ra.height - hautP - basP - blocPartie.offsetHeight + h * 0.25);
+            p4Cible = calme ? 1 : borne((debutP - ra.top) / courseP);
+            if (calme) poserPartie4(1);
+        }
         if (!calme) progressions(h);
-        if (calme) { animer(performance.now()); if (imageAffichee < 0) dessiner(); }
+        if (calme) animer(performance.now());
     }
     window.addEventListener('scroll', () => {
         if (!attente) { attente = true; requestAnimationFrame(maj); }
     }, { passive: true });
     window.addEventListener('resize', () => { scenes.forEach((s) => { s.pose = false; }); maj(); }, { passive: true });
+    // ======================= Molette plus douce (ordinateur) =======================
+    // À la molette, chaque cran sautait d'environ 100 px : toute la page paraissait trop sensible (Hugo, 16/11).
+    // Les crans sont raccourcis (× 0,75) et glissent ; les pas du pavé tactile sont raccourcis (× 0,5).
+    if (!calme && molette.matches) {
+        let cible = 0, enRoute = false, pose = -1;
+        const pas = () => {
+            const y = window.scrollY, reste = cible - y;
+            // la page a bougé autrement (barre de défilement, clavier, lien) : on lâche
+            if (pose >= 0 && Math.abs(y - pose) > 3) { enRoute = false; pose = -1; return; }
+            if (Math.abs(reste) < 1.5) { window.scrollTo({ top: cible, behavior: 'instant' }); enRoute = false; pose = -1; return; }
+            const avance = Math.abs(reste * 0.16) < 1 ? Math.sign(reste) : reste * 0.16; // au moins 1 px : scrollY est arrondi
+            pose = Math.round(y + avance);
+            window.scrollTo({ top: y + avance, behavior: 'instant' }); // instant : le html est en scroll-behavior smooth
+            requestAnimationFrame(pas);
+        };
+        window.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+            // pavé tactile (petits pas continus, élan compris) : chaque pas est raccourci (× 0,5), sans lissage, l'élan
+            // reste le sien ; il défilait encore bien trop vite (Hugo, 17/11)
+            if (e.deltaMode === 0 && Math.abs(e.deltaY) < 40) {
+                e.preventDefault();
+                enRoute = false; pose = -1;
+                window.scrollBy({ top: e.deltaY * 0.5, behavior: 'instant' });
+                return;
+            }
+            e.preventDefault();
+            if (!enRoute) { cible = window.scrollY; pose = -1; }
+            const d = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
+            cible = borne(cible + d * 0.75, 0, document.documentElement.scrollHeight - window.innerHeight);
+            if (!enRoute) { enRoute = true; requestAnimationFrame(pas); }
+        }, { passive: false });
+    }
+
     maj();
     requestAnimationFrame(animer);
 
@@ -488,6 +691,25 @@
             pencher(borne(e.gamma, -30, 30) * 0.6, borne((e.beta || 45) - 45, -30, 30) * -0.4);
         }, { passive: true });
     }
+
+    // ======================= Point 4 : une carte touchée fait un tour sur elle-même =======================
+    // Comme dans la Collection (animation carte-tour) : on voit sa face claire au dos. La face claire n'est chargée
+    // qu'au premier toucher.
+    document.querySelectorAll('.rangee').forEach((rangee) => rangee.addEventListener('click', (e) => {
+        const im = e.target.closest('img[data-carte]');
+        if (!im) return;
+        let pivote = im.parentElement.classList.contains('pivote') ? im.parentElement : null;
+        if (!pivote) {
+            const tour = document.createElement('span'); tour.className = 'tour';
+            pivote = document.createElement('span'); pivote.className = 'pivote';
+            const dos = document.createElement('img');
+            dos.className = 'dos'; dos.alt = ''; dos.src = im.src.replace('/sombre/', '/clair/');
+            im.replaceWith(tour); tour.appendChild(pivote); pivote.append(im, dos);
+        }
+        pivote.classList.remove('en-tour');
+        void pivote.offsetWidth; // relance l'animation si on retouche la carte pendant son tour
+        pivote.classList.add('en-tour');
+    }));
 
     // ======================= Apparition des blocs =======================
     const tout = document.querySelectorAll('.mt-apparait');

@@ -105,10 +105,12 @@ def main():
         for suffixe, taille in TAILLES.items():
             dest = JEU / "assets/site/images/background/collection" / (face + suffixe)
             dest.mkdir(parents=True, exist_ok=True)
-            for c in cartes:
-                im = Image.open(JEU / "assets/cartes" / dossier / c["fichier"]).convert("RGB")
+            # Toutes les cartes du dossier, même celles pas encore dans cartes.json (GUYRO, SYTAR) :
+            # leurs images sont prêtes pour le jour où elles arrivent sur le site.
+            for fichier in sorted((JEU / "assets/cartes" / dossier).glob("[0-9][0-9]-*.png")):
+                im = Image.open(fichier).convert("RGB")
                 im.resize((taille, taille), Image.LANCZOS).save(
-                    dest / (Path(c["fichier"]).stem + ".webp"), quality=82, method=6
+                    dest / (fichier.stem + ".webp"), quality=82, method=6
                 )
     print(
         "images -> <jeu>/assets/site/images/background/collection/ ; puis : bash outils/assets-depuis-jeu.sh"
