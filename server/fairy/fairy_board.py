@@ -471,7 +471,7 @@ class FairyBoard:
 
     @staticmethod
     def matatak_random_teams():
-        pawns = "abefgjlmpq"
+        pawns = "abefgjlmpquv"
         champions = "cdhinorstwxyz"
 
         def etoiles(lettres):
@@ -539,6 +539,8 @@ class FairyBoard:
         "l": ("pion", 3, "hiver"),
         "b": ("pion", 4, "automne"),
         "q": ("pion", 4, "automne"),
+        "u": ("pion", 4, "hiver"),
+        "v": ("pion", 3, "ete"),
         "n": ("champion", 1, "automne"),
         "r": ("champion", 1, "ete"),
         "h": ("champion", 2, "printemps"),
@@ -554,7 +556,7 @@ class FairyBoard:
         "y": ("champion", 4, "printemps"),
     }
 
-    EXTENSIONS = set("pqrtyz")  # HOP, GAMBY, YXEL, BOONG, BLUFF, RAY
+    EXTENSIONS = set("pqrtyzuv")  # HOP, GAMBY, YXEL, BOONG, BLUFF, RAY, SYTAR, GUYRO
 
     @staticmethod
     def changer_force(groupe, delta):

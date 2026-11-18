@@ -327,7 +327,7 @@ export const VARIANTS: Record<string, Variant> = {
         startFen: "3kx3/3ff3/8/8/8/8/3LL3/3WK3 w - - 0 1",
         icon: "🍍",
         boardFamily: "matatak8x8", pieceFamily: "matatak",
-        pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
+        pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
         // Choix de promotion de haut en bas, la case d'arrivée en premier : Tigre (dame), Rhinocéros
         // (tour), Cheval (cavalier), Gorille (fou). Sans cet ordre, le Cheval tombait sur la case d'arrivée.
         promotion: { type: "regular", order: ["d", "i", "s", "o"] },
@@ -338,7 +338,7 @@ export const VARIANTS: Record<string, Variant> = {
         startFen: "1kc1/1mm1/4/4/4/4/1FF1/1XK1 w - - 0 1",
         icon: "🥝",
         boardFamily: "matatak4x8", pieceFamily: "matatak",
-        pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "w", "x", "y", "z"],
+        pieceRow: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"],
         // Choix de promotion de haut en bas, la case d'arrivée en premier : Tigre (dame), Rhinocéros
         // (tour), Cheval (cavalier), Gorille (fou). Sans cet ordre, le Cheval tombait sur la case d'arrivée.
         promotion: { type: "regular", order: ["d", "i", "s", "o"] },

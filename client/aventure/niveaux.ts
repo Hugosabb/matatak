@@ -115,32 +115,42 @@ export const PHASES: Phase[] = [
             ] },
         ],
     },
-    // ── PHASE 4 — extensions, 6 places ──
+    // ── PHASE 4 — extensions, 6 places : d'abord les Pions, puis les Champions (Hugo, 18/11/2026) ──
     {
         places: 6,
         niveaux: [
             { recrue: 'HOP', rival: 'MOJO', parties: [
                 e(['DYSKO', 'SALSA'], ['HOP', 'HOP', 'HOP']),
                 e(['DYSKO', 'DUB'], ['HOP', 'BANJO', 'HOP']),
-                e(['DYSKO', 'SALSA'], ['BANJO', 'HOP', 'BANJO']),
+                e(['DYSKO', 'DYSKO'], ['BANJO', 'HOP', 'BANJO']),
             ] },
-            { recrue: 'RAY', rival: 'KARMA', parties: [
-                e(['FRANK', 'RAY'], ['BONGO', 'BASS', 'BONGO']),
-                e(['FRANK', 'RAY'], ['BASS', 'BONGO', 'BASS']),
-                e(['FUNK', 'RAY'], ['BASS', 'BASS', 'BASS']),
+            { recrue: 'GUYRO', rival: 'AZAR', parties: [
+                e(['FOLK', 'FOLK'], ['GUYRO', 'GUYRO', 'GUYRO']),
+                e(['KRAK', 'FOLK'], ['GUYRO', 'TAMTAM', 'GUYRO']),
+                e(['KRAK', 'KRAK'], ['TAMTAM', 'GUYRO', 'TAMTAM']),
             ] },
             { recrue: 'GAMBY', rival: 'SHANS', parties: [
                 e(['ROKK', 'JAZZ'], ['GAMBY', 'GAMBY', 'GAMBY']),
                 e(['ROKK', 'JAZZ'], ['GAMBY', 'SHASHA', 'GAMBY']),
                 e(['ROKK', 'JAZZ'], ['SHASHA', 'GAMBY', 'SHASHA']),
             ] },
+            { recrue: 'SYTAR', rival: 'KARMA', parties: [
+                e(['FRANK', 'FRANK'], ['SYTAR', 'SYTAR', 'SYTAR']),
+                e(['FUNK', 'FRANK'], ['SYTAR', 'BONGO', 'SYTAR']),
+                e(['FUNK', 'FRANK'], ['BASS', 'SYTAR', 'BASS']),
+            ] },
             { recrue: 'YXEL', rival: 'AZAR', parties: [
-                e(['KRAK', 'YXEL'], ['MARAKAS', 'TAMTAM', 'MARAKAS']),
-                e(['KRAK', 'YXEL'], ['TAMTAM', 'MARAKAS', 'TAMTAM']),
-                e(['KRAK', 'YXEL'], ['TAMTAM', 'TAMTAM', 'TAMTAM']),
+                e(['KRAK', 'YXEL'], ['MARAKAS', 'TAMTAM', 'GUYRO']),
+                e(['KRAK', 'YXEL'], ['TAMTAM', 'GUYRO', 'TAMTAM']),
+                e(['KRAK', 'YXEL'], ['GUYRO', 'GUYRO', 'GUYRO']),
+            ] },
+            { recrue: 'RAY', rival: 'KARMA', parties: [
+                e(['RAY', 'RAY'], ['BASS', 'BONGO', 'SYTAR']),
+                e(['FRANK', 'RAY'], ['SYTAR', 'BONGO', 'SYTAR']),
+                e(['FUNK', 'RAY'], ['SYTAR', 'SYTAR', 'SYTAR']),
             ] },
             { recrue: 'BOONG', rival: 'SHANS', parties: [
-                e(['JAZZ', 'BOONG'], ['SHASHA', 'SHASHA', 'SHASHA']),
+                e(['JAZZ', 'BOONG'], ['SHASHA', 'GONG', 'GAMBY']),
                 e(['ROKK', 'BOONG'], ['SHASHA', 'GAMBY', 'SHASHA']),
                 e(['ROKK', 'BOONG'], ['GAMBY', 'GAMBY', 'GAMBY']),
             ] },

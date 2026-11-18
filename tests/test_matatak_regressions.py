@@ -790,3 +790,40 @@ class DraftOrdinateurEtCoupDePouceTestCase(unittest.TestCase):
             e = avec.equipes["white"]
             avec.placer("white", e["pions"][::-1], e["arriere"][::-1])
         self.assertIn("boost", avec.etat())
+
+
+class SytarEtGuyroTestCase(unittest.TestCase):
+    """Personnages des extensions Hiver et Été (18/11/2026), d'après leurs cartes : SYTAR (Cobra, u) va
+    d'une case devant ou saute en cavalier étroit vers l'avant ; GUYRO (Grenouille, v) saute de 2 cases
+    dans les 4 directions orthogonales."""
+
+    def test_deplacements(self):
+        import pyffish as sf
+
+        sf.load_variant_config(open("variants.ini").read())
+
+        def coups(fen):
+            return sorted(m for m in sf.legal_moves("matatak", fen, []) if m.startswith("d4"))
+
+        self.assertEqual(coups("3k4/8/8/8/3U4/8/8/4K3 w - - 0 1"), ["d4c6", "d4d5", "d4e6"])
+        self.assertEqual(coups("3k4/8/8/8/3u4/8/8/4K3 b - - 0 1"), ["d4c2", "d4d3", "d4e2"])
+        # GUYRO saute par-dessus un Personnage
+        self.assertEqual(
+            coups("3k4/8/8/3B4/3V4/8/8/4K3 w - - 0 1"), ["d4b4", "d4d2", "d4d6", "d4f4"]
+        )
+
+    def test_pions_du_tirage_et_du_coup_de_pouce(self):
+        import draft
+        from fairy import FairyBoard
+
+        for lettre in "uv":
+            self.assertIn(lettre, draft.PIONS)
+            self.assertIn(lettre, FairyBoard.EXTENSIONS)
+            self.assertEqual(FairyBoard.FORCE[lettre][0], "pion")
+            self.assertIn(lettre, draft.FORCE_HUGO)
+        # Promotion comme les autres Pions
+        import pyffish as sf
+
+        sf.load_variant_config(open("variants.ini").read())
+        promos = sf.legal_moves("matatak", "k7/3U4/8/8/8/8/8/4K3 w - - 0 1", [])
+        self.assertIn("d7d8d", promos)

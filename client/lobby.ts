@@ -1087,7 +1087,7 @@ export class LobbyController implements ChatController {
             this.chargerClassee();
             const v = this.classee?.classement ?? this.classee?.[c.variant];
             const scene = h('aside.scene', { key: 'classee' }, [
-                h('div.scene-cartes', [carteTournante('26-rokk.webp')]),
+                h('div.scene-cartes', [carteTournante('13-dysko.webp')]),
                 this.classee?.connecte
                     ? h('div.scene-txt', [h('b', v ? String(v.r) : '…'), h('span', v?.prov ? 'Classement provisoire' : 'Votre classement')])
                     : h('div.scene-txt', [h('b', 'Arène'), h('span', 'Gagnez des points, grimpez au classement')]),

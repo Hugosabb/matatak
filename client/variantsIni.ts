@@ -45,6 +45,10 @@ customPiece18 = s:N
 # Horse
 customPiece19 = t:N0 
 # Kangaroo
+customPiece20 = u:fNfW
+# Cobra (SYTAR)
+customPiece21 = v:D
+# Frog (GUYRO)
 customPiece22 = w:KB
 # Elephant (old mW0cF2)
 customPiece23 = x:RK 
@@ -55,10 +59,10 @@ customPiece25 = z:WN
 # Zebra
 
 # N move rule
-nMoveRuleTypes = abefgjlmpq
+nMoveRuleTypes = abefgjlmpquv
 
 # Promotions
-promotionPawnTypes = abefgjlmpq 
+promotionPawnTypes = abefgjlmpquv 
 promotionPieceTypesWhite = dsio
 promotionPieceTypesBlack = dsio
 

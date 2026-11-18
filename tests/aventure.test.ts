@@ -40,12 +40,12 @@ test('on ne joue jamais deux fois la même équipe (après la phase 1)', () => {
     }
 });
 
-// 20 recrues : l'équipe de départ (DYSKO, TAMTAM, SHASHA) est offerte à tous (Hugo, 27/10/2026)
-test('20 recrues, chacune une seule fois, jamais une de l\'équipe de départ', () => {
+// 22 recrues : l'équipe de départ (DYSKO, TAMTAM, SHASHA) est offerte à tous (Hugo, 27/10/2026)
+test('22 recrues (GUYRO et SYTAR depuis le 18/11/2026), chacune une seule fois, jamais une de l\'équipe de départ', () => {
     for (const roi of ROIS_DANS_L_ORDRE) {
         const recrues = route(roi).map(e => e.recrue);
         expect(recrues.length).toBe(PHASE_1.niveaux.length + PHASES.reduce((t, p) => t + p.niveaux.length, 0));
-        expect(recrues.length).toBe(20);
+        expect(recrues.length).toBe(22);
         expect(recrues.filter(r => ['DYSKO', 'TAMTAM', 'SHASHA'].includes(r))).toEqual([]);
         expect(new Set(recrues).size).toBe(recrues.length);
     }

@@ -26,7 +26,7 @@ export const EN_PLUS: PersoDraft[] = [
     p('d', 'FUNK', 'champion'), p('o', 'FOLK', 'champion'), p('s', 'SALSA', 'champion'),
     p('r', 'YXEL', 'champion'), p('t', 'BOONG', 'champion'), p('y', 'BLUFF', 'champion'), p('z', 'RAY', 'champion'),
     p('a', 'ZYG', 'pion'), p('e', 'GONG', 'pion'), p('g', 'BASS', 'pion'), p('j', 'MARAKAS', 'pion'),
-    p('p', 'HOP', 'pion'), p('q', 'GAMBY', 'pion'),
+    p('p', 'HOP', 'pion'), p('q', 'GAMBY', 'pion'), p('v', 'GUYRO', 'pion'), p('u', 'SYTAR', 'pion'),
 ];
 
 const LETTRES_EN_PLUS = new Set(EN_PLUS.map(x => x.lettre));

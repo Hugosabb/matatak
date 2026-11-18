@@ -487,10 +487,19 @@ function ouvrirFiche(p: Personnage, liste: Personnage[], vers: 'gauche' | 'droit
     });
 
 
-    const fermer = bouton('d-fermer', '×', () => d.close());
+    // Croix dessinée, pas le « × » de la police (Tribeca, celle des boutons, le pose trop bas : Hugo, 18/11/2026)
+    const fermer = bouton('d-fermer', '', () => d.close());
+    fermer.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 5 19 19M19 5 5 19" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';
     fermer.setAttribute('aria-label', 'Fermer');
     d.append(fermer, colCarte, infos, zone, nav);
-    d.addEventListener('click', (e) => { if (e.target === d) d.close(); });
+    // Fermer seulement par un clic hors du panneau : le fond du panneau (entre les colonnes) est aussi la
+    // cible « d », mais il est dedans (Hugo, 18/11/2026 : la fiche se fermait quand on cliquait dessus).
+    d.addEventListener('click', (e) => {
+        if (e.target !== d) return;
+        const r = d.getBoundingClientRect();
+        const dehors = e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+        if (dehors) d.close();
+    });
     d.addEventListener('close', () => { arreterJeu(); d.remove(); });
     document.body.appendChild(d);
     d.showModal();

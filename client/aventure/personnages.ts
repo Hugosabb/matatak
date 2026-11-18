@@ -7,7 +7,7 @@ export type Roi = 'MOJO' | 'AZAR' | 'SHANS' | 'KARMA';
 
 export type Nom =
     | 'ZYG' | 'ZWANG' | 'ZUG' | 'ZAG'
-    | 'SHASHA' | 'GONG' | 'TAMTAM' | 'BASS' | 'MARAKAS' | 'BONGO' | 'BANJO' | 'HOP' | 'GAMBY'
+    | 'SHASHA' | 'GONG' | 'TAMTAM' | 'BASS' | 'MARAKAS' | 'BONGO' | 'BANJO' | 'HOP' | 'GAMBY' | 'GUYRO' | 'SYTAR'
     | 'DYSKO' | 'FUNK' | 'DUB' | 'ROKK' | 'JAZZ' | 'FOLK' | 'YXEL' | 'SALSA' | 'BOONG' | 'FRANK'
     | 'KRAK' | 'BLUFF' | 'RAY';
 
@@ -32,6 +32,8 @@ export const PERSONNAGES: Record<Nom, Personnage> = {
     BANJO: { lettre: 'm', rang: 'pion', etoiles: 2, saison: 'printemps' },
     HOP: { lettre: 'p', rang: 'pion', etoiles: 2, saison: 'printemps' },
     GAMBY: { lettre: 'q', rang: 'pion', etoiles: 4, saison: 'automne' },
+    GUYRO: { lettre: 'v', rang: 'pion', etoiles: 3, saison: 'ete' },
+    SYTAR: { lettre: 'u', rang: 'pion', etoiles: 4, saison: 'hiver' },
     DYSKO: { lettre: 'c', rang: 'champion', etoiles: 3, saison: 'printemps' },
     FUNK: { lettre: 'd', rang: 'champion', etoiles: 4, saison: 'hiver' },
     DUB: { lettre: 'h', rang: 'champion', etoiles: 2, saison: 'printemps' },
@@ -66,7 +68,7 @@ export const IMAGE: Record<Nom | Roi, string> = {
     SALSA: '24-salsa.webp', YXEL: '25-yxel.webp', ROKK: '26-rokk.webp', DUB: '30-dub.webp', BASS: '31-bass.webp',
     GAMBY: '32-gamby.webp', SHASHA: '33-shasha.webp', BONGO: '34-bongo.webp', TAMTAM: '35-tamtam.webp', HOP: '36-hop.webp',
     MARAKAS: '37-marakas.webp', GONG: '38-gong.webp', ZYG: '39-zyg.webp', ZWANG: '40-zwang.webp', ZUG: '41-zug.webp',
-    ZAG: '42-zag.webp',
+    ZAG: '42-zag.webp', GUYRO: '43-guyro.webp', SYTAR: '44-sytar.webp',
 };
 
 // Répliques des Rois (client/rois.ts) : le Roi du joueur le guide, les autres le défient

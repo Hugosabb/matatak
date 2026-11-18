@@ -163,17 +163,18 @@
   </article>
   <article class="point point-cartes arret" id="personnages" style="--c:var(--mt-ete)">
   <div class="arret-bloc">
-  {#- bandeaux qui défilent : chaque rangée commence par les 4 Personnages choisis par Hugo (16/11), puis 4 autres,
-      Saisons alternées, sans doublon d'une rangée à l'autre -#}
+  {#- bandeaux qui défilent : les 44 Personnages, chacun une seule fois (Hugo, 18/11 : montrer qu'il y en a plein).
+      Au milieu de chaque rangée, les 4 choisis par Hugo (16/11) ; autour, le reste du jeu de base (Rois compris) ;
+      aux bords, les extensions. Chaque rangée est centrée sur l'écran (vitrine.css .rangee) -#}
   {%- set rangees = [
-    ["34-bongo", "18-jazz", "14-folk", "19-banjo", "29-metal", "26-rokk", "21-tekno", "17-tango"],
-    ["13-dysko", "11-frank", "10-krak", "07-funk", "33-shasha", "25-yxel", "28-glam", "23-pop"],
-    ["39-zyg", "41-zug", "42-zag", "40-zwang", "27-dryll", "16-blues", "30-dub", "20-boong"],
+    ["05-punk", "15-soul", "12-ray", "33-shasha", "04-mojo", "34-bongo", "18-jazz", "14-folk", "19-banjo", "01-azar", "31-bass", "28-glam", "25-yxel", "22-zouk", "44-sytar"],
+    ["29-metal", "17-tango", "32-gamby", "24-salsa", "35-tamtam", "13-dysko", "11-frank", "10-krak", "07-funk", "02-shans", "38-gong", "43-guyro", "16-blues", "36-hop", "06-mambo"],
+    ["27-dryll", "20-boong", "23-pop", "03-karma", "30-dub", "39-zyg", "41-zug", "42-zag", "40-zwang", "26-rokk", "37-marakas", "09-bluff", "21-tekno", "08-rumba"],
   ] %}
   <div class="rangees" data-p="traverse" aria-hidden="true">
     {%- for rangee in rangees %}
     <div class="rangee" style="--sens:{{ 1 if loop.index0 is even else -1 }}">
-      {%- for carte in rangee + rangee + rangee %}<img src="{{ c }}/sombre/{{ carte }}.webp" alt="" loading="lazy" data-carte="{{ carte }}">{% endfor %}
+      {%- for carte in rangee %}<img src="{{ c }}/sombre/{{ carte }}.webp" alt="" loading="lazy" data-carte="{{ carte }}">{% endfor %}
     </div>
     {%- endfor %}
   </div>

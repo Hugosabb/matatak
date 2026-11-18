@@ -634,6 +634,18 @@ const rabbit = (c: cg.Color) => forward(c, (x1: number, y1: number, x2: number, 
   return (xd === 0 && yd === 2) || (xd === 2 && yd === 0);
 });
 const gazelle = (c: cg.Color) => forward(c, knight);
+// SYTAR : une case devant, ou un saut de cavalier étroit vers l'avant (2 devant, 1 de côté) : un Y, langue de serpent
+const cobra = (c: cg.Color) => forward(c, (x1: number, y1: number, x2: number, y2: number) => {
+  const xd = diff(x1, x2);
+  const yd = diff(y1, y2);
+  return (xd === 0 && yd === 1) || (xd === 1 && yd === 2);
+});
+// GUYRO : saut de 2 cases dans les 4 directions orthogonales
+const frog = (x1: number, y1: number, x2: number, y2: number) => {
+  const xd = diff(x1, x2);
+  const yd = diff(y1, y2);
+  return (xd === 0 && yd === 2) || (xd === 2 && yd === 0);
+};
 const giraffe = (x1: number, y1: number, x2: number, y2: number) => {
   const xd = diff(x1, x2);
   const yd = diff(y1, y2);
@@ -697,6 +709,8 @@ function builtinMobility(
           case 'r-piece': return giraffe;
           case 's-piece': return knight;
           case 't-piece': return kangaroo;
+          case 'u-piece': return cobra(color);
+          case 'v-piece': return frog;
           case 'w-piece': return or(bishop, kingNoCastling);
           case 'x-piece': return or(rook, kingNoCastling);
           case 'y-piece': return or(rook, knight);

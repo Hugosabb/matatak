@@ -775,3 +775,32 @@ async def test_partie_en_cours_fenetre_du_site_et_pas_du_navigateur(site, chromi
     await fenetre.locator(".mt-btn-or", has_text="La reprendre").click()
     await page.wait_for_url(f"**/{game_id}", timeout=5000)
     assert not page.erreurs, page.erreurs
+
+
+@pytest.mark.parametrize("telephone", [False, True], ids=["ordinateur", "telephone"])
+async def test_fiche_de_la_collection(site, chromium, telephone):
+    """Un clic sur le fond de la fiche la fermait (sa cible est le <dialog> lui-même) ; seul un clic dehors
+    la ferme. La croix est grande et centrée dans son rond : dessinée, pas le « × » de Tribeca (Hugo, 18/11/2026)."""
+    page = await ouvrir(chromium, site, telephone=telephone)
+    await page.goto(site + "/collection")
+    await page.locator("main button img").first.click()
+    fiche = page.locator("dialog.detail[open]")
+    await fiche.wait_for(timeout=5000)
+    await page.wait_for_timeout(400)  # fin de l'animation d'ouverture
+    croix = await page.locator(".d-fermer").bounding_box()
+    trait = await page.locator(".d-fermer svg").bounding_box()
+    assert croix["width"] >= 48 and croix["height"] >= 48, croix
+    for axe, taille in (("x", "width"), ("y", "height")):
+        ecart = (trait[axe] + trait[taille] / 2) - (croix[axe] + croix[taille] / 2)
+        assert abs(ecart) < 1, (axe, ecart)
+    if not telephone:
+        r = await fiche.bounding_box()
+        await page.mouse.click(r["x"] + r["width"] / 2, r["y"] + r["height"] - 6)
+        await page.wait_for_timeout(300)
+        assert await fiche.count() == 1
+        await page.mouse.click(5, 5)
+        await fiche.wait_for(state="detached", timeout=3000)
+    else:
+        await page.locator(".d-fermer").click()
+        await fiche.wait_for(state="detached", timeout=3000)
+    assert not page.erreurs, page.erreurs

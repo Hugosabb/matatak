@@ -4611,6 +4611,92 @@
      "illimite": true
     }
    ]
+  },
+  {
+   "nom": "SYTAR",
+   "espece": "Cobra",
+   "rang": "pion",
+   "saison": "hiver",
+   "boite": "extension",
+   "etoiles": 4,
+   "replique": "« Ssssurprise ! »",
+   "numero": 43,
+   "echecs": null,
+   "famille": "Cavaliers",
+   "image": "44-sytar.webp",
+   "cases": [
+    {
+     "dx": -1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 1,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": 1,
+     "genre": "libre",
+     "saut": false,
+     "repete": false,
+     "illimite": false
+    }
+   ]
+  },
+  {
+   "nom": "GUYRO",
+   "espece": "Grenouille",
+   "rang": "pion",
+   "saison": "ete",
+   "boite": "extension",
+   "etoiles": 3,
+   "replique": "« Ça sent le bourbier. »",
+   "numero": 44,
+   "echecs": null,
+   "famille": "Bondissants",
+   "image": "43-guyro.webp",
+   "cases": [
+    {
+     "dx": 0,
+     "dy": 2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": -2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 2,
+     "dy": 0,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    },
+    {
+     "dx": 0,
+     "dy": -2,
+     "genre": "libre",
+     "saut": true,
+     "repete": false,
+     "illimite": false
+    }
+   ]
   }
  ]
 }

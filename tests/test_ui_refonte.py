@@ -187,7 +187,7 @@ class PagesTestCase(AioHTTPTestCase):
         self.assertEqual(etape["total"], len(TUTORIAL_STEPS))
 
     async def test_collection(self):
-        """Page /collection et ses données : 42 Personnages, chacun avec ses déplacements."""
+        """Page /collection et ses données : 44 Personnages (GUYRO et SYTAR depuis le 18/11/2026), chacun avec ses déplacements."""
         text = await (await self.client.request("GET", "/collection")).text()
         self.assertIn('data-view="collection"', text)
         self.assertIn("collection.css", text)
@@ -195,7 +195,7 @@ class PagesTestCase(AioHTTPTestCase):
         self.assertEqual(resp.status, 200)
         donnees = json.loads(await resp.text())
         persos = donnees["personnages"]
-        self.assertEqual(len(persos), 42)
+        self.assertEqual(len(persos), 44)
         self.assertEqual(sum(p["boite"] == "base" for p in persos), 24)
         self.assertEqual({p["saison"] for p in persos}, set(donnees["saisons"]))
         for p in persos:

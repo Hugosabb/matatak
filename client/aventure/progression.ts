@@ -306,7 +306,7 @@ export type Allure = 'ecrasante' | 'normale' | 'serree';
 export interface Reste { joueur: number, ordi: number }
 
 const LETTRES_CHAMPIONS = 'cdhinorstwxyz';
-const LETTRES_PIONS = 'abefgjlmpq';
+const LETTRES_PIONS = 'abefgjlmpquv';
 
 export function resteSurLePlateau(fen: string, couleurDuJoueur: 'w' | 'b'): Reste {
     let blancs = 0, noirs = 0;

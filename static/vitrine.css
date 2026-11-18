@@ -293,7 +293,7 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .arret-bloc { position: sticky; top: 0; min-height: 100svh; display: grid; align-content: center; }
 .point-cartes .arret-bloc { overflow: clip; gap: 0; grid-template-columns: 100%; } /* sinon la colonne prend la largeur des bandeaux et le texte part hors de l'écran */
 .point-cartes .arret-bloc > * { min-width: 0; }
-.point-cartes .rangee img { width: clamp(80px, min(11vw, 13svh), 170px); }
+.point-cartes .rangee img { width: max(clamp(80px, min(11vw, 13svh), 170px), 9vw); }
 /* Point 4 : les Personnages défilent */
 .point-cartes { overflow: clip; }
 
@@ -303,7 +303,9 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .carte-rv .verso { transform: rotateY(180deg); }
 
 .rangees { display: grid; gap: clamp(10px, 1.4vw, 18px); transform: rotate(-4deg); margin: 0 -10vw; }
-.rangee { display: flex; gap: clamp(10px, 1.4vw, 18px); width: max-content; transform: translateX(calc(-12% + var(--sens) * (var(--p) - .5) * 22%)); }
+/* centrée sur l'écran (la boîte .rangees fait 120vw, son milieu est à 60vw), glisse de ±10vw au défilement ; plus de
+   rangée répétée (Hugo, 18/11 : pas de doublon), elle doit donc rester plus large que l'écran : 14 ou 15 cartes de 9vw au moins */
+.rangee { display: flex; gap: clamp(10px, 1.4vw, 18px); width: max-content; transform: translateX(calc(60vw - 50% + var(--sens) * (var(--p) - .5) * 20vw)); }
 .rangee:nth-child(2) { margin-left: -6vw; }
 .rangee img { width: clamp(110px, 13vw, 190px); border-radius: 6%; box-shadow: 0 16px 30px -14px #000; }
 .voir-tout { position: relative; z-index: 1; display: flex; justify-content: center; margin-top: 26px; }

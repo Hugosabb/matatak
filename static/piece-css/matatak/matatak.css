@@ -95,7 +95,6 @@ background-image: url('../../images/pieces/matatak/0s.jpg')
 background-image: url('../../images/pieces/matatak/0t.jpg')
 }
 
-/*
 .matatak piece.u-piece.white::before {
 background-image: url('../../images/pieces/matatak/0u.jpg')
 }
@@ -103,7 +102,6 @@ background-image: url('../../images/pieces/matatak/0u.jpg')
 .matatak piece.v-piece.white::before {
 background-image: url('../../images/pieces/matatak/0v.jpg')
 }
-*/
 
 .matatak piece.w-piece.white::before {
 background-image: url('../../images/pieces/matatak/0w.jpg')
@@ -202,7 +200,6 @@ background-image: url('../../images/pieces/matatak/1s.jpg')
 background-image: url('../../images/pieces/matatak/1t.jpg')
 }
 
-/*
 .matatak piece.u-piece.black::before {
 background-image: url('../../images/pieces/matatak/1u.jpg')
 }
@@ -210,7 +207,6 @@ background-image: url('../../images/pieces/matatak/1u.jpg')
 .matatak piece.v-piece.black::before {
 background-image: url('../../images/pieces/matatak/1v.jpg')
 }
-*/
 
 .matatak piece.w-piece.black::before {
 background-image: url('../../images/pieces/matatak/1w.jpg')

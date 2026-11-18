@@ -3,7 +3,7 @@
     python3 server/build_collection_json.py [chemin/vers/jeu] [--sans-images]
 
 Sorties :
-- static/data/collection.json : les 42 Personnages (nom, espèce, rang, Saison, boîte, Force, réplique,
+- static/data/collection.json : les 44 Personnages (nom, espèce, rang, Saison, boîte, Force, réplique,
   déplacements calculés depuis variants.ini par jeu/outils/deplacements.py ; numéro et
   équivalent aux échecs du tableau d'Hugo `sources/donnees/characters-hugo.csv`, famille de
   `donnees/lore.csv`), rangés dans l'ordre du tableau ;

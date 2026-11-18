@@ -21,7 +21,7 @@ from itertools import combinations
 
 from fairy.fairy_board import FairyBoard
 
-PIONS = "abefgjlmpq"
+PIONS = "abefgjlmpquv"
 CHAMPIONS = "cdhinorstwxyz"
 # Toujours dans le tirage (Hugo, 03/11/2026) : les 4 équipes de départ + DUB et JAZZ, comme les règles
 # du jeu. Pions : SHASHA, TAMTAM, BONGO, BANJO ; Champions : DYSKO, DUB, ROKK, JAZZ, FRANK, KRAK.
@@ -80,7 +80,7 @@ def etoiles(lettre: str) -> int:
 # espèce (Suricates, Tigres, Rhinocéros, Gorilles et Chevaux ont la même valeur).
 FORCE_HUGO = {
     # Pions
-    "a": 100, "e": 110, "j": 110, "m": 120, "f": 130, "p": 130, "g": 140, "b": 150, "l": 150, "q": 160,
+    "a": 100, "e": 110, "j": 110, "m": 120, "f": 130, "p": 130, "g": 140, "v": 140, "b": 150, "l": 150, "q": 160, "u": 160,
     # Champions
     "r": 225, "n": 250, "o": 300, "s": 300, "h": 350, "z": 450, "i": 500, "t": 500, "w": 560,
     "c": 600, "x": 700, "y": 800, "d": 900,
