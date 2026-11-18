@@ -12,7 +12,7 @@ export const EQUIPES_SAISON: Record<SaisonEquipe, { saison: string; nom: string;
     ete: { saison: 'Été', nom: 'Fougue', cartes: ['01-azar.webp', '10-krak.webp', '35-tamtam.webp'] },
     automne: { saison: 'Automne', nom: 'Zen', cartes: ['02-shans.webp', '26-rokk.webp', '33-shasha.webp'] },
     hiver: { saison: 'Hiver', nom: 'Zigzag', cartes: ['03-karma.webp', '11-frank.webp', '34-bongo.webp'] },
-    printemps: { saison: 'Printemps', nom: 'Charme', cartes: ['04-mojo.webp', '13-dysko.webp', '19-banjo.webp'] },
+    printemps: { saison: 'Printemps', nom: 'Ruse', cartes: ['04-mojo.webp', '13-dysko.webp', '19-banjo.webp'] },
 };
 export const ORDRE_SAISONS: SaisonEquipe[] = ['ete', 'automne', 'hiver', 'printemps'];
 

@@ -829,3 +829,21 @@ async def test_duo_defier_un_ami_le_tour_au_toucher_montre_le_dos(site, chromium
     }""")
     assert avant_retourne
     assert not page.erreurs, page.erreurs
+
+
+@pytest.mark.parametrize("chemin", ["/", "/collection", "/jouer"])
+async def test_pas_d_apercu_quand_on_glisse_une_image(site, chromium, chemin):
+    """Appuyer sur une image et la déplacer montrait un aperçu fantôme de l'image (Hugo, 18/11/2026) :
+    CSS pour Chrome et Safari, static/js/sans-apercu.js pour Firefox, sur toutes les pages."""
+    page = await ouvrir(chromium, site)
+    await page.goto(site + chemin)
+    await page.wait_for_selector("img")
+    resultat = await page.evaluate("""() => {
+        const img = [...document.querySelectorAll('img')].find(i => i.getBoundingClientRect().width > 0)
+            || document.querySelector('img');
+        const e = new DragEvent('dragstart', { bubbles: true, cancelable: true });
+        img.dispatchEvent(e);
+        return [e.defaultPrevented, getComputedStyle(img).webkitUserDrag];
+    }""")
+    assert resultat == [True, "none"], resultat
+    assert not page.erreurs, page.erreurs

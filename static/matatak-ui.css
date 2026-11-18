@@ -679,3 +679,7 @@ header.mt-entete { height: auto; z-index: auto; position: static; justify-conten
 .tete-roi.r-shans { --l: 88px; --b: -7px; --x: -2px; --passage: #000 0deg 75deg, transparent 75deg 195deg, #000 195deg 360deg; }
 .tete-roi.r-karma { --l: 80px; --b: -6px; --x: 0px; --passage: #000 0deg 75deg, transparent 75deg 300deg, #000 300deg 360deg; }
 .tete-roi.r-mojo { --l: 82px; --b: -2px; --x: 0px; --passage: #000 0deg 150deg, transparent 150deg 255deg, #000 255deg 360deg; }
+
+/* Images : pas d'aperçu fantôme quand on appuie et qu'on déplace, ni de menu « Enregistrer l'image » au long appui
+   sur iPhone (Hugo, 18/11/2026). Firefox : static/js/sans-apercu.js */
+img { -webkit-user-drag: none; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }

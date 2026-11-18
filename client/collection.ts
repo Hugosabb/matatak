@@ -78,7 +78,7 @@ const EQUIPES = [
     { saison: 'ete', nom: 'Fougue', difficulte: 1, phrase: 'Facile à prendre en main.', persos: ['AZAR', 'KRAK', 'TAMTAM'] },
     { saison: 'automne', nom: 'Zen', difficulte: 2, phrase: "Pour jouer l'esprit tranquille.", persos: ['SHANS', 'ROKK', 'SHASHA'] },
     { saison: 'hiver', nom: 'Zigzag', difficulte: 3, phrase: 'Zigzaguez entre les lignes adverses.', persos: ['KARMA', 'FRANK', 'BONGO'] },
-    { saison: 'printemps', nom: 'Charme', difficulte: 4, phrase: 'Plus technique, mais pleine de surprises.', persos: ['MOJO', 'DYSKO', 'BANJO'] },
+    { saison: 'printemps', nom: 'Ruse', difficulte: 4, phrase: 'Plus technique, mais pleine de surprises.', persos: ['MOJO', 'DYSKO', 'BANJO'] },
 ];
 let racine: VNode | HTMLElement;
 
