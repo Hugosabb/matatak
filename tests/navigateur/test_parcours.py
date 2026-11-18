@@ -804,3 +804,28 @@ async def test_fiche_de_la_collection(site, chromium, telephone):
         await page.locator(".d-fermer").click()
         await fiche.wait_for(state="detached", timeout=3000)
     assert not page.erreurs, page.erreurs
+
+
+async def test_duo_defier_un_ami_le_tour_au_toucher_montre_le_dos(site, chromium):
+    """Toucher une carte du duo la faisait tourner sur la même face, en miroir : l'enveloppe qui tourne
+    (.duo-saut) aplatissait la 3D de la carte. Au milieu du tour, la face claire doit être devant
+    (Hugo, 18/11/2026)."""
+    page = await ouvrir(chromium, site)
+    await page.goto(site + "/jouer?mode=ami")
+    await page.wait_for_selector(".duo-place.a .duo-saut")
+    assert await page.evaluate(
+        "() => getComputedStyle(document.querySelector('.duo-saut')).transformStyle"
+    ) == "preserve-3d"
+    await page.evaluate("""() => document.querySelectorAll('.duo-place, .duo-tour, .duo-flotte')
+        .forEach(e => e.getAnimations().forEach(a => { a.pause(); a.currentTime = 1500; }))""")
+    await page.locator(".duo-place.a").click()
+    await page.wait_for_timeout(600)
+    # Au milieu du tour (≈ 180°), le dos (face claire) regarde l'écran : l'avant est retourné
+    avant_retourne = await page.evaluate("""() => {
+        const s = document.querySelector('.duo-place.a .duo-saut');
+        s.getAnimations().forEach(a => a.pause());
+        const m = new DOMMatrix(getComputedStyle(s).transform);
+        return m.m11 < 0;  // cos(rotateY) négatif : la carte montre son dos
+    }""")
+    assert avant_retourne
+    assert not page.erreurs, page.erreurs

@@ -461,41 +461,44 @@ body.online.reconnected #reconnecting::after { content: 'Connecté' !important; 
   width: calc(var(--carte, 200px) * 2.15); height: calc(var(--carte, 200px) * 1.75);
 }
 /* Trajet : au repos côte à côte (sans se chevaucher) ; A passe par-dessus en arc, B par-dessous,
-   puis retour en sens inverse. Le premier plan change au repos, quand elles ne se touchent pas. */
-.duo-place { position: absolute; top: 22%; left: 0; width: var(--carte, 200px); animation: 7s cubic-bezier(.55, 0, .45, 1) infinite; }
+   puis retour en sens inverse. Le premier plan change au repos, quand elles ne se touchent pas.
+   Plus vif (Hugo, 18/11/2026) : cycle de 6 s, trajet d'environ 1 s (34 → 50 %, 84 → 100 %) qui accélère au
+   départ puis freine en dépassant un peu sa place (courbes par étape : cubic-bezier(.55, 0, .85, .45) puis cubic-bezier(.2, .6, .3, 1.25)). */
+.duo-place { position: absolute; top: 22%; left: 0; width: var(--carte, 200px); animation: 6s linear infinite; }
 .duo-place.a { animation-name: duo-trajet-a; }
 .duo-place.b { animation-name: duo-trajet-b; }
 @keyframes duo-trajet-a {
-  0%, 28% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; }
-  39% { transform: translate(57%, -40%) rotate(4deg) scale(.82); z-index: 2; }
-  50%, 78% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; }
-  89% { transform: translate(57%, 30%) rotate(-4deg) scale(.82); z-index: 1; }
+  0%, 34% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; animation-timing-function: cubic-bezier(.55, 0, .85, .45); }
+  42% { transform: translate(57%, -40%) rotate(4deg) scale(.82); z-index: 2; animation-timing-function: cubic-bezier(.2, .6, .3, 1.25); }
+  50%, 84% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; animation-timing-function: cubic-bezier(.55, 0, .85, .45); }
+  92% { transform: translate(57%, 30%) rotate(-4deg) scale(.82); z-index: 1; animation-timing-function: cubic-bezier(.2, .6, .3, 1.25); }
   100% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; }
 }
 @keyframes duo-trajet-b {
-  0%, 28% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; }
-  39% { transform: translate(57%, 30%) rotate(-4deg) scale(.82); z-index: 1; }
-  50%, 78% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; }
-  89% { transform: translate(57%, -40%) rotate(4deg) scale(.82); z-index: 2; }
+  0%, 34% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; animation-timing-function: cubic-bezier(.55, 0, .85, .45); }
+  42% { transform: translate(57%, 30%) rotate(-4deg) scale(.82); z-index: 1; animation-timing-function: cubic-bezier(.2, .6, .3, 1.25); }
+  50%, 84% { transform: translate(0, 0) rotate(-6deg) scale(1); z-index: 2; animation-timing-function: cubic-bezier(.55, 0, .85, .45); }
+  92% { transform: translate(57%, -40%) rotate(4deg) scale(.82); z-index: 2; animation-timing-function: cubic-bezier(.2, .6, .3, 1.25); }
   100% { transform: translate(115%, 0) rotate(6deg) scale(1); z-index: 1; }
 }
 /* B part et arrive un peu après A : les deux cartes ne bougent jamais tout à fait ensemble.
    fill-mode backwards : pendant le retard, B est déjà à sa place de départ. */
-.duo-place.b, .duo-place.b .duo-tour { animation-delay: .35s; animation-fill-mode: backwards; }
+.duo-place.b, .duo-place.b .duo-tour { animation-delay: .3s; animation-fill-mode: backwards; }
 /* Flottement comme la carte seule, à des rythmes différents (3,2 s et 3,9 s, sans multiple commun
-   avec les 7 s du trajet) : les deux cartes ne se retrouvent jamais dans la même pose. */
+   avec les 6 s du trajet) : les deux cartes ne se retrouvent jamais dans la même pose. */
 .duo-flotte { display: block; perspective: 900px; animation: duo-flotte-a 3.2s ease-in-out infinite; }
 .duo-place { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.duo-saut { display: block; }
+/* preserve-3d : sans lui, le tour au toucher aplatissait la carte et montrait la même face, en miroir
+   (Hugo, 18/11/2026) ; avec, on voit bien la face claire au dos */
+.duo-saut { display: block; transform-style: preserve-3d; }
 .duo-saut.en-tour { animation: carte-tour 1.5s cubic-bezier(.3, 1.3, .5, 1); }
 .duo-place.b .duo-flotte { animation: duo-flotte-b 3.9s ease-in-out -1.7s infinite; }
 @keyframes duo-flotte-a { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-16px) rotate(3deg); } }
 @keyframes duo-flotte-b { 0%, 100% { transform: translateY(-4px) rotate(2deg); } 50% { transform: translateY(-14px) rotate(-3deg); } }
-/* Vie de la carte, inspirée de la carte seule : un tour complet pendant chaque trajet (face claire
-   au passage), atterrissage écrasé, et un petit bond au repos, à un moment différent pour chacune
-   (A pendant le premier repos, B pendant le second). Le cycle commence sur l'atterrissage du trajet
-   précédent (720° = 0°). */
-.duo-tour { animation: duo-tour-a 7s cubic-bezier(.3, 1.4, .5, 1) infinite; }
+/* Vie de la carte : un tour complet pendant chaque trajet (face claire au passage), atterrissage écrasé,
+   et un petit bond au repos, à un moment différent pour chacune (A pendant le premier repos, B pendant le
+   second). Le cycle commence sur l'atterrissage du trajet précédent (720° = 0°). */
+.duo-tour { animation: duo-tour-a 6s cubic-bezier(.3, 1.4, .5, 1) infinite; }
 .duo-place.b .duo-tour { animation-name: duo-tour-b; }
 @keyframes duo-tour-a {
   0% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1.06, 0.92); }
@@ -503,30 +506,30 @@ body.online.reconnected #reconnecting::after { content: 'Connecté' !important; 
   6%, 12% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
   15% { transform: translateY(-22px) rotate(-4deg) rotateY(0deg) scale(1.06, 1.06); }
   18% { transform: translateY(3px) rotate(0deg) rotateY(0deg) scale(1.06, 0.93); }
-  21%, 28% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
-  39% { transform: translateY(-10px) rotate(0deg) rotateY(180deg) scale(1.08, 1.08); }
-  47% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1.02, 1.02); }
+  21%, 34% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
+  42% { transform: translateY(-10px) rotate(0deg) rotateY(180deg) scale(1.08, 1.08); }
+  48% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1.02, 1.02); }
   50% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1.06, 0.92); }
   53% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(0.98, 1.03); }
-  56%, 78% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1, 1); }
-  89% { transform: translateY(-10px) rotate(0deg) rotateY(540deg) scale(1.08, 1.08); }
-  97% { transform: translateY(0px) rotate(0deg) rotateY(720deg) scale(1.02, 1.02); }
+  56%, 84% { transform: translateY(0px) rotate(0deg) rotateY(360deg) scale(1, 1); }
+  92% { transform: translateY(-10px) rotate(0deg) rotateY(540deg) scale(1.08, 1.08); }
+  98% { transform: translateY(0px) rotate(0deg) rotateY(720deg) scale(1.02, 1.02); }
   100% { transform: translateY(0px) rotate(0deg) rotateY(720deg) scale(1.06, 0.92); }
 }
 @keyframes duo-tour-b {
   0% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1.06, 0.92); }
   3% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(0.98, 1.03); }
-  6%, 28% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
-  39% { transform: translateY(-10px) rotate(0deg) rotateY(-180deg) scale(1.08, 1.08); }
-  47% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1.02, 1.02); }
+  6%, 34% { transform: translateY(0px) rotate(0deg) rotateY(0deg) scale(1, 1); }
+  42% { transform: translateY(-10px) rotate(0deg) rotateY(-180deg) scale(1.08, 1.08); }
+  48% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1.02, 1.02); }
   50% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1.06, 0.92); }
   53% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(0.98, 1.03); }
-  56%, 62% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1, 1); }
-  65% { transform: translateY(-22px) rotate(4deg) rotateY(-360deg) scale(1.06, 1.06); }
-  68% { transform: translateY(3px) rotate(0deg) rotateY(-360deg) scale(1.06, 0.93); }
-  71%, 78% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1, 1); }
-  89% { transform: translateY(-10px) rotate(0deg) rotateY(-540deg) scale(1.08, 1.08); }
-  97% { transform: translateY(0px) rotate(0deg) rotateY(-720deg) scale(1.02, 1.02); }
+  56%, 63% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1, 1); }
+  66% { transform: translateY(-22px) rotate(4deg) rotateY(-360deg) scale(1.06, 1.06); }
+  69% { transform: translateY(3px) rotate(0deg) rotateY(-360deg) scale(1.06, 0.93); }
+  72%, 84% { transform: translateY(0px) rotate(0deg) rotateY(-360deg) scale(1, 1); }
+  92% { transform: translateY(-10px) rotate(0deg) rotateY(-540deg) scale(1.08, 1.08); }
+  98% { transform: translateY(0px) rotate(0deg) rotateY(-720deg) scale(1.02, 1.02); }
   100% { transform: translateY(0px) rotate(0deg) rotateY(-720deg) scale(1.06, 0.92); }
 }
 @media (prefers-reduced-motion: reduce) {
