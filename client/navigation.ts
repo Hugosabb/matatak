@@ -55,6 +55,8 @@ export function brancherLaNavigation() {
         // Sur ordinateur, seuls Chrome et Edge installent (invitation native) ; sur téléphone il y a
         // toujours un geste à expliquer (Partager › Sur l'écran d'accueil, menu ⋮…)
         ligne.hidden = !i || i.installee() || (!i.peutInviter() && i.plateforme().appareil === 'ordinateur');
+        // grand écran : le bouton « Plus » ne reste que s'il contient « Installer l'appli » (matatak-ui.css)
+        document.documentElement.classList.toggle('peut-installer', !ligne.hidden);
     };
     ligne?.addEventListener('click', async () => {
         const i = installeur();

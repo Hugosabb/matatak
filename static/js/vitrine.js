@@ -228,7 +228,7 @@
         // ordinateur : la boîte au centre, le texte dessous ; en fin de page exactement la même boîte qu'au début
         // (même taille, même place, donc même vue : Hugo, 17/11)
         // la boîte rapetisse sur un écran bas pour que le texte et ses boutons restent visibles
-        const S = Math.max(200, Math.min(360, 0.38 * h, (h - 440) / 1.3));
+        const S = Math.max(200, Math.min(360, 0.38 * h, (h - 480) / 1.3)); // 440 avant l'interligne 1,14 des titres (18/11)
         return { S, x: 0, y: 80 + S * 0.62 - h / 2 };
     }
 
@@ -338,16 +338,100 @@
             c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
             cacher(c.d, t < 0.27);
         });
+        if (s.vue > 0) poserVue(s, s.vue, temps, r, u, w, h);
+    }
+
+    // Fin de page, après le rangement (Hugo, 18/11 : « la boucle est bouclée », puis on montre ce qu'on achète) : la boîte
+    // fermée se rouvre en vue d'ensemble. Le couvercle se lève et se pose debout au fond, le fond de boîte recule avec ses
+    // cartes rangées dans l'inlay, le plateau en sort, se pose devant et se déplie, puis les 16 cartes de la partie à 4 se
+    // posent sur leurs cases. v ∈ [0, 1] ; à v = 0, c'est la boîte fermée de la fin du rangement (t = 0).
+    // Coordonnées de la table en mm (y vers le spectateur) ; tout est centré sur l'origine.
+    // de face, comme la boîte du haut (Hugo, 18/11) : couvercle debout au fond à gauche, fond de boîte à droite, côte à côte
+    // derrière le plateau sans le toucher
+    const VUE = { plateau: 150, fond: [135, -235], couvercle: [-130, -215] };
+    // hauteur de l'offre sur téléphone, lue une fois par largeur d'écran (elle ne change qu'avec elle)
+    let offreLue = { w: 0, h: 0 };
+    function hauteurOffre() {
+        const o = document.querySelector('.fermeture .offre');
+        if (!o) return 420;
+        if (offreLue.w !== window.innerWidth || !offreLue.h) offreLue = { w: window.innerWidth, h: o.offsetHeight + 20 };
+        return offreLue.h;
+    }
+    function poserVue(s, v, temps, r, u, w, h) {
+        const cam = lisse(0, 0.42, v);
+        // caméra : de la boîte debout (même pose qu'en fin de rangement) à une vue plongeante, de face
+        const balance = calme ? 0 : 1 - cam;
+        const ax = mix(-18 + Math.sin(temps / 2.3) * 2.5 * balance, 54, cam);
+        const ay = mix(s.doigt + Math.sin(temps / 1.7) * 4 * balance, 0, cam);
+        const az = 0;
+        // place à l'écran : à gauche de l'offre sur ordinateur, au-dessus sur téléphone
+        // téléphone : la scène prend toute la place au-dessus de l'offre (mesurée), et tient dans la largeur
+        const haut = etroit() ? hauteurOffre() : 0;
+        const mo = s.offre || 0;
+        const large = etroit() ? w * 1.0 : w * 0.56;
+        const haute = etroit() ? mix(h * 0.8, Math.max(220, h - haut - 24), mo) : h * 0.8;
+        const kV = Math.min(large / 640, haute / (etroit() ? 560 : 640)) / u;
+        const k = mix(1, kV, cam);
+        const oxV = etroit() ? 0 : -w * 0.2, oyV = etroit() ? mix(0, (h - haut) / 2 - h / 2 + 8, mo) : 40;
+        const flotte = calme ? 0 : Math.sin(temps / 1.9) * 7 * (1 - cam);
+        const ox = mix(r.x, oxV, cam), oy = mix(r.y + flotte, oyV, cam);
+        if (!PERSP_DANS_BOITE) s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
+        const zc = HAUT / 2 * (1 - cam) * u;
+        s.monde.style.transform = `translate(${ox}px,${oy}px)${PERSP_DANS_BOITE ? ` perspective(${s.persp}px)` : ''} scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`;
+
+        // couvercle : il se soulève, recule et se redresse face à nous, appuyé un peu en arrière
+        const lc = lisse(0.06, 0.34, v);
+        const xC = VUE.couvercle[0] * lc, yC = VUE.couvercle[1] * lc, zC = (BOITE / 2 - 8) * lc + Math.sin(Math.PI * lc) * 90;
+        s.couvercle.style.transform = `translate3d(${xC * u}px,${yC * u}px,${zC * u}px) rotateX(${-76 * lc}deg)`;
+        cacher(s.couvercle, false);
+        s.dessus.style.setProperty('--reflet', '50%');
+
+        // fond de boîte : il recule, ses cartes rangées dedans
+        const lf = lisse(0.12, 0.36, v), xF = VUE.fond[0] * lf, yF = VUE.fond[1] * lf;
+        s.fond.style.transform = `translate3d(${xF * u}px,${yF * u}px,0)`;
+        cacher(s.fond, false);
+        cacher(s.contenu, false);
+        s.vrac.forEach((c) => {
+            c.d.style.transform = `translate3d(${(c.px + xF) * u}px,${(c.py + yF) * u}px,${c.pz * u}px)`;
+            cacher(c.d, false);
+        });
+
+        // plateau : il sort du fond, vient se poser devant et se déplie (droite, puis bas)
+        const sortP = lisse(0.3, 0.5, v), u1 = lisse(0.5, 0.6, v), u2 = lisse(0.58, 0.68, v);
+        const xP = mix(xF + Q / 2, 0, sortP), yP = mix(yF + Q / 2, VUE.plateau, sortP);
+        const zP = mix(HFOND - 12, 0.5, sortP) + Math.sin(Math.PI * sortP) * 110;
+        // plié, il est rangé dans le quart du haut à gauche : il se pose là, puis se déplie vers la droite et le bas
+        s.plateau.style.transform = `translate3d(${xP * u}px,${yP * u}px,${zP * u}px)`;
+        s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
+        s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
+        s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
+        cacher(s.plateau, v < 0.28);
+
+        // les 16 cartes de la partie : du fond de boîte vers leurs cases, une à une
+        s.cartes.forEach((c) => {
+            const debut = 0.66 + c.ordre * 0.012, f = lisse(debut, debut + 0.07, v);
+            const x = mix(c.px + xF, c.x, f), y = mix(c.py + yF, c.y + VUE.plateau, f);
+            const z = mix(c.pz + 4, 1.2, f) + Math.sin(Math.PI * f) * 45;
+            const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 20;
+            c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
+            cacher(c.d, f <= 0);
+        });
+
+        // ombres : sous le plateau
+        s.ombre.style.transform = `translate3d(0,${VUE.plateau * sortP * u}px,${-1 * u}px) scale(${mix(BOITE * 1.25, PLATEAU * 1.12, sortP) / (PLATEAU * 1.12)})`;
+        s.ombre.style.opacity = 0.75;
     }
 
     const scenes = [...document.querySelectorAll('.scene3d')].map(creerScene);
     const sceneHeros = scenes.find((s) => s.el.dataset.scene === 'heros');
     const sceneFermeture = scenes.find((s) => s.el.dataset.scene === 'fermeture');
     const fermeture = document.getElementById('boite');
+    const descendre = document.querySelector('.descendre');
     const freins = document.getElementById('freins');
     const enLigne = document.getElementById('en-ligne');
-    const vueAventure = enLigne.querySelector('.vue-tel.aventure'), bandeTel = enLigne.querySelector('.bande');
-    const ongletsTel = [...enLigne.querySelectorAll('.onglets img')], sujetsEnLigne = [...enLigne.querySelectorAll('.sujets li')];
+    const etapesMini = [...enLigne.querySelectorAll('.partie-mini img')];
+    let etapeMini = 0;
+    const sujetsEnLigne = [...enLigne.querySelectorAll('.sujets li')];
     if (calme) sujetsEnLigne[0].classList.add('actif');
     const freinsLi = [...freins.querySelectorAll('.liste-freins li')];
     const freinsTitres = freins.querySelector('.titres');
@@ -457,6 +541,14 @@
     }
     if (partie4) poserPartie4(0);
 
+    // ======================= Arrêts souples : hauteur du bloc pour le CSS (.arret-souple) =======================
+    document.querySelectorAll('.arret-souple').forEach((s) => {
+        const bloc = s.querySelector('.arret-bloc');
+        const maj = () => s.style.setProperty('--haut', bloc.offsetHeight + 'px');
+        new ResizeObserver(maj).observe(bloc);
+        maj();
+    });
+
     // ======================= Progression des éléments [data-p] =======================
     // 0 quand le centre de l'élément entre par le bas de l'écran, 1 quand il atteint le milieu.
     const suivis = new Set();
@@ -469,7 +561,18 @@
             if (art) {
                 const ra = art.getBoundingClientRect(), bloc = art.querySelector('.arret-bloc');
                 const pa = borne((h * 0.25 - ra.top) / (ra.height - bloc.offsetHeight + h * 0.25));
-                if (el._p === undefined || Math.abs(el._p - pa) > 0.002) { el._p = pa; el.style.setProperty('--p', pa.toFixed(3)); }
+                // data-etapes="n" : l'arrêt est coupé en n étapes, data-etape = celle en cours (CSS .etapes) ;
+                // data-seuils="0.5,0.75" : où commence chaque étape (sinon, parts égales) ;
+                // data-p-debut / data-p-fin : l'animation va de 0 à 1 entre ces fractions de l'arrêt (la genèse, à la 2e étape)
+                if (el.dataset.etapes) {
+                    const n = +el.dataset.etapes;
+                    const seuils = el.dataset.seuils ? el.dataset.seuils.split(',').map(Number) : [...Array(n - 1)].map((_, i) => (i + 1) / n);
+                    const k = String(Math.min(n - 1, seuils.filter((s) => pa >= s).length));
+                    if (el.dataset.etape !== k) { el.dataset.etape = k; el.dispatchEvent(new CustomEvent('etape')); }
+                }
+                const deb = +(el.dataset.pDebut || 0), fin = +(el.dataset.pFin || 1);
+                const q = borne((pa - deb) / (fin - deb));
+                if (el._p === undefined || Math.abs(el._p - q) > 0.002) { el._p = q; el.style.setProperty('--p', q.toFixed(3)); }
                 return;
             }
             // « genese » : de l'entrée de son haut par le bas de l'écran jusqu'à sa place (centré, ou à 10 % du haut s'il est grand)
@@ -539,6 +642,7 @@
         attente = false;
         const y = window.scrollY, h = window.innerHeight;
         nav.classList.toggle('plein', y > 40);
+        if (descendre) descendre.classList.toggle('partie', y > 60);
         // la barre « Jouer » du bas se cache pendant l'animation de la boîte (elle cacherait les légendes et l'offre)
         collante.classList.toggle('visible', y > h * 0.8 && y < fermeture.offsetTop - h * 0.3);
         if (!calme && y < h * 1.2) fond.style.transform = `translateY(${y * 0.25}px) scale(${1 + y / 5000})`;
@@ -546,16 +650,21 @@
 
         if (echiquier) poserEchecs(calme ? 0.6 : avance(echecs));
 
-        // Fin de page : la partie est en place, puis tout rentre dans la boîte, qui se referme
+        // Fin de page : la boîte fermée s'ouvre en vue d'ensemble, puis l'offre
         const pf = calme ? 1 : avance(fermeture);
-        // feuilles fixes : claires en haut (ordinateur), assombries pendant la page, claires à la toute fin
-        const finF = lisse(0.55, 0.9, avance(fermeture));
+        // feuilles fixes : claires en haut (ordinateur), puis assombries jusqu'au bout
+        const finF = lisse(0.3, 0.62, avance(fermeture));
         // le vignettage aussi : la fin répond au début (Hugo, 17/11)
         const sombre = lisse(0, h * 0.9, y);
-        feuilles.style.opacity = (etroit() ? finF : mix(mix(1, 0.4, sombre), 1, finF)).toFixed(3);
+        // ordinateur : elles restent assombries à la fin, la boîte ouverte ressort mieux sur le noir (Hugo, 18/11)
+        feuilles.style.opacity = (etroit() ? finF * 0.6 : mix(0.6, 0.4, sombre)).toFixed(3); // 0,6 en haut (Hugo, 18/11 : la boîte ressort mieux)
         feuilles.style.setProperty('--v', (etroit() ? finF : mix(1 - sombre, 1, finF)).toFixed(3));
-        if (sceneFermeture) sceneFermeture.t = 1 - lisse(0.04, 0.74, pf);
-        const montre = lisse(0.72, 0.86, pf);
+        // (18/11, Hugo : sans le rangement) la boîte arrive fermée et s'ouvre aussitôt en vue d'ensemble (0,04 → 0,6)
+        if (sceneFermeture) { sceneFermeture.t = 0; sceneFermeture.vue = lisse(0.04, 0.6, pf); }
+        fermeture.classList.toggle('vue', pf > 0.1);
+        const montre = lisse(0.56, 0.7, pf);
+        // sur téléphone, la scène occupe tout l'écran puis remonte pour laisser venir l'offre, un peu avant elle
+        if (sceneFermeture) sceneFermeture.offre = lisse(0.48, 0.62, pf);
         offre.style.opacity = montre;
         offre.style.transform = `translateY(${(1 - montre) * 30}px)`;
         offre.classList.toggle('visible', montre > 0.5);
@@ -612,16 +721,13 @@
             v.setProperty('--p', Math.abs(Math.sin(3 * Math.PI * lisse(0.72, 0.85, pr))).toFixed(3));
         }
 
-        // jeu en ligne : l'Aventure défile dans le téléphone, puis Défier, puis l'Arène (le sujet actif en or)
-        if (enLigne && !calme) {
-            const q = avance(enLigne);
-            vueAventure.style.setProperty('--a', lisse(0.04, 0.4, q).toFixed(4));
-            const g = lisse(0.42, 0.5, q) + lisse(0.7, 0.78, q);
-            bandeTel.style.setProperty('--g', g.toFixed(4));
-            // la barre d'onglets ne bouge pas : l'onglet suivant apparaît en fondu, au milieu du glissement
-            ongletsTel[1].style.opacity = borne(Math.min(g - 0.5, 1.5 - g) * 4 + 0.5).toFixed(3);
-            ongletsTel[2].style.opacity = borne((g - 1.5) * 4 + 0.5).toFixed(3);
-            const actif = g < 0.5 ? 0 : g < 1.5 ? 1 : 2;
+        // jeu en ligne : une partie entre deux joueurs se joue au défilement, une capture par étape (le joueur du bas
+        // touche une carte, joue, l'adversaire répond) jusqu'au Roi sur la Colline ; le sujet actif en or, par tiers
+        if (enLigne && !calme && etapesMini.length) {
+            const q = lisse(0.04, 0.94, avance(enLigne));
+            const i = Math.min(etapesMini.length - 1, Math.floor(q * etapesMini.length));
+            if (i !== etapeMini) { etapesMini[etapeMini].classList.remove('active'); etapesMini[i].classList.add('active'); etapeMini = i; }
+            const actif = Math.min(2, Math.floor(q * 3));
             sujetsEnLigne.forEach((li, k) => li.classList.toggle('actif', k === actif));
         }
 
@@ -756,13 +862,31 @@
             piste.mode = 'hidden';
             piste.addEventListener('cuechange', () => {
                 const c = piste.activeCues && piste.activeCues[0];
-                st.textContent = c ? c.text : '';
+                // jamais un signe seul en début de ligne (Hugo, 18/11 : le « ! » passait encore à la ligne sur son
+                // téléphone malgré l'espace insécable des .vtt) : le mot et son signe dans un bloc insécable
+                st.replaceChildren();
+                if (c) c.text.replace(/«\s+/g, '«\u00a0').split(/(\S+[\s\u00a0\u202f]+[!?:;»]+|«\u00a0\S+)/).forEach((m, i) => {
+                    if (!m) return;
+                    if (i % 2) { const s = document.createElement('span'); s.style.whiteSpace = 'nowrap'; s.textContent = m.replace(/\s+(?=[!?:;»])/g, '\u00a0'); st.append(s); }
+                    else st.append(m);
+                });
             });
         }
         new IntersectionObserver((es) => {
             if (es[0].isIntersecting) v.play().catch(() => {});
             else { v.pause(); ecouter(v, false); }
         }, { threshold: 0.25 }).observe(v);
+    });
+    // Une vidéo à la fois pendant l'arrêt (pile) : si le son était activé, il passe à la vidéo qui arrive,
+    // reprise au début (Hugo, 18/11) ; les points sous la vidéo suivent l'étape
+    const grilleTemoins = document.querySelector('.temoins-grille.carrousel');
+    if (grilleTemoins) grilleTemoins.addEventListener('etape', () => {
+        const k = +grilleTemoins.dataset.etape;
+        const son = videos.some((v) => !v.muted);
+        videos.forEach((v) => ecouter(v, false));
+        if (son && videos[k]) { ecouter(videos[k], true); videos[k].currentTime = 0; videos[k].play().catch(() => {}); }
+        const legendes = document.querySelector('.temoins .legendes');
+        if (legendes) legendes.dataset.etape = String(k);
     });
 
     // ======================= Apparition des blocs =======================

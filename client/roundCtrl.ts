@@ -1192,6 +1192,8 @@ export class RoundController extends GameController {
             message ? h('p.fin-message', message) : '',
             principal ?? '',
             liens.length ? h('div.fin-liens', liens) : '',
+            // après une victoire seulement, une ligne discrète vers la vitrine (Hugo, 18/11)
+            joueur && gagne ? h('a.fin-boite', { attrs: { href: '/' } }, 'Découvrir le jeu de société →') : '',
         ]));
     }
 

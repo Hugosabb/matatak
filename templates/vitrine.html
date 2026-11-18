@@ -41,11 +41,8 @@
 <link rel="icon" href="{{ static('favicon/favicon.ico') }}" type="image/x-icon">
 </head>
 <body>
-{#- Bouton d'achat : tant que precommande_url est vide, il mène à Instagram (« Être prévenu de la sortie ») ;
-    le jour de l'ouverture des précommandes, mettre l'adresse ici et tous les boutons deviennent « Précommander ». -#}
-{%- set precommande_url = "" -%}
-{%- set sortie_url = precommande_url or "https://www.instagram.com/playmatatak/" -%}
-{%- set sortie_texte = "Précommander" -%}
+{#- Bouton d'achat : adresse dans precommande.html (un seul endroit pour la vitrine et le site de jeu) -#}
+{%- from "precommande.html" import precommande_url, sortie_url, sortie_texte -%}
 {#- Témoignage de Gartin591 : la section n'apparaît que quand la vidéo (fichier dans static/, depuis le dépôt privé)
     et sa phrase exacte sont renseignées. -#}
 {%- set gartin_video = "/static/images/background/vitrine/temoins/gartin" -%}  {#- sans extension : .webm, .mp4 et .webp (affiche) -#}
@@ -66,10 +63,14 @@
   <div class="mt-wrap">
     <a class="logo" href="/"><img src="{{ v }}/logo.png" alt="MATATAK"></a>
     <ul>
-      <li><a href="#comment">Le jeu</a></li>
-      <li><a href="#personnages">Personnages</a></li>
+      {#- dans l'ordre de la page (Hugo, 18/11) ; Fabrication et la fin n'ont pas de lien -#}
+      <li><a href="#freins">Le jeu</a></li>
       <li><a href="#echecs">Échecs</a></li>
       <li><a href="#en-ligne">En ligne</a></li>
+      {%- if gartin_video or julien_video %}
+      <li><a href="#temoins">Réactions</a></li>
+      {%- endif %}
+      <li><a href="#equipe">L'équipe</a></li>
       <li><a href="#questions">Questions</a></li>
     </ul>
     <div class="nav-boutons">
@@ -96,9 +97,11 @@
       </div>
       <div class="actions">
         <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
-        <a class="mt-btn mt-btn-ligne" href="/jouer">Essayer gratuitement</a>
+        <a class="essayer" href="/jouer">ou essayer gratuitement en ligne<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a>
       </div>
     </div>
+    {#- invite à descendre (Hugo, 18/11), elle s'efface dès qu'on défile -#}
+    <a class="descendre" href="#freins" aria-label="Découvrir le jeu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></a>
   </div>
 </header>
 
@@ -171,14 +174,29 @@
     ["29-metal", "17-tango", "32-gamby", "24-salsa", "35-tamtam", "13-dysko", "11-frank", "10-krak", "07-funk", "02-shans", "38-gong", "43-guyro", "16-blues", "36-hop", "06-mambo"],
     ["27-dryll", "20-boong", "23-pop", "03-karma", "30-dub", "39-zyg", "41-zug", "42-zag", "40-zwang", "26-rokk", "37-marakas", "09-bluff", "21-tekno", "08-rumba"],
   ] %}
-  <div class="rangees" data-p="traverse" aria-hidden="true">
-    {%- for rangee in rangees %}
+  {#- téléphone (Hugo, 18/11) : 6 rangées plus courtes, 3 au-dessus du texte et 3 dessous, chacun une seule fois ;
+      au milieu de chaque rangée, 2 des Personnages choisis par Hugo -#}
+  {%- set rangees_tel = [
+    ["05-punk", "15-soul", "33-shasha", "34-bongo", "18-jazz", "04-mojo", "12-ray", "28-glam"],
+    ["25-yxel", "22-zouk", "01-azar", "14-folk", "19-banjo", "31-bass", "44-sytar", "29-metal"],
+    ["17-tango", "32-gamby", "24-salsa", "13-dysko", "11-frank", "35-tamtam", "43-guyro"],
+    ["16-blues", "02-shans", "10-krak", "07-funk", "38-gong", "36-hop", "06-mambo"],
+    ["27-dryll", "03-karma", "39-zyg", "41-zug", "30-dub", "20-boong", "23-pop"],
+    ["09-bluff", "26-rokk", "42-zag", "40-zwang", "37-marakas", "21-tekno", "08-rumba"],
+  ] %}
+  {%- macro bandeau(liste, classe) %}
+  <div class="rangees {{ classe }}" data-p="traverse" aria-hidden="true">
+    {%- for rangee in liste %}
     <div class="rangee" style="--sens:{{ 1 if loop.index0 is even else -1 }}">
       {%- for carte in rangee %}<img src="{{ c }}/sombre/{{ carte }}.webp" alt="" loading="lazy" data-carte="{{ carte }}">{% endfor %}
     </div>
     {%- endfor %}
   </div>
-    <div class="mt-wrap"><div class="point-texte centre mt-apparait"><i class="num"><b>4</b></i><h3>Surprenez vos adversaires</h3><p>Une fois à l'aise, composez votre équipe et déchaînez les pouvoirs des Saisons&nbsp;!</p><div class="voir-tout"><a class="mt-btn mt-btn-ligne" href="/collection">Voir tous les Personnages</a></div></div></div>
+  {%- endmacro %}
+  {{ bandeau(rangees, "rangees-grand") }}
+  {{ bandeau(rangees_tel[:3], "rangees-tel") }}
+    <div class="mt-wrap"><div class="point-texte centre mt-apparait"><i class="num"><b>4</b></i><h3>Surprenez vos adversaires</h3><p>Une fois à l'aise, composez votre équipe et déchaînez les pouvoirs des Saisons&nbsp;!</p><p class="extensions">Déjà 4 extensions, une par Saison, la jungle s'agrandit&nbsp;!</p></div></div>
+  {{ bandeau(rangees_tel[3:], "rangees-tel rangees-bas") }}
   </div>
   </article>
 </section>
@@ -201,20 +219,19 @@
 <section class="en-ligne" id="en-ligne">
   <div class="collant">
     <div class="mt-wrap en-ligne-grille">
-      <div class="telephone" aria-hidden="true"><div class="ecran-tel"><div class="bande">
-        <div class="vue-tel aventure" style="--dep:59.1%"><img class="route" src="{{ v }}/site/aventure-route.webp" alt="" loading="lazy"><i class="feuilles-tel"></i><img class="barre" src="{{ v }}/site/aventure-barre.webp" alt="" loading="lazy"></div>
-        <div class="vue-tel"><img src="{{ v }}/site/defier.webp" alt="" loading="lazy"></div>
-        <div class="vue-tel"><img src="{{ v }}/site/arene.webp" alt="" loading="lazy"></div>
-      </div>
-      <div class="onglets"><img src="{{ v }}/site/onglets-aventure.webp" alt="" loading="lazy"><img src="{{ v }}/site/onglets-defier.webp" alt="" loading="lazy"><img src="{{ v }}/site/onglets-arene.webp" alt="" loading="lazy"></div>
+      {#- une vraie partie entre deux joueurs sur le Mini, pendule 3 + 2, vue du joueur du bas (Hugo, 18/11) : il touche une
+          carte, ses cases s'allument, il joue, l'adversaire répond… jusqu'au Roi sur la Colline au 12e coup. 36 captures
+          du serveur de test (540 × 1169), une par étape, qui s'enchaînent au défilement -#}
+      <div class="telephone" aria-hidden="true"><div class="ecran-tel partie-mini">
+        {%- for i in range(36) %}<img src="{{ v }}/site/mini/{{ '%02d' % i }}.webp" alt="" {% if i %}loading="lazy" {% endif %}decoding="async"{% if not i %} class="active"{% endif %}>{% endfor %}
       </div></div>
       <div class="en-ligne-texte">
-        <h2 class="titre">Jamais sans adversaire</h2>
+        <h2 class="titre">Toujours un adversaire</h2>
         <p class="sous">Gratuit et sans inscription sur matatak.org&nbsp;:</p>
         <ul class="sujets">
-          <li>Partez à l'Aventure</li>
-          <li>Défiez vos amis</li>
-          <li>Grimpez au classement dans l'Arène</li>
+          <li>Partez à l'Aventure.</li>
+          <li>Défiez vos amis.</li>
+          <li>Grimpez au classement dans l'Arène.</li>
         </ul>
         <a class="mt-btn mt-btn-or" href="/jouer">Jouer gratuitement</a>
       </div>
@@ -224,58 +241,89 @@
 
 {% if gartin_video or julien_video %}
 <!-- 6 bis. Les stars des échecs (avant l'équipe) : Gartin591 (Julien Song Cup, Chartres 2026), Julien Song (Cannes 2024) ; boucles muettes, bouton pour le son -->
-<section class="bloc temoins" id="temoins">
-  <div class="mt-wrap avant">
+<section class="bloc temoins arret arret-souple" id="temoins">
+  <div class="mt-wrap avant arret-bloc">
     <h2 class="titre mt-apparait">Même les stars des échecs craquent</h2>
-    <div class="temoins-grille">
-      {%- if gartin_video %}
-      <figure class="mt-apparait"><div class="video"><video poster="{{ gartin_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Gartin591 bat le créateur du jeu à MATATAK"><source src="{{ gartin_video }}.webm" type="video/webm"><source src="{{ gartin_video }}.mp4" type="video/mp4"><track kind="captions" srclang="fr" label="Français" src="{{ gartin_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div>
-        <figcaption>{% if gartin_phrase %}<q>{{ gartin_phrase }}</q>{% endif %}<b>Gartin591</b><span>485&nbsp;000 abonnés sur Instagram</span><span>à la Julien Song Cup 2026</span></figcaption></figure>
-      {%- endif %}
+    {#- pendant l'arrêt, une vidéo à la fois, en pile : la suivante dépasse sous celle en cours pour qu'on sache qu'il y en a
+        une autre, puis remonte au premier plan, dans le sens du défilement (Hugo, 18/11) ; data-etape posé par vitrine.js.
+        Les légendes sont sous la pile (la vidéo du dessous passerait derrière), une à la fois aussi. Julien Song d'abord (le plus connu, Hugo 18/11) -#}
+    <div class="temoins-grille carrousel" data-p data-etapes="{{ 2 if gartin_video and julien_video else 1 }}">
       {%- if julien_video %}
-      <figure class="mt-apparait"><div class="video"><video poster="{{ julien_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Julien Song sacrifie son rhinocéros pour promouvoir son lion, au Festival international des jeux de Cannes"><source src="{{ julien_video }}.webm" type="video/webm"><source src="{{ julien_video }}.mp4" type="video/mp4"><track kind="captions" srclang="fr" label="Français" src="{{ julien_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div>
-        <figcaption><b>Julien Song</b><span>1&nbsp;million d'abonnés sur YouTube</span><span>au Festival des jeux de Cannes 2024, sur le premier prototype</span></figcaption></figure>
+      <figure><div class="video"><video poster="{{ julien_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Julien Song sacrifie son rhinocéros pour promouvoir son lion, au Festival international des jeux de Cannes"><source src="{{ julien_video }}.webm" type="video/webm"><source src="{{ julien_video }}.mp4" type="video/mp4"><track kind="captions" srclang="fr" label="Français" src="{{ julien_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div></figure>
+      {%- endif %}
+      {%- if gartin_video %}
+      <figure><div class="video"><video poster="{{ gartin_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Gartin591 bat le créateur du jeu à MATATAK"><source src="{{ gartin_video }}.webm" type="video/webm"><source src="{{ gartin_video }}.mp4" type="video/mp4"><track kind="captions" srclang="fr" label="Français" src="{{ gartin_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div></figure>
       {%- endif %}
     </div>
-    <p class="evenements mt-apparait">Prototype testé au Festival international des jeux de Cannes (2024) et sélectionné à L'Alchimie du jeu de Toulouse (2025).</p>
+    {#- légende en 3 niveaux (Hugo, 18/11 : « 3 lignes comme ça, pas pro ») : le nom, puis titre et audience côte à côte
+        avec une icône (libellés, sans point), puis l'événement en discret -#}
+    <div class="legendes etapes">
+      {%- if julien_video %}
+      <div class="legende"><b>Julien Song</b><p class="faits"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6" r="3"/><path d="M9.5 9.5h5M10 10c0 3-1.5 5.5-3 7.5h10c-1.5-2-3-4.5-3-7.5M6 21h12M7 17.5h10"/></svg>Maître international d'échecs</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><path d="M15.5 5.2a3 3 0 0 1 0 5.6M17.5 14.9c1.8.7 3 2.4 3.4 5.1"/></svg>1&nbsp;million d'abonnés sur YouTube</span></p><p class="evenement"><span>Au Festival des jeux de Cannes 2024,</span> <span>sur le premier prototype.</span></p></div>
+      {%- endif %}
+      {%- if gartin_video %}
+      <div class="legende">{% if gartin_phrase %}<q>{{ gartin_phrase }}</q>{% endif %}<b>Gartin591</b><p class="faits"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6" r="3"/><path d="M9.5 9.5h5M10 10c0 3-1.5 5.5-3 7.5h10c-1.5-2-3-4.5-3-7.5M6 21h12M7 17.5h10"/></svg>2300 Elo sur Chess.com</span><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.6-3.4 3-5.2 6-5.2s5.4 1.8 6 5.2"/><path d="M15.5 5.2a3 3 0 0 1 0 5.6M17.5 14.9c1.8.7 3 2.4 3.4 5.1"/></svg>485&nbsp;000 abonnés sur Instagram</span></p><p class="evenement">À la Julien Song Cup 2026.</p></div>
+      {%- endif %}
+    </div>
   </div>
 </section>
 {% endif %}
 
 <!-- 7. Confiance : l'équipe (les questions sont tout en bas) -->
-<section class="bloc equipe-bloc" id="equipe">
-  <div class="mt-wrap confiance">
-    <div class="mt-apparait">
-      <h2>Un jeu indépendant, fait avec soin</h2>
-      <p class="intro">Jeu entièrement illustré à la main</p>
-      <ul class="equipe">
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 2v5.5M12 16.5V22M2 12h5.5M16.5 12H22M4.9 4.9l3.9 3.9M15.2 15.2l3.9 3.9M4.9 19.1l3.9-3.9M15.2 8.8l3.9-3.9"/></svg><b>Hugo Sabatier</b><span>Auteur</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L16.6 4a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M14.5 6.1l3.4 3.4"/></svg><b>Samuel Boniface</b><span>Illustrateur</span></li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.2-.4-1.1.3-2.3 1.6-2.3H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="7.5" cy="11" r="1.3"/><circle cx="10.5" cy="7.2" r="1.3"/><circle cx="15" cy="7.6" r="1.3"/></svg><b>Olivier Jamet</b><span>Illustrateur</span></li>
-      </ul>
-    </div>
-    <blockquote class="genese" data-p="genese">
-      <p>Je me suis mis aux échecs en 2020, après la série <i>Le Jeu de la dame</i>. Pendant six mois, j'ai regardé des vidéos et résolu des problèmes, sans jamais oser lancer une partie&nbsp;: je suis très joueur, et pourtant le jeu m'intimidait.</p>
-      <p>Alors j'ai tenté une expérience&nbsp;: et si on ajoutait de nouveaux personnages&nbsp;? J'en ai fait une version numérique quand j'étais encore en école d'ingénieur, et elle a tout de suite piqué la curiosité des joueurs.</p>
-      <p>Cinq ans et beaucoup de rebondissements plus tard, MATATAK sort en jeu de société. J'en suis super fier, et j'ai hâte que vous y jouiez&nbsp;!</p>
-      <footer>Hugo Sabatier, auteur</footer>
-    </blockquote>
-  </div>
-</section>
-
-<!-- 8. Fabrication (s'arrête au défilement, comme les freins) : les 3 points arrivent un à un, puis le label
-     Ecofriendly Game (marque de Fabryka Kart, logo blanc officiel de leur site) -->
-<section class="bloc fabrication arret" id="fabrication">
-  <div class="mt-wrap arret-bloc" data-p>
-    <h2 class="titre">Fabriqué en Europe</h2>
-    <ul class="liste-fab">
-      <li style="--i:0"><span>Conçu en France.</span></li>
-      <li style="--i:1"><span>Imprimé en Pologne.</span></li>
-      <li style="--i:2"><span>Sans plastique.</span><small>Papier et carton FSC, encres végétales.</small></li>
-    </ul>
-    <div class="label">
-      <img src="/static/images/background/vitrine/ecofriendly-game.svg" alt="Ecofriendly Game" width="220" height="81" loading="lazy">
-      <p>Jeu fabriqué par Fabryka&nbsp;Kart selon le cahier des charges Ecofriendly&nbsp;Game&nbsp;– <a href="https://ecofriendlygame.com" rel="noopener" target="_blank">ecofriendlygame.com</a></p>
+<section class="bloc equipe-bloc arret arret-souple" id="equipe">
+  {#- pendant l'arrêt, en quatre temps (Hugo, 18/11) : d'abord l'équipe, les trois ensemble et à égalité, puis la genèse,
+      qui s'écrit au défilement, puis « Ils nous font confiance », puis « Fabriqué en Europe ». Photo absente (Hugo, Olivier : à venir) : un rond avec le symbole de
+      la personne, comme sur la boîte ; photos dans vitrine/equipe/ -#}
+  {%- set photo_hugo = none %}  {#- à venir : v ~ "/equipe/hugo.webp" -#}
+  {%- macro portrait(nom, role, symbole, photo=none) %}
+        <figure class="portrait">
+          {%- if photo %}<img class="photo" src="{{ photo }}" alt="{{ nom }}" width="240" height="240" loading="lazy">
+          {%- else %}<span class="photo sans-photo" aria-hidden="true">{{ symbole | safe }}</span>{%- endif %}
+          <figcaption><b>{{ nom }}</b><span>{{ symbole | safe }}{{ role }}</span></figcaption>
+        </figure>
+  {%- endmacro %}
+  <div class="mt-wrap confiance arret-bloc">
+    <h2 class="titre mt-apparait">Un jeu indépendant, fait avec soin</h2>
+    <div class="etapes" data-p data-etapes="4" data-seuils="0.24,0.62,0.82">
+      <div class="equipe-trois">
+        <div class="portraits">
+          {{- portrait("Hugo Sabatier", "Auteur", '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 2v5.5M12 16.5V22M2 12h5.5M16.5 12H22M4.9 4.9l3.9 3.9M15.2 15.2l3.9 3.9M4.9 19.1l3.9-3.9M15.2 8.8l3.9-3.9"/></svg>', photo_hugo) }}
+          {{- portrait("Samuel Boniface", "Illustrateur", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L16.6 4a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M14.5 6.1l3.4 3.4"/></svg>', v ~ "/equipe/samuel.webp") }}
+          {{- portrait("Olivier Jamet", "Illustrateur", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.2-.4-1.1.3-2.3 1.6-2.3H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="7.5" cy="11" r="1.3"/><circle cx="10.5" cy="7.2" r="1.3"/><circle cx="15" cy="7.6" r="1.3"/></svg>') }}
+        </div>
+        <p class="intro">Un jeu entièrement illustré à la main&nbsp;!</p>
+      </div>
+      <blockquote class="genese" data-p="genese" data-p-debut="0.24" data-p-fin="0.48">
+          <p>Je me suis mis aux échecs en 2020, après la série <i>Le Jeu de la dame</i>. Pendant six mois, j'ai regardé des vidéos et résolu des problèmes, sans jamais oser lancer une partie&nbsp;: je suis très joueur, et pourtant le jeu m'intimidait.</p>
+          <p>Alors j'ai tenté une expérience&nbsp;: et si on ajoutait de nouveaux personnages&nbsp;? J'en ai fait une version numérique quand j'étais encore en école d'ingénieur, et elle a tout de suite piqué la curiosité des joueurs.</p>
+          <p>Six ans et beaucoup de rebondissements plus tard, MATATAK sort en jeu de société. J'en suis super fier, et j'ai hâte que vous y jouiez&nbsp;!</p>
+          <footer>{% if photo_hugo %}<img class="photo-mini" src="{{ photo_hugo }}" alt="" width="96" height="96" loading="lazy">{% else %}<span class="photo-mini sans-photo" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 2v5.5M12 16.5V22M2 12h5.5M16.5 12H22M4.9 4.9l3.9 3.9M15.2 15.2l3.9 3.9M4.9 19.1l3.9-3.9M15.2 8.8l3.9-3.9"/></svg></span>{% endif %}<span>Hugo Sabatier, auteur</span></footer>
+        </blockquote>
+      {#- 3e étape (Hugo, 18/11) : partenaires. France 2030 : phrase et logo imposés par le contrat Bpifrance (Bourse
+          French Tech), version blanche du kit officiel (zip dans site-prive/sources/logos). Initiative Calvados et
+          Initiative Normandie : à citer d'après le contrat du prêt d'honneur (art. 10, ni phrase ni logo imposés ; logo :
+          leur envoyer une capture de la page avant) ; logo de leur site passé en blanc uni (Hugo : couleurs trop vives) -#}
+      <div class="etape-sous soutien">
+        <h3>Ils nous font confiance</h3>
+        <div class="soutien-logos">
+          <figure><img src="{{ v }}/france-2030-blanc.png" width="322" height="316" alt="France 2030" loading="lazy"><figcaption>Ce projet a été financé par l'État dans le cadre de France&nbsp;2030.</figcaption></figure>
+          <figure><img src="{{ v }}/initiative-calvados-blanc.png" width="158" height="78" alt="Initiative Calvados" loading="lazy"><figcaption>Avec le soutien d'Initiative&nbsp;Calvados et d'Initiative&nbsp;Normandie.</figcaption></figure>
+        </div>
+      </div>
+      {#- 4e étape (Hugo, 18/11 : une section de moins) : la fabrication ; label Ecofriendly Game (marque de Fabryka Kart,
+          leur logo vert officiel, logo.svg de ecofriendlygame.com) -#}
+      <div class="etape-sous fabrication">
+        <h3>Fabriqué en Europe</h3>
+        <ul class="liste-fab">
+          <li style="--i:0"><span>Conçu en France.</span></li>
+          <li style="--i:1"><span>Imprimé en Pologne.</span></li>
+          <li style="--i:2"><span>Sans plastique.</span><small>Papier et carton FSC, encres végétales.</small></li>
+        </ul>
+        <div class="label">
+          <img src="/static/images/background/vitrine/ecofriendly-game-vert.svg" alt="Ecofriendly Game" width="220" height="81" loading="lazy">
+          <p>Jeu fabriqué par Fabryka&nbsp;Kart selon le cahier des charges Ecofriendly&nbsp;Game&nbsp;– <a href="https://ecofriendlygame.com" rel="noopener" target="_blank">ecofriendlygame.com</a></p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -286,17 +334,14 @@
     {{ scene3d("fermeture", "Une partie de MATATAK en place sur le plateau ; les cartes et le plateau rentrent dans la boîte, qui se referme") }}
     <div class="offre">
       {%- if precommande_url %}<div class="statut">Précommandes ouvertes</div>{% endif %}
-      <h2 class="question"><span>Quel sera votre</span> <span>prochain coup de génie&nbsp;?</span></h2>
+      <h2 class="question"><span>À vous de jouer&nbsp;!</span></h2>
       <p class="rassembler"><span>Pour rassembler ceux qui adorent les échecs</span> <span>et ceux qui n'ont jamais osé.</span></p>
       <div class="suivre">
         <a class="mt-btn mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
       </div>
-      <p class="contenu"><b>Dans la boîte</b> 1 plateau · 84 cartes Personnages avec les 6 déplacements des échecs et 12 nouveaux déplacements · 4 cartes d'aide · 1 livret de règles</p>
-      <p class="contenu"><span>2 à 4 joueurs</span> · <span>30 minutes</span> · <span>dès 7 ans</span></p>
-      <ul class="origine">
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L16.6 4a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M14.5 6.1l3.4 3.4"/></svg>Conçu et illustré en France</li>
-        <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V10l5 3V10l5 3V6l8 4v11z"/><path d="M7 21v-3M12 21v-3M17 21v-3"/></svg>Fabriqué en Europe</li>
-      </ul>
+      <p class="contenu dans-boite"><b>Dans la boîte</b> 1 plateau · 84 cartes Personnages avec les 6 déplacements des échecs et 12 nouveaux déplacements · 4 cartes d'aide · 1 livret de règles</p>
+      <p class="contenu extensions-fin"><b>4 extensions</b> Une par Saison, détail à la précommande.</p>
+      {#- plus de « 2 à 4 joueurs · 30 minutes · Dès 7 ans » ici (déjà en haut ; Hugo, 18/11 : on le redira sur la page de précommande) -#}
     </div>
   </div>
 </section>
@@ -306,6 +351,7 @@
   <div class="mt-wrap etroit">
     <div class="mt-apparait faq">
       <details open><summary>Faut-il connaître les échecs&nbsp;?</summary><p>Non. Chaque carte montre les déplacements de son Personnage et vous commencez avec 4 Personnages&nbsp;: une partie suffit pour apprendre.</p></details>
+      <details><summary>Le jeu se joue avec des cartes&nbsp;?</summary><p>Oui, et elles sont plus faciles à manier que des cartes classiques car elles sont petites et carrées, et la plupart du temps on les fait simplement glisser sur le plateau. Leurs indications sont à plat, dans le même plan que le plateau&nbsp;: on voit tout de suite où chaque Personnage peut aller.</p></details>
       <details><summary>Est-ce un jeu pour les enfants&nbsp;?</summary><p>Dès 7 ans, et pour toute la famille. Le Coup de pouce rééquilibre les équipes entre joueurs de niveaux différents.</p></details>
       <details><summary>Et pour un joueur d'échecs&nbsp;?</summary><p>Il retrouve la tactique qu'il aime, avec de nouveaux déplacements, le Draft pour composer son équipe et les pouvoirs des Saisons. Et la boîte permet aussi de jouer aux échecs classiques.</p></details>
       <details><summary>Peut-on jouer en ligne&nbsp;?</summary><p>Oui, à 2 joueurs&nbsp;: l'Aventure contre les Rois de la jungle, des parties contre un ami ou classées, un tutoriel et l'analyse de vos parties.</p></details>
@@ -318,6 +364,7 @@
   <div class="mt-wrap">
     <span>© 2026 MATATAK · Synfaunia</span>
     <nav>
+      <a href="/jouer">Jouer en ligne</a>
       <a href="https://www.instagram.com/playmatatak/" rel="noopener" target="_blank">Instagram</a>
       <a href="https://discord.gg/ctGQa2WJjh" rel="noopener" target="_blank">Discord</a>
       <a href="https://www.youtube.com/@matatakgame" rel="noopener" target="_blank">YouTube</a>
@@ -329,9 +376,10 @@
   </div>
 </footer>
 
+{#- téléphone : une seule action, la précommande (option A, Hugo 18/11) ; le jeu en ligne reste en haut (« essayer »),
+    dans « Toujours un adversaire » et en pied de page -#}
 <div class="collante" id="collante">
   <a class="mt-btn mt-btn-petit mt-btn-or" href="{{ sortie_url }}" rel="noopener" target="_blank">{{ sortie_texte }}</a>
-  <a class="mt-btn mt-btn-petit mt-btn-ligne" href="/jouer">Jouer</a>
 </div>
 
 <script src="{{ static('js/vitrine.js') }}" defer></script>

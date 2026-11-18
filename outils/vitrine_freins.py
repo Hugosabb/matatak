@@ -28,14 +28,15 @@ def xy(sq):
 
 
 def assourdi(couleur):
-    """Couleur #rgb ou #rrggbb passée par saturate(.45) puis brightness(.62) (formules CSS) : l'échiquier est assourdi
+    """Couleur #rgb ou #rrggbb passée par saturate(0) puis brightness(.62) (formules CSS) : l'échiquier est en gris (Hugo, 18/11 :
+    un vrai noir et blanc, le bois à demi assourdi faisait bizarre), assourdi
     dans ses couleurs mêmes, sans filtre CSS (un filtre sur ce dessin, dont 198 flèches changent à chaque image,
     était recalculé à chaque image : jusqu'à plusieurs secondes par image dans WebKit, 17/11)."""
     h = couleur.lstrip("#")
     if len(h) == 3:
         h = "".join(c * 2 for c in h)
     r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
-    s = 0.45
+    s = 0
     m = [(0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s),
          (0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s),
          (0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s)]

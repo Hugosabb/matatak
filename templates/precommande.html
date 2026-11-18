@@ -1,0 +1,6 @@
+{#- Bouton d'achat, partagé par la vitrine (vitrine.html) et l'en-tête du site de jeu (template.html) : tant que
+    precommande_url est vide, il mène à Instagram ; le jour de l'ouverture des précommandes, mettre l'adresse ici
+    et tous les boutons « Précommander » y mènent. -#}
+{%- set precommande_url = "" -%}
+{%- set sortie_url = precommande_url or "https://www.instagram.com/playmatatak/" -%}
+{%- set sortie_texte = "Précommander" -%}
