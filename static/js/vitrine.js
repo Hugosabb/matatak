@@ -18,6 +18,16 @@
     const lisse = (a, b, x) => { const t = borne((x - a) / (b - a)); return t * t * (3 - 2 * t); };
     const mix = (a, b, t) => a + (b - a) * t;
     const etroit = () => window.innerWidth <= 820;
+    // position collée du bloc du point 3 et marges de sa section : relues seulement quand la page change de taille
+    let geoP = null;
+    // Écrit un style seulement s'il change (Safari iPhone, 19/11 : à chaque image, des centaines de styles réécrits à
+    // l'identique, même pour les sections hors de l'écran, faisaient recalculer la page et saccader le défilement)
+    const ecrire = (el, prop, val) => {
+        const v = String(val), m = el._styles || (el._styles = {});
+        if (m[prop] === v) return;
+        m[prop] = v;
+        if (prop.startsWith('--')) el.style.setProperty(prop, v); else el.style[prop] = v;
+    };
 
     // ======================= Scène 3D : la boîte, le plateau, les cartes =======================
     // Mesures réelles en mm : boîte 245 × 245 × 45, fond 241 × 43, plateau 470 plié en 4, cartes 50.
@@ -36,7 +46,7 @@
         const img = JSON.parse(el.dataset.images);
         const monde = div('monde');
         el.appendChild(monde);
-        const s = { el, monde, u: 1, doigt: 0, vitesse: 0, tenue: false, t: 0, planes: [] };
+        const s = { el, monde, u: 1, doigt: 0, vitesse: 0, tenue: false, t: 0, planes: [], images: new Set() };
 
         function div(cls, parent) {
             const d = document.createElement('div');
@@ -47,7 +57,7 @@
         // Un plan de l × h mm, centré sur l'origine de son parent, posé par la fonction pose(u) → transform
         function plan(parent, l, h, cls, fond, pose) {
             const d = div('plan ' + (cls || ''), parent);
-            if (fond) d.style.backgroundImage = `url("${fond}")`;
+            if (fond) { d.style.backgroundImage = `url("${fond}")`; s.images.add(fond); }
             s.planes.push({ d, l, h, pose });
             return d;
         }
@@ -71,7 +81,7 @@
                     })
                     : cotes.find((x) => x[0] === nom)[1];
                 const d = plan(parent, c, h, cls, images && images[nom], pose);
-                if (!dedans) d.style.setProperty('--sombre', { haut: .12, bas: .5, droite: .45, gauche: .3 }[nom]);
+                if (!dedans) ecrire(d, '--sombre', { haut: .12, bas: .5, droite: .45, gauche: .3 }[nom]);
             });
         }
 
@@ -234,6 +244,19 @@
 
     // Pièce cachée = retirée de la 3D (display), pas seulement invisible : la scène du bas a ~200 plans (cartes en vrac,
     // inlay) ; invisibles mais présents, ils faisaient mal dessiner la boîte fermée par Firefox sur le PC d'Hugo (17/11)
+    // Images de la scène chargées et décodées avant qu'elle n'arrive : la boîte de fin montre d'un coup ~90 cartes
+    // jusque-là cachées ; chargées à ce moment-là, l'ouverture ramait à la première visite (Hugo, 19/11)
+    function prechargerScene(s) {
+        if (s.precharge) return;
+        s.precharge = [];
+        s.images.forEach((src) => {
+            const im = new Image();
+            im.decoding = 'async';
+            im.src = src;
+            if (im.decode) im.decode().catch(() => {});
+            s.precharge.push(im); // gardées : sans référence, le navigateur peut oublier l'image décodée
+        });
+    }
     function cacher(el, oui) {
         if (el._cache === oui) return;
         el._cache = oui;
@@ -258,13 +281,13 @@
             s.planes.forEach((p) => {
                 p.d.style.width = p.l * u + 'px';
                 p.d.style.height = p.h * u + 'px';
-                p.d.style.left = -p.l * u / 2 + 'px';
-                p.d.style.top = -p.h * u / 2 + 'px';
-                if (p.pose) p.d.style.transform = p.pose(u);
+                ecrire(p.d, 'left', -p.l * u / 2 + 'px');
+                ecrire(p.d, 'top', -p.h * u / 2 + 'px');
+                if (p.pose) ecrire(p.d, 'transform', p.pose(u));
             });
-            s.el.parentElement.style.setProperty('--S', r.S + 'px');
+            ecrire(s.el.parentElement, '--S', r.S + 'px');
             s.persp = Math.max(w, h) * 1.7;
-            if (!PERSP_DANS_BOITE) s.el.style.perspective = s.persp + 'px';
+            if (!PERSP_DANS_BOITE) ecrire(s.el, 'perspective', s.persp + 'px');
         }
         // Caméra : debout de trois quarts → couchée sur la table → recul pour voir tout le plateau
         const couche = lisse(0.08, 0.26, t);
@@ -284,14 +307,14 @@
         if (s.el.dataset.scene === 'heros' && !calme) ay -= 45 * (1 - lisse(0, 1, temps / 1.4));
         const flotte = calme ? 0 : Math.sin(temps / 1.9) * 7 * debout;
         const ox = r.x * debout, oy = r.y * debout + (etroit() ? 6 : -10) * couche + flotte;
-        if (!PERSP_DANS_BOITE) s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
+        if (!PERSP_DANS_BOITE) ecrire(s.el, 'perspectiveOrigin', `calc(50% + ${ox}px) calc(50% + ${oy}px)`);
         const zc = HAUT / 2 * debout * u;
-        s.monde.style.transform = `translate(${ox}px,${oy}px)${PERSP_DANS_BOITE ? ` perspective(${s.persp}px)` : ''} scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`;
-        s.dessus.style.setProperty('--reflet', 50 + ay * 1.2 + '%');
+        ecrire(s.monde, 'transform', `translate(${ox}px,${oy}px)${PERSP_DANS_BOITE ? ` perspective(${s.persp}px)` : ''} scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`);
+        ecrire(s.dessus, '--reflet', 50 + ay * 1.2 + '%');
 
         // Couvercle : il se soulève, puis part vers le fond
         const leve = lisse(0.26, 0.36, t), part = lisse(0.32, 0.44, t);
-        s.couvercle.style.transform = `translate3d(0,${-900 * part * u}px,${(200 * leve + 120 * part) * u}px) rotateX(${-25 * part}deg)`;
+        ecrire(s.couvercle, 'transform', `translate3d(0,${-900 * part * u}px,${(200 * leve + 120 * part) * u}px) rotateX(${-25 * part}deg)`);
         cacher(s.couvercle, part >= 1);
 
         // Plateau : il sort du fond et recule, puis (les cartes sorties) se pose au centre et se déplie : droite, puis bas
@@ -300,23 +323,23 @@
         const decal = Q / 2 * (1 - pose);
         const bz = mix(mix(HFOND - 12, 95, monte), 0.5, pose);
         const recule = -210 * monte * (1 - pose);
-        s.plateau.style.transform = `translate3d(${decal * u}px,${(decal + recule) * u}px,${bz * u}px) rotateX(${-12 * monte * (1 - pose)}deg)`;
-        s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
+        ecrire(s.plateau, 'transform', `translate3d(${decal * u}px,${(decal + recule) * u}px,${bz * u}px) rotateX(${-12 * monte * (1 - pose)}deg)`);
+        ecrire(s.colD, 'transform', `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`);
         // boîte fermée : le plateau plié reste caché (sinon son dos passait parfois devant le couvercle)
         cacher(s.plateau, t < 0.3);
         cacher(s.contenu, t < 0.27);
-        s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
-        s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
+        ecrire(s.basG, 'transform', `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`);
+        ecrire(s.basD, 'transform', `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`);
 
         // Fond de boîte : vidé, il glisse sur le côté (il ne croise ni les piles ni le plateau)
         const sort = lisse(0.5, 0.58, t);
-        s.fond.style.transform = `translate3d(${1000 * sort * u}px,0,0)`;
+        ecrire(s.fond, 'transform', `translate3d(${1000 * sort * u}px,0,0)`);
         cacher(s.fond, sort >= 1);
 
         // Ombre : sous la boîte, puis sous le plateau
         const taille = mix(BOITE * 1.25, PLATEAU * 1.12, pose);
-        s.ombre.style.transform = `translate3d(0,0,${-1 * u}px) scale(${taille / (PLATEAU * 1.12)})`;
-        s.ombre.style.opacity = mix(0.9, 0.75, pose);
+        ecrire(s.ombre, 'transform', `translate3d(0,0,${-1 * u}px) scale(${taille / (PLATEAU * 1.12)})`);
+        ecrire(s.ombre, 'opacity', mix(0.9, 0.75, pose));
 
         // Cartes : du fond de la boîte à 4 piles posées hors du plateau, puis, le plateau déplié, sur leurs cases
         const monteC = lisse(0.42, 0.455, t), vaC = lisse(0.45, 0.52, t), poseC = lisse(0.49, 0.52, t);
@@ -325,7 +348,7 @@
             const x = mix(mix(c.px, c.ex, vaC), c.x, f), y = mix(mix(c.py, c.ey, vaC), c.y, f);
             const z = mix(mix(mix(c.pz, 62, monteC), c.ez, poseC), 1.2, f) + Math.sin(Math.PI * f) * 35;
             const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 20;
-            c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
+            ecrire(c.d, 'transform', `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`);
             // boîte fermée : inutile de dessiner les cartes
             cacher(c.d, t < 0.27);
         });
@@ -335,7 +358,7 @@
             const x = mix(c.x, c.px, f), y = mix(c.y, c.py, f);
             const z = mix(c.z, c.pz, f) + Math.sin(Math.PI * f) * 70;
             const rz = mix(c.rz, 0, f);
-            c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
+            ecrire(c.d, 'transform', `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`);
             cacher(c.d, t < 0.27);
         });
         if (s.vue > 0) poserVue(s, s.vue, temps, r, u, w, h);
@@ -375,24 +398,24 @@
         const oxV = etroit() ? 0 : -w * 0.2, oyV = etroit() ? mix(0, (h - haut) / 2 - h / 2 + 8, mo) : 40;
         const flotte = calme ? 0 : Math.sin(temps / 1.9) * 7 * (1 - cam);
         const ox = mix(r.x, oxV, cam), oy = mix(r.y + flotte, oyV, cam);
-        if (!PERSP_DANS_BOITE) s.el.style.perspectiveOrigin = `calc(50% + ${ox}px) calc(50% + ${oy}px)`;
+        if (!PERSP_DANS_BOITE) ecrire(s.el, 'perspectiveOrigin', `calc(50% + ${ox}px) calc(50% + ${oy}px)`);
         const zc = HAUT / 2 * (1 - cam) * u;
-        s.monde.style.transform = `translate(${ox}px,${oy}px)${PERSP_DANS_BOITE ? ` perspective(${s.persp}px)` : ''} scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`;
+        ecrire(s.monde, 'transform', `translate(${ox}px,${oy}px)${PERSP_DANS_BOITE ? ` perspective(${s.persp}px)` : ''} scale(${k}) rotateX(${ax}deg) rotateY(${ay}deg) rotateZ(${az}deg) translateZ(${-zc}px)`);
 
         // couvercle : il se soulève, recule et se redresse face à nous, appuyé un peu en arrière
         const lc = lisse(0.06, 0.34, v);
         const xC = VUE.couvercle[0] * lc, yC = VUE.couvercle[1] * lc, zC = (BOITE / 2 - 8) * lc + Math.sin(Math.PI * lc) * 90;
-        s.couvercle.style.transform = `translate3d(${xC * u}px,${yC * u}px,${zC * u}px) rotateX(${-76 * lc}deg)`;
+        ecrire(s.couvercle, 'transform', `translate3d(${xC * u}px,${yC * u}px,${zC * u}px) rotateX(${-76 * lc}deg)`);
         cacher(s.couvercle, false);
-        s.dessus.style.setProperty('--reflet', '50%');
+        ecrire(s.dessus, '--reflet', '50%');
 
         // fond de boîte : il recule, ses cartes rangées dedans
         const lf = lisse(0.12, 0.36, v), xF = VUE.fond[0] * lf, yF = VUE.fond[1] * lf;
-        s.fond.style.transform = `translate3d(${xF * u}px,${yF * u}px,0)`;
+        ecrire(s.fond, 'transform', `translate3d(${xF * u}px,${yF * u}px,0)`);
         cacher(s.fond, false);
         cacher(s.contenu, false);
         s.vrac.forEach((c) => {
-            c.d.style.transform = `translate3d(${(c.px + xF) * u}px,${(c.py + yF) * u}px,${c.pz * u}px)`;
+            ecrire(c.d, 'transform', `translate3d(${(c.px + xF) * u}px,${(c.py + yF) * u}px,${c.pz * u}px)`);
             cacher(c.d, false);
         });
 
@@ -401,10 +424,10 @@
         const xP = mix(xF + Q / 2, 0, sortP), yP = mix(yF + Q / 2, VUE.plateau, sortP);
         const zP = mix(HFOND - 12, 0.5, sortP) + Math.sin(Math.PI * sortP) * 110;
         // plié, il est rangé dans le quart du haut à gauche : il se pose là, puis se déplie vers la droite et le bas
-        s.plateau.style.transform = `translate3d(${xP * u}px,${yP * u}px,${zP * u}px)`;
-        s.colD.style.transform = `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`;
-        s.basG.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
-        s.basD.style.transform = `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`;
+        ecrire(s.plateau, 'transform', `translate3d(${xP * u}px,${yP * u}px,${zP * u}px)`);
+        ecrire(s.colD, 'transform', `translateZ(${3 * (1 - u1) * u}px) rotateY(${-180 * (1 - u1)}deg)`);
+        ecrire(s.basG, 'transform', `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`);
+        ecrire(s.basD, 'transform', `translateZ(${1.2 * (1 - u2) * u}px) rotateX(${180 * (1 - u2)}deg)`);
         cacher(s.plateau, v < 0.28);
 
         // les 16 cartes de la partie : du fond de boîte vers leurs cases, une à une
@@ -413,13 +436,13 @@
             const x = mix(c.px + xF, c.x, f), y = mix(c.py + yF, c.y + VUE.plateau, f);
             const z = mix(c.pz + 4, 1.2, f) + Math.sin(Math.PI * f) * 45;
             const rz = mix(0, c.angle, f) + Math.sin(Math.PI * f) * 20;
-            c.d.style.transform = `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`;
+            ecrire(c.d, 'transform', `translate3d(${x * u}px,${y * u}px,${z * u}px) rotateZ(${rz}deg)`);
             cacher(c.d, f <= 0);
         });
 
         // ombres : sous le plateau
-        s.ombre.style.transform = `translate3d(0,${VUE.plateau * sortP * u}px,${-1 * u}px) scale(${mix(BOITE * 1.25, PLATEAU * 1.12, sortP) / (PLATEAU * 1.12)})`;
-        s.ombre.style.opacity = 0.75;
+        ecrire(s.ombre, 'transform', `translate3d(0,${VUE.plateau * sortP * u}px,${-1 * u}px) scale(${mix(BOITE * 1.25, PLATEAU * 1.12, sortP) / (PLATEAU * 1.12)})`);
+        ecrire(s.ombre, 'opacity', 0.75);
     }
 
     const scenes = [...document.querySelectorAll('.scene3d')].map(creerScene);
@@ -438,6 +461,31 @@
     const freinsPoint1 = freins.querySelector('.point-1');
     const freinsVue = freins.querySelector('.plateau-mt .vue');
     const freinsScene = freins.querySelector('.scene-freins');
+    // Point 1 (revue des animations, 19/11) : le zoom, le fondu des cartes, l'avance de MOJO, ses symboles qui brillent
+    // et les flèches sont écrits directement sur chaque élément ; avant, 6 variables posées sur .vue faisaient
+    // recalculer tous ses enfants à chaque image. L'ombre des flèches est une copie sombre dessous (plus de filtre).
+    const vedetteMt = freinsVue.querySelector('img.vedette');
+    const cartesMt = [...freinsVue.querySelectorAll('img:not(.vedette)')];
+    const lueursMt = [...freinsVue.querySelectorAll('.lueur')];
+    // un halo doré derrière chaque symbole (à la place de l'ombre lumineuse du filtre)
+    const halosMt = lueursMt.map((l) => {
+        const halo = document.createElement('i');
+        halo.className = 'halo';
+        halo.style.left = l.style.left; halo.style.top = l.style.top;
+        l.before(halo);
+        return halo;
+    });
+    const svgFleches = freinsVue.querySelector('.fleches-mt');
+    const ombresFleches = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    ombresFleches.setAttribute('class', 'ombres');
+    ombresFleches.setAttribute('transform', 'translate(0 2.5)');
+    const flechesMt = [...svgFleches.querySelectorAll(':scope > g')].map((g) => {
+        const o = g.cloneNode(true);
+        ombresFleches.appendChild(o);
+        const l = parseFloat(g.style.getPropertyValue('--l')) || 0;
+        return [g, o].map((x) => ({ g: x, l, ligne: x.querySelector('line'), tete: x.querySelector('.tete') }));
+    }).flat();
+    svgFleches.insertBefore(ombresFleches, svgFleches.firstChild);
     const freinsEchiquier = freins.querySelector('.echiquier');
     const freinsMt = freins.querySelector('.plateau-mt');
     // chaque pièce porte la liste de ses cases, une par position : data-c="e2 e4 e4 …"
@@ -459,10 +507,6 @@
     };
     const offre = fermeture.querySelector('.offre');
 
-    const avance = (section) => {
-        const r = section.getBoundingClientRect();
-        return borne(-r.top / Math.max(1, r.height - window.innerHeight));
-    };
     const debut = performance.now();
     let avant = 0;
     function animer(now) {
@@ -505,6 +549,10 @@
         ['banjo-e', 5, 2], ['shasha-b4', 2, 3], ['tamtam-e', 4, 4], ['bongo-g4', 4, 5],
         ['dysko', 3, 2], ['rokk', 3, 2, 'dysko'], ['krak', 2, 3, 'shasha-b4'],
     ];
+    // Cartes des plateaux (partie à 4, échiquier) : posées en a8 par le CSS, déplacées par transform (en % de la carte :
+    // une case = 12,5 % du plateau = 12,5 / 11 de la carte) ; plus de left / top, qui refaisaient la mise en page à
+    // chaque image (revue des animations, 19/11)
+    const CASE_CARTE = 12.5 / 11 * 100;
     const partie4 = document.querySelector('.partie4');
     const pointPartie = partie4 && partie4.closest('.point-partie'), blocPartie = pointPartie && pointPartie.querySelector('.mt-wrap');
     const molette = window.matchMedia('(hover: hover)');
@@ -529,22 +577,20 @@
             if (prise) etat.get(prise).envol = lisse(a + 0.05, a + 0.09, t);
         });
         pieces4.forEach((pc) => {
-            const e = etat.get(pc.id), st = pc.im.style;
-            st.left = `${e.col * 12.5 + 0.75}%`;
-            st.top = `${(7 - e.rang) * 12.5 + 0.75}%`;
-            st.opacity = (1 - e.envol).toFixed(3);
-            st.visibility = e.envol >= 1 ? 'hidden' : '';
-            st.transform = `translateY(${-90 * e.envol}%) rotate(${pc.rot + 25 * e.envol}deg) scale(${(1 + e.saut * 0.25 + e.envol * 0.3).toFixed(3)})`;
-            st.zIndex = e.saut > 0 || e.envol > 0 ? 2 : 1;
+            const e = etat.get(pc.id), im = pc.im;
+            ecrire(im, 'opacity', (1 - e.envol).toFixed(3));
+            ecrire(im, 'visibility', e.envol >= 1 ? 'hidden' : '');
+            ecrire(im, 'transform', `translate(${(e.col * CASE_CARTE).toFixed(2)}%, ${((7 - e.rang) * CASE_CARTE - 90 * e.envol).toFixed(2)}%) rotate(${pc.rot + 25 * e.envol}deg) scale(${(1 + e.saut * 0.25 + e.envol * 0.3).toFixed(3)})`);
+            ecrire(im, 'zIndex', e.saut > 0 || e.envol > 0 ? 2 : 1);
         });
-        partie4.parentElement.style.setProperty('--cri', lisse(0.84, 0.9, t).toFixed(3));
+        ecrire(partie4.parentElement, '--cri', lisse(0.84, 0.9, t).toFixed(3));
     }
     if (partie4) poserPartie4(0);
 
     // ======================= Arrêts souples : hauteur du bloc pour le CSS (.arret-souple) =======================
     document.querySelectorAll('.arret-souple').forEach((s) => {
         const bloc = s.querySelector('.arret-bloc');
-        const maj = () => s.style.setProperty('--haut', bloc.offsetHeight + 'px');
+        const maj = () => { ecrire(s, '--haut', bloc.offsetHeight + 'px'); geoP = null; };
         new ResizeObserver(maj).observe(bloc);
         maj();
     });
@@ -552,43 +598,63 @@
     // ======================= Progression des éléments [data-p] =======================
     // 0 quand le centre de l'élément entre par le bas de l'écran, 1 quand il atteint le milieu.
     const suivis = new Set();
-    function progressions(h) {
-        suivis.forEach((el) => {
+    // En deux temps (Safari iPhone, 19/11) : toutes les mesures d'abord, puis toutes les écritures ; mêlées, chaque
+    // mesure après une écriture forçait la page à se recalculer, plusieurs fois par image.
+    function mesurerProgressions(h, els) {
+        const out = [];
+        els.forEach((el) => {
+            // dans un sujet qui s'arrête : de l'arrivée (un quart d'écran avant) à la fin de l'arrêt
+            if (el._arret === undefined) { el._arret = el.closest('.arret'); el._bloc = el._arret && el._arret.querySelector('.arret-bloc'); }
+            if (el._arret) {
+                const ra = el._arret.getBoundingClientRect();
+                out.push([el, borne((h * 0.25 - ra.top) / (ra.height - el._bloc.offsetHeight + h * 0.25)), true]);
+                return;
+            }
             const r = el.getBoundingClientRect();
             // « lent » (le graphique du point 2) : de son entrée par le bas jusqu'au tiers haut de l'écran
-            // dans un sujet qui s'arrête : de l'arrivée (un quart d'écran avant) à la fin de l'arrêt
-            const art = el.closest('.arret');
-            if (art) {
-                const ra = art.getBoundingClientRect(), bloc = art.querySelector('.arret-bloc');
-                const pa = borne((h * 0.25 - ra.top) / (ra.height - bloc.offsetHeight + h * 0.25));
+            // « genese » : de l'entrée de son haut par le bas de l'écran jusqu'à sa place (centré, ou à 10 % du haut s'il est grand)
+            const p = el.dataset.p === 'genese' ? borne((h - r.top) / (h - Math.max(h * 0.1, (h - r.height) / 2)))
+                : el.dataset.p === 'traverse' ? borne((h - r.top) / (h + r.height))
+                : el.dataset.p === 'lent' ? borne((h - r.top) / (h * 0.75))
+                : borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
+            out.push([el, p, false]);
+        });
+        return out;
+    }
+    function appliquerProgressions(out) {
+        out.forEach(([el, pa, arret]) => {
+            let q = pa;
+            if (arret) {
                 // data-etapes="n" : l'arrêt est coupé en n étapes, data-etape = celle en cours (CSS .etapes) ;
                 // data-seuils="0.5,0.75" : où commence chaque étape (sinon, parts égales) ;
                 // data-p-debut / data-p-fin : l'animation va de 0 à 1 entre ces fractions de l'arrêt (la genèse, à la 2e étape)
                 if (el.dataset.etapes) {
                     const n = +el.dataset.etapes;
                     const seuils = el.dataset.seuils ? el.dataset.seuils.split(',').map(Number) : [...Array(n - 1)].map((_, i) => (i + 1) / n);
-                    const k = String(Math.min(n - 1, seuils.filter((s) => pa >= s).length));
+                    const k = String(Math.min(n - 1, seuils.filter((x) => pa >= x).length));
                     if (el.dataset.etape !== k) { el.dataset.etape = k; el.dispatchEvent(new CustomEvent('etape')); }
                 }
                 const deb = +(el.dataset.pDebut || 0), fin = +(el.dataset.pFin || 1);
-                const q = borne((pa - deb) / (fin - deb));
-                if (el._p === undefined || Math.abs(el._p - q) > 0.002) { el._p = q; el.style.setProperty('--p', q.toFixed(3)); }
+                q = borne((pa - deb) / (fin - deb));
+            }
+            if (!(el._p === undefined || Math.abs(el._p - q) > 0.002 || (q !== el._p && (q === 0 || q === 1)))) return;
+            el._p = q;
+            // la genèse s'écrit mot à mot : l'opacité de chaque mot est écrite sur lui (seuls les 3 ou 4 mots en train
+            // d'apparaître changent) ; avant, --p posé sur le texte faisait recalculer ses ~150 mots à chaque image
+            // (revue des animations, 19/11)
+            if (el.dataset.p === 'genese') {
+                if (!el._mots || !el._mots.length) el._mots = [...el.querySelectorAll('.mot-g')];
+                const n = el._mots.length;
+                el._mots.forEach((m, k) => ecrire(m, 'opacity', borne((q * (n + 3) - k) / 3).toFixed(2)));
                 return;
             }
-            // « genese » : de l'entrée de son haut par le bas de l'écran jusqu'à sa place (centré, ou à 10 % du haut s'il est grand)
-            const p = el.dataset.p === 'genese' ? borne((h - r.top) / (h - Math.max(h * 0.1, (h - r.height) / 2)))
-                : el.dataset.p === 'traverse' ? borne((h - r.top) / (h + r.height))
-                : el.dataset.p === 'lent' ? borne((h - r.top) / (h * 0.75))
-                : borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
-            if (el._p === undefined || Math.abs(el._p - p) > 0.002) {
-                el._p = p;
-                el.style.setProperty('--p', p.toFixed(3));
-            }
+            ecrire(el, '--p', q.toFixed(3));
         });
     }
     const ioP = new IntersectionObserver((es) => {
         es.forEach((e) => { if (e.isIntersecting) suivis.add(e.target); else suivis.delete(e.target); });
-        if (!calme) progressions(window.innerHeight);
+        // celles qui sortent sont posées une dernière fois (après un défilement rapide, elles restaient à mi-chemin)
+        if (!calme) appliquerProgressions(mesurerProgressions(window.innerHeight, [...suivis, ...es.filter((e) => !e.isIntersecting).map((e) => e.target)]));
     }, { rootMargin: '10% 0px' });
     document.querySelectorAll('[data-p]').forEach((el) => ioP.observe(el));
 
@@ -628,45 +694,84 @@
             const arrive = lisse(0.04 + pc.i * 0.014, 0.12 + pc.i * 0.014, pe);
             // les cartes arrivent de leur côté du plateau (Blancs en bas, Noirs en haut)
             const dy = (1 - arrive) * (pc.noir ? -260 : 260);
-            pc.im.style.left = `${col * 12.5 + 0.75}%`;
-            pc.im.style.top = `${(7 - rang) * 12.5 + 0.75}%`;
-            pc.im.style.opacity = arrive;
-            pc.im.style.transform = `translateY(${dy}%) rotate(${(pc.noir ? 180 : 0) + (1 - arrive) * (pc.noir ? -40 : 40)}deg) scale(${1 + saut * 0.25})`;
-            pc.im.style.zIndex = saut > 0 ? 2 : 1;
+            ecrire(pc.im, 'opacity', arrive);
+            ecrire(pc.im, 'transform', `translate(${(col * CASE_CARTE).toFixed(2)}%, ${((7 - rang) * CASE_CARTE + dy).toFixed(2)}%) rotate(${(pc.noir ? 180 : 0) + (1 - arrive) * (pc.noir ? -40 : 40)}deg) scale(${1 + saut * 0.25})`);
+            ecrire(pc.im, 'zIndex', saut > 0 ? 2 : 1);
         });
     }
 
+    // ======================= Barre de progression (Hugo, 19/11) =======================
+    // Un trait fin en haut de l'écran, une case par section, qui se remplit quand la section passe au milieu de
+    // l'écran : on sait où on en est. Seulement transform (scaleX) : rien à recalculer pour la page.
+    const progression = document.createElement('div');
+    progression.className = 'progression';
+    progression.setAttribute('aria-hidden', 'true');
+    const etapesBarre = ['freins', 'comment', 'echecs', 'en-ligne', 'temoins', 'equipe', 'boite']
+        .map((id) => document.getElementById(id)).filter(Boolean)
+        .map((section) => { const i = document.createElement('i'), b = document.createElement('b'); i.appendChild(b); progression.appendChild(i); return { section, b }; });
+    document.body.appendChild(progression);
+
     // ======================= Défilement =======================
+    // Toutes les mesures d'abord, puis les écritures (voir mesurerProgressions) ; une section loin de l'écran n'est
+    // plus posée à chaque image (Safari iPhone saccadait, 19/11), sauf une dernière fois quand elle s'en éloigne.
     let attente = false;
+    const pres = {};
+    const mesurer = (cle, el, h) => {
+        const r = el.getBoundingClientRect();
+        const proche = r.bottom > -h * 0.5 && r.top < h * 1.5, avant = pres[cle];
+        pres[cle] = proche;
+        return { r, p: borne(-r.top / Math.max(1, r.height - h)), poser: proche || avant !== false };
+    };
     function maj() {
         attente = false;
         const y = window.scrollY, h = window.innerHeight;
+        // --- mesures ---
+        const mE = echiquier ? mesurer('echecs', echecs, h) : null;
+        const mF = mesurer('fermeture', fermeture, h), hautFermeture = fermeture.offsetTop;
+        const mFr = mesurer('freins', freins, h), lp = freinsMt.offsetWidth || 1;
+        const mL = enLigne ? mesurer('enLigne', enLigne, h) : null;
+        let mP = null;
+        if (partie4) {
+            if (!geoP) {
+                const cs = getComputedStyle(pointPartie);
+                geoP = { colle: parseFloat(getComputedStyle(blocPartie).top) || 0, haut: parseFloat(cs.paddingTop), bas: parseFloat(cs.paddingBottom) };
+            }
+            mP = { ra: pointPartie.getBoundingClientRect(), hb: blocPartie.offsetHeight };
+        }
+        const progres = calme ? null : mesurerProgressions(h, suivis);
+        const remplis = etapesBarre.map(({ section }) => { const r = section.getBoundingClientRect(); return borne((h * 0.5 - r.top) / r.height); });
+        // --- écritures ---
+        etapesBarre.forEach(({ b }, k) => ecrire(b, 'transform', `scaleX(${remplis[k].toFixed(3)})`));
+        // cachée sur le premier écran, et quand la boîte de fin commence à partir (Hugo, 19/11)
+        progression.classList.toggle('visible', y > h * 0.5 && mF.r.bottom > h);
+        // la boîte de fin est à moins de 3 écrans : ses images se chargent maintenant
+        if (sceneFermeture && mF.r.top < h * 3) prechargerScene(sceneFermeture);
         nav.classList.toggle('plein', y > 40);
         if (descendre) descendre.classList.toggle('partie', y > 60);
         // la barre « Jouer » du bas se cache pendant l'animation de la boîte (elle cacherait les légendes et l'offre)
-        collante.classList.toggle('visible', y > h * 0.8 && y < fermeture.offsetTop - h * 0.3);
-        if (!calme && y < h * 1.2) fond.style.transform = `translateY(${y * 0.25}px) scale(${1 + y / 5000})`;
+        collante.classList.toggle('visible', y > h * 0.8 && y < hautFermeture - h * 0.3);
+        if (!calme && y < h * 1.2) ecrire(fond, 'transform', `translateY(${y * 0.25}px) scale(${1 + y / 5000})`);
         if (sceneHeros) sceneHeros.t = 0;
 
-        if (echiquier) poserEchecs(calme ? 0.6 : avance(echecs));
+        if (echiquier && (calme || mE.poser)) poserEchecs(calme ? 0.6 : mE.p);
 
         // Fin de page : la boîte fermée s'ouvre en vue d'ensemble, puis l'offre
-        const pf = calme ? 1 : avance(fermeture);
+        const pf = calme ? 1 : mF.p;
         // feuilles fixes : claires en haut (ordinateur), puis assombries jusqu'au bout
-        const finF = lisse(0.3, 0.62, avance(fermeture));
+        const finF = lisse(0.3, 0.62, mF.p);
         // le vignettage aussi : la fin répond au début (Hugo, 17/11)
         const sombre = lisse(0, h * 0.9, y);
         // ordinateur : elles restent assombries à la fin, la boîte ouverte ressort mieux sur le noir (Hugo, 18/11)
-        feuilles.style.opacity = (etroit() ? finF * 0.6 : mix(0.6, 0.4, sombre)).toFixed(3); // 0,6 en haut (Hugo, 18/11 : la boîte ressort mieux)
-        feuilles.style.setProperty('--v', (etroit() ? finF : mix(1 - sombre, 1, finF)).toFixed(3));
+        ecrire(feuilles, 'opacity', (etroit() ? finF * 0.6 : mix(0.6, 0.4, sombre)).toFixed(3)); // 0,6 en haut (Hugo, 18/11 : la boîte ressort mieux)
+        ecrire(feuilles, '--v', (etroit() ? finF : mix(1 - sombre, 1, finF)).toFixed(3));
         // (18/11, Hugo : sans le rangement) la boîte arrive fermée et s'ouvre aussitôt en vue d'ensemble (0,04 → 0,6)
         if (sceneFermeture) { sceneFermeture.t = 0; sceneFermeture.vue = lisse(0.04, 0.6, pf); }
         fermeture.classList.toggle('vue', pf > 0.1);
         const montre = lisse(0.56, 0.7, pf);
         // sur téléphone, la scène occupe tout l'écran puis remonte pour laisser venir l'offre, un peu avant elle
         if (sceneFermeture) sceneFermeture.offre = lisse(0.48, 0.62, pf);
-        offre.style.opacity = montre;
-        offre.style.transform = `translateY(${(1 - montre) * 30}px)`;
+        ecrire(offre, 'opacity', montre);
+        ecrire(offre, 'transform', `translateY(${(1 - montre) * 30}px)`);
         offre.classList.toggle('visible', montre > 0.5);
 
         // Freins (repères en part de la section) :
@@ -675,58 +780,81 @@
         // 0,5 → 0,62 le plateau de MATATAK arrive de la droite et pousse l'échiquier, qui part en tournoyant ;
         // le logo remplace le titre et le point 1 arrive (0,58) ; MOJO avance (0,62), zoom sur sa carte (0,64 → 0,73),
         // on recule (0,79 → 0,9) et les flèches sortent de ses symboles (0,79 → 0,92).
-        if (!calme) {
-            const pr = avance(freins);
+        // (19/11 : le point 1 après le plateau, de 0,63 à 0,68, et la suite décalée d'autant)
+        if (!calme && mFr.poser) {
+            // le point 1 n'arrive qu'une fois le plateau de MATATAK posé, puis le zoom sur MOJO (Hugo, 19/11 : « ça
+            // démarre trop vite » ; un arrêt de 60vh était trop long) : la section a 10vh de plus (vitrine.css, 310vh)
+            // et va jusqu'à 1,05 ; tout ce qui suit le plateau est décalé d'environ 0,06
+            const pr = mFr.p * 1.05;
             const part = lisse(0.5, 0.54, pr);
             freinsLi.forEach((li, i) => {
-                li.style.setProperty('--a', lisse(0.05 + i * 0.12, 0.09 + i * 0.12, pr).toFixed(3));
-                li.style.setProperty('--s', lisse(0.4 + i * 0.03, 0.43 + i * 0.03, pr).toFixed(3));
-                li.style.setProperty('--x', part.toFixed(3));
+                ecrire(li, '--a', lisse(0.05 + i * 0.12, 0.09 + i * 0.12, pr).toFixed(3));
+                ecrire(li, '--s', lisse(0.4 + i * 0.03, 0.43 + i * 0.03, pr).toFixed(3));
+                ecrire(li, '--x', part.toFixed(3));
             });
             const fe = etape(pr, 0.03, 0.065, 6);
             const vues = lisse(0.01, 0.06, pr);
             // fondu long entre deux positions : les flèches de l'une laissent la place à celles de la suivante sans à-coup
-            coupsFreins.forEach((g, j) => { g.style.opacity = (vues * borne(1 - Math.abs(fe - j) * 1.6)).toFixed(3); });
+            coupsFreins.forEach((g, j) => { ecrire(g, 'opacity', (vues * borne(1 - Math.abs(fe - j) * 1.6)).toFixed(3)); });
             piecesFreins.forEach((p) => {
                 const [x, y] = surChemin(p.c, fe);
-                p.el.setAttribute('transform', `translate(${(x * 100).toFixed(1)} ${((7 - y) * 100).toFixed(1)})`);
+                const tr = `translate(${(x * 100).toFixed(1)} ${((7 - y) * 100).toFixed(1)})`;
+                if (p.el._tr !== tr) { p.el._tr = tr; p.el.setAttribute('transform', tr); }
             });
             // MATATAK glisse depuis la droite jusqu'au centre en se redressant ; il touche l'échiquier, puis le pousse
             // et lui donne de l'élan : l'échiquier part vers la gauche en tournant et en tombant.
             // Départ juste hors de l'écran, quelle que soit sa largeur (en % de la largeur du plateau).
             const u = lisse(0.5, 0.62, pr);
-            const lp = freinsMt.offsetWidth || 1;
             const xm = Math.max(130, ((window.innerWidth + lp) / 2 + 60) / lp * 100) * (1 - u);
-            freinsMt.style.transform = `translateX(${xm.toFixed(2)}%) rotate(${(14 * (1 - u)).toFixed(2)}deg)`;
+            ecrire(freinsMt, 'transform', `translateX(${xm.toFixed(2)}%) rotate(${(14 * (1 - u)).toFixed(2)}deg)`);
             const choc = borne((100 - xm) / 100);
             const vol = choc * (1 + choc * 0.9);
-            freinsEchiquier.style.transform = `translate(${(-100 * vol).toFixed(2)}%, ${(18 * choc * choc).toFixed(2)}%) rotate(${(-38 * vol).toFixed(2)}deg)`;
-            freinsEchiquier.style.opacity = (1 - lisse(0.75, 1, choc)).toFixed(3);
-            freinsTitres.style.setProperty('--t', lisse(0.5, 0.55, pr).toFixed(3));
+            ecrire(freinsEchiquier, 'transform', `translate(${(-100 * vol).toFixed(2)}%, ${(18 * choc * choc).toFixed(2)}%) rotate(${(-38 * vol).toFixed(2)}deg)`);
+            ecrire(freinsEchiquier, 'opacity', (1 - lisse(0.75, 1, choc)).toFixed(3));
+            ecrire(freinsTitres, '--t', lisse(0.5, 0.55, pr).toFixed(3));
             // dès que MATATAK est là : le logo et le point 1 (sur ordinateur, le plateau glisse à gauche, le texte à droite) ;
             // les autres cartes s'effacent, MOJO avance de e1 à e2, on zoome sur sa carte (× 9 : on ne voit presque plus que lui, Hugo 16/11 ; régulier en échelle log),
             // puis on recule (× 2,6) pendant que des flèches sortent de ses symboles jusqu'à ses 8 cases
-            freinsTitres.style.setProperty('--m', lisse(0.57, 0.62, pr).toFixed(3));
-            freinsPoint1.style.setProperty('--r', lisse(0.58, 0.64, pr).toFixed(3));
-            freinsScene.style.setProperty('--g', lisse(0.58, 0.66, pr).toFixed(3));
-            const v = freinsVue.style;
-            v.setProperty('--o', lisse(0.6, 0.65, pr).toFixed(3));
-            v.setProperty('--av', lisse(0.62, 0.67, pr).toFixed(3));
-            const zin = lisse(0.64, 0.73, pr);
-            v.setProperty('--f', zin.toFixed(3));
-            v.setProperty('--s', Math.exp(Math.log(9) * zin + (Math.log(2.6) - Math.log(9)) * lisse(0.82, 0.92, pr)).toFixed(3));
-            // les flèches poussent pendant qu'on recule
-            v.setProperty('--t', lisse(0.84, 0.95, pr).toFixed(3));
+            ecrire(freinsTitres, '--m', lisse(0.57, 0.62, pr).toFixed(3));
+            ecrire(freinsPoint1, '--r', lisse(0.63, 0.68, pr).toFixed(3));
+            ecrire(freinsScene, '--g', lisse(0.63, 0.7, pr).toFixed(3));
+            // caméra : la vue fait 9 fois le plateau, réduite d'autant (zoom sv ≤ 9), et centre peu à peu MOJO (f)
+            const zin = lisse(0.72, 0.81, pr);
+            const sv = Math.exp(Math.log(9) * zin + (Math.log(2.6) - Math.log(9)) * lisse(0.9, 1, pr));
+            const vx = (0.5 - sv * (0.5 + zin * 0.0625)) * 100 / 9, vy = (0.5 - sv * (0.5 + zin * 0.3125)) * 100 / 9;
+            ecrire(freinsVue, 'transform', `translate(${vx.toFixed(3)}%, ${vy.toFixed(3)}%) scale(${(sv / 9).toFixed(4)})`);
+            // les autres cartes s'effacent ; MOJO avance d'une case (12,5 % de la vue = 116,8 % de sa carte)
+            const efface = (1 - lisse(0.69, 0.74, pr)).toFixed(3);
+            cartesMt.forEach((im) => ecrire(im, 'opacity', efface));
+            ecrire(vedetteMt, 'transform', `translateY(${(-116.82 * lisse(0.7, 0.75, pr)).toFixed(2)}%)`);
             // les symboles de la carte brillent trois fois (ils clignotent), puis les flèches en sortent
-            v.setProperty('--p', Math.abs(Math.sin(3 * Math.PI * lisse(0.72, 0.85, pr))).toFixed(3));
+            const brille = Math.abs(Math.sin(3 * Math.PI * lisse(0.8, 0.93, pr)));
+            const vu = Math.min(1, brille * 3).toFixed(3);
+            lueursMt.forEach((l) => {
+                ecrire(l, 'opacity', vu);
+                ecrire(l, 'transform', `scale(${(1 + brille * 0.3).toFixed(3)})`);
+            });
+            halosMt.forEach((l) => {
+                ecrire(l, 'opacity', (brille * 0.85).toFixed(3));
+                ecrire(l, 'transform', `scale(${(0.7 + brille * 0.4).toFixed(3)})`);
+            });
+            // les flèches poussent pendant qu'on recule
+            const pousse = lisse(0.92, 1.03, pr);
+            flechesMt.forEach((f) => {
+                ecrire(f.g, 'opacity', Math.min(1, pousse * 5).toFixed(3));
+                ecrire(f.ligne, 'strokeDashoffset', ((1 - pousse) * f.l).toFixed(2));
+                ecrire(f.tete, 'transform', `translateX(${(pousse * f.l).toFixed(2)}px)`);
+            });
         }
 
         // jeu en ligne : une partie entre deux joueurs se joue au défilement, une capture par étape (le joueur du bas
         // touche une carte, joue, l'adversaire répond) jusqu'au Roi sur la Colline ; le sujet actif en or, par tiers
-        if (enLigne && !calme && etapesMini.length) {
-            const q = lisse(0.04, 0.94, avance(enLigne));
+        if (enLigne && !calme && etapesMini.length && mL.poser) {
+            const q = lisse(0.04, 0.94, mL.p);
             const i = Math.min(etapesMini.length - 1, Math.floor(q * etapesMini.length));
             if (i !== etapeMini) { etapesMini[etapeMini].classList.remove('active'); etapesMini[i].classList.add('active'); etapeMini = i; }
+            // (pas de décodage d'avance des captures : gardées en mémoire, elles faisaient ramer Firefox Android sur
+            // l'ouverture de la boîte ; Hugo, 19/11, comparé dans le même onglet)
             const actif = Math.min(2, Math.floor(q * 3));
             sujetsEnLigne.forEach((li, k) => li.classList.toggle('actif', k === actif));
         }
@@ -734,21 +862,19 @@
         // partie à 4 (point 3) : toute la partie se joue pendant que le point 3 est arrêté à l'écran (son bloc
         // collé en haut), avec un peu d'avance à l'arrivée
         if (partie4) {
-            const ra = pointPartie.getBoundingClientRect();
-            const colle = parseFloat(getComputedStyle(blocPartie).top) || 0;
-            const cs = getComputedStyle(pointPartie), hautP = parseFloat(cs.paddingTop), basP = parseFloat(cs.paddingBottom);
-            const debutP = colle - hautP + h * 0.25;
-            const courseP = Math.max(1, ra.height - hautP - basP - blocPartie.offsetHeight + h * 0.25);
+            const ra = mP.ra;
+            const debutP = geoP.colle - geoP.haut + h * 0.25;
+            const courseP = Math.max(1, ra.height - geoP.haut - geoP.bas - mP.hb + h * 0.25);
             p4Cible = calme ? 1 : borne((debutP - ra.top) / courseP);
             if (calme) poserPartie4(1);
         }
-        if (!calme) progressions(h);
+        if (progres) appliquerProgressions(progres);
         if (calme) animer(performance.now());
     }
     window.addEventListener('scroll', () => {
         if (!attente) { attente = true; requestAnimationFrame(maj); }
     }, { passive: true });
-    window.addEventListener('resize', () => { scenes.forEach((s) => { s.pose = false; }); maj(); }, { passive: true });
+    window.addEventListener('resize', () => { scenes.forEach((s) => { s.pose = false; }); geoP = null; maj(); }, { passive: true });
     // ======================= Molette plus douce (ordinateur) =======================
     // À la molette, chaque cran sautait d'environ 100 px : toute la page paraissait trop sensible (Hugo, 16/11).
     // Les crans sont raccourcis (× 0,75) et glissent ; les pas du pavé tactile sont raccourcis (× 0,5).
@@ -788,7 +914,7 @@
     // ======================= Carte vedette =======================
     const vedette = document.querySelector('.vedette .carte-rv');
     if (vedette && !calme) {
-        const pencher = (x, y) => { vedette.style.setProperty('--tx', x.toFixed(1)); vedette.style.setProperty('--ty', y.toFixed(1)); };
+        const pencher = (x, y) => { ecrire(vedette, '--tx', x.toFixed(1)); ecrire(vedette, '--ty', y.toFixed(1)); };
         vedette.parentElement.addEventListener('pointermove', (e) => {
             const r = vedette.getBoundingClientRect();
             pencher(((e.clientX - r.left) / r.width - 0.5) * 30, -((e.clientY - r.top) / r.height - 0.5) * 24);
@@ -821,10 +947,9 @@
 
     // ======================= Ils y ont joué : boucles muettes, son au choix =======================
     // Une seule vidéo parle à la fois ; activer le son la reprend au début. Hors de l'écran, elle s'arrête.
-    // ======================= Genèse : le texte s'écrit mot à mot au défilement (--p de data-p="genese") =======================
+    // ======================= Genèse : le texte s'écrit mot à mot au défilement (data-p="genese", appliquerProgressions) =======================
     const genese = document.querySelector('.genese');
     if (genese) {
-        let n = 0;
         const couper = (noeud) => [...noeud.childNodes].forEach((c) => {
             if (c.nodeType === 3) {
                 const frag = document.createDocumentFragment();
@@ -832,14 +957,19 @@
                     if (!m) return;
                     if (/^\s+$/.test(m)) { frag.append(m); return; }
                     const sp = document.createElement('span');
-                    sp.className = 'mot-g'; sp.style.setProperty('--k', n++); sp.textContent = m;
+                    sp.className = 'mot-g'; sp.textContent = m;
                     frag.append(sp);
                 });
                 c.replaceWith(frag);
             } else if (c.nodeType === 1) couper(c);
         });
         genese.querySelectorAll('p, footer').forEach(couper);
-        genese.style.setProperty('--n', n);
+        // mots cachés au départ, puis reposés à la prochaine mesure (ils n'existaient pas encore à la première)
+        if (!calme) {
+            genese.querySelectorAll('.mot-g').forEach((m) => ecrire(m, 'opacity', '0.00'));
+            genese._mots = null; genese._p = undefined;
+            appliquerProgressions(mesurerProgressions(window.innerHeight, [genese]));
+        }
     }
 
     const videos = [...document.querySelectorAll('.temoins video')];
@@ -849,11 +979,18 @@
         b.setAttribute('aria-pressed', String(oui));
         b.setAttribute('aria-label', oui ? 'Couper le son' : 'Activer le son');
     };
+    // la vidéo au premier plan de la pile (l'autre, derrière, reste arrêtée : deux vidéos décodées à la fois
+    // faisaient saccader l'iPhone, 19/11)
+    const grilleTemoins = document.querySelector('.temoins-grille.carrousel');
+    const enAvant = (v) => !grilleTemoins || videos.indexOf(v) === (+grilleTemoins.dataset.etape || 0);
+    const visibles = new Set();
+    // avec le son : si le navigateur refuse (Safari sans geste), elle repart muette au lieu de rester figée
+    const jouer = (v) => v.play().catch(() => { if (!v.muted) { ecouter(v, false); v.play().catch(() => {}); } });
     videos.forEach((v) => {
         v.parentElement.querySelector('.son').addEventListener('click', () => {
             const oui = v.muted;
             videos.forEach((w) => ecouter(w, false));
-            if (oui) { ecouter(v, true); v.currentTime = 0; v.play(); }
+            if (oui) { ecouter(v, true); v.currentTime = 0; jouer(v); }
         });
         // sous-titres dessinés par la page (même style partout) ; la piste du navigateur reste cachée
         const st = v.parentElement.querySelector('.sous-titre');
@@ -873,18 +1010,20 @@
             });
         }
         new IntersectionObserver((es) => {
-            if (es[0].isIntersecting) v.play().catch(() => {});
-            else { v.pause(); ecouter(v, false); }
+            if (es[0].isIntersecting) { visibles.add(v); if (enAvant(v)) jouer(v); }
+            else { visibles.delete(v); v.pause(); ecouter(v, false); }
         }, { threshold: 0.25 }).observe(v);
     });
     // Une vidéo à la fois pendant l'arrêt (pile) : si le son était activé, il passe à la vidéo qui arrive,
     // reprise au début (Hugo, 18/11) ; les points sous la vidéo suivent l'étape
-    const grilleTemoins = document.querySelector('.temoins-grille.carrousel');
     if (grilleTemoins) grilleTemoins.addEventListener('etape', () => {
         const k = +grilleTemoins.dataset.etape;
         const son = videos.some((v) => !v.muted);
-        videos.forEach((v) => ecouter(v, false));
-        if (son && videos[k]) { ecouter(videos[k], true); videos[k].currentTime = 0; videos[k].play().catch(() => {}); }
+        videos.forEach((v, j) => { ecouter(v, false); if (j !== k) v.pause(); });
+        if (videos[k]) {
+            if (son) { ecouter(videos[k], true); videos[k].currentTime = 0; }
+            if (son || visibles.has(videos[k])) jouer(videos[k]);
+        }
         const legendes = document.querySelector('.temoins .legendes');
         if (legendes) legendes.dataset.etape = String(k);
     });

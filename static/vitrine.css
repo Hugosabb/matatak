@@ -140,7 +140,7 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
    Échiquier classique (pièces Cburnett) : une ouverture se joue, une flèche par coup possible ; les 3 freins arrivent
    et sont barrés ; puis le plateau de MATATAK arrive de la droite et pousse l'échiquier, qui part en tournoyant ;
    le logo remplace le titre. Tout est piloté par vitrine.js. */
-.freins { position: relative; height: 300vh; }
+.freins { position: relative; height: 310vh; } /* 10vh de plus le 19/11 : le point 1 arrive après le plateau (vitrine.js) */
 .freins .collant { position: sticky; top: 0; height: 100svh; display: grid; align-items: center; overflow: hidden; background: radial-gradient(ellipse 60% 55% at 50% 50%, #1b1410, transparent 70%); }
 .freins .collant > .mt-wrap { position: relative; z-index: 1; }
 .titres { --m: 0; --t: 0; position: relative; display: grid; place-items: center; margin-bottom: 18px; }
@@ -167,28 +167,35 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .plateau-mt { border-radius: 8px; overflow: hidden; box-shadow: 0 40px 80px -30px #000; transform: translateX(100vw); }
 /* la caméra : --s = zoom (1 → 9 sur la carte de MOJO, puis 2,6), --f centre peu à peu MOJO (e2) ;
    --o efface les autres cartes, --av fait avancer MOJO de e1 à e2, --p fait briller ses symboles, --t fait pousser les flèches */
-.plateau-mt .vue { --s: 1; --f: 0; --o: 0; --av: 0; --t: 0; --p: 0; position: absolute; left: 0; top: 0; width: 900%; height: 900%;
+.plateau-mt .vue { position: absolute; left: 0; top: 0; width: 900%; height: 900%;
   background: url('images/board/matatak8x8.png') center / cover; transform-origin: 0 0;
-  /* la vue fait 9 fois le plateau et se réduit (échelle --s / 9 ≤ 1) : au plus près, la carte est dessinée à sa vraie
-     taille, nette, au lieu d'être agrandie après coup (flou sur le site) */
-  transform: translate(calc((.5 - var(--s) * (.5 + var(--f) * .0625)) * 100% / 9), calc((.5 - var(--s) * (.5 + var(--f) * .3125)) * 100% / 9)) scale(calc(var(--s) / 9)); }
+  /* la vue fait 9 fois le plateau et se réduit (zoom / 9 ≤ 1) : au plus près, la carte est dessinée à sa vraie
+     taille, nette, au lieu d'être agrandie après coup (flou sur le site) ; vitrine.js pose le transform à chaque image,
+     ceci est la vue de départ (tout le plateau) */
+  transform: scale(.11111); }
 /* ombre des cartes à flou court : la vue fait 9 fois le plateau, un flou de 108 px y coûtait très cher à chaque image
    (WebKit, 17/11) ; réduite par la vue, elle reste à peu près la même à l'écran */
-.plateau-mt img { position: absolute; width: 10.7%; border-radius: 6%; box-shadow: 0 36px 40px -24px rgba(0, 0, 0, .85); opacity: calc(1 - var(--o)); }
-.plateau-mt img.vedette { opacity: 1; z-index: 1; top: calc(88.4% - var(--av) * 12.5%) !important; }
-/* chaque symbole de la carte de MOJO pulse quand sa flèche en sort (--p, une seule pulsation au défilement) :
-   une copie du symbole, découpée dans la carte (16 % de la carte = 1,71 % du plateau), grossit et se colore un peu */
-.plateau-mt .lueur { position: absolute; z-index: 2; width: 1.71%; aspect-ratio: 1; translate: -50% -50%; pointer-events: none;
+.plateau-mt img { position: absolute; width: 10.7%; border-radius: 6%; box-shadow: 0 36px 40px -24px rgba(0, 0, 0, .85); }
+.plateau-mt img.vedette { z-index: 1; }
+/* chaque symbole de la carte de MOJO pulse quand sa flèche en sort (une seule pulsation au défilement) : une copie du
+   symbole, découpée dans la carte (16 % de la carte = 1,71 % du plateau), plus vive, grossit devant un halo doré
+   (vitrine.js : opacity et transform seulement ; avant, un filtre dont l'ombre lumineuse changeait à chaque image) */
+.plateau-mt .lueur { position: absolute; z-index: 3; width: 1.71%; aspect-ratio: 1; translate: -50% -50%; pointer-events: none;
   background-image: var(--carte-mojo); background-size: 625%; background-repeat: no-repeat;
   -webkit-mask-image: radial-gradient(circle, #000 38%, transparent 62%); mask-image: radial-gradient(circle, #000 38%, transparent 62%);
-  opacity: min(1, calc(var(--p) * 3)); transform: scale(calc(1 + var(--p) * .3)); filter: saturate(calc(1 + var(--p) * 1.4)) brightness(calc(1 + var(--p) * .15)) drop-shadow(0 0 calc(var(--p) * 27px) rgba(246, 201, 69, .95)); }
+  filter: saturate(2.4) brightness(1.15); opacity: 0; }
+.plateau-mt .halo { position: absolute; z-index: 2; width: 2.7%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 252, 235, .95), rgba(255, 240, 190, .45) 42%, rgba(246, 201, 69, 0) 70%); opacity: 0; }
 /* puis une flèche fine aux couleurs du Printemps sort de chaque symbole jusqu'à sa case (--t) */
-.plateau-mt .fleches-mt { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 2; pointer-events: none;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55)); }
-.plateau-mt .fleches-mt g { opacity: clamp(0, calc(var(--t) * 5), 1); }
+.plateau-mt .fleches-mt { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; z-index: 2; pointer-events: none; }
+/* vitrine.js : opacité, longueur du trait et place de la pointe ; l'ombre est une copie sombre dessous (.ombres) */
+.plateau-mt .fleches-mt g { opacity: 0; }
+.plateau-mt .fleches-mt .ombres { opacity: 1; }
 .plateau-mt .fleches-mt line { stroke: var(--mt-printemps); stroke-width: 8; stroke-linecap: round;
-  stroke-dasharray: calc(var(--l) * 1px) 1000px; stroke-dashoffset: calc((1 - var(--t)) * var(--l) * 1px); }
-.plateau-mt .fleches-mt .tete { fill: var(--mt-printemps); transform: translateX(calc(var(--t) * var(--l) * 1px)); }
+  stroke-dasharray: calc(var(--l) * 1px) 1000px; stroke-dashoffset: calc(var(--l) * 1px); }
+.plateau-mt .fleches-mt .tete { fill: var(--mt-printemps); }
+.plateau-mt .fleches-mt .ombres line { stroke: rgba(0, 0, 0, .4); stroke-width: 11; }
+.plateau-mt .fleches-mt .ombres .tete { fill: rgba(0, 0, 0, .4); }
 .freins-texte { position: relative; min-height: 7.5em; }
 /* le plateau et le point 1 : sur téléphone, le texte sous le plateau ; sur ordinateur, à droite, le tout glisse (--g) */
 .scene-freins { --g: 0; position: relative; width: min(540px, 88vw, 50svh); margin: 0 auto 22px; }
@@ -247,7 +254,7 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .temoins .sous-titre:empty { opacity: 0; }
 .temoins .son { position: absolute; right: 12px; bottom: 12px; width: 44px; height: 44px; border-radius: 50%; border: 0; padding: 10px;
   background: rgba(18, 16, 14, .72); color: var(--mt-or); cursor: pointer; transition: transform .2s, background .2s; }
-.temoins .son:hover { transform: scale(1.08); background: rgba(18, 16, 14, .9); }
+@media (hover: hover) and (pointer: fine) { .temoins .son:hover { transform: scale(1.08); background: rgba(18, 16, 14, .9); } }
 .temoins .son svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .temoins .son svg path:first-child { fill: currentColor; }
 .temoins .son .ondes { display: none; }
@@ -301,14 +308,6 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
   .point-texte .num { margin: 0 auto 16px; }
   .point-texte p { margin: auto; }
 }
-/* Point 1 : MOJO en grand, il se retourne, puis ses 8 indications de déplacement s'allument autour de la carte */
-.carte-mojo { position: relative; width: min(380px, 78vw); margin: auto; perspective: 1200px; }
-.carte-mojo .carte-rv { width: 100%; --f: clamp(0, calc(var(--p) * 2 - .5), 1); transform: rotateY(calc(var(--f) * 180deg)) rotateX(calc((1 - var(--p)) * 10deg)); }
-.carte-mojo .carte-rv > img { box-shadow: 0 40px 50px -20px rgba(0, 0, 0, .9); }
-.reperes { --r: clamp(0, calc(var(--p) * 4 - 3), 1); position: absolute; inset: 0; pointer-events: none; }
-.reperes i { position: absolute; left: var(--x); top: var(--y); width: 15%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%; box-shadow: 0 0 0 3px var(--mt-jaune), 0 0 24px 6px rgba(246, 201, 69, .55); opacity: var(--r); transform: scale(calc(.6 + var(--r) * .4)); animation: repere 1.8s ease-in-out infinite; }
-.reperes i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 0; height: 0; border: 9px solid transparent; border-bottom: 14px solid var(--mt-jaune); translate: -50% -50%; transform: rotate(var(--a)) translateY(calc(-62px - var(--r) * 18px)); filter: drop-shadow(0 0 6px rgba(246, 201, 69, .7)); }
-@keyframes repere { 50% { box-shadow: 0 0 0 3px var(--mt-jaune), 0 0 34px 12px rgba(246, 201, 69, .75); } }
 /* Point 3 : la partie à 4, vue de dessus comme les échecs (plateau dans son sens : pas de quart de tour) */
 .partie4-cadre { position: relative; padding-top: clamp(40px, 6svh, 64px); }
 .partie4 { width: min(540px, 100%, 54svh); }
@@ -399,7 +398,7 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .echiquier-mt { position: relative; width: min(560px, 92vw, 56svh); aspect-ratio: 1; margin: 0 auto; transform: perspective(1400px) rotateX(24deg); }
 /* aux échecs, le plateau de MATATAK se tourne d'un quart de tour (case claire en bas à droite) */
 .echiquier-mt::before { content: ""; position: absolute; inset: 0; background: url('images/board/matatak8x8.png') center / cover; transform: rotate(90deg); border-radius: 6px; box-shadow: 0 40px 80px -30px #000; }
-.echiquier-mt img { position: absolute; width: 11%; border-radius: 6%; box-shadow: 0 6px 12px -6px #000; will-change: transform; }
+.echiquier-mt img { position: absolute; left: .75%; top: .75%; width: 11%; border-radius: 6%; box-shadow: 0 6px 12px -6px #000; } /* en a8, vitrine.js les déplace par transform */
 
 /* ---------- En ligne : trois téléphones qui montent l'un après l'autre ---------- */
 /* jeu en ligne (section collante, 3 sujets) : le téléphone montre le vrai site ; --a fait défiler l'Aventure,
@@ -501,9 +500,7 @@ details p { margin: -6px 0 20px; color: var(--mt-doux); }
 .genese { margin: 0; padding: 4px 0 0 28px; border-left: 3px solid var(--mt-or); font-size: clamp(16px, 1.3vw, 18px); line-height: 1.6; }
 .genese p { margin: 0 0 14px; font-style: italic; }
 .genese p i { font-style: normal; }
-/* le texte s'écrit mot à mot au défilement : --p (vitrine.js, data-p="genese") va de 0 quand le haut du texte entre
-   par le bas de l'écran à 1 quand il est en place ; chaque mot (--k, sur --n mots) apparaît à son tour */
-.genese .mot-g { opacity: clamp(0, calc((var(--p) * (var(--n) + 3) - var(--k)) / 3), 1); }
+/* le texte s'écrit mot à mot au défilement (data-p="genese") : vitrine.js écrit l'opacité de chaque mot (.mot-g) */
 .genese footer { margin-top: 10px; display: flex; align-items: center; gap: 12px; font: 900 14px 'Jost', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mt-or); }
 /* petite photo ronde à côté de la signature (Hugo, 18/11) ; sans photo : le gouvernail */
 .genese .photo-mini { flex: none; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px var(--mt-or); }
@@ -547,8 +544,12 @@ details p { margin: -6px 0 20px; color: var(--mt-doux); }
 }
 .offre.visible { pointer-events: auto; }
 .statut { display: inline-flex; gap: 9px; align-items: center; font: 800 13px 'Nunito', sans-serif; color: var(--mt-ete); margin-bottom: 14px; }
-.statut::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--mt-ete); animation: pulse 2s infinite; }
-@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(155, 199, 129, .5); } 100% { box-shadow: 0 0 0 10px rgba(155, 199, 129, 0); } }
+/* point vert qui pulse : un anneau (::after) qui grandit et s'efface, en transform et opacity seulement (revue des
+   animations, 19/11 : l'ancien box-shadow animé faisait redessiner la page en continu) */
+.statut .pastille { position: relative; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--mt-ete); }
+.statut .pastille::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: rgba(155, 199, 129, .5);
+  animation: pulse 2s cubic-bezier(0.23, 1, 0.32, 1) infinite; }
+@keyframes pulse { from { transform: scale(1); opacity: 1; } to { transform: scale(3.5); opacity: 0; } }
 .rassembler { font: 700 clamp(17px, 1.5vw, 21px)/1.4 'Nunito', sans-serif; color: var(--mt-doux); margin: 0 0 26px; text-wrap: balance; }
 /* « Pour rassembler ceux qui adorent les échecs » sur une ligne, « et ceux… » sur la suivante (Hugo, 17/11) */
 .rassembler span { display: block; }
@@ -575,11 +576,24 @@ body > footer nav { display: flex; gap: 8px 22px; flex-wrap: wrap; }
 body > footer a { padding: 6px 0; }
 body > footer a:hover { color: var(--mt-or); }
 
+/* ---------- Barre de progression (vitrine.js) : une case par section, en haut de l'écran ---------- */
+/* 3 px : sous les 10 px qui feraient prendre sa couleur à la barre de Safari iPhone (matatak-ui.css, .mt-barre-safari) */
+.progression { position: fixed; z-index: 70; left: 0; right: 0; top: env(safe-area-inset-top); display: flex; gap: 3px; height: 3px;
+  padding: 0 3px; pointer-events: none; opacity: 0; transition: opacity .4s; }
+.progression.visible { opacity: 1; }
+.progression i { flex: 1; position: relative; overflow: hidden; border-radius: 2px; background: rgba(244, 236, 220, .14); }
+.progression b { position: absolute; inset: 0; background: var(--mt-or); transform: scaleX(0); transform-origin: left; }
+
 /* ---------- Barre collante (téléphone) ---------- */
 .collante { display: none; }
+/* flou d'arrière-plan gardé, sauf sur iPhone : là, recalculé à chaque image sur la page qui bouge dessous, il faisait
+   saccader tout le défilement (vidéo du frère d'Hugo, 19/11). Firefox Android (Hugo, 19/11, même onglet) : flou +
+   sans le décodage d'avance des captures = fluide ; sans flou + avec ce décodage = rame. Le décodage est retiré
+   (vitrine.js) ; le flou reste, faute d'avoir essayé sans flou ET sans décodage */
 @media (max-width: 600px) {
-  .collante { display: flex; position: fixed; z-index: 60; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(18, 16, 14, .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 -1px 0 var(--mt-filet); transform: translateY(110%); transition: transform .35s; }
+  .collante { display: flex; position: fixed; z-index: 60; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: rgba(18, 16, 14, .9); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); box-shadow: 0 -1px 0 var(--mt-filet); transform: translateY(110%); transition: transform 240ms cubic-bezier(0.32, 0.72, 0, 1); } /* courbe de tiroir, plus vive que l'ancienne (.35s, courbe par défaut) */
   .collante.visible { transform: none; }
+  @supports (-webkit-touch-callout: none) { .collante { background: rgba(18, 16, 14, .96); -webkit-backdrop-filter: none; backdrop-filter: none; } }
   .collante { gap: 10px; }
   .collante .mt-btn-or { flex: 1; }
   body > footer { padding-bottom: 100px; }
@@ -598,15 +612,22 @@ body > footer a:hover { color: var(--mt-or); }
   background: linear-gradient(105deg, transparent 38%, rgba(255, 250, 225, .75) 50%, transparent 62%);
   transform: translateX(-110%); animation: reflet-btn 5.5s ease-in-out 1.2s infinite; }
 @keyframes reflet-btn { 0%, 72% { transform: translateX(-110%); } 92%, 100% { transform: translateX(110%); } }
-.mt-btn-or:hover { background: linear-gradient(180deg, #fbe39a 0%, var(--mt-jaune) 48%, #e0ae3c 100%);
-  transform: translateY(-2px); }
+/* survol seulement à la souris : au doigt, le navigateur garde le « survol » après le toucher et le bouton restait
+   soulevé (revue des animations, 19/11) */
+@media (hover: hover) and (pointer: fine) {
+  .mt-btn-or:hover { background: linear-gradient(180deg, #fbe39a 0%, var(--mt-jaune) 48%, #e0ae3c 100%);
+    transform: translateY(-2px); }
+  .mt-btn-ligne:hover { transform: translateY(-2px); }
+}
 .mt-btn-or:active { transform: translateY(0) scale(.97); }
-.mt-btn-ligne:hover { transform: translateY(-2px); }
 @media (prefers-reduced-motion: reduce) { .mt-btn-or::after { display: none; } }
 
 /* Moins d'animations : tout est montré dans son état final */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  /* plus doux plutôt que rien (revue des animations, 19/11) : plus aucun déplacement, mais les changements d'opacité et
+     de couleur restent en fondu court */
+  *, *::before, *::after { animation: none !important; transition-property: opacity, color, background-color !important;
+    transition-duration: .2s !important; transition-timing-function: ease !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
   [data-p] { --p: 1 !important; }
   .promesse h1 .mot { opacity: 1; transform: none; }
   .lucioles { display: none; }

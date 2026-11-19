@@ -278,7 +278,7 @@ body[data-view="jouer"] { --mt-choix: 68px; }
 @media (max-width: 760px) { body[data-view="jouer"] { --mt-nav: var(--mt-tab-h); } } /* barre de navigation du bas */
 .panneau .choix-adv, .av-onglets { display: none; }
 .choix-adv-bas { position: fixed; z-index: 6; left: 50%; transform: translateX(-50%); width: min(560px, calc(100% - 24px));
-  bottom: calc(var(--mt-nav, 0px) + env(safe-area-inset-bottom, 0px) + 8px); }
+  bottom: calc(var(--mt-nav, 0px) + env(safe-area-inset-bottom, 0px) + 8px - var(--mt-ecart-bas, 0px)); }
 .choix-adv-bas .choix-adv { margin: 0; box-shadow: inset 0 0 0 1px var(--mt-filet), 0 -14px 30px -12px rgba(0, 0, 0, .9); }
 .jouer-page { padding-bottom: calc(var(--mt-choix) + 24px); }
 /* Téléphone en portrait : les modes sont dans la barre du bas (templates/template.html), plus de seconde

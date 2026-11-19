@@ -249,10 +249,10 @@
         Les légendes sont sous la pile (la vidéo du dessous passerait derrière), une à la fois aussi. Julien Song d'abord (le plus connu, Hugo 18/11) -#}
     <div class="temoins-grille carrousel" data-p data-etapes="{{ 2 if gartin_video and julien_video else 1 }}">
       {%- if julien_video %}
-      <figure><div class="video"><video poster="{{ julien_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Julien Song sacrifie son rhinocéros pour promouvoir son lion, au Festival international des jeux de Cannes"><source src="{{ julien_video }}.webm" type="video/webm"><source src="{{ julien_video }}.mp4" type="video/mp4"><track kind="captions" srclang="fr" label="Français" src="{{ julien_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div></figure>
+      <figure><div class="video"><video poster="{{ julien_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Julien Song sacrifie son rhinocéros pour promouvoir son lion, au Festival international des jeux de Cannes"><source src="{{ julien_video }}.mp4" type="video/mp4"><source src="{{ julien_video }}.webm" type="video/webm"><track kind="captions" srclang="fr" label="Français" src="{{ julien_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div></figure>
       {%- endif %}
       {%- if gartin_video %}
-      <figure><div class="video"><video poster="{{ gartin_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Gartin591 bat le créateur du jeu à MATATAK"><source src="{{ gartin_video }}.webm" type="video/webm"><source src="{{ gartin_video }}.mp4" type="video/mp4"><track kind="captions" srclang="fr" label="Français" src="{{ gartin_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div></figure>
+      <figure><div class="video"><video poster="{{ gartin_video }}.webp" autoplay muted loop playsinline preload="metadata" aria-label="Gartin591 bat le créateur du jeu à MATATAK"><source src="{{ gartin_video }}.mp4" type="video/mp4"><source src="{{ gartin_video }}.webm" type="video/webm"><track kind="captions" srclang="fr" label="Français" src="{{ gartin_video }}.vtt" default></video><p class="sous-titre" aria-hidden="true"></p><button type="button" class="son" aria-pressed="false" aria-label="Activer le son"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="ondes" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"/><path class="barre" d="M16 9l6 6M22 9l-6 6"/></svg></button></div></figure>
       {%- endif %}
     </div>
     {#- légende en 3 niveaux (Hugo, 18/11 : « 3 lignes comme ça, pas pro ») : le nom, puis titre et audience côte à côte
@@ -333,7 +333,7 @@
   <div class="collant">
     {{ scene3d("fermeture", "Une partie de MATATAK en place sur le plateau ; les cartes et le plateau rentrent dans la boîte, qui se referme") }}
     <div class="offre">
-      {%- if precommande_url %}<div class="statut">Précommandes ouvertes</div>{% endif %}
+      {%- if precommande_url %}<div class="statut"><i class="pastille" aria-hidden="true"></i>Précommandes ouvertes</div>{% endif %}
       <h2 class="question"><span>À vous de jouer&nbsp;!</span></h2>
       <p class="rassembler"><span>Pour rassembler ceux qui adorent les échecs</span> <span>et ceux qui n'ont jamais osé.</span></p>
       <div class="suivre">
