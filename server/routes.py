@@ -118,6 +118,7 @@ get_routes = (
     ("/livret/{cible}", livret.livret),
     ("/precommande", precommande.precommande),
     ("/precommande/merci", precommande.merci),
+    ("/precommande/simple", precommande.simple),
     ("/precommande/relais", relais.recherche),
     ("/precommande/commandes", commandes.liste),
     ("/precommande/commandes.csv", commandes.export_csv),

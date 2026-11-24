@@ -1,0 +1,36 @@
+/* ESSAI : page de précommande simple (/precommande/simple, Hugo 24/11) */
+.ps main { padding-top: 64px; }
+.ps-offre { width: min(1040px, 100% - 32px); margin: 0 auto; padding: clamp(20px, 5vw, 64px) 0 32px; display: grid; gap: clamp(20px, 4vw, 56px); align-items: center; }
+@media (min-width: 860px) { .ps-offre { grid-template-columns: 1fr 1.05fr; } }
+.ps-boite { width: min(440px, 78vw); height: auto; justify-self: center; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .7)); }
+.ps-texte { display: grid; justify-items: start; }
+@media (max-width: 859px) { .ps-texte { justify-items: center; text-align: center; } }
+.ps-texte h1 { margin: 0 0 12px; font: 900 clamp(30px, 4.4vw, 50px)/1.05 'Jost', sans-serif; text-transform: uppercase; text-wrap: balance; color: var(--mt-encre); }
+.ps-sous { margin: 0 0 14px; font-size: clamp(16px, 1.5vw, 19px); color: var(--mt-doux); max-width: 34em; }
+.ps-preuve { margin: 0 0 22px; padding: 8px 14px; border-radius: 999px; background: var(--mt-surface-2); font-size: 14px; color: var(--mt-doux); }
+.ps-preuve b { color: var(--mt-or); }
+.ps-prix { margin: 0 0 16px; font: 900 clamp(48px, 5vw, 64px)/1 'Jost', sans-serif; display: grid; }
+.ps-prix small { margin-top: 6px; font: 700 15px 'Nunito', sans-serif; color: var(--mt-doux); }
+.ps-commander { width: min(380px, 100%); }
+.ps-confiance { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; color: var(--mt-doux); }
+@media (max-width: 859px) { .ps-confiance { justify-content: center; } }
+.ps-confiance li::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 7px; rotate: 45deg; background: var(--mt-or); vertical-align: 1px; }
+.ps-boite-contenu { width: min(720px, 100% - 32px); margin: 0 auto 80px; text-align: center; color: var(--mt-doux); }
+.ps-boite-contenu h2 { margin: 0 0 6px; font: 900 18px 'Jost', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--mt-encre); }
+/* panneau */
+.ps-panneau { position: fixed; width: min(440px, 100% - 24px); max-width: none; padding: 24px 20px 20px; text-align: left; }
+.ps-panneau h2 { margin: 0 0 14px; font: 900 22px 'Jost', sans-serif; text-transform: uppercase; color: var(--mt-or); }
+.ps-ligne { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; font-weight: 800; }
+.ps-livraison { border: 0; margin: 0 0 10px; padding: 0; display: grid; gap: 8px; }
+.ps-livraison legend { margin-bottom: 6px; font-weight: 800; font-size: 13px; color: var(--mt-doux); }
+.ps-livraison label { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 10px; background: var(--mt-surface-2); cursor: pointer; }
+.ps-livraison input { accent-color: var(--mt-or); }
+.ps-port { margin-left: auto; color: var(--mt-or); font-weight: 800; }
+.ps-panneau .choix-relais { margin: 0 0 10px; }
+.ps-total { display: flex; justify-content: space-between; margin: 12px 0; font: 900 20px 'Jost', sans-serif; text-transform: uppercase; }
+.ps-panneau .erreur { margin: 0 0 10px; color: var(--mt-automne); font-weight: 700; }
+.ps-payer { width: 100%; }
+.ps-mention { margin: 10px 0 0; font-size: 12.5px; color: var(--mt-doux); text-align: center; }
+.ps-mention a { color: var(--mt-doux); }
+.ps-panneau .fermer { position: absolute; top: 10px; right: 10px; width: 36px; height: 36px; padding: 0; border: 0; background: none; color: var(--mt-doux); cursor: pointer; display: grid; place-items: center; }
+.ps-panneau .fermer svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }

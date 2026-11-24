@@ -753,3 +753,24 @@ class PagesLegalesTestCase(AioHTTPTestCase):
                 self.assertNotIn("Brouillon", await rep.text())
             with mock.patch.object(cgv, "DONNEES", Path(d, "absent")):
                 self.assertEqual((await self.client.get("/cgv")).status, 404)
+
+
+class PageSimpleTestCase(AioHTTPTestCase):
+    """ESSAI (Hugo, 24/11) : /precommande/simple, une offre et un bouton, non indexée."""
+
+    async def get_application(self):
+        return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
+
+    def setUp(self):
+        super().setUp()
+        p = mock.patch.object(boutique, "lire_prix", lambda: PRIX)
+        p.start()
+        self.addCleanup(p.stop)
+
+    async def test_page_simple(self):
+        rep = await self.client.get("/precommande/simple")
+        self.assertEqual(rep.status, 200)
+        texte = await rep.text()
+        self.assertIn("noindex", texte)
+        self.assertEqual(texte.count("ps-commander"), 1)  # un seul bouton d'action
+        self.assertIn("20 €", texte)

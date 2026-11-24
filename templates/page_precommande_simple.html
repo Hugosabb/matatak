@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="{{ lang }}" class="page-pc">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ title }}</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#12100e">
+<meta name="color-scheme" content="dark">
+<style>html { background: #12100e; color-scheme: dark; }</style>
+<link rel="stylesheet" href="{{ static('fonts/polices.css') }}">
+<link rel="stylesheet" href="{{ static('matatak-ui.css') }}">
+<link rel="stylesheet" href="{{ static('vitrine.css') }}">
+<link rel="stylesheet" href="{{ static('precommande.css') }}">
+<link rel="stylesheet" href="{{ static('precommande-simple.css') }}">
+<link rel="icon" href="{{ static('favicon/favicon.ico') }}" type="image/x-icon">
+</head>
+{#- ESSAI (Hugo, 24/11) : page de conversion la plus simple possible (« First 1000 » : un écran simple bat un joli écran ;
+    un grand titre qui dit ce que c'est + une preuve sociale ; des mots simples, pas de jolies formules).
+    Une seule offre (le jeu : les extensions sortent début 2027), un seul bouton. La vraie page reste /precommande. -#}
+<body class="pc ps">
+{%- set v = "/static/images/background/vitrine" -%}
+<nav class="pc-nav">
+  <div class="mt-wrap"><a class="logo" href="/"><img src="{{ v }}/logo.png" alt="MATATAK, retour à la présentation du jeu"></a></div>
+</nav>
+
+<main>
+  <section class="ps-offre">
+    <img class="ps-boite" src="{{ v }}/boite/face.webp" alt="La boîte de MATATAK" width="1000" height="1000">
+    <div class="ps-texte">
+      <h1>Le jeu de société qui rend les échecs faciles</h1>
+      <p class="ps-sous">Les déplacements sont dessinés sur les cartes&nbsp;: rien à retenir. 2 à 4 joueurs, 30 minutes, dès 7 ans.</p>
+      <p class="ps-preuve"><b>Testé par Julien Song</b>, maître international d'échecs (1 million d'abonnés sur YouTube)</p>
+      <p class="ps-prix">{{ euros(prix.jeu) }}<small>Livraison {{ prix.dates.objectif }}</small></p>
+      <button type="button" class="mt-btn mt-btn-or mt-btn-large ps-commander">Précommander</button>
+      <ul class="ps-confiance">
+        <li>Paiement sécurisé</li>
+        <li>14 jours pour changer d'avis</li>
+        <li>Point relais{% if prix.retrait.nom %} ou retrait gratuit à {{ prix.retrait.ville }}{% endif %}</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="ps-boite-contenu">
+    <h2>Dans la boîte</h2>
+    <p>1 plateau · 84 cartes Personnages · 4 cartes d'aide · 1 livret de règles · 1 rangement pour les cartes</p>
+  </section>
+</main>
+
+{#- Le panneau de commande : quantité, livraison (relais choisi ou retrait), total, payer -#}
+<dialog class="pc-dialogue ps-panneau" aria-labelledby="ps-titre">
+  <h2 id="ps-titre">Votre commande</h2>
+  <div class="ps-ligne"><span>MATATAK, le jeu</span>
+    <div class="compteur"><button type="button" class="moins" aria-label="Un de moins">−</button><output>1</output><button type="button" class="plus" aria-label="Un de plus">+</button></div></div>
+  <fieldset class="ps-livraison"><legend>Livraison</legend>
+    <label><input type="radio" name="livraison" value="relais" checked> Point relais Chronopost <span class="ps-port"></span></label>
+    {%- if prix.retrait.nom %}
+    <label><input type="radio" name="livraison" value="retrait"> Retrait gratuit à la boutique {{ prix.retrait.nom }}, {{ prix.retrait.ville }}</label>
+    {%- endif %}
+  </fieldset>
+  {%- if relais_actif %}
+  <div class="choix-relais">
+    <form class="chercher-relais" novalidate>
+      <label class="champ cp"><span>Code postal</span><input name="cp" inputmode="numeric" autocomplete="postal-code" maxlength="5" required placeholder="14000"></label>
+      <button type="submit" class="mt-btn mt-btn-petit mt-btn-or">Chercher</button>
+    </form>
+    <p class="relais-message" role="status"></p>
+    <ul class="liste-relais"></ul>
+    <p class="relais-choisi" hidden><span></span> <button type="button" class="changer-relais">Changer</button></p>
+  </div>
+  {%- endif %}
+  <p class="ps-total">Total <b></b></p>
+  <p class="erreur" role="alert" hidden></p>
+  <button type="button" class="mt-btn mt-btn-or mt-btn-large ps-payer">Payer</button>
+  <p class="ps-mention">Vous payez sur la page sécurisée de Stripe. <a href="/cgv" target="_blank">Conditions de vente</a></p>
+  <button type="button" class="fermer" aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</dialog>
+
+<script id="pc-prix" type="application/json">{{ prix_json | safe }}</script>
+<script src="{{ static('js/precommande-simple.js') }}" defer></script>
+</body>
+</html>

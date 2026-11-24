@@ -119,6 +119,20 @@ async def precommande(request):
     }
 
 
+@aiohttp_jinja2.template("page_precommande_simple.html")
+async def simple(request):
+    """ESSAI (Hugo, 24/11) : page de précommande la plus simple possible, une offre et un bouton. Non indexée."""
+    prix = _prix()
+    return {
+        "lang": LOCALE.get(),
+        "title": "Précommander MATATAK",
+        "prix": prix,
+        "prix_json": json.dumps(prix),
+        "euros": euros,
+        "relais_actif": relais.actif(),
+    }
+
+
 @aiohttp_jinja2.template("page_precommande_merci.html")
 async def merci(request):
     """Retour de Stripe après le paiement. La commande est enregistrée par le webhook, parfois quelques
