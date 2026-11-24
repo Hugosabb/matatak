@@ -200,7 +200,7 @@ async def test_abandon_confirme_dans_le_menu_sans_fenetre_du_navigateur(site, ch
         if (await dernier_plateau(page))["fen"].split(" ")[1] == moi:
             await jouer_un_coup(page, game_id)
         await attendre(page, "window.__msgs.some(m => m.type === 'board' && m.ply >= 2)", 12000)
-    await page.locator("#barre-partie .barre-btn").first.click()
+    await page.locator('#barre-partie .barre-btn[aria-label="Menu de la partie"]').click()
     await page.locator(".barre-action", has_text="Abandonner").click()
     assert await page.locator(".barre-question").inner_text() == "Vraiment abandonner ?"
     await page.locator(".barre-action", has_text="Oui, abandonner").click()

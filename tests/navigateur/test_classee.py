@@ -132,7 +132,12 @@ async def test_partie_classee_contre_un_adversaire_d_entrainement(site_connecte,
             finie_seule = True
             break
     if not finie_seule:
-        await page.locator("#barre-partie .barre-btn").first.click()
+        # Le 10e demi-coup (celui de l'adversaire, souvent) peut finir la partie, par la Colline
+        # par exemple : la boucle ne le voyait pas, et le test cherchait « Abandonner » dans une
+        # barre sans menu (1 fois sur 5 environ, 24/11/2026)
+        finie_seule = (await dernier_plateau(page)).get("status", -1) >= 0
+    if not finie_seule:
+        await page.locator('#barre-partie .barre-btn[aria-label="Menu de la partie"]').click()
         await page.locator(".barre-action", has_text="Abandonner").click()
         # Confirmation dans le menu (ou, avant elle, une fenêtre du navigateur)
         oui = page.locator(".barre-action", has_text="Oui, abandonner")
