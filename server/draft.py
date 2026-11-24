@@ -333,7 +333,10 @@ class Draft:
                 )
                 if not miroir and (sans_miroir is None or note > sans_miroir[0]):
                     sans_miroir = choix
-        if sans_miroir is not None and sans_miroir[0][0] >= meilleur[0][0] - MIROIR_TOLERANCE[taille]:
+        if (
+            sans_miroir is not None
+            and sans_miroir[0][0] >= meilleur[0][0] - MIROIR_TOLERANCE[taille]
+        ):
             meilleur = sans_miroir
         return [meilleur[1], meilleur[2]]
 
