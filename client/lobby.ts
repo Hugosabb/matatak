@@ -685,8 +685,8 @@ export class LobbyController implements ChatController {
         document.querySelectorAll<HTMLElement>('.mt-tab a[data-mode]').forEach(a => a.classList.toggle('actif', a.dataset.mode === this.onglet()));
     }
 
-    /** Aventure, Défier un ami ou Arène ; pendant une recherche classée, changer d'onglet l'annule. */
-    /** L'onglet affiché : la partie libre contre l'ordinateur est rangée dans « Défier un ami »
+    /** Aventure, Duel ou Arène ; pendant une recherche classée, changer d'onglet l'annule. */
+    /** L'onglet affiché : la partie libre contre l'ordinateur est rangée dans « Duel »
      *  (Hugo, 12/11/2026 : elle était cachée dans l'Aventure, et les deux écrans se ressemblent). */
     private onglet(): JouerAdversaire {
         return this.jouer.adv === 'ia' && this.soloLibre ? 'ami' : this.jouer.adv;
@@ -696,7 +696,7 @@ export class LobbyController implements ChatController {
         if (adv === this.onglet()) return;
         if (this.classeeDebut && adv !== 'classee') this.annulerClassee();
         this.jouer.adv = adv;
-        this.soloLibre = false; // l'onglet « Défier un ami » s'ouvre sur l'ami, l'onglet Aventure sur l'Aventure
+        this.soloLibre = false; // l'onglet « Duel » s'ouvre sur l'ami, l'onglet Aventure sur l'Aventure
         this.majJouer();
         window.scrollTo({ top: 0 });
         const page = document.querySelector<HTMLElement>('.jouer-page');
@@ -1054,7 +1054,7 @@ export class LobbyController implements ChatController {
         const choisirAdv = (adv: JouerAdversaire) => this.changerDeMode(adv);
         const onglets = () => h('div.choix-adv', { attrs: { role: 'group', 'aria-label': 'Adversaire' } }, [
             bouton(this.onglet() === 'ia', 'button', () => choisirAdv('ia'), [iconeMode('ia'), 'Aventure']), // noms des onglets : Hugo, 27/10/2026
-            bouton(this.onglet() === 'ami', 'button', () => choisirAdv('ami'), [iconeMode('ami'), 'Défier un ami']),
+            bouton(this.onglet() === 'ami', 'button', () => choisirAdv('ami'), [iconeMode('ami'), 'Duel']), // « Défier un ami » jusqu'au 23/11/2026 (Hugo)
             bouton(c.adv === 'classee', 'button', () => choisirAdv('classee'), [iconeMode('classee'), 'Arène']),
         ]);
         const choixAdv = onglets();
@@ -1123,7 +1123,7 @@ export class LobbyController implements ChatController {
         ]) : '';
         const partie = h('section.panneau.partie', [
             choixAdv,
-            // Dans « Défier un ami » : Ami (par défaut) ou Solo (la partie libre contre l'ordinateur)
+            // Dans « Duel » : Ami (par défaut) ou Solo (la partie libre contre l'ordinateur)
             h('div.contre', { attrs: { role: 'group', 'aria-label': 'Contre qui ?' } }, [
                 bouton(!ia, 'button', () => { c.adv = 'ami'; this.soloLibre = false; maj(); }, ['Ami']),
                 bouton(ia, 'button', () => { c.adv = 'ia'; this.soloLibre = true; maj(); }, ['Solo']),

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block header %}
 {# Navigation (Hugo, 10/11/2026) : plus de page Apprendre ; toutes les pages sont dans « Plus ».
-   Téléphone en portrait : Aventure · Défier un ami · Arène · Plus ; en paysage : Jouer · Collection · Puzzles · Plus ;
+   Téléphone en portrait : Aventure · Duel · Arène · Plus (« Défier un ami » renommé « Duel », Hugo, 23/11/2026) ; en paysage : Jouer · Collection · Puzzles · Plus ;
    ordinateur : en-tête Jouer · Collection · Puzzles · Palmarès · Le jeu de société, et « Plus » en menu déroulant.
    « Le jeu de société » (la vitrine) n'est plus dans la barre du téléphone : on y allait sans le vouloir.
    Le panneau « Plus » est le même partout (client/navigation.ts) ; chaque ligne déjà visible ailleurs
@@ -42,7 +42,7 @@
 {% if view not in ["tv", "embed"] %}
 <nav class="mt-tab" aria-label="Navigation">
     <a href="/jouer?mode=ia" data-mode="ia" class="portrait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/></svg>Aventure</a>
-    <a href="/jouer?mode=ami" data-mode="ami" class="portrait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Défier un ami</a>
+    <a href="/jouer?mode=ami" data-mode="ami" class="portrait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Duel</a>
     <a href="/jouer?mode=classee" data-mode="classee" class="portrait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg>Arène</a>
     <a href="/jouer" class="paysage {{ 'actif' if rubrique == 'jouer' }}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>Jouer</a>
     <a href="/collection" class="paysage {{ 'actif' if rubrique == 'collection' }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg>Collection</a>

@@ -315,7 +315,7 @@ async def test_le_tutoriel_est_le_niveau_0(site, chromium, telephone):
     assert (await lancer.inner_text()).lower() == "apprendre à jouer"
     assert await lancer.get_attribute("href") == "/tutorial/1"
     if telephone:
-        # Onglets Aventure · Défier un ami · Arène dans la barre du bas (10/11/2026)
+        # Onglets Aventure · Duel · Arène dans la barre du bas (10/11/2026)
         onglets = await page.locator(".mt-tab").bounding_box()
         assert onglets and onglets["y"] > page.viewport_size["height"] / 2
     assert await page.locator(".choix-adv button:visible, .mt-tab a[data-mode]:visible").count() == 3

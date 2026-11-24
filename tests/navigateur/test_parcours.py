@@ -222,10 +222,10 @@ async def lancer_draft_solo(page, site):
         "localStorage.setItem('jouer_choix', JSON.stringify({adv: 'ia', variant: 'matatakmini', level: 2}))"
     )
     await page.goto(site + "/jouer")
-    # La partie libre contre l'ordinateur est dans « Défier un ami » (Hugo, 12/11/2026)
-    await page.locator(".choix-adv button", has_text="Défier un ami").first.dispatch_event("click")
+    # La partie libre contre l'ordinateur est dans « Duel » (Hugo, 12/11/2026)
+    await page.locator(".choix-adv button", has_text="Duel").first.dispatch_event("click")
     await page.locator(".contre button", has_text="Solo").click()
-    assert await page.locator(".choix-adv button.on", has_text="Défier un ami").count() >= 1
+    assert await page.locator(".choix-adv button.on", has_text="Duel").count() >= 1
     await page.click("button.plus")
     await page.locator("label.interrupteur").first.click()
     await page.locator("button.lancer").dispatch_event("click")
@@ -327,14 +327,14 @@ def id_partie_url(url):
 
 
 async def test_barre_du_bas_modes_balayage_et_plus(site, chromium):
-    """Téléphone en portrait (Hugo, 10/11/2026) : une rangée Aventure · Défier un ami · Arène · Plus ;
+    """Téléphone en portrait (Hugo, 10/11/2026) : une rangée Aventure · Duel · Arène · Plus ;
     les modes changent sur place, balayer passe au mode voisin, « Plus » ouvre toutes les pages (plus de
     page Apprendre ni de « Le jeu » dans la barre), le compte et « Installer l'appli »."""
     page = await ouvrir(chromium, site, telephone=True)
     await page.goto(site + "/jouer?mode=ami")
     await page.wait_for_selector(".jouer-page .grille")
     visibles = await page.evaluate("[...document.querySelectorAll('.mt-tab > *')].filter(e => e.offsetParent).map(e => e.textContent.trim())")
-    assert visibles == ["Aventure", "Défier un ami", "Arène", "Plus"], visibles
+    assert visibles == ["Aventure", "Duel", "Arène", "Plus"], visibles
     actif = "() => [...document.querySelectorAll('.mt-tab a.actif')].filter(e => e.offsetParent).map(e => e.dataset.mode)"
     assert await page.evaluate(actif) == ["ami"]
     assert await page.locator(".choix-adv-bas").is_hidden()  # plus de seconde rangée
@@ -344,7 +344,7 @@ async def test_barre_du_bas_modes_balayage_et_plus(site, chromium):
     await page.locator('.mt-tab a[data-mode="classee"]').tap()
     assert await attendre(page, "() => document.querySelector('.mt-tab a[data-mode=classee]').classList.contains('actif')", 3000)
     assert page.url.split("?")[0] == url.split("?")[0]
-    # Balayer vers la droite : retour à « Défier un ami »
+    # Balayer vers la droite : retour à « Duel »
     await page.evaluate("""() => { const el = document.querySelector('.jouer-page');
         const t = (type, x) => el.dispatchEvent(new TouchEvent(type, {bubbles: true,
             touches: type === 'touchend' ? [] : [new Touch({identifier: 1, target: el, clientX: x, clientY: 300})],

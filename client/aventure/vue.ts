@@ -40,7 +40,7 @@ const COLONNES = [-1, 0, 1, 0];
 // la recrue du virage ou du niveau suivant, celle qui reste à gagner
 
 export interface ContexteAventure {
-    choixAdv: VNode; // Aventure · Défier un ami · Arène
+    choixAdv: VNode; // Aventure · Duel · Arène
     plateau: Plateau;
     choisirPlateau: (v: Plateau) => void;
     envoi: boolean; // partie demandée, en attente du serveur
