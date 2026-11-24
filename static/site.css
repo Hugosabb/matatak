@@ -1,6 +1,11 @@
 @import 'hamburger.css';
 @import 'switch.css';
 
+/* Tribeca se dessine 0,1175 em trop bas (métriques pour 1000 : ascent 1136, descent 135, capitales et chiffres 766).
+   Aujourd'hui on corrige au cas par cas avec --mt-tribeca (matatak-ui.css). Correction à la source, NON appliquée
+   (Hugo, 20/11 : ne pas tout modifier) : dans cette déclaration, ascent-override: 90.1%; descent-override: 13.5%;
+   met le centre des capitales au centre de la ligne, quelle que soit la hauteur de ligne ; il faudrait alors mettre
+   --mt-tribeca à 0 et vérifier toutes les pages. */
 @font-face {
   font-family: 'Tribeca';
   src: url('fonts/Tribeca.woff2') format('woff2'),

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="{{ lang }}" class="page-pc">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ title }}</title>
+<meta name="theme-color" content="#12100e">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<style>html { background: #12100e; color-scheme: dark; }</style>
+<link rel="stylesheet" href="{{ static('fonts/polices.css') }}">
+<link rel="stylesheet" href="{{ static('matatak-ui.css') }}">
+<link rel="stylesheet" href="{{ static('vitrine.css') }}">
+<link rel="stylesheet" href="{{ static('precommande.css') }}">
+<link rel="icon" href="{{ static('favicon/favicon.ico') }}" type="image/x-icon">
+</head>
+<body class="pc">
+{%- set v = "/static/images/background/vitrine" -%}
+<div class="feuilles-cote" aria-hidden="true"></div>
+<nav class="pc-nav">
+  <div class="mt-wrap">
+    <a class="logo" href="/"><img src="{{ v }}/logo.png" alt="MATATAK, retour à la présentation du jeu"></a>
+  </div>
+</nav>
+<main>
+  <section class="pc-merci">
+    <div class="mt-wrap">
+      <div class="boite3d" aria-hidden="true">
+        <div class="cube">
+          <img class="face" src="{{ v }}/boite/face.webp" alt="" width="1000" height="1000">
+          <div class="cote droite"><img src="{{ v }}/boite/tranche-droite.webp" alt="" width="1000" height="184"></div>
+          <div class="cote haut"><img src="{{ v }}/boite/tranche-haut.webp" alt="" width="1000" height="184"></div>
+        </div>
+      </div>
+      <h1>Merci&nbsp;! <span class="or">MATATAK&nbsp;!</span></h1>
+      {%- if commande and commande.statut == "echouee" %}
+      <p>Le paiement n'a pas abouti&nbsp;: rien n'a été prélevé. Vous pouvez réessayer depuis la page de précommande.</p>
+      {%- else %}
+      <p>Votre précommande est enregistrée. {% if commande and commande.email %}Un reçu part à <b>{{ commande.email }}</b>.{% else %}Vous recevez un reçu par e-mail.{% endif %}</p>
+      {%- if lignes %}
+      <ul class="recap">
+        {%- for l in lignes %}<li>{{ l.n }} × {{ l.nom }}</li>{% endfor %}
+      </ul>
+      {%- if commande.total is not none %}<p>Total payé&nbsp;: <b>{{ euros(commande.total / 100) }}</b>{% if commande.remise %} (code promo&nbsp;: −{{ euros(commande.remise / 100) }}){% endif %}.</p>{% endif %}
+      {%- endif %}
+      {%- if commande and commande.mode_livraison == "retrait" and prix.retrait %}
+      <p>Vous la retirerez gratuitement à la boutique <b>{{ prix.retrait.nom }}</b>, {{ prix.retrait.adresse }}, {{ prix.retrait.code_postal }} {{ prix.retrait.ville }}. Nous vous prévenons dès qu'elle vous y attend ({{ prix.dates.objectif }}).</p>
+      {%- else %}
+      <p>Livraison {{ prix.dates.objectif }} en point relais. Nous vous écrivons à chaque étape&nbsp;: fabrication, arrivée des boîtes, expédition.</p>
+      {%- endif %}
+      {%- endif %}
+      <div class="actions">
+        <a class="mt-btn mt-btn-or" href="/jouer">En attendant, jouer en ligne</a>
+        <a class="mt-btn mt-btn-ligne" href="/">Retour au jeu</a>
+      </div>
+    </div>
+  </section>
+</main>
+<script>try { sessionStorage.removeItem('matatak_precommande'); } catch (e) {}</script>
+<script src="{{ static('js/sans-apercu.js') }}"></script>
+</body>
+</html>

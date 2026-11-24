@@ -88,8 +88,10 @@ from views import (
     solo,
     collection,
     livret,
+    precommande,
 )
 import pwa
+import boutique
 import aventure_compte
 import classee
 import palmares
@@ -111,6 +113,8 @@ get_routes = (
     ("/apprendre", apprendre.apprendre),
     ("/jouer/solo", solo.solo),
     ("/livret/{cible}", livret.livret),
+    ("/precommande", precommande.precommande),
+    ("/precommande/merci", precommande.merci),
     ("/lobby", lobby.lobby),
     ("/about", about.about),
     ("/faq", faq.faq),
@@ -221,6 +225,10 @@ get_routes = (
 )
 
 post_routes = (
+    ("/precommande/paiement", boutique.paiement),
+    ("/precommande/webhook", boutique.webhook),
+    ("/precommande/newsletter", boutique.newsletter),
+    ("/precommande/code", boutique.verifier_code),
     ("/api/aventure", aventure_compte.enregistrer),
     ("/api/token/test", bot_token_test),
     ("/api/bot/game/{gameId}/abort", bot_abort),

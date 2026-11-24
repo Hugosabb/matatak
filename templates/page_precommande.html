@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="{{ lang }}" class="page-pc">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{ title }}</title>
+<meta name="description" content="Précommandez MATATAK, le plaisir des échecs, enfin accessible : 2 à 4 joueurs, 30 minutes, dès 7 ans. Le jeu et ses 4 extensions, une par Saison.">
+<meta name="theme-color" content="#12100e">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<style>html { background: #12100e; color-scheme: dark; }</style>
+<link rel="stylesheet" href="{{ static('fonts/polices.css') }}">
+<link rel="stylesheet" href="{{ static('matatak-ui.css') }}">
+<link rel="stylesheet" href="{{ static('vitrine.css') }}">
+<link rel="stylesheet" href="{{ static('precommande.css') }}">
+<link rel="icon" href="{{ static('favicon/favicon.ico') }}" type="image/x-icon">
+</head>
+<body class="pc{% if offre %} avec-annonce{% endif %}">
+{%- set v = "/static/images/background/vitrine" -%}
+{%- set f = "/static/images/background/precommande" -%}
+{%- set ext = prix.extension -%}
+{%- set liv = prix.livraison -%}
+{%- set ret = prix.retrait or {} -%}
+{%- macro moins() -%}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>{%- endmacro -%}
+{%- macro plus() -%}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12M12 6v12"/></svg>{%- endmacro -%}
+{%- macro compteur(cle, nom) -%}
+<div class="compteur" data-cle="{{ cle }}">
+  <button type="button" class="moins" aria-label="Retirer : {{ nom }}">{{ moins() }}</button>
+  <output aria-live="polite">0</output>
+  <button type="button" class="plus" aria-label="Ajouter : {{ nom }}">{{ plus() }}</button>
+</div>
+{%- endmacro -%}
+{#- La boîte en volume : la face et deux tranches (images de la vitrine), sans script -#}
+{%- macro boite(classe="") -%}
+<div class="boite3d {{ classe }}" aria-hidden="true">
+  <div class="cube">
+    <img class="face" src="{{ v }}/boite/face.webp" alt="" width="1000" height="1000">
+    <div class="cote droite"><img src="{{ v }}/boite/tranche-droite.webp" alt="" width="1000" height="184"></div>
+    <div class="cote haut"><img src="{{ v }}/boite/tranche-haut.webp" alt="" width="1000" height="184"></div>
+  </div>
+</div>
+{%- endmacro -%}
+
+<div class="feuilles-cote" aria-hidden="true"></div>
+
+{%- if offre %}
+<!-- Bandeau d'annonce de l'offre (Hugo, 20/11) : tout en haut, fixé avec le menu, une ligne (deux sur téléphone).
+     Remise sur L'Essentiel (le jeu seul) contre l'inscription à la newsletter. Jamais « au lieu de ». -->
+<aside class="pc-code" aria-label="Offre de lancement">
+  <p class="avant"><span class="long">Offre de lancement · </span>Économisez <b>{{ euros(offre.remise) }}</b> sur L'Essentiel avec la newsletter</p>
+  <p class="apres" hidden>Votre code <b class="code-texte"></b>&nbsp;: {{ euros(offre.remise) }} économisés sur L'Essentiel, à taper dans le panier</p>
+  <p class="suite"><span class="compte" data-fin="{{ offre.fin }}T23:59:59+01:00" role="timer"></span><button type="button" class="ouvrir-code">Recevoir le code</button></p>
+</aside>
+{%- endif %}
+<nav class="pc-nav">
+  <div class="mt-wrap">
+    <a class="logo" href="/"><img src="{{ v }}/logo.png" alt="MATATAK, retour à la présentation du jeu"></a>
+    <ul>
+      <li><a href="#offres">Offres</a></li>
+      <li><a href="#extensions">Extensions</a></li>
+      <li><a href="#questions">Questions</a></li>
+    </ul>
+    <div class="nav-boutons">
+      <a class="mt-btn mt-btn-petit mt-btn-ligne jouer" href="/jouer"><span class="txt">Jouer en ligne</span></a>
+      <a class="mt-btn mt-btn-petit mt-btn-or" href="#panier"><span class="txt">Panier</span><span class="nb-panier" hidden></span></a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  {%- if prix.maquette %}
+  <p class="pc-maquette">Mode test&nbsp;: prix et dates à valider{% if paiement_ouvert %}, paiement Stripe en mode test (carte 4242 4242 4242 4242){% else %}, paiement pas encore branché{% endif %}.</p>
+  {%- endif %}
+
+
+  <!-- Les offres dès le haut (Hugo, 20/11 : la section d'accueil était de trop) : de la moins chère à la plus chère ;
+       celle du milieu est volontairement sobre. Téléphone : un résumé des 3 côte à côte, puis chaque offre en détail. -->
+  <section class="pc-offres" id="offres">
+    <div class="mt-wrap">
+      <div class="surtitre"><i class="mt-losange"></i>Précommande · livraison {{ prix.dates.objectif }}</div>
+      <h1 class="titre">Un cadeau original et intelligent</h1>
+      <p class="sous-titre">À offrir, ou à vous offrir.</p>
+
+      <nav class="resume" aria-label="Les 3 offres">
+        <a class="resume-offre" href="#formule-jeu"><span class="vignette"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360"></span><span class="nom">L'Essentiel</span><span class="prix">{{ offres.jeu.prix }}</span><span class="plus">Le jeu</span></a>
+        <a class="resume-offre" href="#formule-deux"><span class="vignette pack"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360"><img class="v-sachet n2 k0" src="{{ f }}/sachet-printemps.webp" alt="" width="400" height="651"><img class="v-sachet n2 k1" src="{{ f }}/sachet-hiver.webp" alt="" width="400" height="651"></span><span class="nom">À la carte</span><span class="prix">{{ offres.deux.prix }}</span><span class="plus">Jeu + 2&nbsp;extensions</span></a>
+        <a class="resume-offre" href="#formule-quatre"><span class="vignette pack"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360">{% for cle, nom in saisons %}<img class="v-sachet n4 k{{ loop.index0 }}" src="{{ f }}/sachet-{{ cle }}.webp" alt="" width="400" height="651">{% endfor %}</span><span class="nom">L'Intégrale</span><span class="prix">{{ offres.quatre.prix }}</span><span class="plus">Jeu + 4&nbsp;extensions</span></a>
+      </nav>
+
+      <div class="formules">
+        <article class="formule formule-jeu" data-offre="jeu" id="formule-jeu">
+          <p class="ruban">Le plus accessible</p>
+          <div class="visuel">{{ boite("petite") }}</div>
+          <p class="dans-panier" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg>Dans le panier</p>
+          <div class="corps">
+            <h2>L'Essentiel</h2>
+            <p class="detail">Le jeu</p>
+            <p class="prix">{{ offres.jeu.prix }}</p>
+            <p class="note">{% if offre %}<button type="button" class="lien-code ouvrir-code">Économisez {{ euros(offre.remise) }} avec la newsletter</button>{% else %}&nbsp;{% endif %}</p>
+            <ul class="contenu">
+              <li>1 plateau</li>
+              <li>84 cartes Personnages</li>
+              <li>4 cartes d'aide</li>
+              <li>1 livret de règles</li>
+              <li>1 insert de rangement pour les cartes</li>
+            </ul>
+            <button type="button" class="mt-btn mt-btn-or mt-btn-large ajouter">Ajouter au panier</button>
+          </div>
+        </article>
+
+        <article class="formule formule-deux" data-offre="deux" id="formule-deux">
+          <div class="visuel">
+            <img class="sachet s1" src="{{ f }}/sachet-printemps.webp" alt="" width="400" height="651">
+            <img class="sachet s2" src="{{ f }}/sachet-hiver.webp" alt="" width="400" height="651">
+            {{ boite("petite") }}
+          </div>
+          <p class="dans-panier" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg>Dans le panier</p>
+          <div class="corps">
+            <h2>À la carte</h2>
+            <p class="detail">Le jeu + 2 extensions au choix</p>
+            <p class="prix">{{ offres.deux.prix }}</p>
+            <p class="note"><span class="eco">Économisez {{ offres.deux.eco }}</span></p>
+            <fieldset class="choix-saisons">
+              <legend>Choisissez vos 2 Saisons préférées</legend>
+              {%- for cle, nom in saisons %}
+              <label class="saison {{ cle }}"><input type="checkbox" value="{{ cle }}"{% if cle in ("printemps", "hiver") %} checked{% endif %}>
+                <span class="sachet-choix"><img src="{{ f }}/sachet-{{ cle }}.webp" alt="" width="400" height="651"><svg class="coche" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12.5l4 4 8-9"/></svg></span>
+                <span class="nom-saison">{{ nom }}</span></label>
+              {%- endfor %}
+            </fieldset>
+            <ul class="contenu">
+              <li>Le jeu de base</li>
+              <li>2 extensions au choix (48 cartes)</li>
+            </ul>
+            <a class="savoir-plus" href="#extensions">En savoir plus sur les extensions</a>
+            <button type="button" class="mt-btn mt-btn-or mt-btn-large ajouter">Ajouter au panier</button>
+          </div>
+        </article>
+
+        <article class="formule formule-quatre" data-offre="quatre" id="formule-quatre">
+          <p class="ruban">Le plus complet</p>
+          <div class="visuel">
+            {%- for cle, nom in saisons %}<img class="sachet s{{ loop.index }}" src="{{ f }}/sachet-{{ cle }}.webp" alt="" width="400" height="651">{% endfor %}
+            {{ boite("petite") }}
+          </div>
+          <p class="dans-panier" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg>Dans le panier</p>
+          <div class="corps">
+            <h2>L'Intégrale</h2>
+            <p class="detail">Le jeu + les 4 extensions</p>
+            <p class="prix">{{ offres.quatre.prix }}</p>
+            <p class="note"><span class="eco">Économisez {{ offres.quatre.eco }}</span></p>
+            <ul class="contenu">
+              <li>Le jeu de base</li>
+              <li>Les 4 extensions (96 cartes)</li>
+              <li class="fort">Livraison offerte</li>
+            </ul>
+            <a class="savoir-plus" href="#extensions">En savoir plus sur les extensions</a>
+            <button type="button" class="mt-btn mt-btn-or mt-btn-large ajouter">Ajouter au panier</button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Les 4 extensions : le sachet, ses cartes (5 Personnages + le Biome), en une ligne ; achat à l'unité, sans remise.
+       Après les offres : qui ne s'y intéresse pas passe directement au panier. -->
+  <section class="pc-extensions" id="extensions">
+    <div class="mt-wrap">
+      <h2 class="titre">Collectionnez les 4 Saisons</h2>
+      <p class="sous">Chaque extension, 24 cartes&nbsp;: 3 Personnages qui jouent comme la Dame, la Tour, le Fou ou le Cavalier, aux couleurs de leur Saison&nbsp;; 2 Personnages aux déplacements jamais vus&nbsp;; et un Biome, un terrain à poser sur le plateau qui change les règles de ses cases. Il faut le jeu pour y jouer.</p>
+    </div>
+    <!-- Les 4 sachets en cercle, en profondeur (Hugo, 20/11) : un devant, un à gauche et un à droite un peu derrière,
+         le 4e derrière celui de devant (caché) ; on tourne à l'infini. Le sachet de devant s'ouvre : le haut se déchire
+         et ses cartes sortent une à une, en éventail. -->
+    <div class="anneau-ext" tabindex="0" aria-roledescription="carrousel" aria-label="Les 4 extensions : flèches gauche et droite pour tourner">
+      {%- for e in extensions %}
+      {%- set n = e.cartes | length %}
+      <article class="extension {{ e.cle }}" data-k="{{ loop.index0 }}" aria-label="Extension {{ e.nom }}">
+        <div class="booster" role="button" tabindex="-1" aria-label="Ouvrir le sachet {{ e.nom }}">
+          <div class="cartes-sortie">
+            {#- signal pour toucher la pile (pas de texte : on ne le lit pas en regardant les cartes) #}
+            <span class="indice-pile" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+            {%- for c in e.cartes %}
+            {#- deux faces : sombre devant, claire au dos ; la carte se retourne quand elle passe sous la pile #}
+            <span class="carte-sortie" style="--i: {{ loop.index0 }}; --d: {{ loop.index0 }}"><span class="recto-verso"><img class="face avant" src="{{ c.avant }}" srcset="{{ c.avant }} 1x, {{ c.avant2x }} 2x" alt="" width="360" height="360" loading="lazy"><img class="face dos" src="{{ c.dos }}" srcset="{{ c.dos }} 1x, {{ c.dos2x }} 2x" alt="" width="360" height="360" loading="lazy"></span></span>
+            {%- endfor %}
+          </div>
+          <img class="sachet-corps" src="{{ f }}/sachet-{{ e.cle }}.webp" alt="Sachet de l'extension {{ e.nom }}" width="400" height="651" loading="lazy">
+          <img class="sachet-haut" src="{{ f }}/sachet-{{ e.cle }}.webp" alt="" width="400" height="651" loading="lazy">
+        </div>
+        <div class="texte-ext">
+          <h3><img src="{{ v }}/logo.png" alt="MATATAK" width="900" height="143"> <span>{{ e.nom }}</span></h3>
+          <div class="achat"><span class="prix-ext">{{ euros(ext) }}</span>{{ compteur("ext:" ~ e.cle, "extension " ~ e.nom) }}</div>
+          <button type="button" class="ouvrir-sachet">Ouvrir le sachet</button>
+        </div>
+      </article>
+      {%- endfor %}
+    </div>
+      <div class="defiler">
+        <button type="button" class="fleche-ext precedente" aria-label="Extension précédente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <div class="reperes" aria-hidden="true">{% for e in extensions %}<i class="{{ e.cle }}"></i>{% endfor %}</div>
+        <button type="button" class="fleche-ext suivante" aria-label="Extension suivante"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+  </section>
+
+  <!-- Panier : lignes écrites par precommande.js -->
+  <section class="pc-panier" id="panier" aria-labelledby="titre-panier">
+    <div class="carte-panier">
+      <h2 id="titre-panier">Votre panier</h2>
+      {%- if annule %}<p class="retour">Paiement annulé&nbsp;: votre panier vous attend.</p>{% endif %}
+      <p class="vide">Votre panier est vide&nbsp;: choisissez une offre plus haut.</p>
+      <div class="lignes" data-boite="{{ v }}/boite/face.webp" data-sachets="{{ f }}"></div>
+      <fieldset class="modes-livraison">
+        <legend>Livraison</legend>
+        <label class="mode">
+          <input type="radio" name="livraison" value="relais" checked>
+          <span class="carte-mode">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+            <span class="texte-mode"><b>Point relais {{ liv.mode | replace("Relais", "") | trim }}</b><small>{{ liv.zone }}, expédié par nos soins</small></span>
+            <span class="prix-mode" data-prix-relais>{{ euros(liv.prix) }}</span>
+          </span>
+        </label>
+        {%- if ret.nom %}
+        <label class="mode">
+          <input type="radio" name="livraison" value="retrait">
+          <span class="carte-mode">
+            {%- if ret.logo %}<img class="logo-boutique" src="{{ ret.logo }}" alt="Logo du {{ ret.nom }}" width="128" height="128">{% else %}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4z"/><path d="M3 10l2-6h14l2 6M9 20v-5h6v5"/></svg>{% endif %}
+            <span class="texte-mode"><b>Retrait à la boutique {{ ret.nom }}, {{ ret.ville }}</b><small>{{ ret.adresse }}, {{ ret.code_postal }} {{ ret.ville }} · boutique de jeux de société</small></span>
+            <span class="prix-mode gratuit">Gratuit</span>
+          </span>
+        </label>
+        {%- endif %}
+      </fieldset>
+      <div class="totaux">
+        <p class="eco-total"></p>
+        <div class="seuil" data-seuil="{{ liv.offerte_des }}">
+          <p></p>
+          <div class="jauge"><i></i></div>
+        </div>
+        <p class="sous-total"><span>Articles</span><span></span></p>
+        <p class="port"><span data-relais="Livraison {{ liv.mode }}" data-retrait="Retrait à {{ ret.ville }} ({{ ret.nom }})">Livraison {{ liv.mode }}</span><span></span></p>
+        <p class="remise" hidden><span></span><span></span></p>
+        <p class="total"><span>Total TTC</span><span></span></p>
+      </div>
+      <!-- code promo tapé par le client, vérifié par le serveur (/precommande/code) ; les autres codes : chez Stripe -->
+      <form class="code-promo" novalidate>
+        <label for="code-promo">Code promo</label>
+        <div class="ligne-code">
+          <input id="code-promo" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="40">
+          <button type="submit" class="appliquer">Appliquer</button>
+        </div>
+        <p class="code-message" role="status"></p>
+      </form>
+      <p class="code-applique" hidden>Code <b></b> appliqué <button type="button" class="retirer-code">Retirer</button></p>
+      <button type="button" class="mt-btn mt-btn-or mt-btn-large payer">Passer au paiement</button>
+      <p class="erreur" role="alert" hidden></p>
+      <ul class="rassurer">
+        <li>Paiement sécurisé par Stripe</li>
+        <li>14 jours pour changer d'avis</li>
+        <li>Livraison en point relais{% if ret.nom %} ou retrait gratuit à {{ ret.ville }}{% endif %}</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Livraison et questions -->
+  <section class="bloc questions" id="questions">
+    <div class="mt-wrap etroit">
+      <h2 class="titre">Questions</h2>
+      <div class="faq">
+        <details open><summary>Quand vais-je recevoir le jeu&nbsp;?</summary><p>Notre objectif est de vous le livrer {{ prix.dates.objectif }}.
+          {%- if prix.dates.au_plus_tard %} S'il n'est pas expédié le {{ prix.dates.au_plus_tard }}, vous pouvez annuler votre commande et vous êtes remboursé en entier.{% else %} <span class="a-fixer">Date limite d'expédition à fixer, avec le remboursement si elle n'est pas tenue.</span>{% endif %}
+          Nous vous écrivons à chaque étape&nbsp;: fabrication, arrivée des boîtes, expédition.</p></details>
+        <details><summary>Combien coûte la livraison&nbsp;?</summary><p>{{ euros(liv.prix) }} en point relais {{ liv.mode }}, offerte dès {{ euros(liv.offerte_des) }} d'achat. Nous livrons en {{ liv.zone }}.{% if ret.nom %} Vous pouvez aussi retirer votre commande gratuitement à la boutique {{ ret.nom }}, {{ ret.adresse }} à {{ ret.ville }}&nbsp;: nous vous prévenons dès qu'elle vous y attend.{% endif %}</p></details>
+        <details><summary>J'ai un code promo</summary><p>Vous le saisirez sur la page de paiement, juste avant de payer.</p></details>
+        <details><summary>Puis-je changer d'avis&nbsp;?</summary><p>Oui&nbsp;: vous avez 14 jours après la réception pour nous retourner le jeu, et vous êtes remboursé.</p></details>
+        <details><summary>Que contient une extension&nbsp;?</summary><p>24 cartes&nbsp;: de nouveaux Personnages et le Biome de sa Saison. Il faut le jeu pour y jouer.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="mt-wrap">
+    <span>© 2026 MATATAK · Synfaunia</span>
+    <nav>
+      <a href="#" class="a-fixer">Conditions générales de vente</a>
+      <a href="#" class="a-fixer">Mentions légales</a>
+      <a href="/confidentialite">Confidentialité</a>
+      <a href="mailto:contact@matatak.org">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<!-- téléphone : le total et le bouton restent en bas dès que le panier n'est pas vide -->
+<div class="pc-barre" id="pc-barre">
+  <div><small>Total</small><b class="barre-total"></b></div>
+  <a class="mt-btn mt-btn-petit mt-btn-or" href="#panier">Voir le panier</a>
+</div>
+
+{%- if offre %}
+<dialog class="pc-dialogue pc-newsletter" id="pc-newsletter" aria-labelledby="titre-newsletter">
+  <form class="etape-email" novalidate>
+    <h2 id="titre-newsletter">Économisez {{ euros(offre.remise) }} sur L'Essentiel</h2>
+    <p>Abonnez-vous à la newsletter et recevez tout de suite votre code&nbsp;: {{ euros(offre.remise) }} de moins sur chaque boîte de L'Essentiel (le jeu seul, pas les packs), jusqu'au {{ offre.fin_texte }}.</p>
+    <label class="champ"><span>Votre e-mail</span><input type="email" name="email" autocomplete="email" inputmode="email" required placeholder="vous@exemple.fr"></label>
+    <input class="pot" type="text" name="site" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="erreur" role="alert" hidden></p>
+    <button type="submit" class="mt-btn mt-btn-or mt-btn-large">Recevoir mon code</button>
+    <p class="mention">{{ consentement }} <a href="/confidentialite" target="_blank">Vos données</a></p>
+  </form>
+  <div class="etape-code" hidden>
+    <h2>Votre code</h2>
+    <p class="code-grand"><b class="code-texte"></b><button type="button" class="copier">Copier</button></p>
+    <p>{{ euros(offre.remise) }} économisés sur chaque boîte de L'Essentiel (le jeu seul, pas les packs), jusqu'au {{ offre.fin_texte }}. Tapez-le dans votre panier, dans «&nbsp;Code promo&nbsp;».</p>
+  </div>
+  <button type="button" class="fermer" aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</dialog>
+{%- endif %}
+
+<dialog class="pc-dialogue" id="pc-dialogue">
+  <p></p>
+  <form method="dialog"><button class="mt-btn mt-btn-petit mt-btn-or">Compris</button></form>
+</dialog>
+
+<script id="pc-prix" type="application/json">{{ prix_json | safe }}</script>
+<script src="{{ static('js/precommande.js') }}" defer></script>
+<script src="{{ static('js/sans-apercu.js') }}"></script>
+</body>
+</html>
