@@ -72,6 +72,79 @@
         });
     });
 
+    // point relais choisi avant le paiement (Hugo, 24/11) : cherché par notre serveur, gardé le temps de l'onglet
+    const blocRelais = document.querySelector('.choix-relais');
+    const MEMOIRE_RELAIS = 'matatak_precommande_relais';
+    let relais = null;
+    try { relais = JSON.parse(sessionStorage.getItem(MEMOIRE_RELAIS) || 'null'); } catch (e) { relais = null; }
+    function majRelais() {
+        if (!blocRelais) return;
+        const choisi = blocRelais.querySelector('.relais-choisi');
+        const form = blocRelais.querySelector('.chercher-relais');
+        choisi.hidden = !relais;
+        form.hidden = !!relais;
+        blocRelais.querySelector('.liste-relais').hidden = !!relais;
+        if (relais) {
+            choisi.querySelector('span').textContent = `Votre relais : ${relais.nom}, ${relais.adresse}, ${relais.code_postal} ${relais.ville}`;
+            blocRelais.querySelector('.relais-message').textContent = '';
+        }
+    }
+    if (blocRelais) {
+        const form = blocRelais.querySelector('.chercher-relais');
+        const liste = blocRelais.querySelector('.liste-relais');
+        const message = blocRelais.querySelector('.relais-message');
+        const km = (m) => (m == null ? '' : m < 1000 ? `${Math.round(m / 10) * 10} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`);
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cp = form.cp.value.trim();
+            if (!/^\d{5}$/.test(cp)) { message.textContent = 'Entrez un code postal à 5 chiffres.'; return; }
+            message.textContent = 'Recherche des relais…';
+            liste.innerHTML = '';
+            try {
+                const rep = await fetch(`/precommande/relais?cp=${encodeURIComponent(cp)}&ville=${encodeURIComponent(form.ville.value.trim())}`);
+                const d = await rep.json().catch(() => ({}));
+                if (!rep.ok) { message.textContent = d.erreur || 'Recherche impossible pour le moment.'; return; }
+                if (!d.relais.length) { message.textContent = 'Aucun relais trouvé près de chez vous : essayez une ville voisine.'; return; }
+                message.textContent = d.exemple ? 'Relais d\'exemple (serveur de test) : choisissez le vôtre.' : 'Choisissez votre relais :';
+                d.relais.forEach((r) => {
+                    const li = document.createElement('li');
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'relais';
+                    // jours qui se suivent avec les mêmes horaires regroupés : « lun.–sam. 9:00–12:30 · 14:00–19:00 »
+                    const groupes = [];
+                    (r.horaires || []).forEach(([j, h]) => {
+                        const g = groupes[groupes.length - 1];
+                        if (g && g.h === h) g.fin = j; else groupes.push({ debut: j, fin: j, h });
+                    });
+                    const court = (j) => j.slice(0, 3) + '.';
+                    const horaires = groupes.filter((g) => g.h).map((g) => `${court(g.debut)}${g.fin !== g.debut ? '–' + court(g.fin) : ''} ${g.h}`).join(' ; ');
+                    b.innerHTML = '<b></b><span class="adr"></span><span class="dist"></span><small></small>';
+                    b.querySelector('b').textContent = r.nom;
+                    b.querySelector('.adr').textContent = `${r.adresse}, ${r.code_postal} ${r.ville}`;
+                    b.querySelector('.dist').textContent = km(r.distance);
+                    b.querySelector('small').textContent = horaires;
+                    b.addEventListener('click', () => {
+                        relais = { id: r.id, nom: r.nom, adresse: r.adresse, code_postal: r.code_postal, ville: r.ville };
+                        try { sessionStorage.setItem(MEMOIRE_RELAIS, JSON.stringify(relais)); } catch (er) { /* rien */ }
+                        majRelais();
+                    });
+                    li.append(b);
+                    liste.append(li);
+                });
+            } catch (er) {
+                message.textContent = 'Pas de connexion : vérifiez votre réseau et réessayez.';
+            }
+        });
+        blocRelais.querySelector('.changer-relais').addEventListener('click', () => {
+            relais = null;
+            try { sessionStorage.removeItem(MEMOIRE_RELAIS); } catch (er) { /* rien */ }
+            majRelais();
+            form.cp.focus();
+        });
+        majRelais();
+    }
+
     const euros = (m) => {
         const r = Math.round(m * 100) / 100;
         return (Number.isInteger(r) ? String(r) : r.toFixed(2).replace('.', ',')) + ' €';
@@ -102,6 +175,7 @@
         }
         const vide = panier.size === 0;
         const retrait = mode === 'retrait';
+        if (blocRelais) blocRelais.hidden = retrait || panier.size === 0;
         const offert = articles >= liv.offerte_des;
         const port = vide || offert || retrait ? 0 : liv.prix;
 
@@ -225,12 +299,17 @@
             const rep = await fetch('/precommande/paiement', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ panier: [...panier].map(([cle, n]) => ({ cle, n })), livraison: mode, code: applique ? applique.code : '' }),
+                body: JSON.stringify({ panier: [...panier].map(([cle, n]) => ({ cle, n })), livraison: mode, code: applique ? applique.code : '', relais: mode === 'relais' ? relais : null }),
             });
             const donnees = await rep.json().catch(() => ({}));
             if (rep.ok && donnees.url) {
                 window.location.assign(donnees.url);
                 return;
+            }
+            if (donnees.relais_manquant && blocRelais) {
+                blocRelais.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                blocRelais.querySelector('.relais-message').textContent = 'Choisissez d\'abord votre point relais.';
+                blocRelais.querySelector('.chercher-relais').cp.focus();
             }
             if (donnees.pas_dispo) { // panier gardé d'avant : on n'y laisse que le jeu
                 for (const cle of [...panier.keys()]) if (!connue(cle)) panier.delete(cle);

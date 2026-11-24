@@ -89,9 +89,12 @@ from views import (
     collection,
     livret,
     precommande,
+    cgv,
+    commandes,
 )
 import pwa
 import boutique
+import relais
 import aventure_compte
 import classee
 import palmares
@@ -115,6 +118,11 @@ get_routes = (
     ("/livret/{cible}", livret.livret),
     ("/precommande", precommande.precommande),
     ("/precommande/merci", precommande.merci),
+    ("/precommande/relais", relais.recherche),
+    ("/precommande/commandes", commandes.liste),
+    ("/precommande/commandes.csv", commandes.export_csv),
+    ("/cgv", cgv.cgv),
+    ("/mentions-legales", cgv.mentions),
     ("/lobby", lobby.lobby),
     ("/about", about.about),
     ("/faq", faq.faq),
@@ -229,6 +237,7 @@ post_routes = (
     ("/precommande/webhook", boutique.webhook),
     ("/precommande/newsletter", boutique.newsletter),
     ("/precommande/code", boutique.verifier_code),
+    ("/precommande/commandes/nouvelle", commandes.nouvelle),
     ("/api/aventure", aventure_compte.enregistrer),
     ("/api/token/test", bot_token_test),
     ("/api/bot/game/{gameId}/abort", bot_abort),

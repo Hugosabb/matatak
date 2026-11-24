@@ -246,6 +246,20 @@
         </label>
         {%- endif %}
       </fieldset>
+      {%- if relais_actif %}
+      {#- Choix du point relais avant le paiement (Hugo, 24/11) : recherche par notre serveur (server/relais.py), une
+          liste et pas de carte (rien chargé d'un autre site : promesse de /confidentialite) -#}
+      <div class="choix-relais" hidden>
+        <form class="chercher-relais" novalidate>
+          <label class="champ cp"><span>Code postal</span><input name="cp" inputmode="numeric" autocomplete="postal-code" maxlength="5" pattern="[0-9]{5}" required placeholder="14000"></label>
+          <label class="champ ville"><span>Ville</span><input name="ville" autocomplete="address-level2" maxlength="60" placeholder="Caen"></label>
+          <button type="submit" class="mt-btn mt-btn-petit mt-btn-or">Chercher</button>
+        </form>
+        <p class="relais-message" role="status"></p>
+        <ul class="liste-relais"></ul>
+        <p class="relais-choisi" hidden><span></span> <button type="button" class="changer-relais">Changer</button></p>
+      </div>
+      {%- endif %}
       <div class="totaux">
         <p class="eco-total"></p>
         <div class="seuil" data-seuil="{{ liv.offerte_des }}">
@@ -298,8 +312,8 @@
   <div class="mt-wrap">
     <span>© 2026 MATATAK · Synfaunia</span>
     <nav>
-      <a href="#" class="a-fixer">Conditions générales de vente</a>
-      <a href="#" class="a-fixer">Mentions légales</a>
+      <a href="/cgv">Conditions générales de vente</a>
+      <a href="/mentions-legales">Mentions légales</a>
       <a href="/confidentialite">Confidentialité</a>
       <a href="mailto:contact@matatak.org">Contact</a>
     </nav>

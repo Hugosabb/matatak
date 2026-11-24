@@ -5,6 +5,7 @@ import aiohttp_jinja2
 from aiohttp import web
 
 import boutique
+import relais
 from lang import LOCALE
 
 SAISONS = tuple(boutique.SAISONS.items())
@@ -110,6 +111,7 @@ async def precommande(request):
         "euros": euros,
         "paiement_ouvert": bool(boutique.cle_stripe()),
         "ext_dispo": boutique.extensions_dispo(prix),
+        "relais_actif": relais.actif(),
         "offre": boutique.offre_newsletter(prix),
         "consentement": boutique.CONSENTEMENT,
         "consentement_prevenir": boutique.CONSENTEMENT_PREVENIR,

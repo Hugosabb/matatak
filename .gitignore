@@ -35,4 +35,7 @@ static/favicon/*.png
 static/favicon/favicon.ico
 # Prix de la précommande (dépôt privé site-prive, copiés par outils/assets-depuis-jeu.sh)
 static/data/precommande.json
+# CGV (même dépôt privé ; page /cgv et pièce jointe de la confirmation de commande)
+static/data/cgv.html
+static/data/mentions-legales.html
 *.egg-info/

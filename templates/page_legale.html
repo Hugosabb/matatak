@@ -1,0 +1,15 @@
+{% extends "template.html" %}
+{% block content %}
+{#- CGV ou mentions légales : texte du dépôt privé (static/data, voir server/views/cgv.py) -#}
+<main class="confidentialite">
+    <article class="conf-page cgv legale">
+        {%- if brouillon %}
+        <p class="cgv-brouillon">Brouillon : cette page n’est pas encore définitive.</p>
+        {%- endif %}
+        {{ texte | safe }}
+    </article>
+</main>
+{% endblock %}
+{% block js %}
+    <script src="{{ js }}"></script>
+{% endblock %}

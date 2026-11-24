@@ -6,6 +6,8 @@ import hashlib
 import hmac
 import json
 import os
+from pathlib import Path
+import tempfile
 import time
 import unittest
 from unittest import mock
@@ -14,6 +16,9 @@ from aiohttp.test_utils import AioHTTPTestCase
 from mongomock_motor import AsyncMongoMockClient
 
 import boutique
+import relais
+import courriels
+from views import commandes
 from pychess_global_app_state_utils import get_app_state
 from server import make_app
 
@@ -171,6 +176,10 @@ class PrecommandeTestCase(AioHTTPTestCase):
         self.prix = mock.patch.object(boutique, "lire_prix", lambda: PRIX)
         self.prix.start()
         self.addCleanup(self.prix.stop)
+        # choix du relais : testé à part (RelaisChoisiTestCase) ; ici, l'ancien chemin (adresse chez Stripe)
+        sans_relais = mock.patch.object(relais, "actif", lambda: False)
+        sans_relais.start()
+        self.addCleanup(sans_relais.stop)
 
     def cles(self, secrete="sk_test_essai", webhook=SECRET):
         return mock.patch.dict(
@@ -359,6 +368,10 @@ class OffreLancementTestCase(AioHTTPTestCase):
         self.prix = mock.patch.object(boutique, "lire_prix", lambda: PRIX)
         self.prix.start()
         self.addCleanup(self.prix.stop)
+        # choix du relais : testé à part (RelaisChoisiTestCase) ; ici, l'ancien chemin (adresse chez Stripe)
+        sans_relais = mock.patch.object(relais, "actif", lambda: False)
+        sans_relais.start()
+        self.addCleanup(sans_relais.stop)
 
     def test_offre_terminee_apres_sa_date(self):
         from datetime import date
@@ -515,6 +528,10 @@ class ExtensionsPlusTardTestCase(AioHTTPTestCase):
         self.prix = mock.patch.object(boutique, "lire_prix", lambda: self.PRIX)
         self.prix.start()
         self.addCleanup(self.prix.stop)
+        # choix du relais : testé à part (RelaisChoisiTestCase) ; ici, l'ancien chemin (adresse chez Stripe)
+        sans_relais = mock.patch.object(relais, "actif", lambda: False)
+        sans_relais.start()
+        self.addCleanup(sans_relais.stop)
 
     async def test_page_offres_visibles_mais_pas_en_vente(self):
         texte = await (await self.client.get("/precommande")).text()
@@ -551,3 +568,188 @@ class ExtensionsPlusTardTestCase(AioHTTPTestCase):
         self.assertIn(
             "En laissant votre e-mail", inscrit["consentement"]
         )  # la phrase affichée, pas celle du code
+
+
+class RelaisChoisiTestCase(AioHTTPTestCase):
+    """Hugo, 24/11 : le client choisit son point relais sur notre page, avant Stripe."""
+
+    RELAIS = {
+        "id": "1234A",
+        "nom": "PRES",
+        "adresse": "1 rue A",
+        "code_postal": "14000",
+        "ville": "CAEN",
+    }
+
+    async def get_application(self):
+        return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
+
+    def setUp(self):
+        super().setUp()
+        self.prix = mock.patch.object(boutique, "lire_prix", lambda: PRIX)
+        self.prix.start()
+        self.addCleanup(self.prix.stop)
+
+    async def test_relais_obligatoire_puis_transmis(self):
+        appels = []
+        cles = mock.patch.dict(os.environ, {"STRIPE_SECRET_KEY": "sk_test_essai"})
+        with cles, mock.patch.object(boutique, "stripe", faux_stripe(appels=appels)):
+            rep = await self.client.post(
+                "/precommande/paiement", json={"panier": [{"cle": "jeu", "n": 1}]}
+            )
+            self.assertEqual(rep.status, 400)
+            self.assertTrue((await rep.json())["relais_manquant"])
+            rep = await self.client.post(
+                "/precommande/paiement",
+                json={"panier": [{"cle": "jeu", "n": 1}], "relais": self.RELAIS},
+            )
+        self.assertEqual(rep.status, 200)
+        params = appels[-1][2]
+        self.assertNotIn("shipping_address_collection", params)  # plus d'adresse chez Stripe
+        self.assertEqual(json.loads(params["metadata"]["relais"]), self.RELAIS)
+        self.assertIn("point relais Chronopost PRES", params["custom_text"]["submit"]["message"])
+        session = {"metadata": {"relais": params["metadata"]["relais"]}}
+        self.assertEqual(boutique.commande_depuis_session(session)["relais"], self.RELAIS)
+
+    async def test_recherche_faux_relais_hors_prod(self):
+        with mock.patch.dict(os.environ, {"CHRONOPOST_COMPTE": ""}):
+            rep = await self.client.get("/precommande/relais?cp=14000&ville=Caen")
+            self.assertEqual(rep.status, 200)
+            d = await rep.json()
+            self.assertTrue(d["exemple"])
+            self.assertEqual(len(d["relais"]), 5)
+            rep = await self.client.get("/precommande/relais?cp=abc")
+            self.assertEqual(rep.status, 400)
+
+
+class CourrielsTestCase(AioHTTPTestCase):
+    """E-mails aux clients (Hugo, 24/11) : confirmation avec les CGV une seule fois par commande, nouvelles à
+    chaque étape ; sans SMTP réglé, rien ne part, tout est gardé « en_attente »."""
+
+    async def get_application(self):
+        return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
+
+    def setUp(self):
+        super().setUp()
+        for p in (
+            mock.patch.object(boutique, "lire_prix", lambda: PRIX),
+            mock.patch.dict(os.environ, {"SMTP_HOTE": "", "STRIPE_WEBHOOK_SECRET": SECRET}),
+        ):
+            p.start()
+            self.addCleanup(p.stop)
+
+    async def webhook(self):
+        corps = json.dumps(
+            {
+                "id": "evt_1",
+                "type": "checkout.session.completed",
+                "data": {"object": session_payee()},
+            }
+        ).encode()
+        return await self.client.post(
+            "/precommande/webhook", data=corps, headers={"Stripe-Signature": signer(corps)}
+        )
+
+    async def test_confirmation_une_seule_fois_gardee_sans_smtp(self):
+        self.assertEqual((await self.webhook()).status, 200)
+        self.assertEqual((await self.webhook()).status, 200)  # Stripe réessaie
+        db = get_app_state(self.app).db
+        self.assertEqual(await db.courriel.count_documents({}), 1)
+        mail = await db.courriel.find_one({})
+        self.assertEqual(
+            (mail["genre"], mail["statut"], mail["a"]),
+            ("confirmation", "en_attente", "client@example.org"),
+        )
+        self.assertIsNotNone(mail["brut"])  # gardé tel quel pour partir plus tard
+
+    async def test_envoi_quand_le_smtp_est_regle(self):
+        envoyes = []
+        reglages = {
+            "hote": "smtp",
+            "port": 465,
+            "utilisateur": "u",
+            "mot_de_passe": "p",
+            "de": "MATATAK <c@m.org>",
+        }
+        with (
+            mock.patch.object(courriels, "reglages", lambda: reglages),
+            mock.patch.object(courriels, "_envoyer_smtp", lambda msg, r: envoyes.append(msg)),
+        ):
+            await self.webhook()
+        self.assertEqual(len(envoyes), 1)
+        msg = envoyes[0]
+        self.assertEqual(msg["Subject"], "Votre précommande MATATAK est confirmée")
+        texte = msg.get_body(preferencelist=("plain",)).get_content()
+        self.assertIn("1 × MATATAK, le jeu + les 4 extensions", texte)
+        self.assertIn("Total payé : 47,50 €", texte)
+        self.assertIn("14 jours", texte)
+
+    def test_confirmation_avec_les_cgv(self):
+        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False) as f:
+            f.write("<h1>CGV</h1>")
+        self.addCleanup(os.unlink, f.name)
+        commande = boutique.commande_depuis_session(session_payee())
+        commande["_id"] = "cs_test_abcdefgh"
+        with mock.patch.object(courriels, "FICHIER_CGV", Path(f.name)):
+            msg = courriels.confirmation(commande, PRIX)
+        pj = [p.get_filename() for p in msg.iter_attachments()]
+        self.assertEqual(pj, ["MATATAK-conditions-generales-de-vente.html"])
+        self.assertIn("ABCDEFGH", msg.get_body(preferencelist=("plain",)).get_content())
+
+    async def test_pages_des_commandes_reservees(self):
+        for url in ("/precommande/commandes", "/precommande/commandes.csv"):
+            self.assertEqual((await self.client.get(url)).status, 404, url)
+        rep = await self.client.post(
+            "/precommande/commandes/nouvelle", json={"ids": ["x"], "etape": "fabrication"}
+        )
+        self.assertEqual(rep.status, 404)
+
+    async def test_nouvelle_expediee_avec_suivi(self):
+        await self.webhook()
+
+        async def admin(_request):
+            return None, {}
+
+        with mock.patch.object(commandes, "_admin", admin):
+            rep = await self.client.post(
+                "/precommande/commandes/nouvelle", json={"ids": ["cs_test_1"], "etape": "expediee"}
+            )
+            self.assertEqual(rep.status, 400)  # il faut le numéro de suivi
+            rep = await self.client.post(
+                "/precommande/commandes/nouvelle",
+                json={"ids": ["cs_test_1"], "etape": "expediee", "suivi": "XY123456789FR"},
+            )
+            self.assertEqual(await rep.json(), {"resultats": {"cs_test_1": "en_attente"}})
+            csv = await (await self.client.get("/precommande/commandes.csv")).text()
+        db = get_app_state(self.app).db
+        c = await db.commande.find_one({"_id": "cs_test_1"})
+        self.assertEqual((c["etape"], c["suivi"]), ("expediee", "XY123456789FR"))
+        mail = await db.courriel.find_one({"genre": "expediee"})
+        self.assertIn("XY123456789FR", mail["brut"].decode("utf-8", "replace"))
+        self.assertIn("Commande;Date;Paiement", csv)
+        self.assertIn("XY123456789FR", csv)
+
+
+class PagesLegalesTestCase(AioHTTPTestCase):
+    """/cgv et /mentions-legales : texte du dépôt privé ; bandeau « Brouillon » tant qu'il reste à compléter."""
+
+    async def get_application(self):
+        return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
+
+    async def test_pages_legales(self):
+        from views import cgv
+
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "cgv.html").write_text(
+                '<h1>CGV</h1><mark class="a-completer">[À COMPLÉTER]</mark>'
+            )
+            Path(d, "mentions-legales.html").write_text("<h1>Mentions</h1>")
+            with mock.patch.object(cgv, "DONNEES", Path(d)):
+                rep = await self.client.get("/cgv")
+                self.assertEqual(rep.status, 200)
+                self.assertIn("Brouillon", await rep.text())
+                rep = await self.client.get("/mentions-legales")
+                self.assertEqual(rep.status, 200)
+                self.assertNotIn("Brouillon", await rep.text())
+            with mock.patch.object(cgv, "DONNEES", Path(d, "absent")):
+                self.assertEqual((await self.client.get("/cgv")).status, 404)

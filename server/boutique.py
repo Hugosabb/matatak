@@ -29,6 +29,8 @@ from zoneinfo import ZoneInfo
 import aiohttp
 from aiohttp import web
 
+import courriels
+import relais as relais_chronopost
 from pychess_global_app_state_utils import get_app_state
 from settings import PROD, URI
 
@@ -222,7 +224,11 @@ def adresse_retour(request: web.Request) -> str:
 
 
 async def creer_session(
-    request: web.Request, panier: list[tuple[str, int]], mode: str = "relais", code: str = ""
+    request: web.Request,
+    panier: list[tuple[str, int]],
+    mode: str = "relais",
+    code: str = "",
+    relais: dict | None = None,
 ) -> dict:
     prix = lire_prix()
     remise = remise_code(prix, code)
@@ -329,12 +335,22 @@ async def creer_session(
             "metadata": {"panier": texte},
         },
     }
+    message = []
     if mode == "retrait":
         # nom du client pour le retrait (sans adresse de livraison, Stripe ne le demanderait pas)
         params["name_collection"] = {"individual": {"enabled": True}}
+    elif relais:
+        # point relais choisi sur notre page (Hugo, 24/11) : Stripe ne demande que le nom, pas d'adresse
+        params["name_collection"] = {"individual": {"enabled": True}}
+        params["metadata"]["relais"] = json.dumps(
+            relais, ensure_ascii=False, separators=(",", ":")
+        )[:500]
+        message.append(
+            "Livraison au point relais Chronopost %s, %s, %s %s."
+            % (relais["nom"], relais["adresse"], relais["code_postal"], relais["ville"])
+        )
     else:
         params["shipping_address_collection"] = {"allowed_countries": ["FR"]}
-    message = []
     if remise_totale:
         # un seul code à la fois : pas de second code à taper chez Stripe
         del params["allow_promotion_codes"]
@@ -450,8 +466,15 @@ async def paiement(request: web.Request) -> web.Response:
         code = corps.get("code") or ""
         if not isinstance(code, str) or len(code) > 40:
             raise ValueError("code")
+        relais = relais_chronopost.relais_valide(corps.get("relais"))
     except (ValueError, json.JSONDecodeError):
         return web.json_response({"erreur": "Panier invalide."}, status=400)
+    if mode == "relais" and relais_chronopost.actif() and relais is None:
+        return web.json_response(
+            {"erreur": "Choisissez votre point relais.", "relais_manquant": True}, status=400
+        )
+    if mode != "relais":
+        relais = None
     prix = lire_prix()
     if not all(vendable(prix, cle) for cle, _n in panier):
         return web.json_response(
@@ -472,7 +495,7 @@ async def paiement(request: web.Request) -> web.Response:
             status=400,
         )
     try:
-        session = await creer_session(request, panier, mode, code)
+        session = await creer_session(request, panier, mode, code, relais)
     except (RuntimeError, aiohttp.ClientError, TimeoutError) as e:
         log.error("Précommande : session Stripe refusée (%s)", e)
         return web.json_response(
@@ -502,6 +525,13 @@ def signature_valide(
     return any(hmac.compare_digest(attendu, s) for s in signatures)
 
 
+def _relais_session(s: dict) -> dict | None:
+    try:
+        return json.loads((s.get("metadata") or {}).get("relais") or "null")
+    except ValueError:
+        return None
+
+
 def commande_depuis_session(s: dict) -> dict:
     """Ce qu'on garde d'une session Checkout payée (voir docs/RGPD.md : données nécessaires à la livraison)."""
     client = s.get("customer_details") or {}
@@ -521,6 +551,7 @@ def commande_depuis_session(s: dict) -> dict:
         "livraison": cout.get("amount_total", 0),
         "remise": remises or int((s.get("metadata") or {}).get("remise") or 0),
         "code": (s.get("metadata") or {}).get("code"),
+        "relais": _relais_session(s),
         "devise": s.get("currency"),
         "paiement": s.get("payment_status"),
         "payment_intent": s.get("payment_intent"),
@@ -570,6 +601,14 @@ async def webhook(request: web.Request) -> web.Response:
         upsert=True,
     )
     log.info("Précommande %s : %s", session["id"], statut)
+    if statut == "payee":
+        # e-mail de confirmation avec les CGV, une seule fois (Stripe rappelle parfois le webhook)
+        try:
+            await courriels.confirmer(db, session["id"], lire_prix())
+        except (
+            Exception
+        ):  # un e-mail raté ne doit pas faire refuser le webhook (Stripe réessaierait)
+            log.exception("Précommande %s : confirmation non envoyée", session["id"])
     return web.Response(text="ok")
 
 

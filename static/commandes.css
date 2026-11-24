@@ -1,0 +1,18 @@
+/* Page des commandes (réservée à Hugo) : simple et lisible, aux couleurs du site */
+main.commandes { width: min(1200px, 100% - 32px); margin: 0 auto; padding: 28px 0 48px; color: var(--mt-encre); font: 400 14px/1.45 'Nunito', system-ui, sans-serif; }
+.commandes h1 { margin: 0 0 6px; }
+.commandes h2 { font-size: 17px; margin: 0 0 10px; }
+.commandes header p { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; color: var(--mt-doux); }
+.commandes .alerte { padding: 10px 14px; border-radius: 10px; background: var(--mt-surface-2); box-shadow: inset 0 0 0 1px var(--mt-or-fonce); color: var(--mt-encre); }
+.commandes .nouvelle { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; margin: 18px 0; padding: 16px; border-radius: 14px; background: var(--mt-surface); }
+.commandes .nouvelle h2 { flex-basis: 100%; }
+.commandes .nouvelle label { display: grid; gap: 4px; font-weight: 700; }
+.commandes .nouvelle .pour-texte { flex: 1 1 320px; }
+.commandes input:not([type="checkbox"]), .commandes select, .commandes textarea { padding: 8px 10px; border: 0; border-radius: 8px; background: var(--mt-surface-2); color: var(--mt-encre); font: inherit; }
+.commandes .resultat { flex-basis: 100%; margin: 0; color: var(--mt-or); font-weight: 700; }
+.commandes .tableau { overflow-x: auto; }
+.commandes table { width: 100%; border-collapse: collapse; }
+.commandes th, .commandes td { padding: 8px 10px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--mt-filet); }
+.commandes th { color: var(--mt-doux); font-weight: 800; white-space: nowrap; }
+.commandes small { color: var(--mt-doux); }
+.commandes tr.echouee, .commandes tr.en_attente, .commandes tr.test { opacity: .6; }

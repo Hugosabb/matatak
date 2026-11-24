@@ -433,3 +433,25 @@ body.pc > footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); ba
 .resume-offre.bientot .vignette { opacity: .6; }
 .bientot-mini { display: block; font: 900 10px/1.2 'Jost', sans-serif; font-style: normal; letter-spacing: .1em; text-transform: uppercase; color: var(--mt-or); margin-bottom: 2px; }
 .pc-prevenir .merci { margin: 8px 0 4px; font-weight: 700; color: var(--mt-encre); }
+
+/* Choix du point relais (Hugo, 24/11) : sous les modes de livraison ; une liste, pas de carte */
+.choix-relais { margin: -4px 0 18px; padding: 14px; border-radius: 14px; background: var(--mt-surface-2); }
+.chercher-relais { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.chercher-relais .champ { display: grid; gap: 4px; font-weight: 800; font-size: 13px; }
+.chercher-relais .cp { flex: 0 0 96px; }
+.chercher-relais .ville { flex: 1 1 140px; }
+.chercher-relais input { width: 100%; height: 42px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--mt-surface); color: var(--mt-encre); font: 600 16px 'Nunito', sans-serif; }
+.chercher-relais input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--mt-or); }
+.relais-message { margin: 10px 0 0; color: var(--mt-doux); font-size: 14px; }
+.relais-message:empty { display: none; }
+.liste-relais { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; max-height: 360px; overflow-y: auto; }
+.liste-relais .relais { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px; background: var(--mt-surface); color: var(--mt-encre); text-align: left; font: 400 14px/1.35 'Nunito', sans-serif; cursor: pointer; }
+.liste-relais .relais:hover, .liste-relais .relais:focus-visible { box-shadow: inset 0 0 0 2px var(--mt-or); outline: none; }
+.liste-relais .relais b { font-weight: 800; }
+.liste-relais .relais .dist { grid-row: 1; grid-column: 2; color: var(--mt-or); font-weight: 800; }
+.liste-relais .relais .adr, .liste-relais .relais small { grid-column: 1 / -1; color: var(--mt-doux); }
+.relais-choisi { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; font-weight: 700; }
+.changer-relais { padding: 0; border: 0; background: none; color: var(--mt-or); text-decoration: underline; font: inherit; cursor: pointer; }
+/* (24/11) un élément « hidden » reste caché même si sa règle lui donne display: flex ou grid (la ligne « Code … −0 € »
+   s'affichait sans code, la liste des relais restait après le choix) */
+.pc [hidden] { display: none !important; }

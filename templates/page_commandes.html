@@ -1,0 +1,79 @@
+{% extends "template.html" %}
+{% block content %}
+{#- Commandes de la précommande (server/views/commandes.py) : réservé aux ADMINS -#}
+<main class="commandes">
+  <header>
+    <h1>Commandes</h1>
+    <p>{{ nb_payees }} payée{{ 's' if nb_payees > 1 }} sur {{ commandes|length }}.
+      <a class="mt-btn mt-btn-petit mt-btn-or" href="/precommande/commandes.csv">Exporter (CSV)</a></p>
+    {%- if not smtp_pret %}
+    <p class="alerte">E-mails : le serveur d'envoi (SMTP) n'est pas réglé. Les e-mails sont gardés et partiront quand il le sera{% if courriels_en_attente %} ({{ courriels_en_attente }} en attente){% endif %}.</p>
+    {%- elif courriels_en_attente %}
+    <p class="alerte">{{ courriels_en_attente }} e-mail{{ 's' if courriels_en_attente > 1 }} pas encore parti{{ 's' if courriels_en_attente > 1 }}.</p>
+    {%- endif %}
+  </header>
+
+  <form class="nouvelle" novalidate>
+    <h2>Envoyer une nouvelle aux commandes cochées</h2>
+    <label>Étape
+      <select name="etape">
+        {%- for cle, (sujet, _modele) in etapes.items() %}<option value="{{ cle }}">{{ sujet }}</option>{% endfor %}
+      </select></label>
+    <label class="pour-suivi">Numéro de suivi Chronopost (une seule commande) <input name="suivi" maxlength="40"></label>
+    <label class="pour-texte">Votre message <textarea name="texte" rows="3" maxlength="2000"></textarea></label>
+    <button type="submit" class="mt-btn mt-btn-petit mt-btn-or">Envoyer</button>
+    <p class="resultat" role="status"></p>
+  </form>
+
+  <div class="tableau">
+  <table>
+    <thead><tr><th><input type="checkbox" class="tout" aria-label="Tout cocher"></th><th>N°</th><th>Date</th><th>Client</th><th>Articles</th><th>Livraison</th><th>Total</th><th>Paiement</th><th>Étape</th></tr></thead>
+    <tbody>
+    {%- for c in commandes %}
+      <tr class="{{ c.statut }}{% if c.test %} test{% endif %}">
+        <td><input type="checkbox" value="{{ c.id }}" {% if c.statut != 'payee' %}disabled{% endif %} aria-label="Choisir {{ c.numero }}"></td>
+        <td>{{ c.numero }}{% if c.test %} <small>test</small>{% endif %}</td>
+        <td>{{ c.cree.strftime('%d/%m %H:%M') if c.cree else '' }}</td>
+        <td>{{ c.nom }}<br><small>{{ c.email }}{% if c.telephone %} · {{ c.telephone }}{% endif %}</small></td>
+        <td>{{ c.articles }}{% if c.code %}<br><small>code {{ c.code }}</small>{% endif %}</td>
+        <td>{{ c.mode }}<br><small>{{ c.relais or c.adresse }}</small></td>
+        <td>{{ c.total }}</td>
+        <td>{{ c.statut }}</td>
+        <td>{{ c.etape }}{% if c.suivi %}<br><small>{{ c.suivi }}</small>{% endif %}</td>
+      </tr>
+    {%- else %}
+      <tr><td colspan="9">Aucune commande pour l'instant.</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+</main>
+{% endblock %}
+{% block js %}
+<script>
+(() => {
+  const form = document.querySelector('.nouvelle'), res = form.querySelector('.resultat');
+  const cases = () => [...document.querySelectorAll('tbody input:checked')].map((i) => i.value);
+  document.querySelector('.tout').addEventListener('change', (e) => document.querySelectorAll('tbody input:not(:disabled)').forEach((i) => { i.checked = e.target.checked; }));
+  const montrer = () => {
+    const e = form.etape.value;
+    form.querySelector('.pour-suivi').hidden = e !== 'expediee';
+    form.querySelector('.pour-texte').hidden = !['retard', 'nouvelle'].includes(e);
+  };
+  form.etape.addEventListener('change', montrer); montrer();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ids = cases();
+    if (!ids.length) { res.textContent = 'Cochez au moins une commande.'; return; }
+    if (!confirm(`Envoyer « ${form.etape.selectedOptions[0].text} » à ${ids.length} client(s) ?`)) return;
+    const rep = await fetch('/precommande/commandes/nouvelle', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids, etape: form.etape.value, suivi: form.suivi.value, texte: form.texte.value }) });
+    const d = await rep.json().catch(() => ({}));
+    if (!rep.ok) { res.textContent = d.erreur || 'Erreur.'; return; }
+    const n = Object.values(d.resultats);
+    res.textContent = `Envoyés : ${n.filter((x) => x === 'envoye').length} · gardés en attente : ${n.filter((x) => x === 'en_attente').length} · échecs : ${n.filter((x) => x === 'echec' || x === 'introuvable').length}`;
+    setTimeout(() => location.reload(), 2500);
+  });
+})();
+</script>
+{% endblock %}

@@ -11,3 +11,8 @@ main.confidentialite { width: 100%; font: 400 15.5px/1.6 'Nunito', system-ui, sa
 .conf-page b { color: var(--mt-encre); }
 .conf-page a { color: var(--mt-or); }
 .conf-date { font-size: 13.5px; color: var(--mt-discret) !important; text-align: center; }
+/* Conditions générales de vente (/cgv) : même page que la confidentialité ; passages encore à compléter surlignés */
+.cgv h1 { margin: 0 0 6px; }
+.cgv h2 { margin: 18px 0 0; }
+.cgv mark.a-completer { background: rgba(234, 196, 90, .22); color: var(--mt-or); border-radius: 4px; padding: 0 3px; }
+.cgv-brouillon { margin: 0; padding: 10px 14px; border-radius: 10px; background: var(--mt-surface-2); box-shadow: inset 0 0 0 1px var(--mt-or-fonce); font-weight: 700; }
