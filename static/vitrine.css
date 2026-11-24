@@ -1,12 +1,18 @@
 /* Vitrine (page d'accueil publique) = page de vente du jeu de société. Couleurs et boutons : matatak-ui.css
-   Ce qui bouge au défilement lit des variables que pose vitrine.js : --p (0 → 1) sur les éléments [data-p],
-   --a / --s / --x sur les freins, --r sur la promesse. Tout est figé si l'appareil demande moins d'animations.
+   Les animations se jouent seules quand leur section arrive (vitrine.js, « lecteurs », depuis le 23/11) ; elles lisent
+   des variables qu'il pose (--p du graphique, --cri du point 3, --x des bandeaux…). Tout est figé si l'appareil demande
+   moins d'animations.
    Polices : titres en Jost Heavy capitales (comme le dos de la boîte), boutons en Tribeca (comme tout le site),
    texte en Nunito. */
+/* Tribeca se dessine 0,1175 em trop bas (métriques pour 1000 : ascent 1136, descent 135, capitales et chiffres 766).
+   Aujourd'hui on corrige au cas par cas avec --mt-tribeca (matatak-ui.css). Correction à la source, NON appliquée
+   (Hugo, 20/11 : ne pas tout modifier) : dans cette déclaration, ascent-override: 90.1%; descent-override: 13.5%;
+   met le centre des capitales au centre de la ligne, quelle que soit la hauteur de ligne ; il faudrait alors mettre
+   --mt-tribeca à 0 et vérifier toutes les pages. */
 @font-face { font-family: 'Tribeca'; src: url('fonts/Tribeca.woff2') format('woff2'), url('fonts/Tribeca.woff') format('woff'); font-display: swap; }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; background: var(--mt-nuit); }
+html { overflow-x: clip; /* (23/11) Safari laissait glisser la page de côté (logo du point 1 agrandi avant son entrée) : le body seul ne suffit pas */ scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; background: var(--mt-nuit); }
 body { margin: 0; background: none; /* le fond nuit est sur html : les feuilles fixes (z-index -1) passent devant */ color: var(--mt-encre); font: 400 clamp(16px, 1.25vw, 18px)/1.6 'Nunito', system-ui, sans-serif; -webkit-font-smoothing: antialiased; overflow-x: clip; }
 img { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
@@ -16,7 +22,6 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .surtitre.gauche { justify-content: flex-start; text-align: left; }
 .avant { position: relative; z-index: 1; }
 .etroit { width: min(820px, 100% - 32px); }
-[data-p] { --p: 0; }
 .bloc { padding: clamp(72px, 9vw, 120px) 0; position: relative; }
 .titre { text-align: center; font-size: clamp(28px, 3.6vw, 50px); margin-bottom: 16px; }
 .sous { text-align: center; color: var(--mt-doux); max-width: 600px; margin: 0 auto 44px; font-size: 1.06em; }
@@ -56,6 +61,9 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 
 /* ---------- Héros : la boîte au centre, la promesse dessous (vitrine.js pose --S = côté de la boîte) ---------- */
 .ouverture .collant { position: relative; height: 100svh; min-height: 600px; overflow: hidden; isolation: isolate; }
+/* téléphone (23/11) : 64 px de moins que l'écran (APERCU dans vitrine.js), le titre de la section suivante se voit dessous :
+   des visiteurs croyaient la page finie et ne descendaient pas */
+@media (max-width: 820px) { .ouverture .collant { height: max(560px, calc(100svh - 64px)); min-height: 0; } }
 /* une seule couche de feuilles, fixe ; vitrine.js règle son opacité au défilement (Hugo, 17/11) :
    ordinateur = claires en haut (elles remplacent le fond du héros), assombries ensuite jusqu'à la fin (la boîte ouverte ressort sur le noir, 18/11) ;
    téléphone = cachées pendant la page (le héros a son propre fond), elles reviennent sur la boîte de fin.
@@ -89,7 +97,8 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .promesse h1 .mot { display: block; opacity: 0; transform: translateY(18px); animation: monte .9s cubic-bezier(.2, .8, .2, 1) forwards; }
 .promesse h1 .mot.or { color: var(--mt-or); animation-delay: .25s; }
 @keyframes monte { to { opacity: 1; transform: none; } }
-.accroche { font: 800 clamp(18px, 1.7vw, 24px)/1.3 'Nunito', sans-serif; margin: 0 0 12px; }
+/* même style que la phrase sœur de la fin, « Pour rassembler ceux qui adorent les échecs… » (.rassembler ; Hugo, 24/11) */
+.accroche { font: 700 clamp(17px, 1.5vw, 21px)/1.4 'Nunito', sans-serif; color: var(--mt-doux); margin: 0 0 12px; text-wrap: balance; }
 .infos { display: flex; justify-content: center; gap: 8px 18px; color: var(--mt-doux); font-weight: 700; font-size: 14px; margin-bottom: 26px; flex-wrap: wrap; }
 .infos span { display: inline-flex; gap: 8px; align-items: center; }
 /* Pictos du dos de la boîte (losange seul) avec leur texte complet
@@ -103,8 +112,8 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .infos.pictos .printemps { color: var(--mt-printemps); }
 .promesse .accroche { margin: 6px 0 20px; }
 @media (max-width: 820px) {
-  .promesse .accroche { font-weight: 600; font-size: 15px; color: var(--mt-doux); margin: 12px 0 26px; }
-  .infos.pictos { gap: 0; margin-bottom: 30px; }
+  .promesse .accroche { margin: 10px 0 20px; }
+  .infos.pictos { gap: 0; margin-bottom: 22px; }
   .infos.pictos span { flex-direction: column; gap: 8px; width: 104px; font-size: 13px; font-weight: 600; }
   .infos.pictos span[class] { color: var(--mt-doux); }
   .infos.pictos img { width: 40px; height: 40px; }
@@ -117,7 +126,7 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .promesse .essayer:hover { color: var(--mt-jaune); }
 .promesse .essayer svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 820px) {
-  .promesse { top: calc(70px + var(--S, 260px) * 1.28); }
+  .promesse { top: calc(30px + 22px + var(--S, 240px) * 1.28); } /* + 22 px : la boîte plus bas (Hugo, 24/11 ; vitrine.js repos) */
   .infos { margin-bottom: 18px; }
   .promesse .actions { flex-direction: column; align-items: stretch; width: min(340px, 100%); margin: auto; gap: 10px; }
 }
@@ -140,13 +149,17 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
    Échiquier classique (pièces Cburnett) : une ouverture se joue, une flèche par coup possible ; les 3 freins arrivent
    et sont barrés ; puis le plateau de MATATAK arrive de la droite et pousse l'échiquier, qui part en tournoyant ;
    le logo remplace le titre. Tout est piloté par vitrine.js. */
-.freins { position: relative; height: 310vh; } /* 10vh de plus le 19/11 : le point 1 arrive après le plateau (vitrine.js) */
-.freins .collant { position: sticky; top: 0; height: 100svh; display: grid; align-items: center; overflow: hidden; background: radial-gradient(ellipse 60% 55% at 50% 50%, #1b1410, transparent 70%); }
+/* (23/11) plus collante : l'animation se joue seule quand la section est à l'écran (vitrine.js, lecteur) */
+.freins { position: relative; }
+.freins .collant { position: relative; padding: 14px 0 clamp(40px, 8svh, 90px); display: grid; align-items: center; overflow: hidden; background: radial-gradient(ellipse 60% 55% at 50% 50%, #1b1410, transparent 70%); }
 .freins .collant > .mt-wrap { position: relative; z-index: 1; }
+@media (min-width: 821px) { .freins .collant { padding-top: 110px; } } /* sous la barre du haut */
 .titres { --m: 0; --t: 0; position: relative; display: grid; place-items: center; margin-bottom: 18px; }
 .titres > * { grid-area: 1 / 1; }
 .freins .titre { margin: 0; opacity: calc(1 - var(--t)); transform: translateY(calc(var(--t) * -16px)); }
-.logo-mt { width: min(300px, 62vw); height: auto; opacity: var(--m); transform: scale(calc(.85 + var(--m) * .15)); filter: drop-shadow(0 6px 24px rgba(234, 196, 90, .25)); }
+.logo-mt { --m: 0; width: min(300px, 62vw); height: auto; opacity: var(--m); transform: scale(calc(.85 + var(--m) * .15)); filter: drop-shadow(0 6px 24px rgba(234, 196, 90, .25)); }
+/* logo en tête du point 1 (23/11) ; vitrine.js pose --m quand le point 1 se joue */
+.logo-point1 { display: grid; justify-items: center; margin-bottom: clamp(18px, 3vw, 36px); }
 .plateaux { position: relative; aspect-ratio: 1; transform: perspective(1400px) rotateX(16deg); pointer-events: none; }
 .echiquier, .plateau-mt { position: absolute; inset: 0; width: 100%; height: 100%; }
 .echiquier { will-change: transform; }
@@ -197,31 +210,28 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .plateau-mt .fleches-mt .ombres line { stroke: rgba(0, 0, 0, .4); stroke-width: 11; }
 .plateau-mt .fleches-mt .ombres .tete { fill: rgba(0, 0, 0, .4); }
 .freins-texte { position: relative; min-height: 7.5em; }
-/* le plateau et le point 1 : sur téléphone, le texte sous le plateau ; sur ordinateur, à droite, le tout glisse (--g) */
-.scene-freins { --g: 0; position: relative; width: min(540px, 88vw, 50svh); margin: 0 auto 22px; }
+/* (23/11) le plateau de MATATAK ne pousse plus l'échiquier : celui des freins reste caché (vitrine.js en fait une
+   copie pour le point 1) ; après les 3 freins, une phrase mène aux 4 points (--f posé par vitrine.js) */
+.freins .plateau-mt { display: none; }
+/* dans la police des titres (Jost Heavy capitales, Hugo 23/11), en or, plus petite */
+.transition-freins { margin: clamp(22px, 3.4vw, 36px) auto 0; max-width: 22ch; text-align: center; text-wrap: balance;
+  font: 900 clamp(20px, 2.2vw, 30px)/1.2 'Jost', sans-serif; text-transform: uppercase; letter-spacing: .02em; color: var(--mt-or); }
+.scene-freins { position: relative; width: min(540px, 88vw, 50svh); margin: 0 auto 22px; }
 .scene-freins .plateaux { margin: 0; width: 100%; }
-.freins .point-1 { --r: 0; position: absolute; left: 0; right: 0; top: calc(100% + 18px); text-align: center; opacity: var(--r); transform: translateY(calc((1 - var(--r)) * 24px)); }
-.freins .point-1 .num { margin: 0 auto 14px; }
-.freins .point-1 h3 { margin-bottom: 8px; }
-/* sur téléphone, le titre du point tient sur une ligne */
-@media (max-width: 820px) { .freins .point-1 h3 { font-size: min(28px, 6vw); white-space: nowrap; } }
-.freins .point-1 p { margin: auto; text-wrap: balance; }
-@media (min-width: 821px) {
-  .scene-freins { transform: translateX(calc(var(--g) * -240px)); }
-  .freins .point-1 { left: calc(100% + 60px); right: auto; top: 50%; width: 420px; text-align: left; transform: translate(calc((1 - var(--r)) * 40px), -50%); }
-  .freins .point-1 .num { margin: 0 0 18px 6px; }
-  .freins .point-1 p { margin: 0; }
-}
+/* point 1 (23/11 : sa propre section) : une copie du plateau de MATATAK des freins (vitrine.js), déjà en place */
+.scene-point1 { position: relative; width: min(500px, 88vw, 50svh); margin: 0 auto; }
+.scene-point1 .plateau-mt { transform: none; }
 .liste-freins { list-style: none; padding: 0; margin: 0 auto; display: grid; gap: 12px; width: fit-content; max-width: 100%; }
-.liste-freins li { --a: 0; --s: 0; --x: 0; position: relative; padding-left: 22px; line-height: 1.3; font-size: clamp(17px, 1.6vw, 21px); font-weight: 800;
-  opacity: calc(var(--a) * (1 - var(--x))); transform: translateY(calc((1 - var(--a)) * 16px - var(--x) * 20px));
-  color: color-mix(in srgb, var(--mt-encre) calc(100% - var(--s) * 50%), var(--mt-nuit)); }
+.liste-freins li { position: relative; padding-left: 22px; line-height: 1.3; font-size: clamp(17px, 1.6vw, 21px); font-weight: 800; color: var(--mt-encre); }
+/* (23/11) les freins et la phrase se dévoilent un à un dès qu'ils arrivent (vitrine.js, enVague), sans attendre l'échiquier */
 .liste-freins li::before { content: ""; position: absolute; left: 0; top: calc(.65em - 5px); width: 10px; height: 10px; background: var(--mt-or); transform: rotate(45deg); }
 /* la barre suit le texte, ligne par ligne (un frein sur 2 lignes est barré sur ses 2 lignes) */
 .liste-freins li span { background: linear-gradient(var(--mt-or), var(--mt-or)) 0 58% / calc(var(--s) * 100%) 3px no-repeat; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 
 /* ---------- Courbe d'apprentissage : MATATAK passe vite au-dessus du sentiment de bien jouer ---------- */
-.graphe { margin: 0; width: 100%; }
+.graphe { position: relative; margin: 0; width: 100%; }
+/* une animation finie se rejoue quand on la touche (vitrine.js) */
+.rejouable { cursor: pointer; }
 .graphe svg { width: 100%; overflow: visible; font-family: 'Jost', sans-serif; }
 .graphe .axe { fill: none; stroke: var(--mt-filet); stroke-width: 3; }
 .graphe .seuil { stroke: var(--mt-doux); stroke-width: 2; stroke-dasharray: 2 10; stroke-linecap: round; opacity: .7; }
@@ -263,12 +273,10 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .temoins .legende { display: grid; gap: 2px; text-align: center; }
 .temoins q { font: 900 clamp(20px, 2.2vw, 28px)/1.15 'Jost', sans-serif; text-transform: uppercase; color: var(--mt-or); margin-bottom: 8px; }
 .temoins .legende b { font: 900 clamp(18px, 1.7vw, 22px)/1.2 'Jost', sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--mt-or); }
-.temoins .evenements { margin: clamp(24px, 3.5vw, 40px) auto 0; text-align: center; color: var(--mt-doux); font-size: 15px; }
 .temoins .legende { gap: 6px; }
 /* extensions (Hugo, 18/11 : en parler sur la vitrine, le détail sur la page de précommande) ; mots du livret, page 12 */
 .point-texte .extensions { margin-top: 10px; font-size: min(.92em, 3.7vw); color: var(--mt-doux); white-space: nowrap; }
 /* même étiquette blanche que « Dans la boîte » : les extensions n'y sont pas */
-.offre .extensions-fin { margin-top: 2px; }
 /* phrase coupée à la virgule (Hugo, 18/11) */
 .temoins .evenement span { white-space: nowrap; }
 @media (max-width: 600px) { .temoins .evenement span { display: block; } }
@@ -280,6 +288,16 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .descendre.partie { opacity: 0; pointer-events: none; }
 @keyframes rebond { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
 @media (prefers-reduced-motion: reduce) { .descendre { animation: none; } }
+/* la même flèche quand une animation se termine (Hugo, 24/11) : fixée en bas, sur un rond sombre pour se lire sur tout,
+   au-dessus de la barre « Précommander » quand elle est là ; vitrine.js (montrerSuite) */
+.suite-bas { position: fixed; z-index: 59; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); translate: -50% 0; width: 46px; height: 46px;
+  display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; cursor: pointer; color: var(--mt-or);
+  background: rgba(18, 16, 14, .78); box-shadow: 0 0 0 1px rgba(234, 196, 90, .35), 0 8px 20px -6px rgba(0, 0, 0, .7);
+  opacity: 0; pointer-events: none; transition: opacity .35s, bottom .24s cubic-bezier(.32, .72, 0, 1); }
+.suite-bas svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.suite-bas.visible { opacity: 1; pointer-events: auto; animation: rebond 2.2s ease-in-out infinite; }
+.collante.visible + .suite-bas { bottom: calc(80px + env(safe-area-inset-bottom)); }
+@media (prefers-reduced-motion: reduce) { .suite-bas.visible { animation: none; } }
 /* ordinateur : pas de place sous le lien « essayer », et l'en-tête montre déjà la suite */
 @media (min-width: 821px) { .descendre { display: none; } }
 /* titre et audience côte à côte, une icône chacun ; ils passent l'un sous l'autre si la place manque */
@@ -309,72 +327,50 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
   .point-texte p { margin: auto; }
 }
 /* Point 3 : la partie à 4, vue de dessus comme les échecs (plateau dans son sens : pas de quart de tour) */
-.partie4-cadre { position: relative; padding-top: clamp(40px, 6svh, 64px); }
-.partie4 { width: min(540px, 100%, 54svh); }
+.partie4-cadre { position: relative; } /* (23/11) le cri est sur le plateau, au-dessus de KRAK : plus de place réservée en haut */
+.partie4 { width: min(540px, 100%, 54svh); container-type: inline-size; } /* cqw : taille du cri */
 .partie4::before { transform: none; }
 /* « MATATAK ! » au-dessus du plateau, hors de sa perspective (il n'est pas déformé), droit et sans contour */
-.partie4-cadre .cri { position: absolute; left: 0; right: 0; top: 0; z-index: 4; text-align: center; pointer-events: none;
-  font: 900 clamp(30px, 4vw, 52px)/1 'Jost', sans-serif; letter-spacing: .04em; color: var(--mt-or);
-  text-shadow: 0 0 30px rgba(234, 196, 90, .35); opacity: var(--cri, 0); transform: translateY(calc((1 - var(--cri, 0)) * 14px)); }
-/* chaque sujet arrête la page un moment (Hugo, 16/11) : l'article est plus haut que l'écran, son bloc reste collé,
-   centré, et l'illustration bouge pendant l'arrêt (la courbe se trace, la partie se joue, les bandeaux défilent) */
-.point.arret { height: calc(100svh + 70vh); padding: 0; }
-.arret-bloc { position: sticky; top: 0; min-height: 100svh; display: grid; align-content: center; }
-/* Arrêt « souple » (Même les stars, l'équipe ; Hugo, 18/11 : chaque section arrête le défilement) : le contenu
-   peut être plus haut que l'écran (téléphone) ; on défile alors jusqu'à son bas, puis la page s'arrête. --haut =
-   hauteur du bloc, posée par vitrine.js. */
-.arret-souple { height: calc(var(--haut, 100svh) + var(--arret, 60vh)); padding: 0; }
-.arret-souple .arret-bloc { top: min(0px, calc(100svh - var(--haut, 100svh))); box-sizing: border-box; padding-block: clamp(40px, 8vw, 120px); }
-/* Étapes d'un arrêt (data-etapes / data-etape, vitrine.js) : les étapes occupent la même place, une seule se voit ;
-   la suivante monte en fondu. Le titre de la section reste au-dessus (Hugo, 18/11 : moins d'infos à la fois). */
-.temoins { --arret: 200vh; } /* chaque vidéo ≈ 1 écran de défilement (Hugo, 18/11 : tout le monde doit les voir) */
-.equipe-bloc { --arret: 270vh; } /* 4 étapes : l'équipe, la genèse, « Ils nous font confiance », « Fabriqué en Europe » */
-.etapes { display: grid; }
-.etapes > * { grid-area: 1 / 1; transition: opacity .45s ease, transform .6s cubic-bezier(.2, .8, .3, 1), visibility 0s; }
-/* jusqu'à 4 étapes : celles d'avant partent vers le haut, celles d'après attendent en bas */
-.etapes > :not(:first-child), .etapes[data-etape="1"] > :first-child, .etapes[data-etape="2"] > :nth-child(-n+2), .etapes[data-etape="3"] > :nth-child(-n+3) { opacity: 0; visibility: hidden; transition-delay: 0s, 0s, .45s; }
-.etapes > :not(:first-child) { transform: translateY(28px); }
-.etapes[data-etape="1"] > :first-child, .etapes[data-etape="2"] > :nth-child(-n+2), .etapes[data-etape="3"] > :nth-child(-n+3) { transform: translateY(-28px); }
-.etapes[data-etape="1"] > :nth-child(2), .etapes[data-etape="2"] > :nth-child(3), .etapes[data-etape="3"] > :nth-child(4) { opacity: 1; visibility: visible; transform: none; transition-delay: .1s, .1s, 0s; }
-/* Témoins en pile verticale (Hugo, 18/11 : le carrousel donnait envie de balayer de gauche à droite) : la vidéo en
-   cours devant ; la suivante derrière, plus petite et assombrie, dépasse en bas ; au milieu de l'arrêt, la première
-   s'envole vers le haut et la suivante passe devant, dans le sens du défilement. Légendes dessous, une à la fois. */
-.temoins .arret-bloc { overflow-x: clip; }
-.carrousel { display: grid; justify-items: center; padding-bottom: clamp(36px, 5vw, 56px); }
-.carrousel > figure { grid-area: 1 / 1; position: relative; z-index: 1; transition: transform .8s cubic-bezier(.2, .8, .3, 1), opacity .6s ease, filter .6s ease; }
-.carrousel > figure:nth-child(2) { z-index: 0; transform: translateY(19%) scale(.86); filter: brightness(.6) saturate(.8); pointer-events: none; }
-.carrousel[data-etape="1"] > figure:first-child { z-index: 2; transform: translateY(-22%) scale(.92); opacity: 0; pointer-events: none; }
-.carrousel[data-etape="1"] > figure:nth-child(2) { transform: none; filter: none; pointer-events: auto; }
-/* la vidéo en attente n'a ni sous-titre ni bouton son */
-.carrousel .sous-titre, .carrousel .son { transition: opacity .4s ease; }
-.carrousel > figure:nth-child(2) :is(.sous-titre, .son), .carrousel[data-etape="1"] > figure:first-child :is(.sous-titre, .son) { opacity: 0; }
-.carrousel[data-etape="1"] > figure:nth-child(2) :is(.sous-titre, .son) { opacity: 1; }
-.legendes { margin-top: 14px; }
-@media (prefers-reduced-motion: reduce) {
-  .etapes > * { grid-area: auto; }
-  .etapes > *, .etapes[data-etape] > * { opacity: 1 !important; visibility: visible !important; transform: none !important; }
-  .carrousel { grid-auto-flow: row; gap: 32px; }
-  .carrousel > figure { grid-area: auto; opacity: 1 !important; filter: none !important; transform: none !important; pointer-events: auto !important; }
-}
-@media (prefers-reduced-motion: reduce) { .arret-souple { height: auto; } .arret-souple .arret-bloc { position: relative; } }
-.point-cartes .arret-bloc { overflow: clip; gap: 0; grid-template-columns: 100%; } /* sinon la colonne prend la largeur des bandeaux et le texte part hors de l'écran */
-.point-cartes .arret-bloc > * { min-width: 0; }
+/* « MATATAK ! » au-dessus de KRAK, qui met l'échec (vitrine.js pose left / top sur sa case ; Hugo, 23/11) */
+/* (Hugo, 24/11 : les bulles « font amateur ») plus de bulle : le cri seul, centré entre KRAK et SHANS, juste sous la
+   flèche (jamais dessus : règle du livret) ; lettres en dégradé d'or comme le titre de la boîte, ombre douce pour se lire
+   sur les cartes ; il arrive en fondu, un peu plus grand et flou, et se pose (--cri, vitrine.js) */
+.partie4 .cri { position: absolute; z-index: 4; white-space: nowrap; pointer-events: none;
+  font: 900 4.9cqw/1 'Jost', sans-serif; letter-spacing: .06em; /* ≈ 30 % du plateau : tient dans les 3 cases libres sous la flèche */
+  color: var(--mt-or); background: linear-gradient(180deg, #fbe7a1 0%, var(--mt-jaune) 38%, var(--mt-or) 62%, #c98a2c 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .55)) drop-shadow(0 6px 16px rgba(0, 0, 0, .6)) blur(calc((1 - var(--cri, 0)) * 5px));
+  opacity: var(--cri, 0); transform: translate(-50%, -50%) scale(calc(1.14 - .14 * var(--cri, 0))); }
+/* SHANS en échec : le liseré rouge qui pulse et la secousse du site (chessground.css), seule exception à « pas de rouge » */
+.partie4 img.echec { animation: echec4-secousse .42s cubic-bezier(.36, .07, .19, .97), echec4-pulse .8s ease-in-out .42s infinite alternate;
+  box-shadow: 0 0 0 2.5px #ff4b3e, 0 0 10px 3px rgba(255, 60, 50, .85); }
+/* bulle de bande dessinée : c'est KRAK qui le dit (Hugo, 23/11) ; la queue pointe sur sa carte */
+/* la flèche de l'échec, de KRAK vers SHANS (vitrine.js la trace) */
+.partie4 .fleche-echec { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; overflow: visible; pointer-events: none; }
+.partie4 .fleche-echec line { stroke: var(--mt-or); stroke-width: 9; stroke-linecap: round; }
+.partie4 .fleche-echec path { fill: var(--mt-or); }
+@keyframes echec4-pulse { from { box-shadow: 0 0 0 2.5px rgba(255, 75, 62, .55), 0 0 10px 3px rgba(255, 60, 50, .45); } to { box-shadow: 0 0 0 2.5px #ff4b3e, 0 0 10px 3px rgba(255, 60, 50, .85); } }
+@keyframes echec4-secousse { 0%, 100% { translate: 0 0; rotate: 0deg; } 20% { translate: -4% 0; rotate: -4deg; } 40% { translate: 4% 0; rotate: 4deg; } 60% { translate: -3% 0; rotate: -2deg; } 80% { translate: 2% 0; rotate: 1deg; } }
+.temoins .legende { margin-top: 14px; } /* (23/11) sous sa vidéo */
+.point-cartes .cartes-bloc { overflow-x: clip; gap: 0; grid-template-columns: 100%; } /* sinon la colonne prend la largeur des bandeaux et le texte part hors de l'écran */
+.point-cartes .cartes-bloc > * { min-width: 0; }
 .point-cartes .rangee img { width: max(clamp(80px, min(11vw, 13svh), 170px), 9vw); }
 /* Point 4 : les Personnages défilent */
-.point-cartes { overflow: clip; }
+/* coupé sur les côtés seulement : en haut, le bout de la rangée inclinée (−4°) dépassait et était coupé sur tablette et
+   ordinateur (Hugo, 23/11) ; la place de l'inclinaison (≈ 4,2vw) est ajoutée au-dessus */
+.point-cartes { overflow-x: clip; padding-top: calc(clamp(30px, 5vw, 70px) + 4.5vw); }
 
 /* ---------- Cartes recto verso ---------- */
 .carte-rv { --f: 0; position: relative; aspect-ratio: 1; transform-style: preserve-3d; transform: rotateY(calc(var(--f) * 180deg)); }
-.carte-rv > img, .carte-rv > .piece { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 6%; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.carte-rv > img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 6%; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .carte-rv .verso { transform: rotateY(180deg); }
 
 .rangees { display: grid; gap: clamp(10px, 1.4vw, 18px); transform: rotate(-4deg); margin: 0 -10vw; }
 /* centrée sur l'écran (la boîte .rangees fait 120vw, son milieu est à 60vw), glisse de ±10vw au défilement ; plus de
    rangée répétée (Hugo, 18/11 : pas de doublon), elle doit donc rester plus large que l'écran : 14 ou 15 cartes de 9vw au moins */
-.rangee { display: flex; gap: clamp(10px, 1.4vw, 18px); width: max-content; transform: translateX(calc(60vw - 50% + var(--sens) * (var(--p) - .5) * 20vw)); }
+.rangee { display: flex; gap: clamp(10px, 1.4vw, 18px); width: max-content; transform: translateX(var(--x, 0px)); } /* (23/11) défile en continu, vitrine.js */
 .rangee:nth-child(2) { margin-left: -6vw; }
 .rangee img { width: clamp(110px, 13vw, 190px); border-radius: 6%; box-shadow: 0 16px 30px -14px #000; }
-.voir-tout { position: relative; z-index: 1; display: flex; justify-content: center; margin-top: 26px; }
 .point-cartes .rangees + .mt-wrap { margin-top: clamp(28px, 4vw, 48px); }
 /* téléphone : 2 bandeaux de 3 rangées plus courtes, au-dessus et au-dessous du texte (Hugo, 18/11) ; ordinateur : 1 bandeau */
 .rangees-tel { display: none; }
@@ -385,15 +381,14 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
   .point-cartes .rangees-tel .rangee img { width: clamp(52px, calc((100svh - 300px) / 6.6), 74px); }
   .point-cartes .rangees-tel, .point-cartes .rangees-tel .rangee { gap: 8px; }
   .point-cartes .rangees-tel { transform: rotate(-3deg); }
-  .point-cartes .arret-bloc { padding-bottom: calc(64px + env(safe-area-inset-bottom)); box-sizing: border-box; }
+  .point-cartes .cartes-bloc { padding-bottom: calc(64px + env(safe-area-inset-bottom)); box-sizing: border-box; }
   .point-cartes .mt-wrap + .rangees-bas { margin-top: -18px; } /* la rotation laisse déjà du vide au-dessus */
   .point-cartes .rangees + .mt-wrap { margin-top: 22px; }
 }
-.point-texte .voir-tout { justify-content: center; margin-top: 20px; }
 
 /* ---------- Échecs (section collante) : les 32 cartes se posent, puis les premiers coups d'une partie ---------- */
-.echecs { position: relative; height: 260vh; }
-.echecs .collant { position: sticky; top: 0; height: 100svh; display: grid; align-content: center; gap: 4px; overflow: hidden; background: radial-gradient(ellipse 70% 50% at 50% 60%, #1b1610, transparent 70%); }
+.echecs { position: relative; } /* (23/11) plus collante : jouée une fois (vitrine.js) */
+.echecs .collant { position: relative; padding: clamp(56px, 9svh, 110px) 0; display: grid; align-content: center; gap: 4px; overflow: hidden; background: radial-gradient(ellipse 70% 50% at 50% 60%, #1b1610, transparent 70%); }
 .echecs .sous { margin-bottom: 24px; }
 .echiquier-mt { position: relative; width: min(560px, 92vw, 56svh); aspect-ratio: 1; margin: 0 auto; transform: perspective(1400px) rotateX(24deg); }
 /* aux échecs, le plateau de MATATAK se tourne d'un quart de tour (case claire en bas à droite) */
@@ -403,17 +398,15 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 /* ---------- En ligne : trois téléphones qui montent l'un après l'autre ---------- */
 /* jeu en ligne (section collante, 3 sujets) : le téléphone montre le vrai site ; --a fait défiler l'Aventure,
    --g fait glisser d'un écran à l'autre (0, 1, 2), --k1 --k2 font bouger Défier et l'Arène ; le sujet actif est en or */
-.en-ligne { position: relative; height: 320vh; } /* 36 étapes de partie (18/11) ; 330vh avant, 280vh avec les menus */
-.en-ligne .collant { position: sticky; top: 0; height: 100svh; display: grid; align-items: center; overflow: clip;
+.en-ligne { position: relative; } /* (23/11) plus collante : les 36 captures se jouent une fois (vitrine.js) */
+.en-ligne .collant { position: relative; padding: clamp(56px, 9svh, 110px) 0; display: grid; align-items: center; overflow: clip;
   background: radial-gradient(ellipse 60% 50% at 50% 55%, #1d1712, transparent 70%); }
 .en-ligne-grille { display: grid; grid-template-columns: auto minmax(0, 440px); justify-content: center; align-items: center; gap: clamp(28px, 6vw, 90px); }
 .telephone { padding: 8px; border-radius: 40px; background: #1d1814;
   box-shadow: inset 0 0 0 1.5px #3a3029, 0 50px 80px -30px #000; }
 /* l'écran a exactement le format des captures (540 × 1169), plein écran : pendant une partie il n'y a pas d'onglets */
 .ecran-tel { position: relative; width: min(280px, 35svh); aspect-ratio: 540 / 1169; border-radius: 32px; overflow: hidden; background: #12100e; }
-/* la partie : les 36 captures empilées, seule l'étape du défilement est visible (vitrine.js pose .active) */
-.partie-mini img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; opacity: 0; }
-.partie-mini img.active { opacity: 1; }
+.partie-mini video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; } /* (23/11) la partie filmée */
 .en-ligne-texte { text-align: left; }
 .en-ligne-texte .titre { text-align: left; margin-bottom: 10px; }
 .en-ligne-texte .sous { margin: 0 0 16px; text-align: left; }
@@ -421,10 +414,8 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
    Mêmes réglages dans .liste-freins et .liste-fab ; barre des freins dans le même or */
 .sujets { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 12px; }
 .sujets li { display: flex; gap: 12px; align-items: center; font: 800 clamp(17px, 1.6vw, 21px)/1.3 'Nunito', sans-serif;
-  color: var(--mt-discret); transition: color .3s, transform .3s; }
-.sujets li::before { content: ""; flex: none; width: 10px; height: 10px; rotate: 45deg; background: currentColor; transition: background .3s; }
-.sujets li.actif { color: var(--mt-encre); transform: translateX(6px); }
-.sujets li.actif::before { background: var(--mt-or); }
+  color: var(--mt-encre); transition: color .3s, transform .3s; }
+.sujets li::before { content: ""; flex: none; width: 10px; height: 10px; rotate: 45deg; background: var(--mt-or); }
 @media (max-width: 820px) {
   .en-ligne .collant { padding-bottom: 64px; box-sizing: border-box; } /* la barre Précommander · Jouer du bas */
   .en-ligne-grille { grid-template-columns: 1fr; justify-items: center; gap: 18px; }
@@ -432,13 +423,6 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
   .ecran-tel { width: min(206px, 23svh, 52vw); border-radius: 24px; }
   .en-ligne-texte, .en-ligne-texte .titre, .en-ligne-texte .sous { text-align: center; }
   .sujets { justify-content: center; gap: 8px; margin-bottom: 18px; }
-  .sujets li.actif { transform: none; }
-}
-.ecran { border-radius: 30px; padding: 8px; background: linear-gradient(160deg, #3a302a, #15110e); box-shadow: 0 0 0 1px #4a3d33, 0 40px 60px -30px #000; }
-.ecran img { border-radius: 23px; width: 100%; aspect-ratio: 540 / 1008; object-fit: cover; object-position: top; }
-@media (max-width: 760px) {
-  .ecran { border-radius: 22px; padding: 6px; }
-  .ecran img { border-radius: 17px; }
 }
 
 /* ---------- Confiance ---------- */
@@ -447,7 +431,7 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 /* Équipe en deux étapes (18/11) : titre centré, puis les trois ensemble, puis la genèse */
 .equipe-bloc .confiance { grid-template-columns: 100%; gap: clamp(24px, 4vw, 48px); justify-items: center; }
 .equipe-bloc .confiance h2 { text-align: center; margin: 0; }
-.equipe-bloc .etapes { width: 100%; max-width: 980px; }
+.equipe-etapes { width: 100%; max-width: 980px; display: grid; gap: clamp(64px, 9vw, 110px); } /* (23/11) les 4 parties l'une sous l'autre */
 .equipe-trois { display: grid; justify-items: center; gap: clamp(22px, 3vw, 36px); align-content: center; }
 .equipe-bloc .etape-sous { align-self: center; justify-self: center; display: grid; justify-items: center; text-align: center; width: 100%; }
 /* sous-titre d'étape : même police que les titres (Jost Heavy), en or, plus petit (Hugo, 18/11 : « dans le style des autres ») */
@@ -459,7 +443,8 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .equipe-bloc .soutien figure + figure img { height: clamp(70px, 7.4vw, 96px); margin-block: clamp(13px, 1.3vw, 17px); }
 .equipe-bloc .soutien figcaption { font-size: clamp(15px, 1.25vw, 17px); line-height: 1.45; color: var(--mt-doux); }
 @media (max-width: 600px) { .equipe-bloc .soutien-logos { grid-template-columns: 1fr; gap: 30px; } }
-.equipe-trois .intro { margin: 0; font-size: clamp(17px, 1.6vw, 22px); color: var(--mt-doux); text-align: center; }
+/* mis en avant (Hugo, 23/11) : police des titres, en or, comme la phrase des freins ; sans « Un jeu » (déjà dans le titre) */
+.equipe-trois .intro { margin: 0; text-align: center; font: 900 clamp(20px, 2.2vw, 30px)/1.2 'Jost', sans-serif; text-transform: uppercase; letter-spacing: .02em; color: var(--mt-or); }
 .equipe-bloc .genese { max-width: 760px; justify-self: center; align-self: center; }
 .portraits { display: flex; justify-content: center; gap: clamp(20px, 6vw, 80px); }
 .portrait { margin: 0; display: grid; justify-items: center; gap: 14px; }
@@ -479,8 +464,6 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
   .portrait figcaption b { font-size: 12.5px; letter-spacing: .1em; }
   .portrait figcaption span { font-size: 13px; }
   .equipe-bloc .genese { font-size: 15px; }
-  /* la barre fixe « Précommander / Jouer » (.collante) cache le bas de l'écran : le bloc s'arrête au-dessus */
-  .arret-souple .arret-bloc { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 }
 }
 .confiance h2 { margin-bottom: 16px; }
@@ -495,18 +478,18 @@ details:first-of-type { border-top: 1px solid var(--mt-filet); }
 summary { list-style: none; cursor: pointer; padding: 20px 0; min-height: 48px; display: flex; justify-content: space-between; gap: 16px; font-weight: 800; font-size: 1.04em; }
 summary::-webkit-details-marker { display: none; }
 summary::after { content: ""; width: 10px; height: 10px; flex: none; margin-top: 6px; border: solid var(--mt-or); border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform .3s; }
-details[open] summary::after { transform: rotate(-135deg); }
+details[open]:not(.ferme) summary::after { transform: rotate(-135deg); } /* .ferme : pendant la fermeture animée (vitrine.js) */
 details p { margin: -6px 0 20px; color: var(--mt-doux); }
 .genese { margin: 0; padding: 4px 0 0 28px; border-left: 3px solid var(--mt-or); font-size: clamp(16px, 1.3vw, 18px); line-height: 1.6; }
 .genese p { margin: 0 0 14px; font-style: italic; }
 .genese p i { font-style: normal; }
-/* le texte s'écrit mot à mot au défilement (data-p="genese") : vitrine.js écrit l'opacité de chaque mot (.mot-g) */
+/* le texte s'écrit mot à mot quand il arrive (lecteur texte de vitrine.js : opacité de chaque mot .mot-g) */
 .genese footer { margin-top: 10px; display: flex; align-items: center; gap: 12px; font: 900 14px 'Jost', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--mt-or); }
 /* petite photo ronde à côté de la signature (Hugo, 18/11) ; sans photo : le gouvernail */
 .genese .photo-mini { flex: none; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 1.5px var(--mt-or); }
 .genese .photo-mini.sans-photo { display: grid; place-items: center; background: var(--mt-surface-2); }
 .genese .photo-mini svg { width: 55%; height: 55%; fill: none; stroke: var(--mt-or); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-/* Fabrication : s'arrête au défilement (.arret), les 3 points arrivent un à un (--p posé par vitrine.js), puis le label */
+/* Fabrication : les 3 points arrivent un à un, puis le label (enVague, vitrine.js) */
 .liste-fab { list-style: none; padding: 0; margin: 8px auto 0; display: grid; gap: 14px; width: fit-content; max-width: 100%; text-align: left; }
 .liste-fab li { position: relative; padding-left: 22px; line-height: 1.3; font-size: clamp(17px, 1.6vw, 21px); font-weight: 800; }
 .liste-fab small { display: block; font-size: 15px; font-weight: 600; color: var(--mt-doux); margin-top: 4px; }
@@ -518,7 +501,7 @@ details p { margin: -6px 0 20px; color: var(--mt-doux); }
 @media (max-width: 860px) { .confiance { grid-template-columns: 1fr; gap: 40px; } }
 
 /* ---------- La boîte : tout rentre, puis la phrase du bas du dos et l'achat ---------- */
-.fermeture { position: relative; height: 320vh; } /* ouverture seule, sans le rangement (18/11) */
+.fermeture { position: relative; } /* (23/11) un écran : la boîte s'ouvre seule quand on arrive (vitrine.js) */
 /* vue d'ensemble (vitrine.js, classe .vue) : sur ordinateur l'offre passe à droite de la boîte ouverte, alignée à gauche */
 @media (min-width: 821px) {
   .fermeture.vue .offre { left: auto; right: max(4vw, calc(50% - 680px)); margin: 0; width: min(560px, 40vw); top: 50%; translate: 0 -50%; text-align: left; }
@@ -532,7 +515,7 @@ details p { margin: -6px 0 20px; color: var(--mt-doux); }
   .fermeture .offre .contenu { font-size: 12.5px; line-height: 1.45; }
   .fermeture .suivre { margin-bottom: 16px; }
 }
-.fermeture .collant { position: sticky; top: 0; height: 100svh; overflow: hidden; background: radial-gradient(ellipse 60% 50% at 50% 40%, #1b1610, transparent 70%); }
+.fermeture .collant { position: relative; height: 100svh; overflow: hidden; background: radial-gradient(ellipse 60% 50% at 50% 40%, #1b1610, transparent 70%); }
 /* l'offre sous la boîte, au centre (ordinateur comme téléphone), à la place de la promesse du héros */
 .offre { position: absolute; z-index: 3; left: 0; right: 0; margin: 0 auto; width: min(900px, 100% - 40px); top: calc(96px + var(--S, 200px) * 1.3); /* 900 : la question en 50 px tient sur ses 2 lignes */ text-align: center; opacity: 0; pointer-events: none; will-change: opacity, transform; }
 .offre .suivre { justify-content: center; }
@@ -628,20 +611,9 @@ body > footer a:hover { color: var(--mt-or); }
      de couleur restent en fondu court */
   *, *::before, *::after { animation: none !important; transition-property: opacity, color, background-color !important;
     transition-duration: .2s !important; transition-timing-function: ease !important; transition-delay: 0s !important; scroll-behavior: auto !important; }
-  [data-p] { --p: 1 !important; }
   .promesse h1 .mot { opacity: 1; transform: none; }
   .lucioles { display: none; }
-  .freins, .fermeture, .en-ligne { height: auto; }
-  .en-ligne .collant { position: relative; height: auto; padding: 60px 0; }
-  .freins .collant, .fermeture .collant { position: relative; }
-  .liste-freins li { --a: 1 !important; --s: 1 !important; }
-  .echiquier { display: none; }
-  .plateau-mt { transform: none !important; }
-  .titres { --t: 1 !important; --m: 1 !important; }
-  .freins .point-1 { --r: 1 !important; position: relative; }
-  .freins .liste-freins { display: none; }
-  .echecs { height: auto; }
-  .echecs .collant { position: relative; }
+  .logo-mt { --m: 1 !important; }
   .offre { opacity: 1; pointer-events: auto; }
 }
 /* Point 4 : une carte touchée fait un tour sur elle-même, face claire au dos (carte-tour de matatak-ui.css, comme
@@ -654,9 +626,7 @@ body > footer a:hover { color: var(--mt-or); }
 .rangee .tour .pivote.en-tour { animation: carte-tour 1.5s cubic-bezier(.3, 1.3, .5, 1); }
 @media (prefers-reduced-motion: reduce) { .rangee .tour .pivote.en-tour { animation: none; } }
 /* Cale de la boîte et tranches des piles de cartes (scène 3D de fin de page) */
-.monde .cale { backface-visibility: visible; -webkit-backface-visibility: visible; filter: brightness(.55); }
-.monde .tranche-cartes { background: repeating-linear-gradient(to bottom, #e6d3c1 0 1px, #3a2f28 1px 2px); }
 /* Les grilles ne s'élargissent pas pour leur contenu */
-.point-grille > *, .points-grille > * { min-width: 0; }
+.point-grille > * { min-width: 0; }
 .point-visuel > * { max-width: 100%; }
 @media (max-width: 820px) { .promesse h1 { font-size: min(40px, (100vw - 32px) / 13.8); } }

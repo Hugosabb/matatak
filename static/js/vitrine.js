@@ -1,13 +1,12 @@
 // Vitrine (page de vente) : tout ce qui vit au défilement.
+// (23/11, retours de visiteurs) Les animations ne sont plus pilotées au doigt : chacune se joue seule quand sa section
+// arrive à l'écran (« Lecteurs », plus bas) : toute la page depuis le 23/11 (les bandeaux de cartes en boucle).
 // - la boîte en 3D du héros : elle flotte et se penche au doigt (un peu seulement : on ne montre pas son dos) ;
-// - en bas de page, la partie est en place sur le plateau ; au défilement les cartes rentrent, le plateau se replie,
-//   la boîte se referme et l'offre apparaît ;
-// - [data-p] : progression 0 → 1 posée en variable CSS --p quand l'élément traverse l'écran (freins barrés,
-//   éventails des Saisons, cartes qui se retournent, Rois qui montent) ;
-// - les freins des échecs (section collante) : ils arrivent un à un, sont barrés, s'en vont, la promesse reste ;
-// - la partie à 4 du point 3, vue de dessus (cartes posées sur le plateau), jouée au défilement ;
-// - les cartes du point 4 font un tour sur elles-mêmes quand on les touche ;
-// - la carte vedette, qui suit le doigt ou l'inclinaison du téléphone.
+// - les lecteurs : freins, point 1 (MOJO), graphique, partie à 4, échecs, partie filmée, boîte de fin, chacun une fois
+//   quand il arrive ; quitter sa section et revenir le relance, le toucher une fois fini aussi ; les textes se
+//   dévoilent à part (enVague) et s'affichent en entier si on les dépasse ; flèche « suite » à la fin de chacun ;
+// - les bandeaux de cartes du point 4 défilent en continu ; leurs cartes font un tour quand on les touche ;
+// - les vidéos des stars (muettes, une seule avec le son), les questions qui s'ouvrent en douceur.
 (function () {
     const calme = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const nav = document.getElementById('nav');
@@ -18,8 +17,7 @@
     const lisse = (a, b, x) => { const t = borne((x - a) / (b - a)); return t * t * (3 - 2 * t); };
     const mix = (a, b, t) => a + (b - a) * t;
     const etroit = () => window.innerWidth <= 820;
-    // position collée du bloc du point 3 et marges de sa section : relues seulement quand la page change de taille
-    let geoP = null;
+    const APERCU = 64; // px de la section suivante visibles sous le héros, sur téléphone (= vitrine.css)
     // Écrit un style seulement s'il change (Safari iPhone, 19/11 : à chaque image, des centaines de styles réécrits à
     // l'identique, même pour les sections hors de l'écran, faisaient recalculer la page et saccader le défilement)
     const ecrire = (el, prop, val) => {
@@ -232,13 +230,18 @@
     function repos(nom) {
         const w = window.innerWidth, h = hauteurStable();
         if (etroit()) {
-            const S = nom === 'fermeture' ? Math.min(0.54 * w, 0.24 * h, 230) : Math.min(0.62 * w, 0.3 * h, 300);
-            return { S, x: 0, y: (nom === 'fermeture' ? 78 : 72) + S * 0.62 - h / 2 };
+            if (nom === 'fermeture') { const S = Math.min(0.54 * w, 0.24 * h, 230); return { S, x: 0, y: 78 + S * 0.62 - h / 2 }; }
+            // héros (23/11) : la section fait l'écran moins APERCU (vitrine.css), le haut de la suivante se voit
+            // (des visiteurs ne descendaient pas) ; (24/11, Hugo : « la boîte ressort mieux un peu plus basse ») boîte
+            // et texte 22 px plus bas (BAISSE, aussi dans vitrine.css), boîte un peu plus petite pour que tout tienne
+            const S = Math.min(0.6 * w, 0.28 * h, 290);
+            return { S, x: 0, y: 32 + 22 + S * 0.62 - Math.max(560, h - APERCU) / 2 };
         }
         // ordinateur : la boîte au centre, le texte dessous ; en fin de page exactement la même boîte qu'au début
         // (même taille, même place, donc même vue : Hugo, 17/11)
         // la boîte rapetisse sur un écran bas pour que le texte et ses boutons restent visibles
-        const S = Math.max(200, Math.min(360, 0.38 * h, (h - 480) / 1.3)); // 440 avant l'interligne 1,14 des titres (18/11)
+        // 480 → 525 (23/11) : l'accroche tient sur 2 lignes ; minimum 160 (200 coupait « essayer gratuitement » en 1280 × 720)
+        const S = Math.max(160, Math.min(360, 0.38 * h, (h - 525) / 1.3)); // 440 avant l'interligne 1,14 des titres (18/11)
         return { S, x: 0, y: 80 + S * 0.62 - h / 2 };
     }
 
@@ -286,6 +289,7 @@
                 if (p.pose) ecrire(p.d, 'transform', p.pose(u));
             });
             ecrire(s.el.parentElement, '--S', r.S + 'px');
+            if (s.el.dataset.scene === 'heros') requestAnimationFrame(() => placerDescendre()); // le texte a bougé
             s.persp = Math.max(w, h) * 1.7;
             if (!PERSP_DANS_BOITE) ecrire(s.el, 'perspective', s.persp + 'px');
         }
@@ -450,23 +454,37 @@
     const sceneFermeture = scenes.find((s) => s.el.dataset.scene === 'fermeture');
     const fermeture = document.getElementById('boite');
     const descendre = document.querySelector('.descendre');
+    // la flèche au milieu de la place libre sous « essayer gratuitement en ligne » ; cachée s'il n'y en a pas
+    // (Hugo, 24/11 : sur téléphone elle tombait sur le lien)
+    let placeDescendre = true;
+    function placerDescendre() {
+        if (!descendre || getComputedStyle(descendre).display === 'none') return;
+        const heros = descendre.offsetParent, essayer = document.querySelector('.promesse .essayer');
+        if (!heros || !essayer) return;
+        const bas = essayer.getBoundingClientRect().bottom - heros.getBoundingClientRect().top;
+        const libre = heros.clientHeight - bas, taille = descendre.offsetHeight;
+        placeDescendre = libre >= taille + 4;
+        ecrire(descendre, 'top', `${(bas + Math.max(2, (libre - taille) / 2 - 4)).toFixed(0)}px`);
+        ecrire(descendre, 'bottom', 'auto');
+    }
+    if (document.fonts) document.fonts.ready.then(placerDescendre);
     const freins = document.getElementById('freins');
     const enLigne = document.getElementById('en-ligne');
-    const etapesMini = [...enLigne.querySelectorAll('.partie-mini img')];
-    let etapeMini = 0;
-    const sujetsEnLigne = [...enLigne.querySelectorAll('.sujets li')];
-    if (calme) sujetsEnLigne[0].classList.add('actif');
     const freinsLi = [...freins.querySelectorAll('.liste-freins li')];
-    const freinsTitres = freins.querySelector('.titres');
-    const freinsPoint1 = freins.querySelector('.point-1');
     const freinsVue = freins.querySelector('.plateau-mt .vue');
     const freinsScene = freins.querySelector('.scene-freins');
+    // Point 1 (23/11 : sa propre section, Hugo) : une copie du plateau de MATATAK des freins, faite avant les halos et
+    // les ombres des flèches ; c'est elle qui zoome sur MOJO
+    const point1 = document.querySelector('.point-1');
+    const plateauP1 = freins.querySelector('.plateau-mt').cloneNode(true);
+    point1.querySelector('.scene-point1 .plateaux').appendChild(plateauP1);
+    const vueP1 = plateauP1.querySelector('.vue');
     // Point 1 (revue des animations, 19/11) : le zoom, le fondu des cartes, l'avance de MOJO, ses symboles qui brillent
     // et les flèches sont écrits directement sur chaque élément ; avant, 6 variables posées sur .vue faisaient
     // recalculer tous ses enfants à chaque image. L'ombre des flèches est une copie sombre dessous (plus de filtre).
-    const vedetteMt = freinsVue.querySelector('img.vedette');
-    const cartesMt = [...freinsVue.querySelectorAll('img:not(.vedette)')];
-    const lueursMt = [...freinsVue.querySelectorAll('.lueur')];
+    const vedetteMt = vueP1.querySelector('img.vedette');
+    const cartesMt = [...vueP1.querySelectorAll('img:not(.vedette)')];
+    const lueursMt = [...vueP1.querySelectorAll('.lueur')];
     // un halo doré derrière chaque symbole (à la place de l'ombre lumineuse du filtre)
     const halosMt = lueursMt.map((l) => {
         const halo = document.createElement('i');
@@ -475,7 +493,7 @@
         l.before(halo);
         return halo;
     });
-    const svgFleches = freinsVue.querySelector('.fleches-mt');
+    const svgFleches = vueP1.querySelector('.fleches-mt');
     const ombresFleches = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     ombresFleches.setAttribute('class', 'ombres');
     ombresFleches.setAttribute('transform', 'translate(0 2.5)');
@@ -486,8 +504,6 @@
         return [g, o].map((x) => ({ g: x, l, ligne: x.querySelector('line'), tete: x.querySelector('.tete') }));
     }).flat();
     svgFleches.insertBefore(ombresFleches, svgFleches.firstChild);
-    const freinsEchiquier = freins.querySelector('.echiquier');
-    const freinsMt = freins.querySelector('.plateau-mt');
     // chaque pièce porte la liste de ses cases, une par position : data-c="e2 e4 e4 …"
     const piecesFreins = [...freins.querySelectorAll('.echiquier .pieces > g')].map((el) => ({ el, c: el.dataset.c.split(' ') }));
     const coupsFreins = [...freins.querySelectorAll('.echiquier .coups')];
@@ -513,12 +529,7 @@
         const temps = (now - debut) / 1000;
         const dt = Math.min(0.1, (now - (avant || now)) / 1000);
         avant = now;
-        // la partie à 4 suit le défilement (jamais au temps : Hugo 16/11) et rattrape la position voulue en douceur
-        if (partie4 && !calme && Math.abs(p4Cible - p4Vue) > 0.0005) {
-            p4Vue += (p4Cible - p4Vue) * (1 - Math.exp(-dt * (molette.matches ? 6 : 14)));
-            if (Math.abs(p4Cible - p4Vue) < 0.001) p4Vue = p4Cible;
-            poserPartie4(p4Vue);
-        }
+        if (!calme) jouerLecteurs(dt);
         scenes.forEach((s) => {
             if (s.visible === false) return;
             // la boîte se tourne au doigt ou à la souris (45° de chaque côté ; son dos ne se voit pas) et revient
@@ -554,10 +565,22 @@
     // chaque image (revue des animations, 19/11)
     const CASE_CARTE = 12.5 / 11 * 100;
     const partie4 = document.querySelector('.partie4');
-    const pointPartie = partie4 && partie4.closest('.point-partie'), blocPartie = pointPartie && pointPartie.querySelector('.mt-wrap');
-    const molette = window.matchMedia('(hover: hover)');
+    const pointPartie = partie4 && partie4.closest('.point-partie');
     const pieces4 = [];
-    let p4Cible = 0, p4Vue = 0;
+    const cri4 = partie4 && partie4.parentElement.querySelector('.cri');
+    if (cri4) partie4.appendChild(cri4); // posé sur le plateau, au-dessus de KRAK
+    // la flèche de l'échec : de KRAK (c4) vers SHANS (a4), sur la même rangée ; coordonnées du plateau en 800 × 800
+    let fleche4 = null;
+    if (partie4) {
+        const NS = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('class', 'fleche-echec'); svg.setAttribute('viewBox', '0 0 800 800'); svg.setAttribute('aria-hidden', 'true');
+        const ligne = document.createElementNS(NS, 'line'), tete = document.createElementNS(NS, 'path');
+        tete.setAttribute('d', 'M0 0L26 -17L26 17Z'); // pointe vers la gauche
+        svg.append(ligne, tete);
+        partie4.appendChild(svg);
+        fleche4 = { svg, ligne, tete };
+    }
     if (partie4) {
         DEPART4.forEach(([id, carte, face, col, rang, rot]) => {
             const im = document.createElement('img');
@@ -567,12 +590,13 @@
         });
     }
     function poserPartie4(t) {
-        const etat = new Map(pieces4.map((pc) => [pc.id, { col: pc.col, rang: pc.rang, saut: 0, envol: 0 }]));
+        const etat = new Map(pieces4.map((pc) => [pc.id, { col: pc.col, rang: pc.rang, saut: 0, envol: 0, bouge: false }]));
         COUPS4.forEach(([id, c1, r1, prise], k) => {
             const a = 0.04 + k * 0.11;
             const f = lisse(a, a + 0.08, t), e = etat.get(id);
             e.col = mix(e.col, c1, f); e.rang = mix(e.rang, r1, f);
             e.saut = Math.max(e.saut, Math.sin(Math.PI * f));
+            if (f > 0 && f < 1) e.bouge = true;
             // la carte prise s'envole quand l'attaquant arrive
             if (prise) etat.get(prise).envol = lisse(a + 0.05, a + 0.09, t);
         });
@@ -581,82 +605,154 @@
             ecrire(im, 'opacity', (1 - e.envol).toFixed(3));
             ecrire(im, 'visibility', e.envol >= 1 ? 'hidden' : '');
             ecrire(im, 'transform', `translate(${(e.col * CASE_CARTE).toFixed(2)}%, ${((7 - e.rang) * CASE_CARTE - 90 * e.envol).toFixed(2)}%) rotate(${pc.rot + 25 * e.envol}deg) scale(${(1 + e.saut * 0.25 + e.envol * 0.3).toFixed(3)})`);
-            ecrire(im, 'zIndex', e.saut > 0 || e.envol > 0 ? 2 : 1);
+            // la carte qui bouge passe au-dessus de toutes ; pas « saut > 0 » : sin(π) vaut 1e-16, et une carte déjà jouée
+            // (TAMTAM) restait au-dessus de celle qui sautait par-dessus (BONGO) (Hugo, 23/11)
+            ecrire(im, 'zIndex', e.bouge ? 3 : e.envol > 0 ? 2 : 1);
         });
-        ecrire(partie4.parentElement, '--cri', lisse(0.84, 0.9, t).toFixed(3));
+        // le cri se pose en 0,45 s, sortie douce (pas de rebond : Hugo, 24/11)
+        ecrire(partie4.parentElement, '--cri', (1 - (1 - borne((t - 0.84) / 0.05)) ** 3).toFixed(3));
+        // (Hugo, 23/11) le cri au-dessus de KRAK, qui met l'échec, et SHANS en échec : liseré rouge qui pulse et secousse,
+        // comme sur le site (chessground.css)
+        // centré entre KRAK et SHANS, sous la flèche (rangée du dessous, vide à ce moment de la partie)
+        const krak = etat.get('krak'), shansE = etat.get('shans');
+        // (Hugo, 24/11 : il touchait le liseré rouge de SHANS) un peu à droite et au milieu de la rangée du dessous
+        ecrire(cri4, 'left', `${(((krak.col + shansE.col) / 2 + 0.62) * 12.5).toFixed(2)}%`);
+        ecrire(cri4, 'top', `${((7 - krak.rang + 1.5) * 12.5).toFixed(2)}%`);
+        const shans = pieces4.find((pc) => pc.id === 'shans');
+        if (shans) shans.im.classList.toggle('echec', t >= 0.84);
+        // la flèche pousse de KRAK vers SHANS pendant que le cri arrive
+        if (fleche4) {
+            const s4 = etat.get('shans'), y = (7 - krak.rang + 0.5) * 100;
+            const x0 = (krak.col + 0.5) * 100 - 50, x1 = (s4.col + 0.5) * 100 + 58; // des bords des cartes
+            const f = lisse(0.84, 0.9, t), xt = mix(x0, x1, f);
+            ecrire(fleche4.svg, 'opacity', f > 0 ? '1' : '0');
+            ['x1', 'y1', 'x2', 'y2'].forEach((k, i) => {
+                const v = [x0, y, xt + 20, y][i].toFixed(1);
+                if (fleche4.ligne.getAttribute(k) !== v) fleche4.ligne.setAttribute(k, v);
+            });
+            const tr = `translate(${xt.toFixed(1)} ${y.toFixed(1)})`;
+            if (fleche4.tete.getAttribute('transform') !== tr) fleche4.tete.setAttribute('transform', tr);
+        }
     }
     if (partie4) poserPartie4(0);
 
-    // ======================= Arrêts souples : hauteur du bloc pour le CSS (.arret-souple) =======================
-    document.querySelectorAll('.arret-souple').forEach((s) => {
-        const bloc = s.querySelector('.arret-bloc');
-        const maj = () => { ecrire(s, '--haut', bloc.offsetHeight + 'px'); geoP = null; };
-        new ResizeObserver(maj).observe(bloc);
-        maj();
+    // ======================= Lecteurs : les animations se jouent seules (23/11) =======================
+    // Retours de visiteurs (Hugo, 23/11) : piloter une animation au doigt n'est pas intuitif (un geste rapide la saute,
+    // un geste lent fait croire que la page rame). Chaque animation se lance quand sa section est au milieu de l'écran
+    // (voir jouerLecteurs), se met en pause hors de l'écran ; jamais à l'envers. Finie, elle reste sur sa dernière
+    // image et sa « suite » (une boucle) tourne tant qu'elle est à l'écran. Quitter la section et y revenir la relance
+    // depuis le début (Hugo : à la place d'un bouton ↻).
+    // Textes (texte: true, Hugo 23/11) : ils ne font pas partie des animations ; ils se dévoilent dès qu'ils arrivent à
+    // l'écran, sans attendre une autre animation, et s'affichent en entier si on les quitte avant la fin (on ne rate
+    // rien en descendant vite) ; ils ne se rejouent pas.
+    // poser(p) : p de 0 à 1 ; suite(t) : secondes depuis la fin.
+    const lecteurs = [];
+    const ioLecteurs = new IntersectionObserver((es) => es.forEach((e) => {
+        const L = e.target._lecteur;
+        L.visible = e.isIntersecting;
+        if (e.isIntersecting) {
+            // de retour après être sorti : on repart du début (pas les textes)
+            if (L.sorti && !L.texte && L.etat !== 'attente') { L.ecoule = 0; L.depuisFin = 0; L.etat = 'attente'; L.cible.classList.remove('rejouable'); L.poser(0); }
+            L.sorti = false; L.vu = true;
+        } else if (L.vu) {
+            L.sorti = true;
+            if (L.texte && L.etat !== 'fini') { L.etat = 'fini'; L.poser(1); }
+        }
+    }));
+    // cible : l'image animée qu'on touche pour la rejouer une fois finie (Hugo, 23/11) ; pas les textes
+    function lecteur(el, { duree, poser, suite, siCalme, texte, cible }) {
+        const L = { el, duree, poser, suite, texte, ecoule: 0, depuisFin: 0, etat: 'attente', visible: false, cible: cible || el };
+        el._lecteur = L;
+        lecteurs.push(L);
+        if (calme) { if (siCalme) siCalme(); else poser(1); return L; }
+        poser(0);
+        ioLecteurs.observe(el);
+        if (!texte) {
+            // un toucher qui glisse (défilement, boîte tournée au doigt) ne compte pas
+            let x0 = 0, y0 = 0;
+            L.cible.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; });
+            L.cible.addEventListener('click', (e) => {
+                if (L.etat !== 'fini' || Math.hypot(e.clientX - x0, e.clientY - y0) > 10) return;
+                if (e.target.closest('a, button')) return;
+                L.ecoule = 0; L.depuisFin = 0; L.etat = 'joue';
+                L.cible.classList.remove('rejouable');
+                L.poser(0);
+            });
+        }
+        return L;
+    }
+    // Flèche « suite » (Hugo, 24/11) : une animation qui occupe l'écran vient de finir → on invite à descendre ; elle part
+    // dès qu'on défile de 40 px ; pas après la boîte de fin. Un toucher descend à la section suivante.
+    const suiteBas = document.querySelector('.suite-bas');
+    let ySuite = null, suiteDe = null;
+    function montrerSuite(L) {
+        if (!suiteBas || (fermeture && fermeture.contains(L.el))) return;
+        const h = window.innerHeight;
+        const r = L.el.getBoundingClientRect(); // à l'écran pour l'essentiel (un petit graphique compte aussi)
+        if (partVisible(r, h) < Math.min(h / 3, r.height * 0.8) || window.scrollY < 60) return;
+        ySuite = window.scrollY; suiteDe = L.el;
+        suiteBas.classList.add('visible');
+    }
+    function cacherSuite() { ySuite = null; if (suiteBas) suiteBas.classList.remove('visible'); }
+    if (suiteBas) suiteBas.addEventListener('click', () => {
+        const suivante = [...document.querySelectorAll('header.ouverture, section, article.point, footer')]
+            .filter((el) => !(suiteDe && el.contains(suiteDe))) // pas la section de l'animation qui vient de finir
+            .map((el) => [el, el.getBoundingClientRect().top]).filter(([, t]) => t > 90).sort((a, b) => a[1] - b[1])[0];
+        cacherSuite();
+        if (suivante) window.scrollTo({ top: window.scrollY + suivante[1] - (window.innerWidth > 820 ? 70 : 0), behavior: 'smooth' });
     });
-
-    // ======================= Progression des éléments [data-p] =======================
-    // 0 quand le centre de l'élément entre par le bas de l'écran, 1 quand il atteint le milieu.
-    const suivis = new Set();
-    // En deux temps (Safari iPhone, 19/11) : toutes les mesures d'abord, puis toutes les écritures ; mêlées, chaque
-    // mesure après une écriture forçait la page à se recalculer, plusieurs fois par image.
-    function mesurerProgressions(h, els) {
-        const out = [];
-        els.forEach((el) => {
-            // dans un sujet qui s'arrête : de l'arrivée (un quart d'écran avant) à la fin de l'arrêt
-            if (el._arret === undefined) { el._arret = el.closest('.arret'); el._bloc = el._arret && el._arret.querySelector('.arret-bloc'); }
-            if (el._arret) {
-                const ra = el._arret.getBoundingClientRect();
-                out.push([el, borne((h * 0.25 - ra.top) / (ra.height - el._bloc.offsetHeight + h * 0.25)), true]);
-                return;
+    // part de l'écran (px) occupée par un élément
+    const partVisible = (r, h) => Math.max(0, Math.min(r.bottom, h) - Math.max(r.top, 0));
+    function jouerLecteurs(dt) {
+        // Départ d'une animation (Hugo, 23/11 : le graphique partait pendant les freins, sans qu'il le voie) : le milieu
+        // de la section est entre 15 % et 70 % de la hauteur de l'écran (ou elle en occupe 60 %), et aucune autre
+        // animation en cours n'occupe encore plus d'un tiers de l'écran. Un texte part dès que son haut passe 85 %.
+        const prets = lecteurs.filter((L) => L.visible && L.etat === 'attente');
+        if (prets.length) {
+            const h = window.innerHeight;
+            const occupe = lecteurs.some((L) => !L.texte && L.visible && L.etat === 'joue' && partVisible(L.el.getBoundingClientRect(), h) > h / 3);
+            prets.forEach((L) => {
+                const r = L.el.getBoundingClientRect(), c = (r.top + r.bottom) / 2;
+                if (L.texte ? r.top < h * 0.85 && r.bottom > 0
+                    : !occupe && ((c > h * 0.15 && c < h * 0.7) || partVisible(r, h) >= h * 0.6)) L.etat = 'joue';
+            });
+        }
+        lecteurs.forEach((L) => {
+            if (!L.visible) return;
+            if (L.etat === 'joue') {
+                L.ecoule += dt;
+                const p = L.duree ? borne(L.ecoule / L.duree) : 1;
+                L.poser(p);
+                if (p >= 1) { L.etat = 'fini'; if (!L.texte) { L.cible.classList.add('rejouable'); montrerSuite(L); } }
+            } else if (L.etat === 'fini' && L.suite) {
+                L.depuisFin += dt;
+                L.suite(L.depuisFin);
             }
-            const r = el.getBoundingClientRect();
-            // « lent » (le graphique du point 2) : de son entrée par le bas jusqu'au tiers haut de l'écran
-            // « genese » : de l'entrée de son haut par le bas de l'écran jusqu'à sa place (centré, ou à 10 % du haut s'il est grand)
-            const p = el.dataset.p === 'genese' ? borne((h - r.top) / (h - Math.max(h * 0.1, (h - r.height) / 2)))
-                : el.dataset.p === 'traverse' ? borne((h - r.top) / (h + r.height))
-                : el.dataset.p === 'lent' ? borne((h - r.top) / (h * 0.75))
-                : borne((h * 0.95 - (r.top + r.height / 2)) / (h * 0.42));
-            out.push([el, p, false]);
-        });
-        return out;
-    }
-    function appliquerProgressions(out) {
-        out.forEach(([el, pa, arret]) => {
-            let q = pa;
-            if (arret) {
-                // data-etapes="n" : l'arrêt est coupé en n étapes, data-etape = celle en cours (CSS .etapes) ;
-                // data-seuils="0.5,0.75" : où commence chaque étape (sinon, parts égales) ;
-                // data-p-debut / data-p-fin : l'animation va de 0 à 1 entre ces fractions de l'arrêt (la genèse, à la 2e étape)
-                if (el.dataset.etapes) {
-                    const n = +el.dataset.etapes;
-                    const seuils = el.dataset.seuils ? el.dataset.seuils.split(',').map(Number) : [...Array(n - 1)].map((_, i) => (i + 1) / n);
-                    const k = String(Math.min(n - 1, seuils.filter((x) => pa >= x).length));
-                    if (el.dataset.etape !== k) { el.dataset.etape = k; el.dispatchEvent(new CustomEvent('etape')); }
-                }
-                const deb = +(el.dataset.pDebut || 0), fin = +(el.dataset.pFin || 1);
-                q = borne((pa - deb) / (fin - deb));
-            }
-            if (!(el._p === undefined || Math.abs(el._p - q) > 0.002 || (q !== el._p && (q === 0 || q === 1)))) return;
-            el._p = q;
-            // la genèse s'écrit mot à mot : l'opacité de chaque mot est écrite sur lui (seuls les 3 ou 4 mots en train
-            // d'apparaître changent) ; avant, --p posé sur le texte faisait recalculer ses ~150 mots à chaque image
-            // (revue des animations, 19/11)
-            if (el.dataset.p === 'genese') {
-                if (!el._mots || !el._mots.length) el._mots = [...el.querySelectorAll('.mot-g')];
-                const n = el._mots.length;
-                el._mots.forEach((m, k) => ecrire(m, 'opacity', borne((q * (n + 3) - k) / 3).toFixed(2)));
-                return;
-            }
-            ecrire(el, '--p', q.toFixed(3));
         });
     }
-    const ioP = new IntersectionObserver((es) => {
-        es.forEach((e) => { if (e.isIntersecting) suivis.add(e.target); else suivis.delete(e.target); });
-        // celles qui sortent sont posées une dernière fois (après un défilement rapide, elles restaient à mi-chemin)
-        if (!calme) appliquerProgressions(mesurerProgressions(window.innerHeight, [...suivis, ...es.filter((e) => !e.isIntersecting).map((e) => e.target)]));
-    }, { rootMargin: '10% 0px' });
-    document.querySelectorAll('[data-p]').forEach((el) => ioP.observe(el));
+    // Textes qui se dévoilent un à un (l'équipe, les freins, Toujours un adversaire…)
+    const enVague = (el, items, duree) => {
+        if (!el || !items.length) return;
+        const n = items.length;
+        lecteur(el, {
+            duree, texte: true,
+            poser: (p) => items.forEach((it, i) => {
+                const a = lisse(i / n, (i + 1) / n, p);
+                // arrivé : plus de style posé (un bouton garde son effet au toucher)
+                ecrire(it, 'opacity', a >= 1 ? '' : a.toFixed(3));
+                ecrire(it, 'transform', a >= 1 ? '' : `translateY(${((1 - a) * 18).toFixed(1)}px)`);
+            }),
+        });
+    };
+    // temps (s) → progression de l'ancienne animation au défilement, par segments : [[t, p], …] croissants
+    const surCourbe = (pts, t) => {
+        if (t <= pts[0][0]) return pts[0][1];
+        for (let k = 1; k < pts.length; k++) {
+            const [t1, p1] = pts[k];
+            if (t <= t1) { const [t0, p0] = pts[k - 1]; return mix(p0, p1, (t - t0) / (t1 - t0)); }
+        }
+        return pts[pts.length - 1][1];
+    };
 
     // ======================= Échecs : les cartes se posent, puis une ouverture se joue =======================
     const echecs = document.getElementById('echecs');
@@ -683,11 +779,12 @@
     const COUPS = [[4, 1, 4, 3], [4, 6, 4, 4], [6, 0, 5, 2], [1, 7, 2, 5], [5, 0, 2, 3]];
     function poserEchecs(pe) {
         piecesEchecs.forEach((pc) => {
-            let col = pc.col, rang = pc.rang, saut = 0;
+            let col = pc.col, rang = pc.rang, saut = 0, bouge = false;
             COUPS.forEach(([c0, r0, c1, r1], k) => {
                 if (col === c0 && rang === r0) {
                     const f = lisse(0.6 + k * 0.07, 0.66 + k * 0.07, pe);
                     col = mix(c0, c1, f); rang = mix(r0, r1, f); saut = Math.max(saut, Math.sin(Math.PI * f));
+                    if (f > 0 && f < 1) bouge = true;
                     if (f >= 1) { col = c1; rang = r1; }
                 }
             });
@@ -696,7 +793,233 @@
             const dy = (1 - arrive) * (pc.noir ? -260 : 260);
             ecrire(pc.im, 'opacity', arrive);
             ecrire(pc.im, 'transform', `translate(${(col * CASE_CARTE).toFixed(2)}%, ${((7 - rang) * CASE_CARTE + dy).toFixed(2)}%) rotate(${(pc.noir ? 180 : 0) + (1 - arrive) * (pc.noir ? -40 : 40)}deg) scale(${1 + saut * 0.25})`);
-            ecrire(pc.im, 'zIndex', saut > 0 ? 2 : 1);
+            ecrire(pc.im, 'zIndex', bouge ? 2 : 1);
+        });
+    }
+
+    // ======================= Freins (une fois), puis point 1 (MOJO, en boucle) =======================
+    // pr = progression de l'ancienne animation au défilement (0 → 1,03), qui allait des freins au point 1. Repères :
+    // 0,03 → 0,42 une ouverture d'échecs, toutes les flèches des coups possibles à chaque position ;
+    // les 3 freins arrivent (0,05 / 0,17 / 0,29), sont barrés (0,40 → 0,49), s'en vont (0,5 → 0,54) ;
+    // 0,5 → 0,62 le plateau de MATATAK arrive de la droite et pousse l'échiquier, qui part en tournoyant ;
+    // le logo remplace le titre et le point 1 arrive (0,58) ; MOJO avance (0,62), zoom sur sa carte (0,64 → 0,73),
+    // on recule (0,79 → 0,9) et les flèches sortent de ses symboles (0,79 → 0,92).
+    // (19/11 : le point 1 après le plateau, de 0,63 à 0,68, et la suite décalée d'autant)
+    // (23/11, Hugo) les freins ne sont plus barrés et le plateau de MATATAK ne pousse plus l'échiquier : après les 3
+    // freins, une phrase mène aux 4 points ; le point 1 (sa section) repart du plateau entier (0,62 → 1,03, sur vueP1)
+    function poserFreins(pr) {
+        const fe = etape(pr, 0.03, 0.065, 6);
+        const vues = lisse(0.01, 0.06, pr);
+        // fondu long entre deux positions : les flèches de l'une laissent la place à celles de la suivante sans à-coup
+        coupsFreins.forEach((g, j) => { ecrire(g, 'opacity', (vues * borne(1 - Math.abs(fe - j) * 1.6)).toFixed(3)); });
+        piecesFreins.forEach((p) => {
+            const [x, y] = surChemin(p.c, fe);
+            const tr = `translate(${(x * 100).toFixed(1)} ${((7 - y) * 100).toFixed(1)})`;
+            if (p.el._tr !== tr) { p.el._tr = tr; p.el.setAttribute('transform', tr); }
+        });
+    }
+    function poserPoint1(pr, boucle) {
+        // les autres cartes s'effacent, MOJO avance de e1 à e2, on zoome sur sa carte (× 9 : on ne voit presque plus que lui, Hugo 16/11 ; régulier en échelle log),
+        // puis on recule (× 2,6) pendant que des flèches sortent de ses symboles jusqu'à ses 8 cases
+        // caméra : la vue fait 9 fois le plateau, réduite d'autant (zoom sv ≤ 9), et centre peu à peu MOJO (f)
+        const zin = lisse(0.72, 0.81, pr);
+        const sv = Math.exp(Math.log(9) * zin + (Math.log(3.1) - Math.log(9)) * lisse(0.9, 1, pr)); // 3,1 : la Colline reste hors de la vue (Hugo, 23/11)
+        const vx = (0.5 - sv * (0.5 + zin * 0.0625)) * 100 / 9, vy = (0.5 - sv * (0.5 + zin * 0.3125)) * 100 / 9;
+        ecrire(vueP1, 'transform', `translate(${vx.toFixed(3)}%, ${vy.toFixed(3)}%) scale(${(sv / 9).toFixed(4)})`);
+        // les autres cartes s'effacent ; MOJO avance d'une case (12,5 % de la vue = 116,8 % de sa carte)
+        const efface = (1 - lisse(0.69, 0.74, pr)).toFixed(3);
+        cartesMt.forEach((im) => ecrire(im, 'opacity', efface));
+        ecrire(vedetteMt, 'transform', `translateY(${(-116.82 * lisse(0.7, 0.75, pr)).toFixed(2)}%)`);
+        // les symboles de la carte brillent trois fois (ils clignotent), puis les flèches en sortent
+        const brille = boucle ? boucle.brille : Math.abs(Math.sin(3 * Math.PI * lisse(0.8, 0.93, pr)));
+        const vu = Math.min(1, brille * 3).toFixed(3);
+        lueursMt.forEach((l) => {
+            ecrire(l, 'opacity', vu);
+            ecrire(l, 'transform', `scale(${(1 + brille * 0.3).toFixed(3)})`);
+        });
+        halosMt.forEach((l) => {
+            ecrire(l, 'opacity', (brille * 0.85).toFixed(3));
+            ecrire(l, 'transform', `scale(${(0.7 + brille * 0.4).toFixed(3)})`);
+        });
+        // les flèches poussent pendant qu'on recule
+        const pousse = boucle ? boucle.pousse : lisse(0.92, 1.03, pr);
+        flechesMt.forEach((f) => {
+            ecrire(f.g, 'opacity', (Math.min(1, pousse * 5) * (boucle ? boucle.vu : 1)).toFixed(3));
+            ecrire(f.ligne, 'strokeDashoffset', ((1 - pousse) * f.l).toFixed(2));
+            ecrire(f.tete, 'transform', `translateX(${(pousse * f.l).toFixed(2)}px)`);
+        });
+    }
+    // Freins : l'ouverture d'échecs se joue (6 s) ; les 3 freins et la phrase sont du texte, à part (Hugo, 23/11)
+    const TEMPS_FREINS = [[0, 0], [5.4, 0.4], [6, 0.42]];
+    enVague(freins.querySelector('.freins-texte'), [...freinsLi, freins.querySelector('.transition-freins')], 2.4);
+    // la vue du plateau de la copie du point 1 part entière ; celui des freins reste caché (vitrine.css)
+    ecrire(freinsVue, 'transform', 'translate(0%, 0%) scale(0.1111)');
+    lecteur(freins, {
+        cible: freinsScene,
+        duree: 6,
+        poser: (p) => poserFreins(surCourbe(TEMPS_FREINS, p * 6)),
+        siCalme: () => poserFreins(0.42),
+    });
+    // Point 1 : le plateau entier un instant, les autres cartes s'effacent, MOJO avance, zoom, ses symboles brillent,
+    // on recule et les flèches sortent ; puis en boucle (5,2 s) : on laisse regarder (2 s), les flèches s'effacent,
+    // les symboles brillent trois fois, les flèches ressortent.
+    const logoP1 = point1.querySelector('.logo-mt');
+    // Arrivée du logo (Hugo, 23/11 : « plus d'impact que de rebond ») : il tombe de plus grand (× 1,9, transparent) en
+    // accélérant et frappe sa place en 0,32 s ; à l'impact il s'écrase un peu, tremble et lance un éclat doré qui retombe
+    // (0,4 s). Les styles posés sont retirés à la fin.
+    function poserLogoP1(t) {
+        const CHUTE = 0.32, APRES = 0.4;
+        if (t >= CHUTE + APRES) { ['opacity', 'transform', 'filter'].forEach((k) => ecrire(logoP1, k, '')); ecrire(logoP1, '--m', '1'); return; }
+        let echelle, dx = 0, eclat = 0;
+        if (t < CHUTE) {
+            const a = t / CHUTE;
+            echelle = 1.9 - 0.9 * a * a * a; // accélère jusqu'au choc
+            ecrire(logoP1, 'opacity', borne(a * 2.5).toFixed(3));
+        } else {
+            const b = (t - CHUTE) / APRES; // 0 → 1 après le choc
+            const amorti = Math.exp(-6 * b);
+            echelle = 1 - 0.06 * amorti * Math.cos(b * 9); // écrasé au choc, revient vite
+            dx = 6 * amorti * Math.sin(b * 38); // tremble
+            eclat = amorti;
+            ecrire(logoP1, 'opacity', '1');
+        }
+        ecrire(logoP1, 'transform', `translateX(${dx.toFixed(1)}px) scale(${echelle.toFixed(4)})`);
+        ecrire(logoP1, 'filter', `drop-shadow(0 6px ${(24 + 30 * eclat).toFixed(1)}px rgba(234, 196, 90, ${(0.25 + 0.65 * eclat).toFixed(3)}))`);
+    }
+    const TEMPS_POINT1 = [[0, 0.62], [1.2, 0.69], [2.2, 0.75], [3.2, 0.81], [4.2, 0.9], [5.4, 1.03]];
+    lecteur(point1, {
+        cible: point1.querySelector('.scene-point1'),
+        duree: 5.4,
+        poser: (p) => { poserLogoP1(p * 5.4); poserPoint1(surCourbe(TEMPS_POINT1, p * 5.4)); },
+        // (Hugo, 23/11) plus de boucle : les flèches s'effaçaient d'un coup ; on reste sur la fin, flèches affichées
+        siCalme: () => poserPoint1(1.03),
+    });
+
+    // ======================= Point 2 : le graphique se trace une fois =======================
+    const graphe = document.querySelector('.graphe');
+    if (graphe) lecteur(graphe, { duree: 3.2, poser: (p) => ecrire(graphe, '--p', p.toFixed(3)) });
+
+    // ======================= Point 3 : la partie à 4, jouée une fois (7 coups, puis « MATATAK ! ») =======================
+    if (partie4) lecteur(pointPartie, { duree: 9, cible: partie4.parentElement, poser: (p) => poserPartie4(p) });
+
+    // ======================= Point 4 : les bandeaux de cartes défilent en continu =======================
+    // (Hugo, 23/11 : l'aller-retour sautait au départ) chaque rangée défile toujours dans le même sens (une sur deux en
+    // sens contraire) ; elle est suivie d'une copie d'elle-même : une carte qui sort d'un côté revient de l'autre.
+    // Le temps n'avance que pendant que la section est à l'écran, sans jamais repartir de zéro (pas de saut).
+    const rangees4 = [...document.querySelectorAll('.point-cartes .rangee')];
+    rangees4.forEach((r) => [...r.children].forEach((c) => r.appendChild(c.cloneNode(true))));
+    let periodes4 = null; // largeur d'une copie, par rangée (0 : rangée cachée à cette taille d'écran)
+    let tBandeaux = 0, dernierB = 0;
+    const poserBandeaux = () => {
+        if (!periodes4) periodes4 = rangees4.map((r) => (r.offsetWidth + (parseFloat(getComputedStyle(r).columnGap) || 0)) / 2);
+        const v = Math.max(24, window.innerWidth * 0.022); // px par seconde
+        rangees4.forEach((r, k) => {
+            const W = periodes4[k];
+            if (!W) return;
+            const d = (tBandeaux * v) % W;
+            ecrire(r, '--x', `${(r.style.getPropertyValue('--sens').trim() === '-1' ? -d : d - W).toFixed(1)}px`);
+        });
+    };
+    const pointCartes = document.querySelector('.point-cartes');
+    // texte: true : décor, part dès qu'il arrive sans attendre la partie à 4, et ne repart pas de zéro au retour
+    if (pointCartes) lecteur(pointCartes, {
+        duree: 0, texte: true,
+        poser: () => poserBandeaux(),
+        suite: (t) => { tBandeaux += t >= dernierB ? t - dernierB : t; dernierB = t; poserBandeaux(); },
+        siCalme: () => {},
+    });
+
+    // ======================= Échecs : les 32 cartes se posent, puis 1. e4 e5 2. Cf3 Cc6 3. Fc4 (une fois) =======================
+    const TEMPS_ECHECS = [[0, 0], [3.6, 0.56], [4.2, 0.6], [8.6, 0.95]];
+    if (echiquier) lecteur(echecs, {
+        cible: echiquier,
+        duree: 8.6,
+        poser: (p) => poserEchecs(surCourbe(TEMPS_ECHECS, p * 8.6)),
+        siCalme: () => poserEchecs(0.6),
+    });
+
+    // ======================= Toujours un adversaire : une vraie partie filmée, jouée une fois =======================
+    // (23/11, Hugo) le joueur du bas touche ses cartes, joue, l'adversaire répond… jusqu'au Roi sur la Colline. La vidéo
+    // part quand le téléphone est au milieu de l'écran, s'arrête hors de l'écran, repart au retour. Le texte (titre,
+    // sujets, bouton) se dévoile à part, dès qu'il arrive.
+    const partieVideo = enLigne && enLigne.querySelector('.partie-video');
+    if (partieVideo) {
+        lecteur(enLigne.querySelector('.telephone'), {
+            duree: 30, // ≈ la vidéo (29,9 s) ; elle va de toute façon jusqu'au bout
+            poser: (p) => {
+                if (p === 0) { partieVideo.pause(); partieVideo.currentTime = 0; }
+                else if (partieVideo.paused && !partieVideo.ended) partieVideo.play().catch(() => {});
+            },
+            siCalme: () => {},
+        });
+        new IntersectionObserver((es) => { if (!es[0].isIntersecting) partieVideo.pause(); }).observe(partieVideo);
+    }
+
+    const texteEnLigne = enLigne && enLigne.querySelector('.en-ligne-texte');
+    if (texteEnLigne) enVague(texteEnLigne, [...texteEnLigne.children].flatMap((c) => (c.matches('.sujets') ? [...c.children] : [c])), 2);
+
+    // ======================= Fin de page : la boîte fermée s'ouvre en vue d'ensemble, puis l'offre (une fois) =======================
+    let finBoite = calme ? 1 : 0;
+    // feuilles fixes : claires en haut (ordinateur), puis assombries ; elles reviennent sur la boîte de fin (téléphone)
+    function majFeuilles(y, h) {
+        const finF = lisse(0.3, 0.62, finBoite);
+        // le vignettage aussi : la fin répond au début (Hugo, 17/11)
+        const sombre = lisse(0, h * 0.9, y);
+        // ordinateur : elles restent assombries à la fin, la boîte ouverte ressort mieux sur le noir (Hugo, 18/11)
+        ecrire(feuilles, 'opacity', (etroit() ? finF * 0.6 : mix(0.6, 0.4, sombre)).toFixed(3)); // 0,6 en haut (Hugo, 18/11 : la boîte ressort mieux)
+        ecrire(feuilles, '--v', (etroit() ? finF : mix(1 - sombre, 1, finF)).toFixed(3));
+    }
+    function poserFermeture(pf) {
+        finBoite = pf;
+        majFeuilles(window.scrollY, window.innerHeight);
+        // (18/11, Hugo : sans le rangement) la boîte arrive fermée et s'ouvre aussitôt en vue d'ensemble (0,04 → 0,6)
+        if (sceneFermeture) { sceneFermeture.t = 0; sceneFermeture.vue = lisse(0.04, 0.6, pf); }
+        fermeture.classList.toggle('vue', pf > 0.1);
+        const montre = lisse(0.56, 0.7, pf);
+        // sur téléphone, la scène occupe tout l'écran puis remonte pour laisser venir l'offre, un peu avant elle
+        if (sceneFermeture) sceneFermeture.offre = lisse(0.48, 0.62, pf);
+        ecrire(offre, 'opacity', montre);
+        ecrire(offre, 'transform', `translateY(${(1 - montre) * 30}px)`);
+        offre.classList.toggle('visible', montre > 0.5);
+    }
+    const TEMPS_FIN = [[0, 0], [0.3, 0.04], [4.3, 0.6], [5.3, 0.75]];
+    lecteur(fermeture, {
+        cible: sceneFermeture ? sceneFermeture.el : fermeture,
+        duree: 5.3,
+        poser: (p) => poserFermeture(surCourbe(TEMPS_FIN, p * 5.3)),
+        siCalme: () => poserFermeture(1),
+    });
+
+    // ======================= Équipe : chaque partie se dévoile une fois (Hugo, 23/11) =======================
+    // l'équipe (les 3 portraits un à un, puis la phrase), la genèse qui s'écrit, « Ils nous font confiance » (titre puis
+    // logos), « Fabriqué en Europe » (titre, les 3 points un à un comme les freins, puis le label)
+    const equipeTrois = document.querySelector('.equipe-trois');
+    if (equipeTrois) enVague(equipeTrois, [...equipeTrois.querySelectorAll('.portrait, .intro')], 2);
+    const soutien = document.querySelector('.equipe-bloc .soutien');
+    if (soutien) enVague(soutien, [...soutien.querySelectorAll('h3, figure')], 1.5);
+    const fabrication = document.querySelector('.equipe-bloc .fabrication');
+    if (fabrication) enVague(fabrication, [...fabrication.querySelectorAll('h3, li, .label')], 3);
+    // la genèse s'écrit mot à mot (≈ 22 mots par seconde) : l'opacité de chaque mot est écrite sur lui
+    const genese = document.querySelector('.genese');
+    if (genese) {
+        const couper = (noeud) => [...noeud.childNodes].forEach((c) => {
+            if (c.nodeType === 3) {
+                const frag = document.createDocumentFragment();
+                c.textContent.split(/(\s+)/).forEach((m) => {
+                    if (!m) return;
+                    if (/^\s+$/.test(m)) { frag.append(m); return; }
+                    const sp = document.createElement('span');
+                    sp.className = 'mot-g'; sp.textContent = m;
+                    frag.append(sp);
+                });
+                c.replaceWith(frag);
+            } else if (c.nodeType === 1) couper(c);
+        });
+        genese.querySelectorAll('p, footer').forEach(couper);
+        const mots = [...genese.querySelectorAll('.mot-g')], n = mots.length;
+        lecteur(genese, {
+            duree: n / 22, texte: true,
+            poser: (q) => mots.forEach((m, k) => ecrire(m, 'opacity', borne((q * (n + 3) - k) / 3).toFixed(2))),
         });
     }
 
@@ -712,201 +1035,38 @@
     document.body.appendChild(progression);
 
     // ======================= Défilement =======================
-    // Toutes les mesures d'abord, puis les écritures (voir mesurerProgressions) ; une section loin de l'écran n'est
-    // plus posée à chaque image (Safari iPhone saccadait, 19/11), sauf une dernière fois quand elle s'en éloigne.
+    // Toutes les mesures d'abord, puis les écritures (Safari iPhone saccadait quand elles se mêlaient, 19/11)
     let attente = false;
-    const pres = {};
-    const mesurer = (cle, el, h) => {
-        const r = el.getBoundingClientRect();
-        const proche = r.bottom > -h * 0.5 && r.top < h * 1.5, avant = pres[cle];
-        pres[cle] = proche;
-        return { r, p: borne(-r.top / Math.max(1, r.height - h)), poser: proche || avant !== false };
-    };
     function maj() {
         attente = false;
         const y = window.scrollY, h = window.innerHeight;
         // --- mesures ---
-        const mE = echiquier ? mesurer('echecs', echecs, h) : null;
-        const mF = mesurer('fermeture', fermeture, h), hautFermeture = fermeture.offsetTop;
-        const mFr = mesurer('freins', freins, h), lp = freinsMt.offsetWidth || 1;
-        const mL = enLigne ? mesurer('enLigne', enLigne, h) : null;
-        let mP = null;
-        if (partie4) {
-            if (!geoP) {
-                const cs = getComputedStyle(pointPartie);
-                geoP = { colle: parseFloat(getComputedStyle(blocPartie).top) || 0, haut: parseFloat(cs.paddingTop), bas: parseFloat(cs.paddingBottom) };
-            }
-            mP = { ra: pointPartie.getBoundingClientRect(), hb: blocPartie.offsetHeight };
-        }
-        const progres = calme ? null : mesurerProgressions(h, suivis);
+        const rF = fermeture.getBoundingClientRect(), hautFermeture = fermeture.offsetTop;
         const remplis = etapesBarre.map(({ section }) => { const r = section.getBoundingClientRect(); return borne((h * 0.5 - r.top) / r.height); });
         // --- écritures ---
         etapesBarre.forEach(({ b }, k) => ecrire(b, 'transform', `scaleX(${remplis[k].toFixed(3)})`));
         // cachée sur le premier écran, et quand la boîte de fin commence à partir (Hugo, 19/11)
-        progression.classList.toggle('visible', y > h * 0.5 && mF.r.bottom > h);
+        progression.classList.toggle('visible', y > h * 0.5 && rF.bottom > h);
         // la boîte de fin est à moins de 3 écrans : ses images se chargent maintenant
-        if (sceneFermeture && mF.r.top < h * 3) prechargerScene(sceneFermeture);
+        if (sceneFermeture && rF.top < h * 3) prechargerScene(sceneFermeture);
         nav.classList.toggle('plein', y > 40);
-        if (descendre) descendre.classList.toggle('partie', y > 60);
+        if (descendre) descendre.classList.toggle('partie', y > 60 || !placeDescendre);
+        if (ySuite !== null && Math.abs(y - ySuite) > 40) cacherSuite();
         // la barre « Jouer » du bas se cache pendant l'animation de la boîte (elle cacherait les légendes et l'offre)
         collante.classList.toggle('visible', y > h * 0.8 && y < hautFermeture - h * 0.3);
         if (!calme && y < h * 1.2) ecrire(fond, 'transform', `translateY(${y * 0.25}px) scale(${1 + y / 5000})`);
         if (sceneHeros) sceneHeros.t = 0;
 
-        if (echiquier && (calme || mE.poser)) poserEchecs(calme ? 0.6 : mE.p);
+        majFeuilles(y, h);
 
-        // Fin de page : la boîte fermée s'ouvre en vue d'ensemble, puis l'offre
-        const pf = calme ? 1 : mF.p;
-        // feuilles fixes : claires en haut (ordinateur), puis assombries jusqu'au bout
-        const finF = lisse(0.3, 0.62, mF.p);
-        // le vignettage aussi : la fin répond au début (Hugo, 17/11)
-        const sombre = lisse(0, h * 0.9, y);
-        // ordinateur : elles restent assombries à la fin, la boîte ouverte ressort mieux sur le noir (Hugo, 18/11)
-        ecrire(feuilles, 'opacity', (etroit() ? finF * 0.6 : mix(0.6, 0.4, sombre)).toFixed(3)); // 0,6 en haut (Hugo, 18/11 : la boîte ressort mieux)
-        ecrire(feuilles, '--v', (etroit() ? finF : mix(1 - sombre, 1, finF)).toFixed(3));
-        // (18/11, Hugo : sans le rangement) la boîte arrive fermée et s'ouvre aussitôt en vue d'ensemble (0,04 → 0,6)
-        if (sceneFermeture) { sceneFermeture.t = 0; sceneFermeture.vue = lisse(0.04, 0.6, pf); }
-        fermeture.classList.toggle('vue', pf > 0.1);
-        const montre = lisse(0.56, 0.7, pf);
-        // sur téléphone, la scène occupe tout l'écran puis remonte pour laisser venir l'offre, un peu avant elle
-        if (sceneFermeture) sceneFermeture.offre = lisse(0.48, 0.62, pf);
-        ecrire(offre, 'opacity', montre);
-        ecrire(offre, 'transform', `translateY(${(1 - montre) * 30}px)`);
-        offre.classList.toggle('visible', montre > 0.5);
-
-        // Freins (repères en part de la section) :
-        // 0,03 → 0,42 une ouverture d'échecs, toutes les flèches des coups possibles à chaque position ;
-        // les 3 freins arrivent (0,05 / 0,17 / 0,29), sont barrés (0,40 → 0,49), s'en vont (0,5 → 0,54) ;
-        // 0,5 → 0,62 le plateau de MATATAK arrive de la droite et pousse l'échiquier, qui part en tournoyant ;
-        // le logo remplace le titre et le point 1 arrive (0,58) ; MOJO avance (0,62), zoom sur sa carte (0,64 → 0,73),
-        // on recule (0,79 → 0,9) et les flèches sortent de ses symboles (0,79 → 0,92).
-        // (19/11 : le point 1 après le plateau, de 0,63 à 0,68, et la suite décalée d'autant)
-        if (!calme && mFr.poser) {
-            // le point 1 n'arrive qu'une fois le plateau de MATATAK posé, puis le zoom sur MOJO (Hugo, 19/11 : « ça
-            // démarre trop vite » ; un arrêt de 60vh était trop long) : la section a 10vh de plus (vitrine.css, 310vh)
-            // et va jusqu'à 1,05 ; tout ce qui suit le plateau est décalé d'environ 0,06
-            const pr = mFr.p * 1.05;
-            const part = lisse(0.5, 0.54, pr);
-            freinsLi.forEach((li, i) => {
-                ecrire(li, '--a', lisse(0.05 + i * 0.12, 0.09 + i * 0.12, pr).toFixed(3));
-                ecrire(li, '--s', lisse(0.4 + i * 0.03, 0.43 + i * 0.03, pr).toFixed(3));
-                ecrire(li, '--x', part.toFixed(3));
-            });
-            const fe = etape(pr, 0.03, 0.065, 6);
-            const vues = lisse(0.01, 0.06, pr);
-            // fondu long entre deux positions : les flèches de l'une laissent la place à celles de la suivante sans à-coup
-            coupsFreins.forEach((g, j) => { ecrire(g, 'opacity', (vues * borne(1 - Math.abs(fe - j) * 1.6)).toFixed(3)); });
-            piecesFreins.forEach((p) => {
-                const [x, y] = surChemin(p.c, fe);
-                const tr = `translate(${(x * 100).toFixed(1)} ${((7 - y) * 100).toFixed(1)})`;
-                if (p.el._tr !== tr) { p.el._tr = tr; p.el.setAttribute('transform', tr); }
-            });
-            // MATATAK glisse depuis la droite jusqu'au centre en se redressant ; il touche l'échiquier, puis le pousse
-            // et lui donne de l'élan : l'échiquier part vers la gauche en tournant et en tombant.
-            // Départ juste hors de l'écran, quelle que soit sa largeur (en % de la largeur du plateau).
-            const u = lisse(0.5, 0.62, pr);
-            const xm = Math.max(130, ((window.innerWidth + lp) / 2 + 60) / lp * 100) * (1 - u);
-            ecrire(freinsMt, 'transform', `translateX(${xm.toFixed(2)}%) rotate(${(14 * (1 - u)).toFixed(2)}deg)`);
-            const choc = borne((100 - xm) / 100);
-            const vol = choc * (1 + choc * 0.9);
-            ecrire(freinsEchiquier, 'transform', `translate(${(-100 * vol).toFixed(2)}%, ${(18 * choc * choc).toFixed(2)}%) rotate(${(-38 * vol).toFixed(2)}deg)`);
-            ecrire(freinsEchiquier, 'opacity', (1 - lisse(0.75, 1, choc)).toFixed(3));
-            ecrire(freinsTitres, '--t', lisse(0.5, 0.55, pr).toFixed(3));
-            // dès que MATATAK est là : le logo et le point 1 (sur ordinateur, le plateau glisse à gauche, le texte à droite) ;
-            // les autres cartes s'effacent, MOJO avance de e1 à e2, on zoome sur sa carte (× 9 : on ne voit presque plus que lui, Hugo 16/11 ; régulier en échelle log),
-            // puis on recule (× 2,6) pendant que des flèches sortent de ses symboles jusqu'à ses 8 cases
-            ecrire(freinsTitres, '--m', lisse(0.57, 0.62, pr).toFixed(3));
-            ecrire(freinsPoint1, '--r', lisse(0.63, 0.68, pr).toFixed(3));
-            ecrire(freinsScene, '--g', lisse(0.63, 0.7, pr).toFixed(3));
-            // caméra : la vue fait 9 fois le plateau, réduite d'autant (zoom sv ≤ 9), et centre peu à peu MOJO (f)
-            const zin = lisse(0.72, 0.81, pr);
-            const sv = Math.exp(Math.log(9) * zin + (Math.log(2.6) - Math.log(9)) * lisse(0.9, 1, pr));
-            const vx = (0.5 - sv * (0.5 + zin * 0.0625)) * 100 / 9, vy = (0.5 - sv * (0.5 + zin * 0.3125)) * 100 / 9;
-            ecrire(freinsVue, 'transform', `translate(${vx.toFixed(3)}%, ${vy.toFixed(3)}%) scale(${(sv / 9).toFixed(4)})`);
-            // les autres cartes s'effacent ; MOJO avance d'une case (12,5 % de la vue = 116,8 % de sa carte)
-            const efface = (1 - lisse(0.69, 0.74, pr)).toFixed(3);
-            cartesMt.forEach((im) => ecrire(im, 'opacity', efface));
-            ecrire(vedetteMt, 'transform', `translateY(${(-116.82 * lisse(0.7, 0.75, pr)).toFixed(2)}%)`);
-            // les symboles de la carte brillent trois fois (ils clignotent), puis les flèches en sortent
-            const brille = Math.abs(Math.sin(3 * Math.PI * lisse(0.8, 0.93, pr)));
-            const vu = Math.min(1, brille * 3).toFixed(3);
-            lueursMt.forEach((l) => {
-                ecrire(l, 'opacity', vu);
-                ecrire(l, 'transform', `scale(${(1 + brille * 0.3).toFixed(3)})`);
-            });
-            halosMt.forEach((l) => {
-                ecrire(l, 'opacity', (brille * 0.85).toFixed(3));
-                ecrire(l, 'transform', `scale(${(0.7 + brille * 0.4).toFixed(3)})`);
-            });
-            // les flèches poussent pendant qu'on recule
-            const pousse = lisse(0.92, 1.03, pr);
-            flechesMt.forEach((f) => {
-                ecrire(f.g, 'opacity', Math.min(1, pousse * 5).toFixed(3));
-                ecrire(f.ligne, 'strokeDashoffset', ((1 - pousse) * f.l).toFixed(2));
-                ecrire(f.tete, 'transform', `translateX(${(pousse * f.l).toFixed(2)}px)`);
-            });
-        }
-
-        // jeu en ligne : une partie entre deux joueurs se joue au défilement, une capture par étape (le joueur du bas
-        // touche une carte, joue, l'adversaire répond) jusqu'au Roi sur la Colline ; le sujet actif en or, par tiers
-        if (enLigne && !calme && etapesMini.length && mL.poser) {
-            const q = lisse(0.04, 0.94, mL.p);
-            const i = Math.min(etapesMini.length - 1, Math.floor(q * etapesMini.length));
-            if (i !== etapeMini) { etapesMini[etapeMini].classList.remove('active'); etapesMini[i].classList.add('active'); etapeMini = i; }
-            // (pas de décodage d'avance des captures : gardées en mémoire, elles faisaient ramer Firefox Android sur
-            // l'ouverture de la boîte ; Hugo, 19/11, comparé dans le même onglet)
-            const actif = Math.min(2, Math.floor(q * 3));
-            sujetsEnLigne.forEach((li, k) => li.classList.toggle('actif', k === actif));
-        }
-
-        // partie à 4 (point 3) : toute la partie se joue pendant que le point 3 est arrêté à l'écran (son bloc
-        // collé en haut), avec un peu d'avance à l'arrivée
-        if (partie4) {
-            const ra = mP.ra;
-            const debutP = geoP.colle - geoP.haut + h * 0.25;
-            const courseP = Math.max(1, ra.height - geoP.haut - geoP.bas - mP.hb + h * 0.25);
-            p4Cible = calme ? 1 : borne((debutP - ra.top) / courseP);
-            if (calme) poserPartie4(1);
-        }
-        if (progres) appliquerProgressions(progres);
         if (calme) animer(performance.now());
     }
     window.addEventListener('scroll', () => {
         if (!attente) { attente = true; requestAnimationFrame(maj); }
     }, { passive: true });
-    window.addEventListener('resize', () => { scenes.forEach((s) => { s.pose = false; }); geoP = null; maj(); }, { passive: true });
-    // ======================= Molette plus douce (ordinateur) =======================
-    // À la molette, chaque cran sautait d'environ 100 px : toute la page paraissait trop sensible (Hugo, 16/11).
-    // Les crans sont raccourcis (× 0,75) et glissent ; les pas du pavé tactile sont raccourcis (× 0,5).
-    if (!calme && molette.matches) {
-        let cible = 0, enRoute = false, pose = -1;
-        const pas = () => {
-            const y = window.scrollY, reste = cible - y;
-            // la page a bougé autrement (barre de défilement, clavier, lien) : on lâche
-            if (pose >= 0 && Math.abs(y - pose) > 3) { enRoute = false; pose = -1; return; }
-            if (Math.abs(reste) < 1.5) { window.scrollTo({ top: cible, behavior: 'instant' }); enRoute = false; pose = -1; return; }
-            const avance = Math.abs(reste * 0.16) < 1 ? Math.sign(reste) : reste * 0.16; // au moins 1 px : scrollY est arrondi
-            pose = Math.round(y + avance);
-            window.scrollTo({ top: y + avance, behavior: 'instant' }); // instant : le html est en scroll-behavior smooth
-            requestAnimationFrame(pas);
-        };
-        window.addEventListener('wheel', (e) => {
-            if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-            // pavé tactile (petits pas continus, élan compris) : chaque pas est raccourci (× 0,5), sans lissage, l'élan
-            // reste le sien ; il défilait encore bien trop vite (Hugo, 17/11)
-            if (e.deltaMode === 0 && Math.abs(e.deltaY) < 40) {
-                e.preventDefault();
-                enRoute = false; pose = -1;
-                window.scrollBy({ top: e.deltaY * 0.5, behavior: 'instant' });
-                return;
-            }
-            e.preventDefault();
-            if (!enRoute) { cible = window.scrollY; pose = -1; }
-            const d = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
-            cible = borne(cible + d * 0.75, 0, document.documentElement.scrollHeight - window.innerHeight);
-            if (!enRoute) { enRoute = true; requestAnimationFrame(pas); }
-        }, { passive: false });
-    }
+    window.addEventListener('resize', () => { scenes.forEach((s) => { s.pose = false; }); periodes4 = null; maj(); }, { passive: true });
+    // (23/11) plus de molette ralentie : elle servait au pilotage des animations au défilement, la page défile
+    // maintenant comme les autres
 
     maj();
     requestAnimationFrame(animer);
@@ -947,31 +1107,6 @@
 
     // ======================= Ils y ont joué : boucles muettes, son au choix =======================
     // Une seule vidéo parle à la fois ; activer le son la reprend au début. Hors de l'écran, elle s'arrête.
-    // ======================= Genèse : le texte s'écrit mot à mot au défilement (data-p="genese", appliquerProgressions) =======================
-    const genese = document.querySelector('.genese');
-    if (genese) {
-        const couper = (noeud) => [...noeud.childNodes].forEach((c) => {
-            if (c.nodeType === 3) {
-                const frag = document.createDocumentFragment();
-                c.textContent.split(/(\s+)/).forEach((m) => {
-                    if (!m) return;
-                    if (/^\s+$/.test(m)) { frag.append(m); return; }
-                    const sp = document.createElement('span');
-                    sp.className = 'mot-g'; sp.textContent = m;
-                    frag.append(sp);
-                });
-                c.replaceWith(frag);
-            } else if (c.nodeType === 1) couper(c);
-        });
-        genese.querySelectorAll('p, footer').forEach(couper);
-        // mots cachés au départ, puis reposés à la prochaine mesure (ils n'existaient pas encore à la première)
-        if (!calme) {
-            genese.querySelectorAll('.mot-g').forEach((m) => ecrire(m, 'opacity', '0.00'));
-            genese._mots = null; genese._p = undefined;
-            appliquerProgressions(mesurerProgressions(window.innerHeight, [genese]));
-        }
-    }
-
     const videos = [...document.querySelectorAll('.temoins video')];
     const ecouter = (v, oui) => {
         v.muted = !oui;
@@ -979,11 +1114,6 @@
         b.setAttribute('aria-pressed', String(oui));
         b.setAttribute('aria-label', oui ? 'Couper le son' : 'Activer le son');
     };
-    // la vidéo au premier plan de la pile (l'autre, derrière, reste arrêtée : deux vidéos décodées à la fois
-    // faisaient saccader l'iPhone, 19/11)
-    const grilleTemoins = document.querySelector('.temoins-grille.carrousel');
-    const enAvant = (v) => !grilleTemoins || videos.indexOf(v) === (+grilleTemoins.dataset.etape || 0);
-    const visibles = new Set();
     // avec le son : si le navigateur refuse (Safari sans geste), elle repart muette au lieu de rester figée
     const jouer = (v) => v.play().catch(() => { if (!v.muted) { ecouter(v, false); v.play().catch(() => {}); } });
     videos.forEach((v) => {
@@ -1010,22 +1140,42 @@
             });
         }
         new IntersectionObserver((es) => {
-            if (es[0].isIntersecting) { visibles.add(v); if (enAvant(v)) jouer(v); }
-            else { visibles.delete(v); v.pause(); ecouter(v, false); }
-        }, { threshold: 0.25 }).observe(v);
+            if (es[0].isIntersecting) jouer(v);
+            else { v.pause(); ecouter(v, false); }
+        }, { threshold: 0.6 }).observe(v); // (23/11) 60 % : l'une sous l'autre, rarement deux à la fois
     });
-    // Une vidéo à la fois pendant l'arrêt (pile) : si le son était activé, il passe à la vidéo qui arrive,
-    // reprise au début (Hugo, 18/11) ; les points sous la vidéo suivent l'étape
-    if (grilleTemoins) grilleTemoins.addEventListener('etape', () => {
-        const k = +grilleTemoins.dataset.etape;
-        const son = videos.some((v) => !v.muted);
-        videos.forEach((v, j) => { ecouter(v, false); if (j !== k) v.pause(); });
-        if (videos[k]) {
-            if (son) { ecouter(videos[k], true); videos[k].currentTime = 0; }
-            if (son || visibles.has(videos[k])) jouer(videos[k]);
-        }
-        const legendes = document.querySelector('.temoins .legendes');
-        if (legendes) legendes.dataset.etape = String(k);
+
+    // ======================= Questions : ouverture et fermeture en douceur (Hugo, 23/11) =======================
+    // Les <details> s'ouvraient d'un coup : la hauteur glisse (0,32 s, sortie douce), la réponse arrive en fondu en
+    // descendant un peu ; fermeture un peu plus rapide. Un clic pendant le mouvement repart de la hauteur du moment.
+    if (!calme) document.querySelectorAll('.faq details').forEach((d) => {
+        const sommaire = d.querySelector('summary'), reponse = d.querySelector('summary ~ *');
+        if (!reponse) return;
+        sommaire.addEventListener('click', (e) => {
+            e.preventDefault();
+            const ouvrir = !d.open || d._ferme;
+            const depart = d.offsetHeight;
+            if (d._anim) d._anim.cancel();
+            if (d._fondu) d._fondu.cancel();
+            d.open = true;
+            const bords = d.offsetHeight - d.clientHeight;
+            const arrivee = ouvrir ? d.offsetHeight : sommaire.offsetHeight + bords;
+            d.style.overflow = 'hidden';
+            d.style.boxSizing = 'border-box';
+            d._ferme = !ouvrir;
+            d.classList.toggle('ferme', !ouvrir); // le chevron tourne tout de suite
+            d._anim = d.animate({ height: [`${depart}px`, `${arrivee}px`] },
+                { duration: ouvrir ? 320 : 240, easing: ouvrir ? 'cubic-bezier(.2, .8, .2, 1)' : 'cubic-bezier(.4, 0, .2, 1)' });
+            d._fondu = reponse.animate(ouvrir ? { opacity: [0, 1], transform: ['translateY(-6px)', 'none'] } : { opacity: [1, 0] },
+                { duration: ouvrir ? 320 : 180, easing: 'ease-out', fill: 'both' });
+            d._anim.onfinish = () => {
+                if (!ouvrir) d.open = false;
+                d._ferme = false; d._anim = null;
+                d.classList.remove('ferme');
+                d.style.overflow = ''; d.style.boxSizing = '';
+                if (d._fondu) { d._fondu.cancel(); d._fondu = null; }
+            };
+        });
     });
 
     // ======================= Apparition des blocs =======================
