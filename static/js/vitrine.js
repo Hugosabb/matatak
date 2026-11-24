@@ -1037,6 +1037,8 @@
     // ======================= Défilement =======================
     // Toutes les mesures d'abord, puis les écritures (Safari iPhone saccadait quand elles se mêlaient, 19/11)
     let attente = false;
+    let yNav = window.scrollY, cumulNav = 0;
+    if (nav) nav.addEventListener('focusin', () => nav.classList.remove('cache')); // clavier : le menu revient
     function maj() {
         attente = false;
         const y = window.scrollY, h = window.innerHeight;
@@ -1050,6 +1052,13 @@
         // la boîte de fin est à moins de 3 écrans : ses images se chargent maintenant
         if (sceneFermeture && rF.top < h * 3) prechargerScene(sceneFermeture);
         nav.classList.toggle('plein', y > 40);
+        // menu caché quand on descend, de retour dès qu'on remonte (Hugo, 24/11) ; toujours là en haut de page
+        const dNav = y - yNav;
+        yNav = y;
+        cumulNav = (cumulNav > 0) === (dNav > 0) ? cumulNav + dNav : dNav;
+        if (y < h * 0.5) nav.classList.remove('cache');
+        else if (cumulNav > 24) nav.classList.add('cache');
+        else if (cumulNav < -12) nav.classList.remove('cache');
         if (descendre) descendre.classList.toggle('partie', y > 60 || !placeDescendre);
         if (ySuite !== null && Math.abs(y - ySuite) > 40) cacherSuite();
         // la barre « Jouer » du bas se cache pendant l'animation de la boîte (elle cacherait les légendes et l'offre)

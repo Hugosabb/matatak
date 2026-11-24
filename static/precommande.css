@@ -455,3 +455,9 @@ body.pc > footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); ba
 /* (24/11) un élément « hidden » reste caché même si sa règle lui donne display: flex ou grid (la ligne « Code … −0 € »
    s'affichait sans code, la liste des relais restait après le choix) */
 .pc [hidden] { display: none !important; }
+
+/* En-tête qui se cache quand on descend et revient dès qu'on remonte (Hugo, 24/11 : test de Joseph Joseph, +6 %
+   d'achats et +15,5 % de revenu par visiteur contre un en-tête fixe ; celui qui disparaît sans revenir faisait -15 %) */
+.pc-nav, .pc-code { transition: transform 260ms cubic-bezier(.32, .72, 0, 1); }
+.pc.entete-cache .pc-nav, .pc.entete-cache .pc-code { transform: translateY(calc(-100% - var(--annonce) - env(safe-area-inset-top))); }
+@media (prefers-reduced-motion: reduce) { .pc-nav, .pc-code { transition: none; } }

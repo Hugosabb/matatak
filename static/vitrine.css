@@ -27,7 +27,9 @@ h1, h2, h3 { font-family: 'Jost', sans-serif; font-weight: 900; text-transform: 
 .sous { text-align: center; color: var(--mt-doux); max-width: 600px; margin: 0 auto 44px; font-size: 1.06em; }
 
 /* ---------- Navigation ---------- */
-.nav { position: fixed; inset: 0 0 auto; z-index: 50; transition: background .3s, box-shadow .3s; padding-top: env(safe-area-inset-top); }
+.nav { position: fixed; inset: 0 0 auto; z-index: 50; transition: background .3s, box-shadow .3s, transform 260ms cubic-bezier(.32, .72, 0, 1); padding-top: env(safe-area-inset-top); }
+/* caché quand on descend, de retour dès qu'on remonte (Hugo, 24/11 : test de Joseph Joseph) */
+.nav.cache { transform: translateY(-100%); }
 /* fond presque opaque, sans flou d'arrière-plan : le flou sur toute la largeur, au-dessus des feuilles fixes, faisait
    tressauter la barre au défilement dans WebKit (vidéo d'Hugo, 17/11) */
 .nav.plein { background: rgba(18, 16, 14, .95); box-shadow: 0 1px 0 var(--mt-filet); }

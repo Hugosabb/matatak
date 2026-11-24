@@ -522,6 +522,23 @@
         setInterval(ecrire, 1000);
     }
 
+    // En-tête (menu + bandeau) caché quand on descend, de retour dès qu'on remonte (Hugo, 24/11, test Joseph Joseph) ;
+    // toujours visible en haut de page et quand une fenêtre est ouverte
+    {
+        let yAvant = window.scrollY, cumul = 0;
+        window.addEventListener('scroll', () => {
+            const y = window.scrollY, d = y - yAvant;
+            yAvant = y;
+            cumul = (cumul > 0) === (d > 0) ? cumul + d : d; // distance parcourue dans le même sens
+            const cache = document.body.classList.contains('entete-cache');
+            if (y < 80 || document.querySelector('dialog[open]')) { if (cache) document.body.classList.remove('entete-cache'); return; }
+            if (!cache && cumul > 24) document.body.classList.add('entete-cache');
+            else if (cache && cumul < -12) document.body.classList.remove('entete-cache');
+        }, { passive: true });
+        // un lien du menu (ou le clavier) le fait revenir
+        document.querySelector('.pc-nav').addEventListener('focusin', () => document.body.classList.remove('entete-cache'));
+    }
+
     // « Prévenez-moi » des offres avec extensions : inscription à la newsletter avec l'intérêt « extensions »
     const prevenir = document.getElementById('pc-prevenir');
     if (prevenir) {
