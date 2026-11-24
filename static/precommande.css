@@ -361,7 +361,7 @@ body.pc > footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); ba
 .lien-code { margin: 0; padding: 0; border: 0; background: none; cursor: pointer; font: 700 14px 'Nunito', sans-serif; color: var(--mt-or);
   text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 .code-obtenu .lien-code, .lien-code.cache { display: none; }
-.pc-newsletter { position: relative; max-width: 400px; width: calc(100% - 32px); padding: 28px 24px 22px; text-align: left; }
+.pc-newsletter { position: fixed; /* fixed (pas relative) : sinon, ouverte plus bas dans la page, elle restait tout en haut, hors de l’écran (24/11) */ max-width: 400px; width: calc(100% - 32px); padding: 28px 24px 22px; text-align: left; }
 .pc-newsletter h2 { margin: 0 0 8px; font-size: 24px; color: var(--mt-or); }
 .pc-newsletter p { margin: 0 0 16px; color: var(--mt-doux); }
 .pc-newsletter .champ { display: grid; gap: 6px; margin-bottom: 14px; font-weight: 800; font-size: 14px; }
@@ -421,3 +421,15 @@ body.pc > footer { padding-bottom: calc(100px + env(safe-area-inset-bottom)); ba
   .pc-code .long { display: none; }
   .pc-code .avant, .pc-code .apres { flex-basis: 100%; }
 }
+
+/* Offres avec extensions pas encore disponibles (Hugo, 24/11 : elles sortent début 2027) : visibles avec leur prix,
+   un peu éteintes, « Bientôt disponible » et « Prévenez-moi » (newsletter) à la place d'« Ajouter au panier » */
+.formule.bientot .visuel { filter: saturate(.55) brightness(.78); }
+.formule.bientot .prix { color: var(--mt-doux); }
+.formule.bientot .choix-saisons { opacity: .6; }
+.formule.bientot .prevenir { margin-top: 0; }
+.bientot-texte { margin: auto 0 12px; font: 900 13px/1.2 'Jost', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--mt-or); }
+.pc-extensions .achat .bientot-texte { margin: 0; font-size: 12px; }
+.resume-offre.bientot .vignette { opacity: .6; }
+.bientot-mini { display: block; font: 900 10px/1.2 'Jost', sans-serif; font-style: normal; letter-spacing: .1em; text-transform: uppercase; color: var(--mt-or); margin-bottom: 2px; }
+.pc-prevenir .merci { margin: 8px 0 4px; font-weight: 700; color: var(--mt-encre); }

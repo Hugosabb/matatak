@@ -46,8 +46,12 @@
         const s = cle.slice(4); // ext:<saison>
         return { nom: `Extension ${SAISONS[s]}`, prix: prix.extension, eco: 0, img: sachet(s) };
     }
+    // les extensions sortent plus tard (Hugo, 24/11) : tant que extensions_dispo est faux, seul le jeu se commande
+    const extDispo = prix.extensions_dispo !== false;
     const connue = (cle) => {
-        if (cle === 'jeu' || cle === 'quatre') return true;
+        if (cle === 'jeu') return true;
+        if (!extDispo) return false;
+        if (cle === 'quatre') return true;
         if (cle.startsWith('ext:')) return cle.slice(4) in SAISONS;
         if (cle.startsWith('deux:')) return cle.slice(5).split(',').every((s) => s in SAISONS);
         return false;
@@ -227,6 +231,10 @@
             if (rep.ok && donnees.url) {
                 window.location.assign(donnees.url);
                 return;
+            }
+            if (donnees.pas_dispo) { // panier gardé d'avant : on n'y laisse que le jeu
+                for (const cle of [...panier.keys()]) if (!connue(cle)) panier.delete(cle);
+                afficher();
             }
             if (donnees.code_refuse) {
                 applique = null;
@@ -433,6 +441,35 @@
         };
         ecrire();
         setInterval(ecrire, 1000);
+    }
+
+    // « Prévenez-moi » des offres avec extensions : inscription à la newsletter avec l'intérêt « extensions »
+    const prevenir = document.getElementById('pc-prevenir');
+    if (prevenir) {
+        const form = prevenir.querySelector('form'), err = form.querySelector('.erreur');
+        document.querySelectorAll('.prevenir').forEach((b) => b.addEventListener('click', () => { prevenir.showModal(); form.email.focus(); }));
+        prevenir.querySelector('.fermer').addEventListener('click', () => prevenir.close());
+        prevenir.addEventListener('click', (e) => { if (e.target === prevenir) prevenir.close(); });
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            err.hidden = true;
+            const bouton = form.querySelector('button[type="submit"]');
+            bouton.disabled = true;
+            try {
+                const rep = await fetch('/precommande/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: form.email.value, site: form.site.value, interet: 'extensions' }),
+                });
+                const d = await rep.json().catch(() => ({}));
+                if (rep.ok) { form.hidden = true; prevenir.querySelector('.merci').hidden = false; }
+                else { err.textContent = d.erreur || 'Inscription impossible pour le moment.'; err.hidden = false; }
+            } catch (er) {
+                err.textContent = 'Pas de connexion : vérifiez votre réseau et réessayez.';
+                err.hidden = false;
+            }
+            bouton.disabled = false;
+        });
     }
 
     // fenêtre de l'offre de lancement : e-mail -> code affiché tout de suite (pas de vérification de l'adresse)

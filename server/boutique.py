@@ -108,6 +108,15 @@ def cle_valide(cle) -> bool:
     return False
 
 
+def extensions_dispo(prix: dict) -> bool:
+    """Les extensions sortent plus tard (Hugo, 24/11) : tant que c'est faux, seul le jeu se commande."""
+    return bool(prix.get("extensions_dispo", True))
+
+
+def vendable(prix: dict, cle: str) -> bool:
+    return cle == "jeu" or extensions_dispo(prix)
+
+
 def analyser_panier(lignes) -> list[tuple[str, int]]:
     """[(clé, quantité)] sans doublon, ou ValueError. La quantité est bornée (pas de commande de 10 000 jeux)."""
     if not isinstance(lignes, list) or not 0 < len(lignes) <= LIGNES_MAX:
@@ -357,6 +366,11 @@ CONSENTEMENT = (
     "En recevant votre code, vous vous abonnez à la newsletter de MATATAK : les nouvelles du jeu, "
     "désinscription en un clic. Vous avez 15 ans ou plus, ou l'accord d'un parent."
 )
+# « Prévenez-moi » des extensions (24/11) : pas de code ; la phrase gardée est celle qui était affichée
+CONSENTEMENT_PREVENIR = (
+    "En laissant votre e-mail, vous vous abonnez à la newsletter de MATATAK : les nouvelles du jeu, "
+    "désinscription en un clic. Vous avez 15 ans ou plus, ou l'accord d'un parent."
+)
 
 
 def euros_texte(montant: int) -> str:
@@ -438,7 +452,17 @@ async def paiement(request: web.Request) -> web.Response:
             raise ValueError("code")
     except (ValueError, json.JSONDecodeError):
         return web.json_response({"erreur": "Panier invalide."}, status=400)
-    if code and not remise_code(lire_prix(), code):
+    prix = lire_prix()
+    if not all(vendable(prix, cle) for cle, _n in panier):
+        return web.json_response(
+            {
+                "erreur": "Les extensions sortent %s : seul le jeu se commande pour l'instant."
+                % prix.get("extensions_sortie", "plus tard"),
+                "pas_dispo": True,
+            },
+            status=400,
+        )
+    if code and not remise_code(prix, code):
         # code tapé dans le panier mais plus valable (fin de l'offre entre-temps) : la page le retire
         return web.json_response(
             {
@@ -567,6 +591,8 @@ async def newsletter(request: web.Request) -> web.Response:
         corps = await request.json()
         email = (corps.get("email") or "").strip().lower() if isinstance(corps, dict) else ""
         robot = isinstance(corps, dict) and bool(corps.get("site"))
+        # « Prévenez-moi » des offres avec extensions (Hugo, 24/11) : l'abonné veut savoir quand elles sortent
+        interet = corps.get("interet") if isinstance(corps, dict) else None
     except (ValueError, json.JSONDecodeError, AttributeError):
         return web.json_response({"erreur": "Adresse invalide."}, status=400)
     if not isinstance(email, str) or len(email) > 254 or not EMAIL.match(email):
@@ -587,10 +613,13 @@ async def newsletter(request: web.Request) -> web.Response:
             {
                 "$setOnInsert": {"inscrit_le": maintenant, "source": "precommande"},
                 "$set": {
-                    "consentement": CONSENTEMENT,
+                    "consentement": (
+                        CONSENTEMENT_PREVENIR if interet == "extensions" else CONSENTEMENT
+                    ),
                     "consenti_le": maintenant,
                     "desinscrit": False,
                 },
+                **({"$addToSet": {"interets": "extensions"}} if interet == "extensions" else {}),
             },
             upsert=True,
         )

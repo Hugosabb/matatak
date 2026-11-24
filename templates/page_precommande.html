@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{ title }}</title>
-<meta name="description" content="Précommandez MATATAK, le plaisir des échecs, enfin accessible : 2 à 4 joueurs, 30 minutes, dès 7 ans. Le jeu et ses 4 extensions, une par Saison.">
+<meta name="description" content="Précommandez MATATAK, le plaisir des échecs, enfin accessible : 2 à 4 joueurs, 30 minutes, dès 7 ans. Le jeu, puis ses 4 extensions, une par Saison.">
 <meta name="theme-color" content="#12100e">
 <meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex">
@@ -83,8 +83,8 @@
 
       <nav class="resume" aria-label="Les 3 offres">
         <a class="resume-offre" href="#formule-jeu"><span class="vignette"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360"></span><span class="nom">L'Essentiel</span><span class="prix">{{ offres.jeu.prix }}</span><span class="plus">Le jeu</span></a>
-        <a class="resume-offre" href="#formule-deux"><span class="vignette pack"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360"><img class="v-sachet n2 k0" src="{{ f }}/sachet-printemps.webp" alt="" width="400" height="651"><img class="v-sachet n2 k1" src="{{ f }}/sachet-hiver.webp" alt="" width="400" height="651"></span><span class="nom">À la carte</span><span class="prix">{{ offres.deux.prix }}</span><span class="plus">Jeu + 2&nbsp;extensions</span></a>
-        <a class="resume-offre" href="#formule-quatre"><span class="vignette pack"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360">{% for cle, nom in saisons %}<img class="v-sachet n4 k{{ loop.index0 }}" src="{{ f }}/sachet-{{ cle }}.webp" alt="" width="400" height="651">{% endfor %}</span><span class="nom">L'Intégrale</span><span class="prix">{{ offres.quatre.prix }}</span><span class="plus">Jeu + 4&nbsp;extensions</span></a>
+        <a class="resume-offre{% if not ext_dispo %} bientot{% endif %}" href="#formule-deux"><span class="vignette pack"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360"><img class="v-sachet n2 k0" src="{{ f }}/sachet-printemps.webp" alt="" width="400" height="651"><img class="v-sachet n2 k1" src="{{ f }}/sachet-hiver.webp" alt="" width="400" height="651"></span><span class="nom">À la carte</span><span class="prix">{{ offres.deux.prix }}</span><span class="plus">{% if not ext_dispo %}<i class="bientot-mini">{{ prix.extensions_sortie }}</i>{% endif %}Jeu + 2&nbsp;extensions</span></a>
+        <a class="resume-offre{% if not ext_dispo %} bientot{% endif %}" href="#formule-quatre"><span class="vignette pack"><img class="v-principale" src="{{ v }}/boite/face.webp" alt="" width="360" height="360">{% for cle, nom in saisons %}<img class="v-sachet n4 k{{ loop.index0 }}" src="{{ f }}/sachet-{{ cle }}.webp" alt="" width="400" height="651">{% endfor %}</span><span class="nom">L'Intégrale</span><span class="prix">{{ offres.quatre.prix }}</span><span class="plus">{% if not ext_dispo %}<i class="bientot-mini">{{ prix.extensions_sortie }}</i>{% endif %}Jeu + 4&nbsp;extensions</span></a>
       </nav>
 
       <div class="formules">
@@ -108,7 +108,8 @@
           </div>
         </article>
 
-        <article class="formule formule-deux" data-offre="deux" id="formule-deux">
+        <article class="formule formule-deux{% if not ext_dispo %} bientot{% endif %}" data-offre="deux" id="formule-deux">
+          {%- if not ext_dispo %}<p class="ruban">Bientôt disponible</p>{% endif %}
           <div class="visuel">
             <img class="sachet s1" src="{{ f }}/sachet-printemps.webp" alt="" width="400" height="651">
             <img class="sachet s2" src="{{ f }}/sachet-hiver.webp" alt="" width="400" height="651">
@@ -120,7 +121,7 @@
             <p class="detail">Le jeu + 2 extensions au choix</p>
             <p class="prix">{{ offres.deux.prix }}</p>
             <p class="note"><span class="eco">Économisez {{ offres.deux.eco }}</span></p>
-            <fieldset class="choix-saisons">
+            <fieldset class="choix-saisons"{% if not ext_dispo %} disabled{% endif %}>
               <legend>Choisissez vos 2 Saisons préférées</legend>
               {%- for cle, nom in saisons %}
               <label class="saison {{ cle }}"><input type="checkbox" value="{{ cle }}"{% if cle in ("printemps", "hiver") %} checked{% endif %}>
@@ -133,12 +134,19 @@
               <li>2 extensions au choix (48 cartes)</li>
             </ul>
             <a class="savoir-plus" href="#extensions">En savoir plus sur les extensions</a>
+            {%- if ext_dispo %}
             <button type="button" class="mt-btn mt-btn-or mt-btn-large ajouter">Ajouter au panier</button>
+            {%- else %}
+            {#- (Hugo, 24/11) les extensions sortent plus tard : l'offre reste visible avec son prix (le jeu seul ne paraît
+                pas cher à côté), on ne peut pas encore la commander -#}
+            <p class="bientot-texte">Bientôt disponible · {{ prix.extensions_sortie }}</p>
+            <button type="button" class="mt-btn mt-btn-ligne mt-btn-large prevenir">Prévenez-moi</button>
+            {%- endif %}
           </div>
         </article>
 
-        <article class="formule formule-quatre" data-offre="quatre" id="formule-quatre">
-          <p class="ruban">Le plus complet</p>
+        <article class="formule formule-quatre{% if not ext_dispo %} bientot{% endif %}" data-offre="quatre" id="formule-quatre">
+          <p class="ruban">{% if ext_dispo %}Le plus complet{% else %}Bientôt disponible{% endif %}</p>
           <div class="visuel">
             {%- for cle, nom in saisons %}<img class="sachet s{{ loop.index }}" src="{{ f }}/sachet-{{ cle }}.webp" alt="" width="400" height="651">{% endfor %}
             {{ boite("petite") }}
@@ -155,7 +163,14 @@
               <li class="fort">Livraison offerte</li>
             </ul>
             <a class="savoir-plus" href="#extensions">En savoir plus sur les extensions</a>
+            {%- if ext_dispo %}
             <button type="button" class="mt-btn mt-btn-or mt-btn-large ajouter">Ajouter au panier</button>
+            {%- else %}
+            {#- (Hugo, 24/11) les extensions sortent plus tard : l'offre reste visible avec son prix (le jeu seul ne paraît
+                pas cher à côté), on ne peut pas encore la commander -#}
+            <p class="bientot-texte">Bientôt disponible · {{ prix.extensions_sortie }}</p>
+            <button type="button" class="mt-btn mt-btn-ligne mt-btn-large prevenir">Prévenez-moi</button>
+            {%- endif %}
           </div>
         </article>
       </div>
@@ -190,7 +205,7 @@
         </div>
         <div class="texte-ext">
           <h3><img src="{{ v }}/logo.png" alt="MATATAK" width="900" height="143"> <span>{{ e.nom }}</span></h3>
-          <div class="achat"><span class="prix-ext">{{ euros(ext) }}</span>{{ compteur("ext:" ~ e.cle, "extension " ~ e.nom) }}</div>
+          <div class="achat"><span class="prix-ext">{{ euros(ext) }}</span>{% if ext_dispo %}{{ compteur("ext:" ~ e.cle, "extension " ~ e.nom) }}{% else %}<span class="bientot-texte">{{ prix.extensions_sortie|capitalize }}</span>{% endif %}</div>
           <button type="button" class="ouvrir-sachet">Ouvrir le sachet</button>
         </div>
       </article>
@@ -273,7 +288,7 @@
         <details><summary>Combien coûte la livraison&nbsp;?</summary><p>{{ euros(liv.prix) }} en point relais {{ liv.mode }}, offerte dès {{ euros(liv.offerte_des) }} d'achat. Nous livrons en {{ liv.zone }}.{% if ret.nom %} Vous pouvez aussi retirer votre commande gratuitement à la boutique {{ ret.nom }}, {{ ret.adresse }} à {{ ret.ville }}&nbsp;: nous vous prévenons dès qu'elle vous y attend.{% endif %}</p></details>
         <details><summary>J'ai un code promo</summary><p>Vous le saisirez sur la page de paiement, juste avant de payer.</p></details>
         <details><summary>Puis-je changer d'avis&nbsp;?</summary><p>Oui&nbsp;: vous avez 14 jours après la réception pour nous retourner le jeu, et vous êtes remboursé.</p></details>
-        <details><summary>Que contient une extension&nbsp;?</summary><p>24 cartes&nbsp;: de nouveaux Personnages et le Biome de sa Saison. Il faut le jeu pour y jouer.</p></details>
+        <details><summary>Que contient une extension&nbsp;?</summary><p>24 cartes&nbsp;: de nouveaux Personnages et le Biome de sa Saison. Il faut le jeu pour y jouer.{% if not ext_dispo %} Les 4 extensions sortent {{ prix.extensions_sortie }}.{% endif %}</p></details>
       </div>
     </div>
   </section>
@@ -313,6 +328,22 @@
     <p class="code-grand"><b class="code-texte"></b><button type="button" class="copier">Copier</button></p>
     <p>{{ euros(offre.remise) }} économisés sur chaque boîte de L'Essentiel (le jeu seul, pas les packs), jusqu'au {{ offre.fin_texte }}. Tapez-le dans votre panier, dans «&nbsp;Code promo&nbsp;».</p>
   </div>
+  <button type="button" class="fermer" aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+</dialog>
+{%- endif %}
+
+{%- if not ext_dispo %}
+<dialog class="pc-dialogue pc-newsletter pc-prevenir" id="pc-prevenir" aria-labelledby="titre-prevenir">
+  <form novalidate>
+    <h2 id="titre-prevenir">Les extensions arrivent {{ prix.extensions_sortie }}</h2>
+    <p>Laissez votre e-mail&nbsp;: nous vous écrivons dès qu'elles sont disponibles.</p>
+    <label class="champ"><span>Votre e-mail</span><input type="email" name="email" autocomplete="email" inputmode="email" required placeholder="vous@exemple.fr"></label>
+    <input class="pot" type="text" name="site" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <p class="erreur" role="alert" hidden></p>
+    <button type="submit" class="mt-btn mt-btn-or mt-btn-large">Me prévenir</button>
+    <p class="mention">{{ consentement_prevenir }} <a href="/confidentialite" target="_blank">Vos données</a></p>
+  </form>
+  <p class="merci" hidden>C'est noté&nbsp;! Nous vous écrirons dès que les extensions sont disponibles.</p>
   <button type="button" class="fermer" aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
 </dialog>
 {%- endif %}

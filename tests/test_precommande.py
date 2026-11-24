@@ -498,3 +498,56 @@ class CodesTestCase(unittest.TestCase):
 
         prix = {"jeu": 20.0, "newsletter": {"code": "ESSAI4", "remise": 4, "fin": "2026-12-15"}}
         self.assertEqual(boutique.remise_code(prix, "ESSAI4", date(2026, 12, 15)), 400)
+
+
+class ExtensionsPlusTardTestCase(AioHTTPTestCase):
+    """Hugo, 24/11 : les extensions sortent plus tard. Les offres avec extensions restent affichées avec leur prix,
+    « Bientôt disponible » et « Prévenez-moi » ; seul le jeu se commande, le serveur refuse le reste.
+    """
+
+    PRIX = {**PRIX, "extensions_dispo": False, "extensions_sortie": "début 2027"}
+
+    async def get_application(self):
+        return make_app(db_client=AsyncMongoMockClient(), simple_cookie_storage=True)
+
+    def setUp(self):
+        super().setUp()
+        self.prix = mock.patch.object(boutique, "lire_prix", lambda: self.PRIX)
+        self.prix.start()
+        self.addCleanup(self.prix.stop)
+
+    async def test_page_offres_visibles_mais_pas_en_vente(self):
+        texte = await (await self.client.get("/precommande")).text()
+        self.assertIn("Bientôt disponible · début 2027", texte)
+        self.assertIn("40 €", texte)  # le prix du pack reste affiché
+        self.assertEqual(texte.count("mt-btn-large ajouter"), 1)  # seulement le jeu
+        self.assertEqual(texte.count("mt-btn-large prevenir"), 2)
+        self.assertNotIn('data-cle="ext:', texte)  # pas de compteur sur les extensions à l'unité
+
+    async def test_seul_le_jeu_se_commande(self):
+        appels = []
+        cles = mock.patch.dict(os.environ, {"STRIPE_SECRET_KEY": "sk_test_essai"})
+        with cles, mock.patch.object(boutique, "stripe", faux_stripe(appels=appels)):
+            for lignes in (
+                [{"cle": "quatre", "n": 1}],
+                [{"cle": "jeu", "n": 1}, {"cle": "ext:ete", "n": 1}],
+            ):
+                rep = await self.client.post("/precommande/paiement", json={"panier": lignes})
+                self.assertEqual(rep.status, 400, lignes)
+                self.assertTrue((await rep.json())["pas_dispo"])
+            self.assertEqual(appels, [])  # rien demandé à Stripe
+            rep = await self.client.post(
+                "/precommande/paiement", json={"panier": [{"cle": "jeu", "n": 2}]}
+            )
+        self.assertEqual(rep.status, 200)
+
+    async def test_prevenez_moi_garde_l_interet(self):
+        rep = await self.client.post(
+            "/precommande/newsletter", json={"email": "a@exemple.fr", "interet": "extensions"}
+        )
+        self.assertEqual(rep.status, 200)
+        inscrit = await get_app_state(self.app).db.newsletter.find_one({"_id": "a@exemple.fr"})
+        self.assertEqual(inscrit["interets"], ["extensions"])
+        self.assertIn(
+            "En laissant votre e-mail", inscrit["consentement"]
+        )  # la phrase affichée, pas celle du code

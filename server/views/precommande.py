@@ -109,8 +109,10 @@ async def precommande(request):
         "extensions": _extensions(),
         "euros": euros,
         "paiement_ouvert": bool(boutique.cle_stripe()),
+        "ext_dispo": boutique.extensions_dispo(prix),
         "offre": boutique.offre_newsletter(prix),
         "consentement": boutique.CONSENTEMENT,
+        "consentement_prevenir": boutique.CONSENTEMENT_PREVENIR,
         "annule": "annule" in request.query,
     }
 
