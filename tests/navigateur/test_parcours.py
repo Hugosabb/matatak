@@ -52,6 +52,30 @@ async def test_pages_sans_erreur_ni_defilement_horizontal(site, chromium, teleph
     assert not page.erreurs, page.erreurs
 
 
+async def test_pas_de_defilement_horizontal_sur_iphone(site, webkit):
+    """Hugo, 23/11/2026 : « un scroll horizontal non voulu, ça arrive souvent ». Safari compte dans la largeur de
+    la page ce que Chromium coupe (le logo du point 1, agrandi × 1,9 avant son entrée, faisait 425 px pour un écran
+    de 390). Toutes les pages, puis la vitrine de haut en bas en laissant jouer les animations."""
+    page = await ouvrir(webkit, site, telephone=True)
+    trop_large = "document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"
+    problemes = []
+    for chemin in PAGES:
+        await page.goto(site + chemin)
+        await page.wait_for_timeout(800)
+        if await page.evaluate(trop_large):
+            problemes.append(f"{chemin} : {await page.evaluate('document.documentElement.scrollWidth')} px")
+    await page.goto(site + "/")
+    hauteur = await page.evaluate("document.documentElement.scrollHeight")
+    for y in range(0, hauteur, 400):
+        await page.evaluate(f"scrollTo(0, {y})")
+        for _ in range(3):
+            await page.wait_for_timeout(250)
+            if await page.evaluate(trop_large):
+                problemes.append(f"vitrine à {y} px : {await page.evaluate('document.documentElement.scrollWidth')} px")
+                break
+    assert not problemes, problemes
+
+
 async def partie_solo(chromium, site, niveau=1, telephone=False):
     page = await ouvrir(chromium, site, telephone)
     await page.goto(f"{site}/jouer/solo?variant=matatakmini&level={niveau}")

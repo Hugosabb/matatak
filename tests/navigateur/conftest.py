@@ -14,6 +14,7 @@ os.environ.setdefault("URI", "http://matatak.test")
 import json  # noqa: E402
 
 import pyffish as sf  # noqa: E402
+import pytest  # noqa: E402
 import pytest_asyncio  # noqa: E402
 from mongomock_motor import AsyncMongoMockClient  # noqa: E402
 from playwright.async_api import async_playwright  # noqa: E402
@@ -42,6 +43,20 @@ async def site(aiohttp_server):
 async def chromium():
     async with async_playwright() as p:
         navigateur = await p.chromium.launch(headless=True)
+        navigateur.appareils = p.devices
+        yield navigateur
+        await navigateur.close()
+
+
+@pytest_asyncio.fixture
+async def webkit():
+    """Le moteur de Safari : il laisse glisser la page de côté là où Chromium la coupe (23/11/2026).
+    Sauté s'il n'est pas installé (`playwright install webkit`), par exemple dans le cloud."""
+    async with async_playwright() as p:
+        try:
+            navigateur = await p.webkit.launch(headless=True)
+        except Exception as e:  # navigateur absent
+            pytest.skip(f"WebKit indisponible : {str(e).splitlines()[0]}")
         navigateur.appareils = p.devices
         yield navigateur
         await navigateur.close()
