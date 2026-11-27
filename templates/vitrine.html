@@ -273,9 +273,9 @@
 <!-- 7. Confiance : l'équipe (les questions sont tout en bas) -->
 <section class="bloc equipe-bloc" id="equipe">
   {#- (23/11 : sans animation, l'un sous l'autre) ; avant, pendant l'arrêt, en quatre temps (Hugo, 18/11) : d'abord l'équipe, les trois ensemble et à égalité, puis la genèse,
-      qui s'écrit au défilement, puis « Ils nous font confiance », puis « Fabriqué en Europe ». Photo absente (Hugo, Olivier : à venir) : un rond avec le symbole de
+      qui s'écrit au défilement, puis « Ils nous font confiance », puis « Fabriqué en Europe ». Photo absente : un rond avec le symbole de
       la personne, comme sur la boîte ; photos dans vitrine/equipe/ -#}
-  {%- set photo_hugo = none %}  {#- à venir : v ~ "/equipe/hugo.webp" -#}
+  {%- set photo_hugo = v ~ "/equipe/hugo.webp" %}  {#- (Hugo, 27/11) cadrage large comme Samuel ; la signature a sa version serrée, hugo-mini -#}
   {%- macro portrait(nom, role, symbole, photo=none) %}
         <figure class="portrait">
           {%- if photo %}<img class="photo" src="{{ photo }}" alt="{{ nom }}" width="240" height="240" loading="lazy">
@@ -290,7 +290,7 @@
         <div class="portraits">
           {{- portrait("Hugo Sabatier", "Auteur", '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 2v5.5M12 16.5V22M2 12h5.5M16.5 12H22M4.9 4.9l3.9 3.9M15.2 15.2l3.9 3.9M4.9 19.1l3.9-3.9M15.2 8.8l3.9-3.9"/></svg>', photo_hugo) }}
           {{- portrait("Samuel Boniface", "Illustrateur", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.2-4.6L16.6 4a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z"/><path d="M14.5 6.1l3.4 3.4"/></svg>', v ~ "/equipe/samuel.webp") }}
-          {{- portrait("Olivier Jamet", "Illustrateur", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.2-.4-1.1.3-2.3 1.6-2.3H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="7.5" cy="11" r="1.3"/><circle cx="10.5" cy="7.2" r="1.3"/><circle cx="15" cy="7.6" r="1.3"/></svg>') }}
+          {{- portrait("Olivier Jamet", "Illustrateur", '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.2-.4-1.1.3-2.3 1.6-2.3H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3z"/><circle cx="7.5" cy="11" r="1.3"/><circle cx="10.5" cy="7.2" r="1.3"/><circle cx="15" cy="7.6" r="1.3"/></svg>', v ~ "/equipe/olivier.webp") }}
         </div>
         <p class="intro">Entièrement illustré à la main</p>
       </div>
@@ -298,7 +298,7 @@
           <p>Je me suis mis aux échecs en 2020, après la série <i>Le Jeu de la dame</i>. Pendant six mois, j'ai regardé des vidéos et résolu des problèmes, sans jamais oser lancer une partie&nbsp;: je suis très joueur, et pourtant le jeu m'intimidait.</p>
           <p>Alors j'ai tenté une expérience&nbsp;: et si on ajoutait de nouveaux personnages&nbsp;? J'en ai fait une version numérique quand j'étais encore en école d'ingénieur, et elle a tout de suite piqué la curiosité des joueurs.</p>
           <p>Six ans et beaucoup de rebondissements plus tard, MATATAK sort en jeu de société. J'en suis super fier, et j'ai hâte que vous y jouiez&nbsp;!</p>
-          <footer>{% if photo_hugo %}<img class="photo-mini" src="{{ photo_hugo }}" alt="" width="96" height="96" loading="lazy">{% else %}<span class="photo-mini sans-photo" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 2v5.5M12 16.5V22M2 12h5.5M16.5 12H22M4.9 4.9l3.9 3.9M15.2 15.2l3.9 3.9M4.9 19.1l3.9-3.9M15.2 8.8l3.9-3.9"/></svg></span>{% endif %}<span>Hugo Sabatier, auteur</span></footer>
+          <footer>{% if photo_hugo %}<img class="photo-mini" src="{{ v ~ '/equipe/hugo-mini.webp' }}" alt="" width="96" height="96" loading="lazy">{% else %}<span class="photo-mini sans-photo" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.8"/><path d="M12 2v5.5M12 16.5V22M2 12h5.5M16.5 12H22M4.9 4.9l3.9 3.9M15.2 15.2l3.9 3.9M4.9 19.1l3.9-3.9M15.2 8.8l3.9-3.9"/></svg></span>{% endif %}<span>Hugo Sabatier, auteur</span></footer>
         </blockquote>
       {#- 3e étape (Hugo, 18/11) : partenaires. France 2030 : phrase et logo imposés par le contrat Bpifrance (Bourse
           French Tech), version blanche du kit officiel (zip dans site-prive/sources/logos). Initiative Calvados et
